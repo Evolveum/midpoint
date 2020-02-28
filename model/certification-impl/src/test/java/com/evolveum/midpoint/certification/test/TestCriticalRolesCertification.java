@@ -73,7 +73,7 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
@@ -123,7 +123,7 @@ jack->CTO                   none (A) -> A
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -187,7 +187,7 @@ jack->CTO                   none (A) -> A
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         assertEquals("unexpected # of cases", 6, caseList.size());
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -230,7 +230,7 @@ jack->CTO                   none (A) -> A
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -272,7 +272,7 @@ jack->CTO                   none (A) -> A
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -344,7 +344,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, false, task, result);
 
@@ -375,7 +375,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
 /*
 Stage2: allMustAccept, default: accept, advance on: accept          (target owner)
@@ -460,7 +460,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -491,7 +491,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -537,7 +537,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -615,7 +615,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
 /*
 Case                        Stage1              Stage2                           Stage3
@@ -721,7 +721,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -787,7 +787,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -863,7 +863,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
 /*
 Stage4: allMustAccept
@@ -968,7 +968,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -1035,7 +1035,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.startRemediation(campaignOid, task, result);
 
         // THEN
@@ -1087,7 +1087,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, false, task, result);
 
@@ -1145,7 +1145,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         //certificationManager.closeCampaign(campaignOid, true, task, result);
         certificationManager.reiterateCampaign(campaignOid, task, result);
@@ -1237,7 +1237,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -1323,7 +1323,7 @@ jack->CTO                                       "A" from iter 1
 //        OperationResult result = task.getResult();
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        certificationManager.closeCurrentStage(campaignOid, task, result);
 //
 //        // THEN
@@ -1361,7 +1361,7 @@ jack->CTO                                       "A" from iter 1
 //        OperationResult result = task.getResult();
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        certificationManager.openNextStage(campaignOid, task, result);
 //
 //        // THEN

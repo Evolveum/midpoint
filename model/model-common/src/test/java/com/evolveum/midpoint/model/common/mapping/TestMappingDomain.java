@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.AbstractUnitTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -36,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * MID-3692
  * @author Radovan Semancik
  */
-public class TestMappingDomain {
+public class TestMappingDomain extends AbstractUnitTest {
 
     private static final String MAPPING_DOMAIN_FILENAME = "mapping-domain.xml";
 
@@ -64,7 +65,7 @@ public class TestMappingDomain {
         employeeTypeOld.add("1234567890");
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                 UserType.F_ADDITIONAL_NAME, "Jackie");
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "321");
 
@@ -107,7 +108,7 @@ public class TestMappingDomain {
         employeeTypeOld.add("003");
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                 UserType.F_ADDITIONAL_NAME, "Jackie");
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "991", "992");
 
@@ -149,7 +150,7 @@ public class TestMappingDomain {
         employeeTypeOld.add("004");
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                 UserType.F_ADDITIONAL_NAME, "Jackie");
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
 
@@ -160,7 +161,7 @@ public class TestMappingDomain {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         mapping.evaluate(createTask(), opResult);
 
         // THEN
@@ -194,7 +195,7 @@ public class TestMappingDomain {
         employeeTypeOld.add("004");
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationAddProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                 UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -204,7 +205,7 @@ public class TestMappingDomain {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         mapping.evaluate(createTask(), opResult);
 
         // THEN
@@ -241,7 +242,7 @@ public class TestMappingDomain {
         employeeTypeOld.add("007");
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationDeleteProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                 UserType.F_EMPLOYEE_TYPE, "005", "C06", "007");
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -251,7 +252,7 @@ public class TestMappingDomain {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         mapping.evaluate(createTask(), opResult);
 
         // THEN

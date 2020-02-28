@@ -549,7 +549,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_GOLD_OID, task, result);
 
         // THEN
@@ -582,7 +582,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_SILVER_OID, task, result);
 
         // THEN
@@ -616,7 +616,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
 
         // THEN
@@ -651,7 +651,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
 
         // THEN
@@ -685,7 +685,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
 
         // THEN
@@ -717,7 +717,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
 
         // THEN
@@ -747,7 +747,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_ENFORCED_OID, ObjectTypes.ROLE, prismContext),
@@ -779,7 +779,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_OID, ObjectTypes.ROLE, prismContext),
@@ -811,11 +811,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -842,7 +842,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_GREEN_OID, task, result);
 
         // THEN
@@ -874,7 +874,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_NONE_OID, task, result);
 
         // THEN
@@ -904,7 +904,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
 
         // THEN
@@ -933,11 +933,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -960,11 +960,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -999,11 +999,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result, 2);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1039,11 +1039,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result, 2);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1069,11 +1069,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1099,7 +1099,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_RED_OID, ObjectTypes.ROLE, prismContext),
@@ -1132,11 +1132,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1174,11 +1174,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_2_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1219,11 +1219,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1263,11 +1263,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_2_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1290,11 +1290,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1332,11 +1332,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1356,11 +1356,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_EXCLUSION_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         List<GlobalPolicyRuleType> globalPolicyRules = getSystemConfiguration().getGlobalPolicyRule();
@@ -1377,11 +1377,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_CITIZEN_SK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1416,11 +1416,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_EMPTY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1438,11 +1438,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_CITIZEN_SK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1462,11 +1462,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_EMPTY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1487,11 +1487,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1512,11 +1512,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_MINISTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1536,11 +1536,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1558,11 +1558,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_MINISTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1580,11 +1580,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_SOD_APPROVAL_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         List<GlobalPolicyRuleType> globalPolicyRules = getSystemConfiguration().getGlobalPolicyRule();
@@ -1606,11 +1606,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1638,11 +1638,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 ROLE_MINISTER_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Preview context", modelContext);
@@ -1712,11 +1712,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1810,7 +1810,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         addObject(jim.asPrismObject());
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         assignRole(jim.getOid(), ROLE_PRIZE_GOLD_BY_MAPPING_OID, task, result);
 
@@ -1831,7 +1831,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         try {
             // WHEN
 
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             assignRole(userOid, roleOid, task, result);
 
             assertNotReached();
@@ -1840,7 +1840,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
 
             // THEN
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             assertFailure(result);
         }
 

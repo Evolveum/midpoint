@@ -113,10 +113,10 @@ public class TestDummyNegative extends AbstractDummyTest {
         syncServiceMock.reset();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Resource after", resource);
@@ -140,7 +140,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             provisioningService.addObject(account, null, null, task, result);
 
             assertNotReached();
@@ -149,7 +149,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             display("Expected exception", e);
         }
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         syncServiceMock.assertNotifyFailureOnly();
     }
 

@@ -375,11 +375,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -412,11 +412,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -449,11 +449,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         userDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, true));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -480,11 +480,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -516,11 +516,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("dummy resource before", getDummyResource());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -554,11 +554,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -618,11 +618,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         forceDeleteObject(ShadowType.class, deadBeigeShadowOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNoShadow(deadBeigeShadowOid);
@@ -673,11 +673,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -743,12 +743,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
                 createPolyString("Cpt. Jack Sparrow"));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -809,12 +809,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource().resetBreakMode();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
                 createPolyString(USER_JACK_FULL_NAME));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -874,11 +874,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         userDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, false));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         String deadShadowOid = assertUserAfter(USER_JACK_OID)
@@ -955,11 +955,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         clearJackOrganizationalUnit(task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -1019,18 +1019,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(toName));
         PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(toFullName));
-        assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
+        assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, result);
         assertLinks(userJack, 4);
 
         assertDefaultDummyAccount(toName, toFullName, true);
@@ -1069,11 +1069,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                 .getOids();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -1108,11 +1108,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertLinks(0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, roleOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         display(result);
         TestUtil.assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
@@ -1166,11 +1166,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         }
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, roleOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         display(result);
         // there is a failure while reading dummy account - it was not created
@@ -1243,11 +1243,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1281,11 +1281,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1321,11 +1321,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1359,7 +1359,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         try {
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             executeChanges(userDelta, null, task, result);
 
             AssertJUnit.fail("Unexpected success");
@@ -1369,7 +1369,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
 
@@ -1388,11 +1388,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1411,11 +1411,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1434,11 +1434,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1460,11 +1460,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1487,7 +1487,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         try {
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             executeChanges(userDelta, null, task, result);
 
             AssertJUnit.fail("Unexpected success");
@@ -1497,7 +1497,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
 
@@ -1523,7 +1523,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         try {
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             executeChanges(userDelta, null, task, result);
 
             AssertJUnit.fail("Unexpected success");
@@ -1533,7 +1533,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1553,11 +1553,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1581,11 +1581,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1606,11 +1606,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_NAME);
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1632,11 +1632,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_NAME);
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1664,11 +1664,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -1686,11 +1686,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1752,11 +1752,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_NAME);
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1785,11 +1785,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "stone", USER_WORLD_NAME, true, true, true);
@@ -1867,11 +1867,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock"));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
@@ -1914,11 +1914,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, false, false, false);
@@ -1951,11 +1951,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
@@ -1990,11 +1990,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyAccountShadowReplace(accountDavidOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, false, true);
@@ -2028,11 +2028,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, false, true);
@@ -2058,11 +2058,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyAccountShadowReplace(accountDavidOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
@@ -2092,11 +2092,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), UserType.F_NAME, task, result, PrismTestUtil.createPolyString(USER_FIELD_NAME));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_FIELD_NAME, true, true, true);
@@ -2138,11 +2138,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result, 2);
 
         assertUserAfter(userBefore.getOid())
@@ -2196,11 +2196,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus(); // explicitly recompute status here. It was computed before.
         // Inner errors are expected - but those should be pending on retry
         assertInProgress(result);
@@ -2263,7 +2263,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(userBefore.getOid())
@@ -2319,7 +2319,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(userBefore.getOid())
@@ -2370,7 +2370,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_FIELD_NAME, true, true, true);
@@ -2396,11 +2396,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         deadShadowOid = assertUserAfter(userBefore.getOid())
@@ -2450,11 +2450,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(userBefore.getOid())
@@ -2495,11 +2495,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 //        assertInProgress(result);
 
         assertUserAfter(userBefore.getOid())
@@ -2584,11 +2584,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 //        assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "stone", USER_WORLD_NAME, true, true, true);
@@ -2634,11 +2634,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBefore, 1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         deleteUserAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2666,11 +2666,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBefore, 0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2693,11 +2693,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2724,11 +2724,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2752,11 +2752,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2780,11 +2780,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         deleteUserAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2808,11 +2808,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         deleteUserAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2841,11 +2841,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_DARK_YELLOW_PERU_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2872,11 +2872,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_DARK_YELLOW_PERU_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2905,11 +2905,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_DARK_YELLOW_PERU_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2937,11 +2937,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         AssignmentType currentAssignment = findAssignmentByTargetRequired(userBefore, ROLE_DARK_YELLOW_PERU_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassign(UserType.class, USER_JACK_OID, currentAssignment.getId(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

@@ -91,7 +91,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test100EntitlementRefinedObjectClasses() throws Exception {
+    public void test100EntitlementRefinedObjectClasses() {
         final String TEST_NAME = "test100EntitlementRefinedObjectClasses";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
@@ -109,7 +109,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test101EntitlementRefinedObjectClassesModel() throws Exception {
+    public void test101EntitlementRefinedObjectClassesModel() {
         final String TEST_NAME = "test101EntitlementRefinedObjectClassesModel";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
@@ -269,8 +269,8 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
                 ShadowKindType.ENTITLEMENT, "privilege", LayerType.MODEL);
     }
 
-    private void assertObjectClass(ObjectClassComplexTypeDefinition objectClass,
-            QName objectClassQName) {
+    private void assertObjectClass(
+            ObjectClassComplexTypeDefinition objectClass, QName objectClassQName) {
         assertNotNull("No object class", objectClass);
         assertEquals("Wrong object class QName in object class " + objectClass, objectClassQName, objectClass.getTypeName());
     }

@@ -110,7 +110,7 @@ public class TestDummyCaching extends TestDummy {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
@@ -176,12 +176,12 @@ public class TestDummyCaching extends TestDummy {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -237,13 +237,13 @@ public class TestDummyCaching extends TestDummy {
             XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             PrismObject<ShadowType> shadow = provisioningService
                     .getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
             // THEN
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             assertSuccess(result);
 
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);

@@ -96,9 +96,6 @@ public class TestScriptCaching {
 
     @Test
     public void testGetExtensionPropertyValue() throws Exception {
-        final String TEST_NAME = "testGetExtensionPropertyValue";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         InternalMonitor.reset();
 

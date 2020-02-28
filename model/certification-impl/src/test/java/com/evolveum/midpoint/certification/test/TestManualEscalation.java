@@ -72,7 +72,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
@@ -102,7 +102,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
                 null, task, result);
@@ -127,7 +127,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -163,7 +163,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, null, null, task, result);
 
@@ -187,7 +187,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
                         CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
@@ -217,7 +217,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
@@ -250,7 +250,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         EscalateWorkItemActionType action = new EscalateWorkItemActionType()
                 .approverRef(USER_JACK_OID, UserType.COMPLEX_TYPE)
                 .delegationMethod(WorkItemDelegationMethodType.ADD_ASSIGNEES)
@@ -299,7 +299,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         EscalateWorkItemActionType action = new EscalateWorkItemActionType()
                 .approverRef(USER_ELAINE_OID, UserType.COMPLEX_TYPE)
                 .escalationLevelName("ESC-2");
@@ -353,7 +353,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         display("CEO case", ceoCase);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ELAINE_OID);
         long id = ceoCase.asPrismContainerValue().getId();
         DelegateWorkItemActionType action = new DelegateWorkItemActionType()

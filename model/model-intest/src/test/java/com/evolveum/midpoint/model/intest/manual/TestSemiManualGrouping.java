@@ -130,11 +130,11 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         setupPhantom(TEST_NAME);
 
         // WHEN (mid1)
-        displayWhen(TEST_NAME, "mid1");
+        when("mid1");
         recomputeUser(USER_PHANTOM_OID, task, result);
 
         // THEN (mid1)
-        displayThen(TEST_NAME, "mid1");
+        then("mid1");
         String caseOid1 = assertInProgress(result);
         display("Case 1", caseOid1);
         // No case OID yet. The case would be created after propagation is run.
@@ -155,7 +155,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         clockForward("PT3M");
 
         // WHEN (mid2)
-        displayWhen(TEST_NAME, "mid2");
+        when("mid2");
         // Existing account is detected now. Hence partial error.
         runPropagation(OperationResultStatusType.PARTIAL_ERROR);
 
@@ -164,7 +164,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         // fixed immediately. Instead there is a pending delta to fix the problem.
 
         // THEN (mid2)
-        displayThen(TEST_NAME, "mid2");
+        then("mid2");
         String caseOid2 = assertInProgress(result);
         display("Case 2", caseOid2);
         // No case OID yet. The case will be created after propagation is run.
@@ -214,11 +214,11 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         clockForward("PT20M");
 
         // WHEN (final)
-        displayWhen(TEST_NAME, "final");
+        when("final");
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME, "final");
+        then("final");
 
         String liveShadowOid = assertUser(USER_PHANTOM_OID, "final")
             .displayWithProjections()

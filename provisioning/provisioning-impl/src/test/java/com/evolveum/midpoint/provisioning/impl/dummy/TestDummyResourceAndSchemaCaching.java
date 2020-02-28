@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -88,11 +87,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         rememberResourceCacheStats();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Resource", resource);
         assertSuccess(result);
 

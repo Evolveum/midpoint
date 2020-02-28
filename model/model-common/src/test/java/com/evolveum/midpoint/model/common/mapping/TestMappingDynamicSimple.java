@@ -1019,7 +1019,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         mapping.evaluate(createTask(), opResult);
 
         // THEN
@@ -1059,7 +1059,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         mapping.evaluate(createTask(), opResult);
 
         // THEN

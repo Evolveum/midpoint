@@ -118,11 +118,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -139,11 +139,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -173,11 +173,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
         display("Query", query);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -191,11 +191,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -224,11 +224,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -246,7 +246,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 0);
 
     }
@@ -263,11 +263,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -296,11 +296,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -326,7 +326,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 1);
 
     }

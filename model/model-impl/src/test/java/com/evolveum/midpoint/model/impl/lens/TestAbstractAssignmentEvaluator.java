@@ -124,12 +124,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -163,12 +163,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -210,12 +210,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         display("Assignment IDI", assignmentIdi);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
@@ -271,12 +271,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentIdi.recompute();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
@@ -344,12 +344,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
@@ -389,12 +389,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -434,12 +434,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
@@ -485,12 +485,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
@@ -557,12 +557,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -620,12 +620,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -678,12 +678,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -738,12 +738,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -792,12 +792,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -853,11 +853,11 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         addFocusDeltaToContext(lensContext, descriptionDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(lensContext, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = lensContext.getEvaluatedAssignmentTriple();

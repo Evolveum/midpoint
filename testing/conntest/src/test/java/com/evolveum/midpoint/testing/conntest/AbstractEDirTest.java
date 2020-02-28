@@ -228,7 +228,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -269,7 +269,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -306,7 +306,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, jackAccountOid, null, task, result);
 
         // THEN
@@ -346,7 +346,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -435,7 +435,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
@@ -487,7 +487,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         delta.addModification(attrDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
@@ -516,7 +516,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         userPasswordPs.setClearValue("hereThereBeMonsters");
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
@@ -543,7 +543,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // THEN
@@ -572,7 +572,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
@@ -612,7 +612,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         delta.addModification(attrDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
@@ -648,7 +648,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
@@ -681,7 +681,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
@@ -712,7 +712,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
@@ -745,7 +745,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         renameObject(UserType.class, USER_BARBOSSA_OID, USER_CPTBARBOSSA_USERNAME, task, result);
 
         // THEN
@@ -790,7 +790,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         orgType.getAssignment().add(metaroleAssignment);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         addObject(org, task, result);
 
         // THEN
@@ -817,7 +817,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
 
         // THEN
@@ -847,7 +847,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         renameObject(OrgType.class, orgMeleeIslandOid, GROUP_MELA_NOVA_NAME, task, result);
 
         // THEN
@@ -888,7 +888,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -962,7 +962,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(ShadowType.class, shadowLocked.getOid(), PATH_ACTIVATION_LOCKOUT_STATUS, task, result,
                 LockoutStatusType.NORMAL);
 
@@ -1004,7 +1004,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
@@ -1037,7 +1037,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN

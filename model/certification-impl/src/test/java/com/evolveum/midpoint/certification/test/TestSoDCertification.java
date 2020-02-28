@@ -164,7 +164,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
@@ -193,7 +193,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
@@ -215,7 +215,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -247,7 +247,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         display("jack", getUser(USER_JACK_OID));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -291,7 +291,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
@@ -318,7 +318,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
         AccessCertificationCaseType test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
@@ -374,7 +374,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -420,7 +420,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.startRemediation(campaignOid, task, result);
 
         // THEN

@@ -72,11 +72,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         Task task = getTestTask();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         OperationResult result = modelService.testResource(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
@@ -93,11 +93,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
@@ -127,11 +127,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackSparrowUid = assertUserAfter(USER_JACK_OID)
@@ -163,11 +163,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
                     .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountJackSparrowOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertShadow(shadow, "getObject")
@@ -193,11 +193,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         assertEquals(USER_SKELLINGTON_GIVEN_NAME, USER_JACK_GIVEN_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_SKELLINGTON_OID, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackSkellingtonUid = assertUserAfter(USER_SKELLINGTON_OID)

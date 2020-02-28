@@ -99,7 +99,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
     @Test
     public void test100DurableRecurring() throws Exception {
         final String TEST_NAME = "test100DurableRecurring";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
 
         // WHEN
         addObjectFromFile(taskFilename(TEST_NAME, "m"));

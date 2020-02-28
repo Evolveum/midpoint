@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.test.util.AbstractUnitTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,7 +46,7 @@ import static org.testng.AssertJUnit.*;
  * @author mederly
  */
 @Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
-public class TestCryptoUtil {
+public class TestCryptoUtil extends AbstractUnitTest {
 
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "crypto");
     private static final File FILE_USER_JACK = new File(TEST_DIR, "user-jack.xml");
@@ -69,9 +70,6 @@ public class TestCryptoUtil {
 
     @Test
     public void test100CheckEncryptedUser() throws Exception {
-        final String TEST_NAME = "test100CheckEncryptedUser";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
         PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
@@ -82,9 +80,6 @@ public class TestCryptoUtil {
 
     @Test
     public void test110EncryptUser() throws Exception {
-        final String TEST_NAME = "test110EncryptUser";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
         PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
@@ -99,9 +94,6 @@ public class TestCryptoUtil {
 
     @Test
     public void test120EncryptBulkActionTask() throws Exception {
-        final String TEST_NAME = "test120EncryptBulkActionTask";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
         PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_MODIFY_JACK_PASSWORD).xml().parse();
@@ -119,9 +111,6 @@ public class TestCryptoUtil {
 
     @Test
     public void test130EncryptUserInDelta() throws Exception {
-        final String TEST_NAME = "test130EncryptUserInDelta";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
         PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_ADD_JACK).xml().parse();
@@ -140,9 +129,6 @@ public class TestCryptoUtil {
     // MID-4941
     @Test
     public void test200CheckEncryptedSystemConfiguration() throws Exception {
-        final String TEST_NAME = "test200CheckEncryptedSystemConfiguration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
         PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
@@ -154,9 +140,6 @@ public class TestCryptoUtil {
     // MID-4941
     @Test
     public void test210EncryptSystemConfiguration() throws Exception {
-        final String TEST_NAME = "test210EncryptSystemConfiguration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
         PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
@@ -173,9 +156,6 @@ public class TestCryptoUtil {
     @SuppressWarnings("SimplifiedTestNGAssertion")
     @Test
     public void test300Reencryption() throws Exception {
-        final String TEST_NAME = "test300Reencryption";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
         PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();

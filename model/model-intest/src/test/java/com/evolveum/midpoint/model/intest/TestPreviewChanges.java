@@ -464,11 +464,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -507,11 +507,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -560,11 +560,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", userDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -612,12 +612,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertPreviewJackAssignRolePirate(modelContext);
@@ -643,12 +643,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertPreviewJackAssignRolePirate(modelContext);
@@ -744,13 +744,13 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, ItemPath.create(UserType.F_EXTENSION, PIRACY_WEAPON), task, result,
                 "tongue");
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountGuybrushOid = assertUserAfter(USER_GUYBRUSH_OID)
@@ -778,12 +778,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 accountGuybrushOid, dummyResourceCtl.getAttributeFullnamePath(), "Mighty Pirate Guybrush Threepwood");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(accountDelta),
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -831,12 +831,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 "The Mad Monkey");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(accountDelta),
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -882,12 +882,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -950,12 +950,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -1016,12 +1016,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -1069,12 +1069,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_OWNER, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -1103,11 +1103,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1128,11 +1128,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_RELATIVE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1159,12 +1159,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 ROLE_PIRATE_RELATIVE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -1226,12 +1226,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 ROLE_PIRATE_RELATIVE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
                 ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -1287,11 +1287,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_RELATIVE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1461,11 +1461,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 
         // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
         display("Preview context", modelContext);
         assertPartialError(result);
     }
@@ -1493,12 +1493,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
         display("Preview context", modelContext);
 
         // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
          assertPartialError(result);
     }
 
@@ -1640,11 +1640,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
@@ -1743,11 +1743,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
@@ -2097,12 +2097,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<UserType> empty = prismContext.deltaFor(UserType.class).asObjectDeltaCast(USER_GUYBRUSH_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(singleton(empty),
                 createEvaluateAllAssignmentRelationsOnRecompute(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 

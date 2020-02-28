@@ -364,7 +364,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -372,7 +372,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -395,7 +395,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -403,7 +403,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -425,7 +425,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 GUYBRUSH_FUNERAL_DATE_123456_CAL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -433,7 +433,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -456,7 +456,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -464,7 +464,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -486,7 +486,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 /* no value */);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -494,7 +494,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -517,12 +517,12 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
                 GUYBRUSH_FUNERAL_DATE_123456_CAL);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -545,12 +545,12 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
                 GUYBRUSH_FUNERAL_DATE_22222_CAL);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -575,12 +575,12 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result
                 /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
@@ -602,7 +602,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -610,7 +610,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)

@@ -254,11 +254,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_1_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -321,11 +321,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(USER_HERMAN_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -355,11 +355,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -650,11 +650,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyAccountChangePassword(accountJackUglyOid, "#badPassword!", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
@@ -679,7 +679,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result,
                 USER_JACK_EMPLOYEE_NUMBER_NEW_BAD);
 
@@ -798,11 +798,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyAccountChangePassword(accountJackBlackOid, USER_PASSWORD_A_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         assertDummyPasswordConditional(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
@@ -863,11 +863,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -912,11 +912,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_AA_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
@@ -965,11 +965,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -998,11 +998,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_1_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1027,11 +1027,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_A_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -1050,14 +1050,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
         modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
                 ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
                 task, result, 3);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
     }
 
@@ -1086,11 +1086,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 .createDeleteDelta(ShadowType.class, accountJackRedOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta, shadowDelta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1516,12 +1516,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER, task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1566,11 +1566,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_2, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1630,7 +1630,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         try {
             // WHEN+THEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             try {
                 modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task, result /*, no value */);
                 fail("unexpected success");
@@ -1664,11 +1664,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task, result /*, no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1711,11 +1711,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1761,11 +1761,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_3, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
@@ -1812,11 +1812,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, "emp0000");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1845,11 +1845,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1884,7 +1884,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_AA_CLEAR, task, result);
 
@@ -1895,7 +1895,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -1919,11 +1919,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_THREE_HEADED_MONKEY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -1947,11 +1947,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_THREE_HEADED_MONKEY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -1980,11 +1980,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_DESCRIPTION, task, result, "Look behind you! A three-headed MONKEY!");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2011,12 +2011,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_LOCALITY, task, result,
                 createPolyString("Monkey Island"));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2045,12 +2045,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2075,12 +2075,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2108,12 +2108,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2136,12 +2136,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2170,11 +2170,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_THREE_HEADED_MONKEY_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2205,11 +2205,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2240,11 +2240,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2275,11 +2275,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_THREE_HEADED_MONKEY_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2309,11 +2309,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_1, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2337,11 +2337,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_DESCRIPTION, task, result, "Look behind you! A three-headed MONKEY!");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -2373,11 +2373,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
@@ -2414,11 +2414,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
@@ -2458,11 +2458,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
@@ -2522,11 +2522,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
@@ -2587,11 +2587,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountRedOid, USER_PASSWORD_VALID_1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(shadowDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
@@ -2649,11 +2649,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2712,11 +2712,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_LIFECYCLE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2767,11 +2767,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         shadowDelta.addModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(shadowDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2836,11 +2836,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
@@ -2906,11 +2906,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_RAPP_OID, UserType.F_SUBTYPE, task, result, "WRECK");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
@@ -2984,11 +2984,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         String accountOid = assertUserAfter(USER_DRAKE_OID)
@@ -3035,11 +3035,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userBefore, USER_PASSWORD_VALID_3);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3084,11 +3084,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountJackSouvenirOid, PASSWORD_ALLIGATOR);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(shadowDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3134,11 +3134,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userBefore, USER_PASSWORD_VALID_3);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3174,11 +3174,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountJackMaverickOid, PASSWORD_ALLIGATOR);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(shadowDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3210,11 +3210,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountJackMaverickOid, PASSWORD_CROCODILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(shadowDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3248,11 +3248,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyAccountChangePassword(accountJackMaverickOid, PASSWORD_ALLIGATOR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3278,11 +3278,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyAccountChangePassword(accountJackMaverickOid, PASSWORD_GIANT_LIZARD, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3313,11 +3313,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertLinks(userBefore, 6);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3350,11 +3350,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         accountJackBlueOid = assertAccount(userBefore, RESOURCE_DUMMY_BLUE_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyAccountChangePassword(accountJackBlueOid, PASSWORD_ALLIGATOR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3383,11 +3383,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, PASSWORD_ALLIGATOR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3419,11 +3419,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertLinks(userBefore, 5);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3483,11 +3483,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
 
         // WHEN
-        displayWhen(TEST_NAME + "-" + i);
+        when(TEST_NAME + "-" + i);
         modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
 
         // THEN
-        displayThen(TEST_NAME + "-" + i);
+        then(TEST_NAME + "-" + i);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3531,11 +3531,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_4, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
         assertSuccess(result);
 
@@ -3600,11 +3600,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 USER_PASSWORD_VALID_4, USER_PASSWORD_VALID_5);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(objectDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
         assertSuccess(result);
 
@@ -3672,11 +3672,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 USER_PASSWORD_VALID_5, USER_PASSWORD_VALID_6);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(objectDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
         assertSuccess(result);
 
@@ -3941,7 +3941,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         try {
             // WHEN+THEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             try {
                 UserType user = new UserType(prismContext).name("passwordless");
                 addObject(user.asPrismObject(), task, result);
@@ -4197,7 +4197,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         applyPasswordPolicy(null, getSecurityPolicyOid(), task, result);
         modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
                 ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
@@ -4210,7 +4210,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<SecurityPolicyType> securityPolicyAfter = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
@@ -4249,11 +4249,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 OrgType.F_SECURITY_POLICY_REF, task, result, securityPolicyRef);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignOrg(USER_THREE_HEADED_MONKEY_OID, ORG_MINISTRY_OF_OFFENSE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<OrgType> ministryPolicyAfter = getObject(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID);
@@ -4284,7 +4284,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_AA_CLEAR, task, result);
 
@@ -4295,7 +4295,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -4318,12 +4318,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_AA_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -4347,11 +4347,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_THREE_HEADED_MONKEY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -4375,11 +4375,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_THREE_HEADED_MONKEY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -4403,12 +4403,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_LOCALITY, task, result,
                 createPolyString("Scabb Island"));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -4437,12 +4437,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -4471,12 +4471,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -4513,14 +4513,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_A_CLEAR);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
         modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
                 ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
                 task, result, GLOBAL_POLICY_NEW_PASSWORD_HISTORY_LENGTH);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<SecurityPolicyType> securityPolicyAfter = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
@@ -4547,7 +4547,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_2);
 
@@ -4568,7 +4568,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
     }
@@ -4589,7 +4589,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_1);
         modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_2);
 
@@ -4610,7 +4610,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_2);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
     }

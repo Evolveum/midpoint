@@ -70,11 +70,11 @@ public class TestCollections extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         collectionActiveUsers = modelService.getObject(ObjectCollectionType.class, COLLECTION_ACTIVE_USERS_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Collection", collectionActiveUsers);
         assertSuccess(result);
         assertNotNull("No collection", collectionActiveUsers);
@@ -89,11 +89,11 @@ public class TestCollections extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         collectionViewActiveUsers = modelInteractionService.compileObjectCollectionView(collectionActiveUsers, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Active users collection view", collectionViewActiveUsers);
         assertSuccess(result);
         assertNotNull("Null view", collectionActiveUsers);
@@ -116,11 +116,11 @@ public class TestCollections extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createQuery(collectionViewActiveUsers.getFilter()), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Users in collection", users);
         assertSuccess(result);
         assertEquals("Wrong number of users in collection", getNumberOfUsers(), users.size());
@@ -135,11 +135,11 @@ public class TestCollections extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         CollectionStats stats = modelInteractionService.determineCollectionStats(collectionViewActiveUsers, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Collection stats", stats);
         assertSuccess(result);
         assertNotNull("Null stats", stats);
@@ -158,11 +158,11 @@ public class TestCollections extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)
@@ -182,11 +182,11 @@ public class TestCollections extends AbstractArchetypesTest {
         numberOfDisabledUsers++;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         CollectionStats stats = modelInteractionService.determineCollectionStats(collectionViewActiveUsers, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Collection stats", stats);
         assertSuccess(result);
         assertNotNull("Null stats", stats);
@@ -205,11 +205,11 @@ public class TestCollections extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)

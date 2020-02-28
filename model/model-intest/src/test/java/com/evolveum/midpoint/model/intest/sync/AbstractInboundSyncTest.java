@@ -102,7 +102,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importSyncTask(resourceDummyEmerald);
 
         // THEN
@@ -136,7 +136,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         display("Adding dummy account", account.debugDump());
 
@@ -188,7 +188,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepbad");
 
@@ -244,7 +244,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb SeepNULL");
 
@@ -300,7 +300,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepevil");
 
@@ -356,7 +356,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 
@@ -413,7 +413,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 
@@ -470,7 +470,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
 
@@ -542,7 +542,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Collections.<Object>singleton(10001));
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         display("Adding dummy account", account.debugDump());
 
@@ -595,7 +595,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, 1002);
 

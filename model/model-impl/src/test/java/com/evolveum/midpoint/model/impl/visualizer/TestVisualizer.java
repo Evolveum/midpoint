@@ -75,11 +75,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         u.asObjectable().setFullName(new PolyStringType("User User123"));
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualize(u, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -113,11 +113,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         ut.getAssignment().add(ass3);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualize(u, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -133,11 +133,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -163,11 +163,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -184,11 +184,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final List<? extends Scene> scenes = visualizer.visualizeDeltas((List) Collections.singletonList(delta), task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scenes", scenes);
 
         // TODO some asserts
@@ -215,11 +215,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -242,11 +242,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -271,7 +271,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         delta.applyDefinitionIfPresent(jack.getDefinition(), false);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta), null, task, task.getResult());
         List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
         List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
@@ -281,7 +281,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         List<? extends Scene> secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("primary scenes", primaryScenes);
         display("secondary scenes", secondaryScenes);
 
@@ -304,13 +304,13 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_JACK_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
 
         modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta), null, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
         display("jack with assignment", getUser(USER_JACK_OID));
 
@@ -327,7 +327,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_JACK_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta), null, task, task.getResult());
         List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
         List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
@@ -337,7 +337,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         List<? extends Scene> secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("primary scenes", primaryScenes);
         display("secondary scenes", secondaryScenes);
 
@@ -376,11 +376,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_JACK_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -396,11 +396,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_JACK_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -416,11 +416,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_JACK_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts
@@ -436,11 +436,11 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
                 .asObjectDelta(USER_JACK_OID);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("scene", scene);
 
         // TODO some asserts

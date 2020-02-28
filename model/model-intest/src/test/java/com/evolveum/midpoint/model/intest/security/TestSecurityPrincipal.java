@@ -155,7 +155,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
@@ -274,11 +274,11 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 2, principal.getAuthorities().size());
 
@@ -298,11 +298,11 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 3, principal.getAuthorities().size());
 
@@ -323,11 +323,11 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertEquals("Wrong number of authorizations", 0, principal.getAuthorities().size());
 
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
@@ -352,11 +352,11 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
 
@@ -384,11 +384,11 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
 

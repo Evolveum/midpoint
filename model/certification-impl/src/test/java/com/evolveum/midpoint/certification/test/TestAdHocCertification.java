@@ -73,7 +73,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignOrg(USER_INDIGO_OID, ORG_LABORATORY_OID, task, result);
 
         // THEN
@@ -103,7 +103,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         @SuppressWarnings({ "unchecked", "raw" })
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("new description")

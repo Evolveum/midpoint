@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.ITestResult;
@@ -108,8 +106,6 @@ import com.evolveum.midpoint.test.util.*;
 import com.evolveum.midpoint.tools.testng.CurrentTestResultHolder;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -119,7 +115,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * @author Radovan Semancik
  */
 @Listeners({ CurrentTestResultHolder.class })
-public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
+public abstract class AbstractIntegrationTest extends AbstractSpringTest {
 
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
@@ -130,11 +126,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
     protected static final String OPENDJ_GROUPS_SUFFIX = "ou=groups,dc=example,dc=com";
-
-    /**
-     * Hides parent's logger, but that one is from commons-logging and we don't want that.
-     */
-    protected final Trace logger = TraceManager.getTrace(getClass());
 
     protected static final Random RND = new Random();
 
@@ -200,7 +191,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertNotNull("Task manager is not wired properly", taskManager);
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.setPrismContext(prismContext);
-        Task initTask = createTask(getClass().getName() + ".initSystem");
+        Task initTask = createTask("INIT");
         initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
         OperationResult result = initTask.getResult();
 
@@ -236,6 +227,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     /**
      * Creates appropriate task and result and set it into MidpointTestMethodContext.
+     * This implementation fully overrides (without use) the one from {@link AbstractSpringTest}.
      */
     @BeforeMethod
     public void startTestContext(ITestResult testResult) {
@@ -244,7 +236,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
         TestUtil.displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
 
-        Task task = createTask(testClass.getName() + "." + testMethodName);
+        Task task = createTask(testMethodName);
         customizeTask(task);
         // TODO do we need that subresult? :-) (Virgo's brave new world)
         // maybe it doesn't break tests, but changes traceability/maintenance?
@@ -272,14 +264,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     /**
      * Finish and destroy the test context, output duration and store the operation trace.
+     * This implementation fully overrides (without use) the one from {@link AbstractSpringTest}.
      */
     @AfterMethod
-    public void finishTestContext(ITestResult testResult, Method testMethod) {
+    public void finishTestContext(ITestResult testResult) {
         MidpointTestMethodContext context = MidpointTestMethodContext.get();
         MidpointTestMethodContext.destroy(); // let's destroy it before anything else in this method
 
-        long testMsDuration = testResult.getEndMillis() - testResult.getStartMillis();
-        TestUtil.displayFooter(testMethod.getName() + " FINISHED in " + testMsDuration + " ms");
+        displayDefaultTestFooter(testResult);
 
         Task task = context.getTask();
         if (task != null) {
@@ -333,19 +325,30 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return MidpointTestMethodContext.get().getTask();
     }
 
-    protected String getTestNameShort() {
+    public String getTestNameShort() {
         return MidpointTestMethodContext.get().getTestNameShort();
     }
 
     /**
-     * Creates the new {@link Task}.
+     * Creates new {@link Task}.
      * For most tests this should be unnecessary and the default test-method-scoped task
      * that can be obtained with {@link #getTestTask()} should be enough.
      * Even for multi-threaded tests we may not need a new task and new subresult
      * (using {@link #createSubresult(String)} should suffice.
+     * Provided name is automatically prefixed by {@link #contextName()}.
      */
     protected Task createTask(String operationName) {
-        return taskManager.createTaskInstance(operationName);
+        return taskManager.createTaskInstance(contextName() + "." + operationName);
+    }
+
+    /**
+     * Context name is "class-simple-name.method" if test method context is available,
+     * otherwise it is just simple name of the test class.
+     */
+    @NotNull
+    protected String contextName() {
+        MidpointTestMethodContext context = MidpointTestMethodContext.get();
+        return context != null ? context.getTestName() : getClass().getSimpleName();
     }
 
     /**
@@ -357,6 +360,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     /**
      * Returns default {@link OperationResult} for pre-created test-method-scoped {@link Task}.
+     * This result can be freely used in test for some "main scope", it is not asserted in any
+     * after method, only displayed.
      */
     protected OperationResult getResult() {
         return MidpointTestMethodContext.get().getResult();
@@ -382,14 +387,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
-            File file, Class<T> type, OperationResult parentResult)
+            File file, @SuppressWarnings("unused") Class<T> type, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
-            File file, Class<T> type, boolean metadata, OperationResult parentResult)
+            File file, @SuppressWarnings("unused") Class<T> type, boolean metadata, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 
         return repoAddObjectFromFile(file, metadata, parentResult);
@@ -1757,37 +1762,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
         return prismContext.parseObject(file);
-    }
-
-    /**
-     * Displays "when" subsection header with test name.
-     * Even better, use {@link #displayWhen(String)} and provide human readable description.
-     */
-    protected void displayWhen() {
-        displayWhen(getTestNameShort());
-    }
-
-    /**
-     * Displays "when" subsection header with test name and provided description (nullable).
-     */
-    protected void displayWhen(String description) {
-        TestUtil.displayWhen(getTestNameShort(), description);
-    }
-
-    protected void displayWhen(String testName, String stage) {
-        TestUtil.displayWhen(testName + " (" + stage + ")");
-    }
-
-    protected void displayThen() {
-        displayThen(getTestNameShort());
-    }
-
-    protected void displayThen(String testName) {
-        TestUtil.displayThen(testName);
-    }
-
-    protected void displayThen(String testName, String stage) {
-        TestUtil.displayThen(testName + " (" + stage + ")");
     }
 
     protected void displayCleanup(String testName) {

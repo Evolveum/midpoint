@@ -81,7 +81,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repoAddObjectsFromFile(ORG_CARIBBEAN_FILE, OrgType.class, result);
 
         // THEN
@@ -117,7 +117,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_JAMAICA_OID, null, task, result);
 
         // THEN
@@ -148,7 +148,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileOrg(ORG_CARIBBEAN_JAMAICA_OID, task, result);
 
         // THEN
@@ -179,7 +179,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_GOVERNOR_OFFICE_OID, null, task, result);
 
         // THEN
@@ -210,7 +210,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileOrg(ORG_GOVERNOR_OFFICE_OID, task, result);
 
         // THEN
@@ -244,7 +244,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID,
                 ModelExecuteOptions.createReconcileFocus(), task, result);
 
@@ -281,7 +281,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileOrg(ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, task, result);
 
         // THEN
@@ -321,7 +321,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null, task, result);
 
         // THEN
@@ -362,7 +362,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         dumpFocus("User Jack before", userJackBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_JACK_OID, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null);
 
         // THEN
@@ -410,7 +410,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_BARBOSSA_OID, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, SchemaConstants.ORG_MANAGER);
 
         // THEN
@@ -448,7 +448,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_GIBBS_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignDeputy(USER_GIBBS_OID, USER_JACK_OID, task, result);
 
         // THEN
@@ -488,7 +488,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignDeputy(USER_PINTEL_OID, USER_BARBOSSA_OID, task, result);
 
         // THEN

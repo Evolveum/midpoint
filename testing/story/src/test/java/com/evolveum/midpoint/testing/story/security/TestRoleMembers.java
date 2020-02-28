@@ -88,7 +88,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         final String TEST_NAME = "test000Sanity";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertUserBefore(USER_GUYBRUSH_OID)
             .assertName(USER_GUYBRUSH_USERNAME)
@@ -124,7 +124,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         assertFalse("Preview evaluated assignment triple is empty", evaluatedAssignmentTriple.isEmpty());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
     }
 
@@ -138,7 +138,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         login(USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
@@ -170,7 +170,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         assertNull("Preview evaluated assignment triple sneaked in", evaluatedAssignmentTriple);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
     }
 
@@ -198,7 +198,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         login(USER_ELAINE_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
@@ -218,7 +218,7 @@ public class TestRoleMembers extends AbstractStoryTest {
                 .assertRoleMemberhipRefs(1);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
     }
 

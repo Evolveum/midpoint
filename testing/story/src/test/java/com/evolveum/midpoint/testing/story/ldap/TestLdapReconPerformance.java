@@ -112,7 +112,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         // Add objects using model, we also want to create LDAP accounts
          generateObjects(UserType.class, NUMBER_OF_GENERATED_USERS, GENERATED_USER_NAME_FORMAT, GENERATED_USER_OID_FORMAT,
                      (user,i) -> {
@@ -128,7 +128,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
                      result);
 
          // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
 
          long endMillis = System.currentTimeMillis();
          recordDuration(TEST_NAME, (endMillis - startMillis));
@@ -154,13 +154,13 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addTask(TASK_RECON_1_OPENDJ_FILE);
         waitForTaskFinish(TASK_RECON_1_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
 
          // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
 
          recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECON_1_OPENDJ_OID));
 
@@ -197,13 +197,13 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addTask(TASK_RECON_4_OPENDJ_FILE);
         waitForTaskFinish(TASK_RECON_4_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
 
          // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
 
          recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECON_4_OPENDJ_OID));
 
@@ -278,13 +278,13 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         rememberConnectorResourceCounters();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         restartTask(taskOid);
         waitForTaskFinish(taskOid, true, RECON_TASK_WAIT_TIMEOUT);
 
          // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
 
          long duration = recordDuration(TEST_NAME, getRunDurationMillis(taskOid));
 
@@ -312,7 +312,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         display("Summary ("+NUMBER_OF_GENERATED_USERS+" users)", sb.toString());
 
          // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
 
          if (reconDuration1ThreadBaseline < reconDuration4ThreadBaseline) {
              fail("Multi-thread recon SLOWER than single-thread! singlethread="+reconDuration1ThreadBaseline+"ms, multithread="+reconDuration4ThreadBaseline+"ms");

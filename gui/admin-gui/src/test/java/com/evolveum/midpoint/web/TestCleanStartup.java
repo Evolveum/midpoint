@@ -45,7 +45,6 @@ public class TestCleanStartup extends AbstractModelIntegrationTest {
     // work in progress
     @Test
     public void test001Logfiles() throws Exception {
-        TestUtil.displayTestTitle("test001Logfiles");
         // GIVEN - system startup and initialization that has already happened
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME, false);
 

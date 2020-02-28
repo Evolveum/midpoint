@@ -57,7 +57,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         @SuppressWarnings({"raw"})
         ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(

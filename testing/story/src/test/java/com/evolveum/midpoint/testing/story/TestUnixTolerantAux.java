@@ -118,11 +118,11 @@ public class TestUnixTolerantAux extends TestUnix {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -166,11 +166,11 @@ public class TestUnixTolerantAux extends TestUnix {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -198,11 +198,11 @@ public class TestUnixTolerantAux extends TestUnix {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -228,11 +228,11 @@ public class TestUnixTolerantAux extends TestUnix {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -258,11 +258,11 @@ public class TestUnixTolerantAux extends TestUnix {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);

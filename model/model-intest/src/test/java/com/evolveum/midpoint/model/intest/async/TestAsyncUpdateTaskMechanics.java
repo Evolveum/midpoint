@@ -94,10 +94,10 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
 
         prepareMessages(CHANGE_USER_ADD_FILE, "100-", 10, true);
 
-        displayWhen();
+        when();
         importObjectFromFile(TASK_ASYNC_UPDATE_HR_NO_WORKERS.file, result);
 
-        displayThen();
+        then();
         waitForTaskFinish(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid, false, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid);
@@ -119,10 +119,10 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
 
         prepareMessages(CHANGE_USER_ADD_FILE, "110-", 10, true);
 
-        displayWhen();
+        when();
         importObjectFromFile(TASK_ASYNC_UPDATE_HR_ONE_WORKER.file, result);
 
-        displayThen();
+        then();
         waitForTaskFinish(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid, false, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid);

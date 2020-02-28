@@ -118,11 +118,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(accountAssignmentUserDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
@@ -172,7 +172,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-       displayWhen(TEST_NAME);
+       when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> foundShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -264,7 +264,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_X_OID, task, result);
 
         // THEN
-       displayThen(TEST_NAME);
+       then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -307,7 +307,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 
         // THEN
-       displayThen(TEST_NAME);
+       then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -351,7 +351,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         unassignRole(USER_JACK_OID, ROLE_X_OID, task, result);
 
         // THEN
-       displayThen(TEST_NAME);
+       then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -379,11 +379,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-       displayWhen(TEST_NAME);
+       when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_UPCASE_BASIC_OID, task, result);
 
         // THEN
-       displayThen(TEST_NAME);
+       then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -427,11 +427,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-       displayWhen(TEST_NAME);
+       when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-       displayThen(TEST_NAME);
+       then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -479,11 +479,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-       displayWhen(TEST_NAME);
+       when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-       displayThen(TEST_NAME);
+       then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -527,11 +527,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-       displayWhen(TEST_NAME);
+       when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_UPCASE_BASIC_OID, task, result);
 
         // THEN
-       displayThen(TEST_NAME);
+       then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -561,11 +561,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         // Make sure this is repository so we do not destroy the "evidence" yet.
@@ -608,11 +608,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         // Make sure this is repository so we do not destroy the "evidence" yet.
@@ -662,11 +662,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertShadows(4);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_FOOL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertShadows(6);

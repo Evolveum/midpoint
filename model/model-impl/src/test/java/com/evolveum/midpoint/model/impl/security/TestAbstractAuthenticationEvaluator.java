@@ -189,7 +189,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
@@ -215,7 +215,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 
@@ -249,7 +249,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, null));
 
@@ -282,7 +282,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, get103EmptyPasswordJack()));
 
@@ -314,7 +314,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(null, null));
 
@@ -342,7 +342,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext("", getBadPasswordJack()));
 
@@ -370,7 +370,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext("NoSuchUser", getBadPasswordJack()));
 
@@ -405,7 +405,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 
@@ -439,7 +439,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
@@ -491,7 +491,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
@@ -521,7 +521,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
@@ -557,7 +557,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
@@ -582,7 +582,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
@@ -654,7 +654,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
@@ -688,7 +688,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.NORMAL);
 
         // THEN
@@ -703,7 +703,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
@@ -732,7 +732,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.LOCKED);
@@ -938,7 +938,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserCredential(task, result);
 
         // THEN
@@ -964,7 +964,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 
         // THEN
@@ -990,7 +990,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getBadPasswordGuybrush()));
 
@@ -1024,7 +1024,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 
         // THEN
@@ -1052,7 +1052,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 
@@ -1167,7 +1167,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
@@ -1187,7 +1187,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));

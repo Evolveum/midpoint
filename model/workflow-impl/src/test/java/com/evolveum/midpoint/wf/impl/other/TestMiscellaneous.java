@@ -155,7 +155,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_SAILOR_OID, task, result);
+        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_SAILOR_OID, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -222,7 +222,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -288,7 +288,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
@@ -312,7 +312,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
@@ -334,7 +334,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
@@ -363,6 +363,6 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 }

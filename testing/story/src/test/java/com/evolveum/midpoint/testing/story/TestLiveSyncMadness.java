@@ -122,12 +122,12 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
         dummyResourceHr.addAccount(newAccount);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_LIVE_SYNC_DUMMY_HR_OID);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertUserAfterByUsername(ACCOUNT_HERMAN_USERNAME)
                 .assertFullName(ACCOUNT_HERMAN_FIST_NAME + " " + ACCOUNT_HERMAN_LAST_NAME)
                 .assertTitle("Mr. " + ACCOUNT_HERMAN_LAST_NAME)
@@ -160,12 +160,12 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_HT_LAST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_LIVE_SYNC_DUMMY_HR_OID);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertUserAfterByUsername(ACCOUNT_HERMAN_USERNAME)
                 .assertFullName(ACCOUNT_HT_FIST_NAME + " " + ACCOUNT_HT_LAST_NAME)
                 .assertTitle("Mr. " + ACCOUNT_HT_LAST_NAME)
@@ -199,12 +199,12 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
         dummyResourceHr.recordEmptyDeltaForAccountByUsername(ACCOUNT_HERMAN_USERNAME, DummyDeltaType.MODIFY);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_LIVE_SYNC_DUMMY_HR_OID);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertUserAfterByUsername(ACCOUNT_HERMAN_USERNAME)
                 .assertFullName(ACCOUNT_HT_FIST_NAME + " " + ACCOUNT_HT_LAST_NAME)
                 .assertTitle("Mr. " + ACCOUNT_HT_LAST_NAME)

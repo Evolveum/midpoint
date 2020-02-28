@@ -100,7 +100,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importSyncTask();
 
         // THEN
@@ -127,7 +127,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         getDummyResource(RESOURCE_DUMMY_HR_NAME).addAccount(account);
 
@@ -185,7 +185,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_HR_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         account.replaceAttributeValue(DummyAccount.ATTR_FULLNAME_NAME, "Sir Mancomb Seepgood");
 
@@ -254,7 +254,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         // Preconditions
         //assertUsers(5);
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_VOLATILE_OID, null, true);
@@ -308,7 +308,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         // Preconditions
         //assertUsers(5);
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_WITH_ASSIGNMENT_FILE);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -370,7 +370,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         addObject(userBefore, task, result);
 
         // THEN
@@ -405,7 +405,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserAdd(USER_HERMAN_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString(DummyResource.VALUE_MONSTER));
 

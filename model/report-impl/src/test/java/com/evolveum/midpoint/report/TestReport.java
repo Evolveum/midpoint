@@ -75,7 +75,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_OID);
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when(TEST_NAME);
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
@@ -85,7 +85,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       waitForTaskFinish(task.getOid(), true);
 
       // THEN
-      displayThen(TEST_NAME);
+      then(TEST_NAME);
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task", finishedTask);
 
@@ -139,7 +139,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_SCRIPT_OID);
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when(TEST_NAME);
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
@@ -149,7 +149,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       waitForTaskFinish(task.getOid(), true);
 
       // THEN
-      displayThen(TEST_NAME);
+      then(TEST_NAME);
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task", finishedTask);
 
@@ -200,7 +200,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       OperationResult result = task.getResult();
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when(TEST_NAME);
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
@@ -210,7 +210,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       waitForTaskFinish(task.getOid(), true, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
 
       // THEN
-      displayThen(TEST_NAME);
+      then(TEST_NAME);
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task (finished)", finishedTask);
 

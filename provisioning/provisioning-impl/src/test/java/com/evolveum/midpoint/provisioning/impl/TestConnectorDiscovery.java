@@ -62,11 +62,11 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
         OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFalse("No connector found",connectors.isEmpty());
         display("Found "+connectors.size()+" discovered connector");
 

@@ -174,7 +174,7 @@ public class TestRetirement extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = PrismTestUtil.parseObject(ORG_RETIRED_FILE);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
@@ -213,7 +213,7 @@ public class TestRetirement extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
@@ -243,7 +243,7 @@ public class TestRetirement extends AbstractStoryTest {
                 USER_TELEKE_GIVEN_NAME, USER_TELEKE_FAMILY_NAME, orgRolyulaCarpathiaOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
@@ -273,7 +273,7 @@ public class TestRetirement extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
@@ -304,7 +304,7 @@ public class TestRetirement extends AbstractStoryTest {
                 USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
@@ -330,7 +330,7 @@ public class TestRetirement extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
@@ -361,7 +361,7 @@ public class TestRetirement extends AbstractStoryTest {
                 USER_DEZI_GIVEN_NAME, USER_DEZI_FAMILY_NAME, orgVysneVlkodlakyOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
@@ -391,7 +391,7 @@ public class TestRetirement extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
@@ -414,7 +414,7 @@ public class TestRetirement extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileUser(userGorcOid, task, result);
 
         // THEN
@@ -437,7 +437,7 @@ public class TestRetirement extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileUser(userGorcOid, task, result);
 
         // THEN

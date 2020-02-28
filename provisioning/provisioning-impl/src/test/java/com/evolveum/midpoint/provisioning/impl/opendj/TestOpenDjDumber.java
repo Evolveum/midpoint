@@ -88,7 +88,7 @@ public class TestOpenDjDumber extends TestOpenDj {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             provisioningService.deleteObject(ShadowType.class, OU_SUPER_OID, null, null, task, result);
 
             assertNotReached();
@@ -97,7 +97,7 @@ public class TestOpenDjDumber extends TestOpenDj {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
     }
 

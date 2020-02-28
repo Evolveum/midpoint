@@ -158,11 +158,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
         final String TEST_NAME = "test001addUser";
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, "default");
 
         //then
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -189,11 +189,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
         final String TEST_NAME = "test002assignRoleSquirrel";
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_SQUIRREL_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -220,11 +220,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
         final String TEST_NAME = "test003unassignRoleSquirrel";
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SQUIRREL_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -252,11 +252,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
         final String TEST_NAME = "test004assignRoleMapleLeafFaculty";
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -292,11 +292,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
         final String TEST_NAME = "test005assignRoleMapleLeafGraduate";
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_GRADUATE_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -324,11 +324,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
         final String TEST_NAME = "test006unassignRoleMapleLeafFaculty";
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -374,7 +374,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         AssertJUnit.assertNotNull("Unexpected value in car license: " + carLicenseBefore.getRealValue(), carLicenseBefore.getRealValue());
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         passwd = new ProtectedStringType();
         passwd.setClearValue("somenewValue");
         userDelta = createModifyUserReplaceDelta(USER_JACK_OID, SchemaConstants.PATH_PASSWORD_VALUE, passwd);
@@ -384,7 +384,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         //THEN
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         UserType userTypeAfter = userAfter.asObjectable();
 
@@ -416,7 +416,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
 
         //when
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         ExecuteCredentialResetRequestType executeCredentialResetRequest = new ExecuteCredentialResetRequestType();
         executeCredentialResetRequest.setResetMethod("passwordReset");
@@ -424,7 +424,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         modelInteractionService.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
 
         //THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         UserType userTypeAfter = userAfter.asObjectable();
 
@@ -476,7 +476,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         assertNotLinked(USER_JACK_OID, accountOid);
 
         //THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         modelService.importFromResource(accountOid, task, result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

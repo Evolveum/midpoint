@@ -21,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
@@ -47,7 +47,7 @@ import static org.testng.AssertJUnit.*;
 /**
  * @author mederly
  */
-public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
+public class AbstractTaskManagerTest extends AbstractSpringTest {
 
     protected static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
     protected static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
@@ -87,7 +87,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
     protected MockParallelTaskHandler parallelTaskHandler;
     protected MockLongTaskHandler longTaskHandler;
 
-    protected static OperationResult createResult(String test, Trace logger) {
+    protected static OperationResult createResult(String test) {
         TestUtil.displayTestTitle(test);
         return new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".test" + test);
     }

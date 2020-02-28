@@ -68,7 +68,7 @@ public class TestEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
@@ -102,7 +102,7 @@ public class TestEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
                 null, task, result);
@@ -127,7 +127,7 @@ public class TestEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -165,7 +165,7 @@ public class TestEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, null, null, task, result);
 
@@ -188,7 +188,7 @@ public class TestEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
                         CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
@@ -217,7 +217,7 @@ public class TestEscalation extends AbstractCertificationTest {
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
@@ -253,7 +253,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P2D");          // first escalation is at P1D
@@ -320,7 +320,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P4D");          // second escalation is at P3D
@@ -389,7 +389,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P15D");          // stage ends at P14D
@@ -419,7 +419,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P16D");
@@ -450,7 +450,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P18D");          // campaign ends at P16D, reiteration scheduled to P17D
@@ -508,7 +508,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P19D");         // +1 day relative to previous test
@@ -539,7 +539,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P20D");          // +1 day relative to previous test
@@ -584,7 +584,7 @@ public class TestEscalation extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -639,7 +639,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P21D");         // +1 day relative to previous test
@@ -670,7 +670,7 @@ public class TestEscalation extends AbstractCertificationTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         clock.resetOverride();
         clock.overrideDuration("P22D");          // +1 day relative to previous test

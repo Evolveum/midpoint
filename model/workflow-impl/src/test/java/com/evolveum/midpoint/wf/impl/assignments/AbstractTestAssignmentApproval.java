@@ -384,7 +384,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
             protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
                 if (number == 1) {
                     if (yes) {
-                        assertAssignedRole(userJackOid, getRoleOid(1), opTask, result);
+                        assertAssignedRole(userJackOid, getRoleOid(1), result);
                         checkAuditRecords(createResultMap(getRoleOid(1), WorkflowResult.APPROVED));
                         checkUserApprovers(userJackOid, Collections.singletonList(realApproverOid), result);
                     } else {
@@ -527,7 +527,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                     case 0:
                         if (yes) {
                             assertUserProperty(userJackOid, UserType.F_DESCRIPTION, testName);
-                            assertAssignedRole(userJackOid, getRoleOid(4), opTask, result);
+                            assertAssignedRole(userJackOid, getRoleOid(4), result);
                         } else {
                             if (originalDescription != null) {
                                 assertUserProperty(userJackOid, UserType.F_DESCRIPTION, originalDescription);
@@ -541,7 +541,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                     case 2:
                     case 3:
                     if (yes) {
-                        assertAssignedRole(userJackOid, getRoleOid(number), opTask, result);
+                        assertAssignedRole(userJackOid, getRoleOid(number), result);
                     } else {
                         assertNotAssignedRole(userJackOid, getRoleOid(number), opTask, result);
                     }

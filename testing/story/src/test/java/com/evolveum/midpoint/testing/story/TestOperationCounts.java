@@ -131,7 +131,7 @@ public class TestOperationCounts extends AbstractStoryTest {
         // GIVEN
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         resetThreadLocalPerformanceData();
         addObject(USER_ALICE_FILE, task, result);
@@ -178,7 +178,7 @@ public class TestOperationCounts extends AbstractStoryTest {
         // GIVEN
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         resetThreadLocalPerformanceData();
         addObject(USER_BOB_FILE, task, result);
@@ -226,7 +226,7 @@ public class TestOperationCounts extends AbstractStoryTest {
                 .asObjectDeltaCast(USER_BOB_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         resetThreadLocalPerformanceData();
         executeChanges(delta, null, task, result);

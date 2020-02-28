@@ -64,11 +64,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -100,11 +100,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserJack11x();
@@ -119,11 +119,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserJack11x();
@@ -138,11 +138,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(userJackAdminPersonaOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserJack11x();
@@ -157,11 +157,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userJackAdminPersonaOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserJack11x();
@@ -193,11 +193,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -232,11 +232,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -269,11 +269,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_3_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -309,11 +309,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_2_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -344,11 +344,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

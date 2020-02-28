@@ -100,7 +100,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assertSuperuserAccess(NUMBER_OF_ALL_USERS);
 
         assertGlobalStateUntouched();
@@ -242,7 +242,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -295,7 +295,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -348,7 +348,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -404,7 +404,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             login(USER_DEPUTY_1_NAME);
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             assertGetDeny(UserType.class, USER_JACK_OID);
             assertGetAllow(UserType.class, USER_DEPUTY_1_OID);
@@ -468,7 +468,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             login(USER_DEPUTY_2_NAME);
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             assertGetDeny(UserType.class, USER_JACK_OID);
             assertGetAllow(UserType.class, USER_DEPUTY_2_OID);
@@ -528,7 +528,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow();
         assertReadDenyRaw();
@@ -553,7 +553,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -591,7 +591,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -644,7 +644,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadDeny();
         assertReadDenyRaw();
@@ -701,7 +701,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow();
         assertReadDenyRaw();
@@ -738,7 +738,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -786,7 +786,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -883,7 +883,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     private void doReadSomeModifySomeUser(final String TEST_NAME) throws Exception {
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("Jack", userJack);
@@ -920,7 +920,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadSomeModifySome(1);
 
@@ -936,7 +936,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow();
 
@@ -1016,7 +1016,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow();
 
@@ -1175,7 +1175,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow();
 
@@ -1240,7 +1240,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadDeny(3);
         assertAddDeny();
@@ -1271,7 +1271,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadDeny(0);
         assertAddDeny();
@@ -1308,7 +1308,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadDeny(0);
         assertAddDeny();
@@ -1359,7 +1359,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertJack24xMember(accountOid, true);
 
@@ -1387,7 +1387,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertJack24xManager(TEST_NAME, true);
 
@@ -1418,7 +1418,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertJack24xManagerDefense(TEST_NAME, true);
 
@@ -1444,7 +1444,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertJack24xMember(accountOid, false);
 
@@ -1472,7 +1472,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertJack24xManager(TEST_NAME, false);
 
@@ -1501,7 +1501,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertJack24xManagerDefense(TEST_NAME, false);
 
@@ -1747,7 +1747,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -1815,7 +1815,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -1880,7 +1880,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -1962,7 +1962,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -2025,7 +2025,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -2093,7 +2093,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -2165,7 +2165,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertAllow("add user angelica",
                 (task, result) -> addObject(USER_ANGELICA_FILE, task, result));
@@ -2196,7 +2196,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2250,7 +2250,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2309,7 +2309,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2362,7 +2362,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2409,7 +2409,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2463,7 +2463,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
         assertAssignedRole(user, ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_OID);
@@ -2508,7 +2508,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2563,7 +2563,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2616,7 +2616,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2698,7 +2698,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2766,7 +2766,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -2824,7 +2824,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -2907,7 +2907,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
@@ -2973,7 +2973,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -3014,7 +3014,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
@@ -3047,7 +3047,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
 
@@ -3078,7 +3078,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         ObjectFilter jackAssignableRoleFilter = assertAssignableRoleSpecification(getUser(USER_JACK_OID))
                 .relationDefault()
@@ -3236,7 +3236,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
@@ -3263,7 +3263,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);

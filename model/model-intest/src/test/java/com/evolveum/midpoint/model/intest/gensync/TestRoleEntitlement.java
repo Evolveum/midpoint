@@ -386,7 +386,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         prepareNotifications();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
@@ -437,11 +437,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(groupDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -493,11 +493,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         roleDelta.addModification(linkDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(roleDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
@@ -635,11 +635,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(assignmentDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess("executeChanges result", result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
@@ -1153,11 +1153,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(roleDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -1217,11 +1217,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 .assertItems(PIRACY_COST_CENTER);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyObjectReplaceProperty(RoleType.class, ROLE_SWASHBUCKLER_OID, RoleType.F_RISK_LEVEL, task, result, "99");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertRoleAfter(ROLE_SWASHBUCKLER_OID)

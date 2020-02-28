@@ -82,7 +82,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_2_CLEAR, task, result);
 
@@ -93,7 +93,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();

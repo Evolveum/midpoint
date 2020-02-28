@@ -90,7 +90,7 @@ public class TestThresholdsReconFull extends TestThresholds {
         OperationResult result = new OperationResult(TEST_NAME);
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         OperationResult reconResult = waitForTaskResume(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000);
         assertSuccess(reconResult);
 
@@ -117,7 +117,7 @@ public class TestThresholdsReconFull extends TestThresholds {
         openDJController.delete("uid=user15,ou=People,dc=example,dc=com");
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         OperationResult reconResult = waitForTaskNextRun(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000, false);
         assertSuccess(reconResult);
 

@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -211,7 +210,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         waitForTaskStart(TASK_RECON_DUMMY_OID, false);
 
@@ -220,7 +219,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
         ShadowAsserter.forShadow(shadow)

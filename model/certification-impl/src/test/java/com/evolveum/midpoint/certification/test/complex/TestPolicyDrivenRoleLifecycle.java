@@ -120,7 +120,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         TestUtil.displayThen(TEST_NAME);
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRoleAssertFailure(roleEmptyOid, contextHolder, result, task);
@@ -155,7 +155,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         TestUtil.displayThen(TEST_NAME);
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRoleAssertFailure(roleHighRiskEmptyOid, contextHolder, result, task);
@@ -178,7 +178,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         TestUtil.displayThen(TEST_NAME);
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRoleAssertFailure(roleCorrectOid, contextHolder, result, task);
@@ -205,7 +205,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         TestUtil.displayThen(TEST_NAME);
         ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
@@ -226,7 +226,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRole(roleCorrectOid, contextHolder, task, result);
 
@@ -285,7 +285,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         TestUtil.displayThen(TEST_NAME);
         ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
@@ -307,7 +307,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRole(roleCorrectHighRiskOid, contextHolder, task, result);
 
@@ -389,7 +389,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 //        OperationResult result = task.getResult();
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        assignOrg(USER_INDIGO_OID, ORG_LABORATORY_OID, task, result);
 //
 //        // THEN
@@ -420,7 +420,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 //        OperationResult result = task.getResult();
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        @SuppressWarnings({ "unchecked", "raw" })
 //        ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
 //                .item(UserType.F_DESCRIPTION).replace("new description")

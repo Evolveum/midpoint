@@ -154,11 +154,11 @@ public class ManualResourceTest extends AbstractWfTest {
         Task task = getTestTask();
 
         // WHEN
-        displayWhen();
+        when();
         OperationResult testResult = modelService.testResource(RESOURCE_MANUAL_OID, task);
 
         // THEN
-        displayThen();
+        then();
         display("Test result", testResult);
         TestUtil.assertSuccess("Test resource failed (result)", testResult);
     }
@@ -173,11 +173,11 @@ public class ManualResourceTest extends AbstractWfTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        displayWhen();
+        when();
         assignRole(userWillOid, ROLE_ONE_MANUAL_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -204,7 +204,7 @@ public class ManualResourceTest extends AbstractWfTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        displayWhen();
+        when();
 
         CaseType caseBefore = getCase(willLastCaseOid);
         display("Case before work item completion", caseBefore);
@@ -231,7 +231,7 @@ public class ManualResourceTest extends AbstractWfTest {
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         CaseType caseAfter = getCase(willLastCaseOid);

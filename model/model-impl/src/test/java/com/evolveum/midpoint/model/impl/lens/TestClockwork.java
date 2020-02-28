@@ -100,7 +100,7 @@ public class TestClockwork extends AbstractLensTest {
         fillContextWithAddUserDelta(context, bill);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         clockwork.click(context, task, result);     // one round - compute projections
 
         display("Context before serialization", context);
@@ -116,7 +116,7 @@ public class TestClockwork extends AbstractLensTest {
         display("Context after deserialization", context);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
             assertTrue("Secondary delta #" + i + " is not preserved correctly, "
@@ -146,11 +146,11 @@ public class TestClockwork extends AbstractLensTest {
             rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             clockwork.run(context, task, result);
 
             // THEN
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             mockClockworkHook.setRecord(false);
             display("Output context", context);
             display("Hook contexts", mockClockworkHook);
@@ -223,11 +223,11 @@ public class TestClockwork extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         clockwork.run(context, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Output context", context);
 
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
@@ -281,7 +281,7 @@ public class TestClockwork extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(testName);
+        when(testName);
         while(context.getState() != ModelState.FINAL) {
 
             display("CLICK START: "+context.getState());
@@ -311,7 +311,7 @@ public class TestClockwork extends AbstractLensTest {
         }
 
         // THEN
-        displayThen(testName);
+        then(testName);
         mockClockworkHook.setRecord(false);
 //        display("Output context", context);
 //        display("Hook contexts", mockClockworkHook);

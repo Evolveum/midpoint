@@ -145,7 +145,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         display("e0", findUserByUsername("e0"));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 5);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
@@ -211,7 +211,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();

@@ -73,12 +73,12 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<ResourceType> resourceNoAAD = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         List<Object> configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured().getAny();
@@ -96,11 +96,11 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -118,12 +118,12 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_TREASURE_HUNT));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -141,12 +141,12 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_LOOTING), createPolyString(OU_SAILING));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -164,12 +164,12 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_LOOTING));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -190,12 +190,12 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_TREASURE_HUNT), createPolyString(OU_SAILING));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -213,11 +213,11 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -239,11 +239,11 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NO_CREATE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result, 2);
 
@@ -262,11 +262,11 @@ public class TestLimitedResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NO_CREATE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)

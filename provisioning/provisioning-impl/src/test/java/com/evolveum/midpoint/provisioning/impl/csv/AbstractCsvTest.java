@@ -318,7 +318,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         PrismObject<ShadowType> shadowBefore = parseObject(getAccountJackFile());
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.addObject(shadowBefore, null, null, task, result);
 
         // THEN
@@ -335,7 +335,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, getAccountJackOid(), null, task, result);
 
         // THEN
@@ -381,7 +381,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         display("PropertyDelta", delta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, getAccountJackOid(), Collections.singletonList(delta),
                 null, null, task, result);
 

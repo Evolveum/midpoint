@@ -10,13 +10,14 @@ import java.io.File;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.test.util.AbstractUnitTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
  * @author semancik
  *
  */
-public class AbstractModelCommonTest {
+public class AbstractModelCommonTest extends AbstractUnitTest {
 
     protected static final File COMMON_DIR = new File("src/test/resources/common");
 
@@ -25,14 +26,6 @@ public class AbstractModelCommonTest {
 
     protected void displayTestTitle(final String TEST_NAME) {
         TestUtil.displayTestTitle(this, TEST_NAME);
-    }
-
-    protected void displayWhen(final String TEST_NAME) {
-        TestUtil.displayWhen(TEST_NAME);
-    }
-
-    protected void displayThen(final String TEST_NAME) {
-        TestUtil.displayThen(TEST_NAME);
     }
 
     protected Task createTask() {

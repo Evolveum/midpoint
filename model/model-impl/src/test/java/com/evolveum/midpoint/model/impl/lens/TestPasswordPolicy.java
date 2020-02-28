@@ -112,7 +112,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         pp.getStringPolicy().getLimitations().setMinUniqueChars(5);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, false, null, TEST_NAME, task, result);
 
         // THEN
@@ -167,7 +167,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         ValuePolicyType pp = parsePasswordPolicy("value-policy-random-pin.xml");
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, null, TEST_NAME, task, result);
 
         // THEN
@@ -191,7 +191,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         ValuePolicyType pp = parsePasswordPolicy("value-policy-generate.xml");
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, null, TEST_NAME, task, result);
 
         // THEN
@@ -217,7 +217,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, null, TEST_NAME, task, result);
 
         // THEN
@@ -325,7 +325,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         ValuePolicyType pp = parsePasswordPolicy("password-policy-username.xml");
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         for (int i = 0; i < USERNAME_ATTEMPTS; i++) {
             Task task = getTestTask();
@@ -359,7 +359,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         ValuePolicyType pp = parsePasswordPolicy("password-policy-props.xml");
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         for (int i = 0; i < USER_PROPS_ATTEMPTS; i++) {
             Task task = getTestTask();

@@ -102,11 +102,11 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         Task task = getTestTask();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         OperationResult result = modelService.testResource(RESOURCE_DUMMY_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatusIfUnknown();
         assertSuccess(result);
     }
@@ -125,11 +125,11 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         }
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addTask(TASK_IMPORT_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         Task taskAfter = waitForTaskFinish(TASK_IMPORT_OID, true, SYNC_TASK_WAIT_TIMEOUT);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
@@ -155,11 +155,11 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         assertEquals("Wrong # of remaining accounts", 0, dummyResourceCtl.getDummyResource().listAccounts().size());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addTask(TASK_RECONCILIATION_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
@@ -185,11 +185,11 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         assertEquals("Wrong # of remaining accounts", 0, dummyResourceCtl.getDummyResource().listAccounts().size());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addTask(TASK_BULK_DELETE_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
@@ -216,7 +216,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         display("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         // TODO: more thresholds
 

@@ -134,7 +134,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
 
         // THEN
@@ -232,7 +232,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
@@ -298,7 +298,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
@@ -371,7 +371,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
 
         // THEN
@@ -424,7 +424,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
         Long id = assignment.getId();
@@ -486,7 +486,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
         Long id = assignment.getId();
@@ -544,7 +544,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "get", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
@@ -569,7 +569,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
@@ -602,7 +602,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "general-post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
@@ -635,7 +635,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "get-via-proxy", null,
                 "hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
@@ -663,7 +663,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         prepareNotifications();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "check-variables", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
@@ -688,7 +688,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testStringAttachmentUser")
                 .asPrismObject();
@@ -725,7 +725,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testByteAttachmentUser")
                 .asPrismObject();
@@ -776,7 +776,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testAttachmentFromFileUser")
                 .asPrismObject();
@@ -812,7 +812,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testExpressionAttachmentUser")
                 .asPrismObject();

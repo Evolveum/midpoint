@@ -58,12 +58,12 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
@@ -78,12 +78,12 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertNoDummyAccount(USER_JACK_USERNAME);
@@ -102,12 +102,12 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertInProgress(result);
 
         assertNoDummyAccount(USER_JACK_USERNAME);
@@ -124,12 +124,12 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
@@ -149,12 +149,12 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, createPolyString(USER_JACK_FULL_NAME_CAPTAIN));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertInProgress(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
@@ -173,12 +173,12 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)

@@ -110,7 +110,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Guybrush before", userGuybrushBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
@@ -167,7 +167,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> object =
                 modelInteractionService.mergeObjectsPreviewObject(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
@@ -224,7 +224,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Jack before", userJackBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
@@ -278,7 +278,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> object =
                 modelInteractionService.mergeObjectsPreviewObject(UserType.class,
                         USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
@@ -332,7 +332,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Guybrush before", userGuybrushBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_EXPRESSION_NAME, task, result);
@@ -379,7 +379,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> object =
                 modelInteractionService.mergeObjectsPreviewObject(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_EXPRESSION_NAME, task, result);
@@ -436,7 +436,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Guybrush before", userGuybrushBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_SPECIFIC_NAME, task, result);
@@ -493,7 +493,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.mergeObjects(UserType.class,
                 USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 

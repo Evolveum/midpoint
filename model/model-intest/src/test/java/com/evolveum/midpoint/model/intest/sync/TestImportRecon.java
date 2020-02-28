@@ -374,11 +374,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         loginImportUser();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(ACCOUNT_STAN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display(result);
         assertSuccess(result);
 
@@ -430,11 +430,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
@@ -443,7 +443,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
@@ -489,11 +489,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
@@ -502,7 +502,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(task.getResult());
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
@@ -557,11 +557,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         loginImportUser();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
@@ -570,7 +570,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
@@ -635,11 +635,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
@@ -648,7 +648,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
@@ -720,11 +720,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
@@ -733,7 +733,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(task.getResult());
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
@@ -813,16 +813,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importObjectFromFile(TASK_RECONCILE_DUMMY_SINGLE_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
@@ -912,12 +912,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_OID);
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource)", users);
@@ -978,12 +978,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_OID);
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
@@ -1063,12 +1063,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_OID);
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource account)", users);
@@ -1132,12 +1132,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_OID);
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
@@ -1222,12 +1222,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_OID);
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
@@ -1338,15 +1338,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importObjectFromFile(TASK_RECONCILE_DUMMY_AZURE_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1401,15 +1401,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -1470,15 +1470,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1544,15 +1544,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1651,15 +1651,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1725,15 +1725,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1795,15 +1795,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1861,15 +1861,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importObjectFromFile(TASK_RECONCILE_DUMMY_LIME_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1916,11 +1916,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1964,11 +1964,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2012,11 +2012,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2057,11 +2057,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2104,11 +2104,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2148,11 +2148,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2193,11 +2193,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
@@ -2237,15 +2237,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_LIME_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME_OID, false);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -2294,11 +2294,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(ACCOUNT_TAUGUSTUS_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         loginAdministrator();
@@ -2363,11 +2363,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(ACCOUNT_AUGUSTUS_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         loginAdministrator();
@@ -2449,11 +2449,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
@@ -2462,7 +2462,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
 
         // First fetch: search in import handler
@@ -2521,7 +2521,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         // runPrivileged is necessary for TestImportReconAuthorizations as importObjectFromFile() is using raw operations
         runPrivileged(() -> {
             try {
@@ -2552,11 +2552,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2581,11 +2581,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                         .build();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2608,16 +2608,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
      // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS_OID, true, 20000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_SHADOWS_OID);
@@ -2653,16 +2653,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importObjectFromFile(TASK_DELETE_DUMMY_ACCOUNTS_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS_OID, true, 20000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_ACCOUNTS_OID);

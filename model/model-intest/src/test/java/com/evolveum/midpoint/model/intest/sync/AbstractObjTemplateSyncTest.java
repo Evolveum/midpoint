@@ -117,7 +117,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importSyncTask(resourceDummyByzantine);
 
         // THEN
@@ -150,7 +150,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
 
@@ -159,7 +159,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         waitForSyncTaskNextRun(resourceDummyByzantine);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyByzantine);
         display("Account mancomb", accountMancomb);

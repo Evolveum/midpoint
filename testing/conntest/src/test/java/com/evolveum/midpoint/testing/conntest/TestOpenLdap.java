@@ -171,7 +171,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
 
         // THEN
@@ -197,7 +197,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         display("LDAP Entry before", entry);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         for (int i = 0; i < 10; i++) {
             LdapNetworkConnection conn;
             try {
@@ -237,7 +237,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
                 SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         executeChanges(accountDelta, null, task, result);
 
         // THEN

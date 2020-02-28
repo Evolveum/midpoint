@@ -82,11 +82,11 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
         repoAddObjectFromFile(TASK_SHADOW_INTEGRITY_CHECK_FILE, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         waitForTaskCloseOrSuspend(TASK_SHADOW_INTEGRITY_CHECK_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<TaskType> taskAfter = getTask(TASK_SHADOW_INTEGRITY_CHECK_OID);
         display("task after", taskAfter);
 

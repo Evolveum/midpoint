@@ -178,11 +178,11 @@ public class TestScience  extends AbstractStoryTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_STATISTICS_OID, task, result);
 
         // WHEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);

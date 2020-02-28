@@ -199,7 +199,7 @@ public class TestProjector extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
@@ -574,11 +574,11 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
     }
 
@@ -848,11 +848,11 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Output context", context);
 
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);

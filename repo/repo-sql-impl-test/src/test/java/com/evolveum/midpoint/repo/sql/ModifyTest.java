@@ -74,8 +74,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -91,8 +89,6 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final File ACCOUNT_ATTRIBUTE_FILE = new File(TEST_DIR, "account-attribute.xml");
     private static final File ACCOUNT_FILE = new File(TEST_DIR, "account.xml");
     private static final File MODIFY_USER_ADD_LINK = new File(TEST_DIR, "change-add.xml");
-
-    private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
 
     private static final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
     private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
@@ -198,7 +194,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
-        LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
+        logger.debug("Modify diff \n{}", delta.debugDump(3));
         AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "
                 + delta.getModifications().size(), delta.isEmpty());
         AssertJUnit.assertTrue("User is not equivalent.", userOld.equivalent(userNew));
@@ -238,7 +234,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
-        LOGGER.debug("Modify diff \n{}", delta.debugDump(3));
+        logger.debug("Modify diff \n{}", delta.debugDump(3));
         AssertJUnit.assertTrue("Modify was unsuccessful, diff size: "
                 + delta.getModifications().size(), delta.isEmpty());
         AssertJUnit.assertTrue("User is not equivalent.", userOld.equivalent(userNew));
@@ -257,8 +253,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         final String taskOid = "00000000-0000-0000-0000-123450000001";
         AssertJUnit.assertNotNull(taskOid);
         System.out.println("GET");
-        PrismObject<TaskType> getTask = null;
-        getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
+        PrismObject<TaskType> getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         String lastVersion = getTask.getVersion();
         AssertJUnit.assertTrue(task.equivalent(getTask));
         TaskType taskType = null;
@@ -301,7 +296,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
         assertEquals("2", objectRef.getOid());
-        LOGGER.info(PrismTestUtil.serializeObjectToString(taskType.asPrismObject()));
+        logger.info(PrismTestUtil.serializeObjectToString(taskType.asPrismObject()));
         SqlRepoTestUtil.assertVersionProgress(lastVersion, getTask.getVersion());
         lastVersion = getTask.getVersion();
 
@@ -569,7 +564,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
 
@@ -597,7 +592,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         modifications.add(pdelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(ShadowType.class, oid, modifications, getModifyOptions(), parentResult);
 
         // THEN
@@ -624,7 +619,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                         prismContext);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, getModifyOptions(), parentResult);
 //        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
 
@@ -986,11 +981,11 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         Session session = open();
         List shadows = session.createQuery("from RShadow").list();
-        LOGGER.info("shadows:\n{}", shadows);
+        logger.info("shadows:\n{}", shadows);
         //noinspection unchecked
         List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").list();
         for (Object[] extString : extStrings) {
-            LOGGER.info("-> {}", Arrays.asList(extString));
+            logger.info("-> {}", Arrays.asList(extString));
         }
         close(session);
 
@@ -998,7 +993,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
                 .build();
         List list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
-        LOGGER.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
+        logger.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
         assertEquals("Wrong # of query1 results", 1, list1.size());
 
         session = open();

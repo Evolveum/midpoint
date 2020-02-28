@@ -58,7 +58,7 @@ public class TestSecurityMedium extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(RoleType.class, null, getNumberOfRoles());
 
@@ -84,7 +84,7 @@ public class TestSecurityMedium extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -114,7 +114,7 @@ public class TestSecurityMedium extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertAddAllow(USER_EMPLOYEE_FRED_FILE);
 

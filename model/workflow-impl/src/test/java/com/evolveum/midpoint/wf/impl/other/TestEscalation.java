@@ -176,7 +176,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         display("rootTask", rootCase);
         waitForCaseClose(rootCase, 60000);
 
-        assertAssignedRole(userJackOid, ROLE_E1_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_E1_OID, result);
     }
 
     @Test

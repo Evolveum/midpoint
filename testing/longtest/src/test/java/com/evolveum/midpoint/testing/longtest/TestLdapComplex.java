@@ -140,20 +140,20 @@ public class TestLdapComplex extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -179,7 +179,7 @@ public class TestLdapComplex extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
@@ -187,7 +187,7 @@ public class TestLdapComplex extends AbstractLongTest {
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         // TODO
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
@@ -195,7 +195,7 @@ public class TestLdapComplex extends AbstractLongTest {
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -218,11 +218,11 @@ public class TestLdapComplex extends AbstractLongTest {
         addObject(USER_GUYBRUSH_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, INTENT_SECURITY, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -252,11 +252,11 @@ public class TestLdapComplex extends AbstractLongTest {
         openDJController.assertHasNoObjectClass(entryBefore, OBJECTCLASS_USER_SECURITY_INFORMATION);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);

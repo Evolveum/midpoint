@@ -826,12 +826,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNotNull("No resource schema", resourceSchema);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
                 null, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -1158,11 +1158,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
@@ -1414,11 +1414,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 

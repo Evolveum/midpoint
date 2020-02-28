@@ -321,7 +321,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         }
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
 
         // THEN

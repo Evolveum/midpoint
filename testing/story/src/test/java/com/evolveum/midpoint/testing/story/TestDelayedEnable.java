@@ -117,12 +117,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         hrCreateTsStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addObject(USER_MANCOMB_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         hrCreateTsEnd = clock.currentTimeXMLGregorianCalendar();
@@ -143,12 +143,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         displayCurrentTime();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertMancombCreated();
 
@@ -168,12 +168,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         displayCurrentTime();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_MANCOMB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombCreated();
@@ -210,12 +210,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         clockForward("P1D");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertMancombEnabled();
 
@@ -236,12 +236,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         clockForward("P1D");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_MANCOMB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombEnabled();
@@ -270,12 +270,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         final String TEST_NAME = "test114UserMancombRunTriggerScannerDay1Again";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertMancombEnabled();
 
@@ -293,12 +293,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_MANCOMB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombEnabled();
@@ -320,12 +320,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         hrModifyTsStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         modifyUserReplace(USER_MANCOMB_OID, getExtensionPath(EXT_HR_STATUS_QNAME), task, result, EXT_HR_STATUS_DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         hrModifyTsEnd = clock.currentTimeXMLGregorianCalendar();
@@ -359,12 +359,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_MANCOMB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombHalfDisabled();
@@ -380,12 +380,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombHalfDisabled();
@@ -407,12 +407,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombDisabled();
@@ -445,12 +445,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_MANCOMB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombDisabled();
@@ -466,12 +466,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_MANCOMB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombDisabled();
@@ -493,12 +493,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_MANCOMB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertMancombDisabled();
@@ -516,12 +516,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addObject(TASK_DUMMY_HR_FILE, task, result);
 
         // THEN
-         displayThen(TEST_NAME);
+         then(TEST_NAME);
          assertSuccess(result);
 
          waitForTaskStart(TASK_DUMMY_HR_OID, true);
@@ -546,12 +546,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         hrCreateTsStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         syncWithHr();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         hrCreateTsEnd = clock.currentTimeXMLGregorianCalendar();
@@ -572,12 +572,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         syncWithHr();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushCreated(assertUserAfter(userGuybrushOid));
@@ -595,12 +595,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushCreated(assertUserAfter(userGuybrushOid));
@@ -618,12 +618,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushCreated(assertUserAfter(userGuybrushOid));
@@ -641,12 +641,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushCreated(assertUserAfter(userGuybrushOid));
@@ -680,12 +680,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         clockForward("P1D");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertGuybrushEnabled();
 
@@ -700,12 +700,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         syncWithHr();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushEnabled();
@@ -723,12 +723,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushEnabled();
@@ -744,12 +744,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushEnabled();
@@ -765,12 +765,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushEnabled();
@@ -804,12 +804,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         hrModifyTsStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         syncWithHr();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         hrModifyTsEnd = clock.currentTimeXMLGregorianCalendar();
 
@@ -823,12 +823,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         final String TEST_NAME = "test232GuybrushHrSyncAgain";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         syncWithHr();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertGuybrushHalfDisabled();
 
@@ -843,12 +843,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushHalfDisabled();
@@ -864,12 +864,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushHalfDisabled();
@@ -884,12 +884,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         clockForward("PT1H");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertGuybrushHalfDisabled();
 
@@ -920,12 +920,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         clockForward("P1D");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         runTriggerScanner();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertGuybrushDisabled();
 
@@ -940,12 +940,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushDisabled();
@@ -958,12 +958,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         final String TEST_NAME = "test244GuybrushHrSyncAgain";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         syncWithHr();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertGuybrushDisabled();
 
@@ -978,12 +978,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userGuybrushOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertGuybrushDisabled();

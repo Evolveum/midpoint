@@ -86,12 +86,12 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         modelService.importFromResource(SHADOW_SAMPLE_ACTIVATION_SIMULATED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
 /*        List<Object> configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured().getAny();
@@ -122,7 +122,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
 
         //THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
         userAfterAsserter
             .activation()
@@ -176,7 +176,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         //THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
         userAfterAsserter

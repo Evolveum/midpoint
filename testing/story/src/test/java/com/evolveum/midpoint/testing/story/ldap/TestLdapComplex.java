@@ -204,11 +204,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -225,11 +225,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -261,11 +261,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         display("Query", query);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -279,11 +279,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -312,11 +312,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_EN_SK));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -342,11 +342,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -380,11 +380,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_EN_SK_RU_HR));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -417,11 +417,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_CZ_HR));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -454,11 +454,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -489,11 +489,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME_CAPTAIN);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -519,11 +519,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -556,11 +556,11 @@ public class TestLdapComplex extends AbstractLdapTest {
             .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -586,11 +586,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -633,11 +633,11 @@ public class TestLdapComplex extends AbstractLdapTest {
             .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -680,11 +680,11 @@ public class TestLdapComplex extends AbstractLdapTest {
             .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -727,11 +727,11 @@ public class TestLdapComplex extends AbstractLdapTest {
             .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -763,11 +763,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -792,11 +792,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
@@ -853,11 +853,11 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PolyString descriptionShadowAttribute = (PolyString) assertShadow(shadow, "Jack's shadow after read")
@@ -892,11 +892,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -914,7 +914,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 4);
 
     }
@@ -932,11 +932,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -982,7 +982,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 4);
 
     }
@@ -998,7 +998,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         // Group "pirates" already exists
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 1);
 
@@ -1015,7 +1015,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 0);
 
     }
@@ -1033,11 +1033,11 @@ public class TestLdapComplex extends AbstractLdapTest {
                     .targetRef(ORG_PROJECT_TOP_OID, OrgType.COMPLEX_TYPE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(projectKeelhaul);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<OrgType> orgKeelhaul = findObjectByName(OrgType.class, PROJECT_KEELHAUL_NAME);
         projectKeelhaulOid = orgKeelhaul.getOid();
         groupKeelhaulOid = assertOrg(orgKeelhaul, "after")
@@ -1062,11 +1062,11 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .targetRef(ORG_PROJECT_TOP_OID, OrgType.COMPLEX_TYPE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(projectKeelhaul);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<OrgType> orgWalkThePlank = findObjectByName(OrgType.class, PROJECT_WALK_THE_PLANK_NAME);
         projectWalkThePlankOid = orgWalkThePlank.getOid();
         groupWalkThePlankOid = assertOrg(orgWalkThePlank, "after")
@@ -1094,11 +1094,11 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .targetRef(ORG_FUNCTIONAL_TOP_OID, OrgType.COMPLEX_TYPE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(orgBefore);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<OrgType> orgAfter = findObjectByName(OrgType.class, ORG_RUM_DEPARTMENT_NAME);
         orgRumDepartmentOid = orgAfter.getOid();
         assertNotNull("Null org oid", orgRumDepartmentOid);
@@ -1133,11 +1133,11 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignOrg(USER_JACK_OID, projectKeelhaulOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
@@ -1173,11 +1173,11 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignOrg(USER_JACK_OID, projectWalkThePlankOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
@@ -1213,11 +1213,11 @@ public class TestLdapComplex extends AbstractLdapTest {
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignOrg(USER_JACK_OID, orgRumDepartmentOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");

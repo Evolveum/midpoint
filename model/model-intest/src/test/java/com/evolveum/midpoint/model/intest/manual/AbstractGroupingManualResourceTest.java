@@ -170,11 +170,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(userWillOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -258,11 +258,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         assertInProgress(result);
 
@@ -341,11 +341,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertAccountWillAfterChangePasswordAndEnable(TEST_NAME);
     }
@@ -366,11 +366,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         accountWillExecutionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         accountWillExecutionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
@@ -473,12 +473,12 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -503,11 +503,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertAccountWillAfterChangePasswordAndEnableCaseClosed(TEST_NAME, null);
@@ -530,12 +530,12 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_NEW);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         ShadowAsserter<Void> shadowModelAsserter = ShadowAsserter.forShadow(shadowModel, "model")
@@ -585,12 +585,12 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         ShadowAsserter<Void> shadowModelAsserter = ShadowAsserter.forShadow(shadowModel, "model")
@@ -639,11 +639,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -698,11 +698,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(userWillOid, getRoleOneOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -775,11 +775,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         accountWillExecutionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         accountWillExecutionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
@@ -850,12 +850,12 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         assertSuccess(result);
 
@@ -900,11 +900,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         displayBackingStore();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);

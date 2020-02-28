@@ -94,7 +94,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
@@ -126,7 +126,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -157,7 +157,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         addTrigger(USER_JACK_OID, startCal, MockTriggerHandler.HANDLER_URI);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -190,7 +190,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -223,7 +223,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal), MockTriggerHandler.HANDLER_URI, true);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -256,7 +256,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, true);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -287,7 +287,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal), MockMultipleTriggersHandler.HANDLER_URI, true);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -322,7 +322,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
                 true);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -358,7 +358,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
             addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
 
             /// WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
             waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
             // THEN
@@ -391,7 +391,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -426,7 +426,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         testTriggerHandler.setFailOnNextInvocation(true);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 10000);
 
         // THEN
@@ -482,7 +482,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5days), MockTriggerHandler.HANDLER_URI, false);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
@@ -528,7 +528,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         taskManager.resumeTasks(singleton(TASK_TRIGGER_SCANNER_OID), result);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         IntegrationTestTools.waitFor("Waiting for trigger handler invocation", () -> testTriggerHandler.getInvocationCount() > 0, 60000);
         suspended = taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 20000L, result);
         assertTrue("trigger scanner task was not suspended (after operation)", suspended);

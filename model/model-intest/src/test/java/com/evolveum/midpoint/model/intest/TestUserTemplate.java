@@ -131,11 +131,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
-        PrismObject<SystemConfigurationType> systemConfiguration = modelService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+        when();
+        PrismObject<SystemConfigurationType> systemConfiguration = modelService.getObject(
+                SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 null, task, result);
 
         // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -220,11 +222,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         deltas.add(userDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -979,11 +981,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         deltas.add(userDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -1058,11 +1060,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, "THIEF");
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1086,12 +1088,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result,
                 PrismTestUtil.createPolyString("Thf."));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1116,11 +1118,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userBefore, ROLE_THIEF_OID);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1146,11 +1148,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_MAROONED);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1175,11 +1177,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
@@ -1207,11 +1209,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_MAROONED);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1233,11 +1235,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
@@ -1268,11 +1270,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Whateveric"));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1298,11 +1300,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("AUTO-matic"));
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1334,7 +1336,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 2);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("DEMO-cratic"),
                 createPolyString("AUTO-cratic"),
@@ -1343,7 +1345,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
             );
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1382,14 +1384,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("meritocratic"),
                 createPolyString("piratocratic")
             );
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1430,7 +1432,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("AUTO-matic"),
                 createPolyString("plutocratic"),
@@ -1439,7 +1441,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
             );
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1474,14 +1476,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 2);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("piratocratic"),
                 createPolyString("DEMO-cratic")
             );
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1515,11 +1517,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 2);
 
         // WHEN
-        displayWhen();
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1550,11 +1552,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_SUBTYPE, task, result, "PIRATE");
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1590,14 +1592,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("AUTO-graphic"),
                 createPolyString("AUTO-matic")
             );
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1637,14 +1639,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 6);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("AUTO-cratic"),
                 createPolyString("Whateveric")
             );
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1680,11 +1682,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 5);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_SUBTYPE, task, result, "wannabe");
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1719,11 +1721,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen();
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1756,11 +1758,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2382,11 +2384,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.importFromResource(shadowBefore.getOid(), task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -2421,11 +2423,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.importFromResource(shadowBefore.getOid(), task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -3490,11 +3492,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_USELESS);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -3523,14 +3525,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         repositoryService.addObject(user.asPrismObject(), null, result);
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).delete(new PolyString("jim"))
                 .asObjectDeltaCast(user.getOid());
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, user.getOid(), null, task, result);

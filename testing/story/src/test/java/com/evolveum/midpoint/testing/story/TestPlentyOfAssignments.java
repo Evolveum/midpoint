@@ -185,12 +185,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addObject(cheeseBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -228,12 +228,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_CHEESE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -272,12 +272,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -329,7 +329,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
@@ -382,7 +382,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         Collection<DummyGroup> dummyGroups = getDummyResource().listGroups();
@@ -412,12 +412,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -456,12 +456,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_BOB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -500,12 +500,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(USER_BOB_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -567,12 +567,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -612,12 +612,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(USER_ALICE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -656,12 +656,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(USER_ALICE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 

@@ -417,11 +417,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult repoResult = new OperationResult("getObject");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, null, repoResult);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(repoResult);
 
         assertUser(uObject,"repo")
@@ -616,7 +616,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         //WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_WILL_OID, RESOURCE_OPENDJ_OID, null, task, parentResult);
 
         // THEN
@@ -754,7 +754,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         clockForward("PT20M");
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         provisioningService.refreshShadow(shadowRepo, null, task, parentResult);
 
         try {
@@ -813,7 +813,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 //        requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<ShadowType> shadowAfter = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowAfter)
                 .assertTombstone()
@@ -866,7 +866,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         //WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
                 .property(ItemPath.create(ShadowType.F_ATTRIBUTES, new ItemName(MidPointConstants.NS_RI, "roomNumber")))
                     .replace("cabin")
@@ -976,7 +976,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertTrue("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead() != Boolean.TRUE);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
@@ -1165,7 +1165,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .createModificationAddProperty(ShadowType.class, accountOid, createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
         delta.addModificationReplaceProperty(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME), "eeeee");
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
         executeChanges(delta, null, task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
@@ -1232,7 +1232,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         //WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
                 .object()
                 .createModificationAddProperty(ShadowType.class, accountOid, createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
@@ -1656,7 +1656,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
         assignAccount(UserType.class, USER_ANGELIKA_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
@@ -1901,7 +1901,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String shadowOid = getLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
 
         // WHEN (down)
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
         modifyUserChangePassword(USER_ALICE_OID, "UNDEADmenTELLscaryTALES", task, result);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
@@ -1945,7 +1945,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, result);
 
         // WHEN (restore)
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_ALICE_OID, task, result);
 
         // THEN
@@ -2160,11 +2160,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                             .assertNoModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_TYPE));
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_DONALD_OID, ModelExecuteOptions.createReconcile(), task, parentResult);
 
         //THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertModelShadow(shadowOid)
                 .attributes()
                     .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "don")
@@ -2196,7 +2196,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String shadowOid = getLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         AssignmentType adminRoleAssignment = new AssignmentType(prismContext);
         adminRoleAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_LDAP_ADMINS_OID, ObjectTypes.ROLE));
@@ -2305,11 +2305,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(USER_MORGAN_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         display("User morgan after", userMorgan);
@@ -2354,7 +2354,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 //
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         addObject(USER_CHUCK_FILE);
 
         // THEN
@@ -2416,7 +2416,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
         //WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccount(UserType.class, USER_HERMAN_OID, RESOURCE_OPENDJ_OID, "internal", task, result);
 
         // THEN
@@ -2473,7 +2473,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         ///----user's link is removed, now, remove assignment
@@ -2482,7 +2482,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 user.findContainer(UserType.F_ASSIGNMENT).getValue().clone());
         deltas = MiscSchemaUtil.createCollection(userDelta);
      // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         repositoryService.deleteObject(ShadowType.class, linkRef.getOid(), result);
@@ -2567,7 +2567,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
 

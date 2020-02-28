@@ -183,11 +183,11 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen();
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -237,12 +237,12 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
                 PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -273,14 +273,14 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
                 PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1405,11 +1405,11 @@ public class TestMapping extends AbstractMappingTest {
         deltas.add(accountDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertPartialError(result);
 
         userJack = getUser(USER_JACK_OID);
@@ -1488,11 +1488,11 @@ public class TestMapping extends AbstractMappingTest {
         deltas.add(accountDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertPartialError(result);
 
         userJack = getUser(USER_JACK_OID);
@@ -1781,12 +1781,12 @@ public class TestMapping extends AbstractMappingTest {
         deltas.add(accountDelta);
 
         // WHEN
-        displayWhen();
+        when();
 
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertPartialError(result);
 
         userJack = getUser(USER_JACK_OID);
@@ -1865,11 +1865,11 @@ public class TestMapping extends AbstractMappingTest {
         deltas.add(accountDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertPartialError(result);
 
         userJack = getUser(USER_JACK_OID);
@@ -2022,11 +2022,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2059,11 +2059,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2097,11 +2097,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2144,11 +2144,11 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertPartialError(result);
 
@@ -2191,11 +2191,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2234,11 +2234,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2277,7 +2277,7 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
                 PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
@@ -2285,7 +2285,7 @@ public class TestMapping extends AbstractMappingTest {
         modelService.executeChanges(deltas, options, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2328,11 +2328,11 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
@@ -2380,11 +2380,11 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserChangePassword(USER_GUYBRUSH_OID, USER_GUYBRUSH_PASSWORD_1_CLEAR, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
@@ -2420,11 +2420,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2452,11 +2452,11 @@ public class TestMapping extends AbstractMappingTest {
         assertNoDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        displayWhen();
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2489,11 +2489,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2527,11 +2527,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2575,11 +2575,11 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertPartialError(result);
 
@@ -2622,11 +2622,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2665,11 +2665,11 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2708,7 +2708,7 @@ public class TestMapping extends AbstractMappingTest {
         display("Dummy account before", dummyAccountBefore);
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
                 PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
@@ -2716,7 +2716,7 @@ public class TestMapping extends AbstractMappingTest {
         modelService.executeChanges(deltas, options, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2759,11 +2759,11 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
@@ -2811,11 +2811,11 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserChangePassword(USER_GUYBRUSH_OID, USER_GUYBRUSH_PASSWORD_2_CLEAR, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
@@ -2851,11 +2851,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2881,11 +2881,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2915,11 +2915,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString("Forbidden dodecahedron"));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2943,11 +2943,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2968,11 +2968,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -2994,11 +2994,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_SCABB_ISLAND));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -3021,11 +3021,11 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getResult();
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -3063,7 +3063,7 @@ public class TestMapping extends AbstractMappingTest {
         try {
 
             // WHEN
-            displayWhen();
+            when();
             assignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
 
         } catch (ExpressionEvaluationException e) {
@@ -3075,7 +3075,7 @@ public class TestMapping extends AbstractMappingTest {
         }
 
         // THEN
-        displayThen();
+        then();
         assertFailure(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3101,11 +3101,11 @@ public class TestMapping extends AbstractMappingTest {
         assertLinks(userBefore, 1);
 
         // WHEN
-        displayWhen();
+        when();
         assignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3130,11 +3130,11 @@ public class TestMapping extends AbstractMappingTest {
         assertLinks(userBefore, 1);
 
         // WHEN
-        displayWhen();
+        when();
         unassignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3159,11 +3159,11 @@ public class TestMapping extends AbstractMappingTest {
         assertLinks(userBefore, 1);
 
         // WHEN
-        displayWhen();
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -3186,11 +3186,11 @@ public class TestMapping extends AbstractMappingTest {
                 .end();
 
         // WHEN
-        displayWhen();
+        when();
         addObject(jim.asPrismObject());
 
         // THEN
-        displayThen();
+        then();
 
         PrismObject<UserType> userAfter = getUser(jim.getOid());
         display("User after", userAfter);
@@ -3209,11 +3209,11 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> jim = findUserByUsername(USER_JIM_NAME);
 
         // WHEN
-        displayWhen();
+        when();
         assignOrg(jim.getOid(), ORG_SAVE_ELAINE_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(jim.getOid());
@@ -3233,7 +3233,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> jim = findUserByUsername(USER_JIM_NAME);
 
         // WHEN
-        displayWhen();
+        when();
         AssignmentType orgAssignment = findAssignment(jim, ORG_SAVE_ELAINE_OID, SchemaConstants.ORG_DEFAULT);
         assertNotNull("org assignment not found", orgAssignment);
         PrismContainerValue<Containerable> orgAssignmentPcv = prismContext.itemFactory().createContainerValue();
@@ -3244,7 +3244,7 @@ public class TestMapping extends AbstractMappingTest {
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(jim.getOid());
@@ -3263,11 +3263,11 @@ public class TestMapping extends AbstractMappingTest {
         final String PASSWORD = "pwd1234";
 
         // WHEN
-        displayWhen();
+        when();
         addObject(SERVICE_ROUTER, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         assertService(SERVICE_ROUTER.oid, "service")
@@ -3296,7 +3296,7 @@ public class TestMapping extends AbstractMappingTest {
         newPasswordProtected.setClearValue(NEW_PASSWORD);
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<ServiceType> delta = deltaFor(ServiceType.class)
                 .item(ServiceType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)
                     .replace(newPasswordProtected)
@@ -3304,7 +3304,7 @@ public class TestMapping extends AbstractMappingTest {
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         assertService(SERVICE_ROUTER.oid, "service")
@@ -3336,12 +3336,12 @@ public class TestMapping extends AbstractMappingTest {
         resource.addAccount(bridge);
 
         // WHEN
-        displayWhen();
+        when();
         addObject(TASK_IMPORT_PWD_COPY, task, result);
         waitForTaskFinish(TASK_IMPORT_PWD_COPY.oid, true);
 
         // THEN
-        displayThen();
+        then();
         assertServiceByName(SERVICE_BRIDGE_NAME, "service")
                 .display()
                 .assertLinks(1)
@@ -3360,11 +3360,11 @@ public class TestMapping extends AbstractMappingTest {
         resource.getAccountByUsername(SERVICE_BRIDGE_NAME).setPassword(NEW_PASSWORD);
 
         // WHEN
-        displayWhen();
+        when();
         rerunTask(TASK_IMPORT_PWD_COPY.oid);
 
         // THEN
-        displayThen();
+        then();
         assertServiceByName(SERVICE_BRIDGE_NAME, "service")
                 .display()
                 .assertLinks(1)
@@ -3388,12 +3388,12 @@ public class TestMapping extends AbstractMappingTest {
         resource.addAccount(gateway);
 
         // WHEN
-        displayWhen();
+        when();
         addObject(TASK_IMPORT_PWD_GENERATE, task, result);
         waitForTaskFinish(TASK_IMPORT_PWD_GENERATE.oid, true);
 
         // THEN
-        displayThen();
+        then();
         assertServiceByName(SERVICE_GATEWAY_NAME, "service")
                 .display()
                 .assertLinks(1)
@@ -3417,11 +3417,11 @@ public class TestMapping extends AbstractMappingTest {
         resource.getAccountByUsername(SERVICE_GATEWAY_NAME).setPassword(NEW_PASSWORD);
 
         // WHEN
-        displayWhen();
+        when();
         rerunTask(TASK_IMPORT_PWD_GENERATE.oid);
 
         // THEN
-        displayThen();
+        then();
         assertServiceByName(SERVICE_GATEWAY_NAME, "service")
                 .display()
                 .assertLinks(1)
@@ -3444,11 +3444,11 @@ public class TestMapping extends AbstractMappingTest {
                 .end();
 
         // WHEN
-        displayWhen();
+        when();
         String oid = addObject(user.asPrismObject(), task, result);
 
         // THEN
-        displayThen();
+        then();
         assertUser(oid, "user after")
                 .display()
                 .triggers()

@@ -481,12 +481,12 @@ public class TestOrgSync extends AbstractStoryTest {
         DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
         assertNotNull("No redskull user", user);
         display("User", user);
@@ -519,12 +519,12 @@ public class TestOrgSync extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
         display("User", user);
         assertNull("Redskull user not gone", user);
@@ -1012,17 +1012,17 @@ public class TestOrgSync extends AbstractStoryTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importObjectFromFile(TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
@@ -1052,17 +1052,17 @@ public class TestOrgSync extends AbstractStoryTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
@@ -1092,17 +1092,17 @@ public class TestOrgSync extends AbstractStoryTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importObjectFromFile(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 2, 0, 0);
 
@@ -1143,17 +1143,17 @@ public class TestOrgSync extends AbstractStoryTest {
         openDJController.assertNoUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);

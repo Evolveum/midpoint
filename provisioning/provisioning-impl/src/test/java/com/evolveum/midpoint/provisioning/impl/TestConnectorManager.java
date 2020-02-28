@@ -51,11 +51,11 @@ public class TestConnectorManager extends AbstractIntegrationTest {
         OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Collection<ConnectorFactory> connectorFactories = connectorManager.getConnectorFactories();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertNotNull("Null connector factories", connectorFactories);
         assertFalse("No connector factories found", connectorFactories.isEmpty());
         display("Found "+connectorFactories.size()+" connector factories");
@@ -81,11 +81,11 @@ public class TestConnectorManager extends AbstractIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         connectorManager.connectorFrameworkSelfTest(result, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
     }
 

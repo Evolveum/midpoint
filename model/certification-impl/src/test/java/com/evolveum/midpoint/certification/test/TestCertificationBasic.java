@@ -86,7 +86,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         AccessCertificationCampaignType campaign =
                 certificationService.createCampaign(roleInducementCertDefinition.getOid(), task, result);
 
@@ -116,7 +116,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         certificationService.openNextStage(roleInducementCampaignOid, task, result);
 
         // THEN
@@ -137,10 +137,10 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        login(getUserFromRepo(USER_ELAINE_OID));            // elaine is a reviewer, not authorized to create campaigns
+        login(getUserFromRepo(USER_ELAINE_OID)); // elaine is a reviewer, not authorized to create campaigns
 
         // WHEN/THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
             certificationService.createCampaign(certificationDefinition.getOid(), task, result);
             fail("Unexpected success");
@@ -160,7 +160,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID));            // this is a deputy with limitation blocking all assignments
 
         // WHEN/THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
             certificationService.createCampaign(certificationDefinition.getOid(), task, result);
             fail("Unexpected success");
@@ -180,7 +180,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_DEPUTY_FULL_OID));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
@@ -215,7 +215,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
@@ -259,7 +259,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
                 null, task, result);
@@ -285,7 +285,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
             certificationService.openNextStage(campaignOid, task, result);
             fail("Unexpected success");
@@ -308,7 +308,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         task.setOwner(getUserFromRepo(USER_BOB_OID));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -363,7 +363,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, null, null, task, result);
 
@@ -387,7 +387,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, null, null, task, result);
 
@@ -411,7 +411,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                 SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
         ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
@@ -452,7 +452,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
                         CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
@@ -479,7 +479,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
@@ -512,7 +512,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
@@ -544,7 +544,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
@@ -576,7 +576,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
                         false, null, task, result);
@@ -601,7 +601,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
                         false, null, task, result);
@@ -630,7 +630,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
@@ -667,7 +667,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
@@ -705,7 +705,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
@@ -763,7 +763,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
             certificationService.closeCurrentStage(campaignOid, task, result);
             fail("Unexpected success");
@@ -783,7 +783,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
             certificationService.closeCampaign(campaignOid, task, result);
             fail("Unexpected success");
@@ -804,7 +804,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationService.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -840,7 +840,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
             certificationService.startRemediation(campaignOid, task, result);
         } catch (SecurityViolationException e) {
@@ -860,7 +860,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationService.startRemediation(campaignOid, task, result);
 
         // THEN
@@ -933,7 +933,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         CleanupPolicyType policy = new CleanupPolicyType().maxRecords(0);
         certificationService.cleanupCampaigns(policy, task, result);
         display("result", result);
@@ -954,7 +954,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         CleanupPolicyType policy = new CleanupPolicyType().maxRecords(0);
         certificationService.cleanupCampaigns(policy, task, result);
         result.computeStatus();
@@ -1013,7 +1013,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaigns", getAllCampaigns(result));
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         CleanupPolicyType policy = new CleanupPolicyType().maxAge(XmlTypeConverter.createDuration("P1D"));
         certificationService.cleanupCampaigns(policy, task, result);
         result.computeStatus();

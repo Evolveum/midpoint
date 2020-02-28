@@ -299,7 +299,7 @@ public class TestVillage extends AbstractStoryTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
@@ -340,7 +340,7 @@ public class TestVillage extends AbstractStoryTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         long t0 = System.currentTimeMillis();
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
         long t1 = System.currentTimeMillis();
@@ -730,7 +730,7 @@ public class TestVillage extends AbstractStoryTest {
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
 
@@ -773,12 +773,12 @@ public class TestVillage extends AbstractStoryTest {
         ObjectDelta<UserType> addUserMikeDelta = DeltaFactory.Object.createAddDelta(userMikeBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         //The user's password has length 4..if the policy is not chosen correctly, it fails
         modelService.executeChanges(MiscUtil.createCollection(addUserMikeDelta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         //TODO: assert added user
@@ -815,11 +815,11 @@ public class TestVillage extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(ORG_PROJECT_JOLLY_ROGER_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID);
@@ -854,7 +854,7 @@ public class TestVillage extends AbstractStoryTest {
                 .build();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         // TODO: search for cn=admins,ou=Jolly Roger,dc=example,dc=com
         SearchResultList<PrismObject<ShadowType>> groupShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
@@ -878,7 +878,7 @@ public class TestVillage extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         deleteObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID, task, result);
 
         // THEN
@@ -905,7 +905,7 @@ public class TestVillage extends AbstractStoryTest {
         repositoryService.addObject(user, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_MURRAY_OID, task, result);
 
         // THEN

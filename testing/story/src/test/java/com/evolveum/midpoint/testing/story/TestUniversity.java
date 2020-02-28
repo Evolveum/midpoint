@@ -347,7 +347,7 @@ public class TestUniversity extends AbstractStoryTest {
 //        reconciliationTaskResultListener.clear();
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        importObjectFromFile(TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE);
 //
 //        // THEN
@@ -386,7 +386,7 @@ public class TestUniversity extends AbstractStoryTest {
 //        reconciliationTaskResultListener.clear();
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 //
 //        // THEN
@@ -425,7 +425,7 @@ public class TestUniversity extends AbstractStoryTest {
 //        reconciliationTaskResultListener.clear();
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        importObjectFromFile(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE);
 //
 //        // THEN
@@ -474,7 +474,7 @@ public class TestUniversity extends AbstractStoryTest {
 //        openDJController.assertNoUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
 //
 //        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
+//        when();
 //        restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 //
 //        // THEN

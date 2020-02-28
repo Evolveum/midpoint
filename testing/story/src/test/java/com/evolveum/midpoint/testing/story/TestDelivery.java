@@ -193,7 +193,7 @@ public class TestDelivery extends AbstractStoryTest {
         result.computeStatus();
         assertSuccess(result);
 
-        assertAssignedRole(userBarkeeperOid, roleIt2Oid, task, result);
+        assertAssignedRole(userBarkeeperOid, roleIt2Oid, result);
     }
 
     @Test
@@ -216,7 +216,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userBobOid, roleIt1Oid, task, result);
+        assertAssignedRole(userBobOid, roleIt1Oid, result);
     }
 
     /**
@@ -251,7 +251,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userCarlaOid, roleIt3Oid, task, result);
+        assertAssignedRole(userCarlaOid, roleIt3Oid, result);
     }
 
     /**
@@ -277,7 +277,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userBarkeeperOid, roleIt4Oid, task, result);
+        assertAssignedRole(userBarkeeperOid, roleIt4Oid, result);
     }
 
     /**
@@ -303,7 +303,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userBarkeeperOid, roleIt5Oid, task, result);
+        assertAssignedRole(userBarkeeperOid, roleIt5Oid, result);
     }
 
     @NotNull

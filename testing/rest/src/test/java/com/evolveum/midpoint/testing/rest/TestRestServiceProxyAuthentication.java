@@ -78,7 +78,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
         TestUtil.displayThen(TEST_NAME);
@@ -101,7 +101,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
         TestUtil.displayThen(TEST_NAME);
@@ -128,7 +128,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
         TestUtil.displayThen(TEST_NAME);
@@ -151,7 +151,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
         TestUtil.displayThen(TEST_NAME);
@@ -178,7 +178,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
         TestUtil.displayThen(TEST_NAME);

@@ -73,9 +73,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetExtensionPropertyValue() throws Exception {
-        final String TEST_NAME = "testGetExtensionPropertyValue";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
@@ -90,9 +87,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetExtensionPropertyValueParts() throws Exception {
-        final String TEST_NAME = "testGetExtensionPropertyValueParts";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
@@ -108,9 +102,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetExtensionPropertyValueNotPresent() throws Exception {
-        final String TEST_NAME = "testGetExtensionPropertyValueNotPresent";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
@@ -125,9 +116,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetExtensionPropertyValueNullObject() throws Exception {
-        final String TEST_NAME = "testGetExtensionPropertyValueNullObject";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
 
@@ -141,9 +129,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetAttributeValueParts() throws Exception {
-        final String TEST_NAME = "testGetAttributeValueParts";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -159,9 +144,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetAttributeValueDefaultRi() throws Exception {
-        final String TEST_NAME = "testGetAttributeValueDefaultRi";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -176,9 +158,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetAttributeValuesParts() throws Exception {
-        final String TEST_NAME = "testGetAttributeValuesParts";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -194,9 +173,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testGetAttributeValuesDefaultRi() throws Exception {
-        final String TEST_NAME = "testGetAttributeValuesDefaultRi";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -211,9 +187,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testgetResourceIcfConfigurationPropertyValueStringHost() throws Exception {
-        final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringHost";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_OPENDJ_FILE);
@@ -227,9 +200,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testgetResourceIcfConfigurationPropertyValueStringPort() throws Exception {
-        final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringPort";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_OPENDJ_FILE);
@@ -243,9 +213,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testDetermineLdapSingleAttributeValue01() throws Exception {
-        final String TEST_NAME = "testDetermineLdapSingleAttributeValue01";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
         String dn = "uid=foo, ou=People, dc=example,dc=com";
@@ -363,9 +330,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testParseDateTime() throws Exception {
-        final String TEST_NAME = "testParseDateTime";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         BasicExpressionFunctions f = createBasicFunctions();
 
@@ -389,8 +353,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testStringify() throws Exception {
-        final String TEST_NAME = "testStringifyString";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
         assertEquals("foo", basic.stringify("foo"));
         assertEquals("foo", basic.stringify(poly("foo")));
@@ -402,8 +364,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testConcatName() throws Exception {
-        final String TEST_NAME = "testConcatName";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
         assertEquals("foo bar", basic.concatName("foo","bar"));
         assertEquals("foo bar", basic.concatName(poly("foo"),"bar"));
@@ -425,8 +385,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testToAscii() throws Exception {
-        final String TEST_NAME = "testToAscii";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
         assertEquals("foo", basic.toAscii("foo"));
         assertEquals("foo", basic.toAscii(poly("foo")));
@@ -434,14 +392,12 @@ public class TestExpressionFunctions {
         assertEquals("Cortuv hrad, tam Strasa!", basic.toAscii("Čórtův hrád, tam Strašá!"));
         assertEquals("hrabe Teleke z Toloko", basic.toAscii(poly("hrabě Teleke z Tölökö")));
         assertEquals("Vedeckotechnicka revoluce neni zadna idyla!", basic.toAscii(PrismTestUtil.createPolyStringType("Vědeckotechnická revoluce není žádná idyla!")));
-        assertEquals(null, basic.toAscii(null));
+        assertNull(basic.toAscii(null));
         assertEquals("", basic.toAscii(""));
     }
 
     @Test
     public void testComposeDn() throws Exception {
-        final String TEST_NAME = "testComposeDn";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
 
         assertEquals("cn=foo,o=bar", basic.composeDn("cn","foo","o","bar"));
@@ -462,8 +418,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testComposeDnWithSuffix() throws Exception {
-        final String TEST_NAME = "testComposeDnWithSuffix";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
 
         assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar"));
@@ -490,8 +444,6 @@ public class TestExpressionFunctions {
 
     @Test
     public void testParseFullName() throws Exception {
-        final String TEST_NAME = "testParseFullName";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
 
         assertEquals(null, basic.parseGivenName(null));
@@ -523,8 +475,6 @@ public class TestExpressionFunctions {
      */
     @Test
     public void testHashLdapPasswordSsha() throws Exception {
-        final String TEST_NAME = "testHashLdapPasswordSsha";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
 
         // WHEN
@@ -544,8 +494,6 @@ public class TestExpressionFunctions {
      */
     @Test
     public void testHashLdapPasswordSshaProtectedStringClear() throws Exception {
-        final String TEST_NAME = "testHashLdapPasswordSshaProtectedStringClear";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
 
         ProtectedStringType protectedString = new ProtectedStringType();
@@ -568,8 +516,6 @@ public class TestExpressionFunctions {
      */
     @Test
     public void testHashLdapPasswordSshaProtectedStringEncrypted() throws Exception {
-        final String TEST_NAME = "testHashLdapPasswordSshaProtectedStringEncrypted";
-        TestUtil.displayTestTitle(TEST_NAME);
         BasicExpressionFunctions basic = createBasicFunctions();
 
         ProtectedStringType protectedString = new ProtectedStringType();

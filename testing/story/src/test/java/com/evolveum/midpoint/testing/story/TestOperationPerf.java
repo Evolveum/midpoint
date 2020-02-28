@@ -127,12 +127,12 @@ public class TestOperationPerf extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 

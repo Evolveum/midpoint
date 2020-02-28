@@ -294,7 +294,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         addObject(ORG_FICTIONAL_FILE, task, result);
 
         // THEN

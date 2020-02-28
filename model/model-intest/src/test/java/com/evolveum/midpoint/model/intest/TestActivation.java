@@ -772,11 +772,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -812,11 +812,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -870,11 +870,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -941,11 +941,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -1010,11 +1010,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -1059,11 +1059,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1106,11 +1106,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -1158,11 +1158,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         assertSuccess(result);
 
@@ -1202,11 +1202,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1245,12 +1245,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<ShadowType> yellowDelta = createModifyAccountShadowReplaceDelta(accountYellowOid, null, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(dummyDelta, yellowDelta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1260,13 +1260,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         checkAdminStatusFor15x(userJack, true, false, false);
 
         // WHEN (2) - now let's do a reconciliation on both resources
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ObjectDelta<UserType> innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY,
                 userJack.asObjectable().getLocality().toPolyString());
         modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         assertSuccess("executeChanges result (after reconciliation)", result);
 
@@ -1361,11 +1361,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -1895,11 +1895,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
@@ -1917,11 +1917,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
@@ -1957,11 +1957,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1998,11 +1998,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         recomputeUser(USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2040,11 +2040,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2077,12 +2077,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_ACTIVE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2119,12 +2119,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_ARCHIVED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2155,11 +2155,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         deleteObject(UserType.class, USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2187,12 +2187,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         display("Account shadow after", accountMancomb);
@@ -2226,17 +2226,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected user mancomb before import", userMancomb);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).getNamespace(), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 40000);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("No user mancomb after import", userMancomb);
@@ -2615,11 +2615,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> addDelta = user1.createAddDelta();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(addDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         user1 = getUser(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedChanges));
         display("User after change execution", user1);
 
@@ -2703,11 +2703,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userBefore, SchemaConstants.PATH_ACTIVATION_VALID_TO);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2749,11 +2749,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar hourAgo = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis() - 60 * 60 * 1000);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, hourAgo);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2792,11 +2792,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar hourAhead = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis() + 60 * 60 * 1000);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, hourAhead);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2844,11 +2844,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         deleteObject(UserType.class, oid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         // There's a hidden FATAL_ERROR when unlinking deleted shadow (benign ... but it prevents us from asserting success tree-wide)
         //assertSuccess(result);

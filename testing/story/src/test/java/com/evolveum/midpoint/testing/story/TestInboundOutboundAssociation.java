@@ -103,12 +103,12 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         getDummyResourceDir().addGroup(group);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         liveSyncDir();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         display("dir after", getDummyResourceDir());
 
@@ -137,11 +137,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -165,11 +165,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         final String TEST_NAME = "test110AssignJackDirAccount";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         liveSyncDir();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         display("dir after", getDummyResourceDir());
 
@@ -196,12 +196,12 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
             .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         liveSyncDir();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         display("dir after", getDummyResourceDir());
 
@@ -228,11 +228,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -257,11 +257,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -294,11 +294,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -329,11 +329,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -356,11 +356,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -384,11 +384,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -425,11 +425,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 null, (Consumer<AssignmentType>)null, false);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ModelContext<UserType> previewContext = previewChanges(focusDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertPreviewContext(previewContext)
@@ -467,11 +467,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -499,11 +499,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -529,11 +529,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_MANCOMB_OID, RESOURCE_DUMMY_DIR_OID, "default", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());

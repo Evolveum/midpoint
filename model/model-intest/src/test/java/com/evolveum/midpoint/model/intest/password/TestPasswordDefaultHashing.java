@@ -152,12 +152,12 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -200,12 +200,12 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -250,12 +250,12 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);

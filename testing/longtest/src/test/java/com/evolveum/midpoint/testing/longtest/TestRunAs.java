@@ -121,11 +121,11 @@ public class TestRunAs extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_BARBOSSA_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -152,11 +152,11 @@ public class TestRunAs extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_BARBOSSA_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -175,12 +175,12 @@ public class TestRunAs extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -216,13 +216,13 @@ public class TestRunAs extends AbstractLongTest {
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         long starMillis = System.currentTimeMillis();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
@@ -246,12 +246,12 @@ public class TestRunAs extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -287,13 +287,13 @@ public class TestRunAs extends AbstractLongTest {
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         long starMillis = System.currentTimeMillis();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         long readCountIncrement = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
@@ -328,7 +328,7 @@ public class TestRunAs extends AbstractLongTest {
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         long firstTime = warmUpRound(0, task, result);
         long lastTime = 0;
         long sumTime = firstTime;
@@ -338,7 +338,7 @@ public class TestRunAs extends AbstractLongTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);

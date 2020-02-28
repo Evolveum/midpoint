@@ -127,7 +127,7 @@ public class TestImport extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importObjectFromFile(TASK_IMPORT_FILE, result);
 
         // THEN

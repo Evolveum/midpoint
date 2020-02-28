@@ -145,10 +145,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
@@ -168,10 +168,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 404);
         OperationResultType result = response.readEntity(OperationResultType.class);
         assertNotNull("Error response must contain operation result", result);
@@ -192,10 +192,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 
         display("Audit", getDummyAuditService());
@@ -212,10 +212,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 
         display("Audit", getDummyAuditService());
@@ -232,10 +232,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 
         display("Audit", getDummyAuditService());
@@ -252,10 +252,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 
         display("Audit", getDummyAuditService());
@@ -272,10 +272,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 
         display("Audit", getDummyAuditService());
@@ -292,10 +292,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 
         display("Audit", getDummyAuditService());
@@ -312,10 +312,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 
         display("Audit", getDummyAuditService());
@@ -332,10 +332,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 403);
 
         display("Audit", getDummyAuditService());
@@ -352,10 +352,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertStatus(response, 200);
 
@@ -377,10 +377,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(USER_TEMPLATE_FILE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertStatus(response, 201);
@@ -400,10 +400,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertStatus(response, 400);
@@ -427,10 +427,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(ACCOUT_CHUCK_FILE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         // expecting hadnled error because resource doesn't exist.. it is OK, but let's say admin about that
@@ -466,10 +466,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(ROLE_ADDER_FILE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 201);
 
@@ -488,10 +488,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 201);
 
@@ -510,10 +510,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(ROLE_MODIFIER_FILE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 201);
 
@@ -532,10 +532,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ASSIGN_ROLE_MODIFIER)));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 403);
         OperationResultType result = response.readEntity(OperationResultType.class);
@@ -558,10 +558,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ASSIGN_ROLE_MODIFIER)));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 204);
 
@@ -584,10 +584,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_DISABLE)));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 204);
 
@@ -610,10 +610,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 //        assertNoEmptyResponse(response);
 
@@ -631,10 +631,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ENABLE)));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 204);
 
@@ -657,10 +657,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
@@ -680,10 +680,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(USER_NOPASSWORD_FILE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         assertStatus(response, 201);
 
@@ -702,10 +702,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 //        assertNoEmptyResponse(response);
 
@@ -723,10 +723,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 401);
 //        assertNoEmptyResponse(response);
 
@@ -744,10 +744,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(new QueryType());
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertStatus(response, 200);
@@ -768,11 +768,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(USER_TEMPLATE_FILE));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 201 but got " + response.getStatus(), 201, response.getStatus());
@@ -802,11 +802,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(FUNCTION_LIBRARY_HELLO_FILE));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 201 but got " + response.getStatus(), 201, response.getStatus());
@@ -831,10 +831,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertStatus(response, 200);
         FunctionLibraryType libType = response.readEntity(FunctionLibraryType.class);
         assertNotNull("Returned entity in body must not be null.", libType);
@@ -860,10 +860,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         traceResponse(response);
@@ -884,10 +884,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_BAD_PATH));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
@@ -906,10 +906,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_EXECUTE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -933,10 +933,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
@@ -954,10 +954,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_PASSWORD_EXECUTE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
@@ -980,10 +980,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_HONORIFIC_PREFIX_EXECUTE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1046,10 +1046,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         traceResponse(response);
@@ -1070,10 +1070,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response, true);
 
@@ -1094,10 +1094,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
@@ -1117,10 +1117,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1140,10 +1140,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1164,10 +1164,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         traceResponse(response, true);
@@ -1188,10 +1188,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_NO_VALUE_POLICY));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         traceResponse(response);
@@ -1212,10 +1212,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         traceResponse(response);
@@ -1241,10 +1241,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
             getDummyAuditService().clear();
 
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD));
 
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             displayResponse(response);
             traceResponse(response);
 
@@ -1270,10 +1270,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(SCRIPT_GENERATE_PASSWORDS));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         traceResponse(response);
@@ -1324,10 +1324,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(SCRIPT_MODIFY_VALID_TO));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         traceResponse(response);
@@ -1457,11 +1457,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER_ID_1_VALUE));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1501,11 +1501,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRequestFile(MODIFICATION_REPLACE_TWO_ANSWERS));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1537,11 +1537,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRequestFile(MODIFICATION_REPLACE_NO_ANSWER));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1573,11 +1573,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1605,10 +1605,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION_FAIL));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1629,10 +1629,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
@@ -1702,10 +1702,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(getRequestFile(MODIFICATION_FORCE_PASSWORD_CHANGE));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1717,10 +1717,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         response = client.get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
@@ -1742,13 +1742,13 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         getDummyAuditService().clear();
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 //        ExecuteCredentialResetRequestType executeCredentialResetRequest = new ExecuteCredentialResetRequestType();
 //        executeCredentialResetRequest.setResetMethod("passwordReset");
 //        executeCredentialResetRequest.setUserEntry("123passwd456");
         Response response = client.post(getRequestFile(EXECUTE_CREDENTIAL_RESET));
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
         traceResponse(response);
 
@@ -1760,11 +1760,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         client = prepareClient();
         response = client.path("/users/" + USER_DARTHADDER_OID).get();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
@@ -1787,10 +1787,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/123456/suspend");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(null);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
@@ -1803,10 +1803,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002/suspend");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(null);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
@@ -1819,10 +1819,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/123456/resume");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(null);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
@@ -1835,10 +1835,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002/resume");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(null);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
@@ -1851,10 +1851,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/123456/run");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(null);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
@@ -1867,10 +1867,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002/run");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.post(null);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
@@ -1883,10 +1883,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/123456");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.delete();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
@@ -1899,10 +1899,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002");
 
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         Response response = client.delete();
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         displayResponse(response);
 
         assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());

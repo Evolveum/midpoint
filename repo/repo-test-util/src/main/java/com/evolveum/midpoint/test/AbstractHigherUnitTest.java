@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
@@ -66,6 +65,7 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.AbstractUnitTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -74,8 +74,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -101,13 +99,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractHigherUnitTest {
+public abstract class AbstractHigherUnitTest extends AbstractUnitTest {
 
     public static final String COMMON_DIR_NAME = "common";
     public static final File COMMON_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, COMMON_DIR_NAME);
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractHigherUnitTest.class);
-    protected static final Random RND = new Random();
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -503,14 +498,6 @@ public abstract class AbstractHigherUnitTest {
 
     protected void displayTestTitle(String testName) {
         TestUtil.displayTestTitle(this, testName);
-    }
-
-    protected void displayWhen(String testName) {
-        TestUtil.displayWhen(testName);
-    }
-
-    protected void displayThen(String testName) {
-        TestUtil.displayThen(testName);
     }
 
     protected void displayCleanup(String testName) {

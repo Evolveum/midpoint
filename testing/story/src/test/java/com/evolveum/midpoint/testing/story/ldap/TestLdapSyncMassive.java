@@ -135,12 +135,12 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test080ImportSyncTask";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         importObjectFromFile(TASK_LIVE_SYNC_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
@@ -168,12 +168,12 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         display("Entry from LDIF", entry);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertSyncTokenIncrement(1);
 
@@ -206,14 +206,14 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test112SyncAddGoods";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         for (int i = 0; i < SYNC_ADD_ATTEMPTS; i++) {
             syncAddAttemptGood("good", i);
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         dumpLdap();
 
@@ -234,7 +234,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test150AddGoblins";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         for (int i = 0; i < NUMBER_OF_GOBLINS; i++) {
             String username = goblinUsername(i);
@@ -247,7 +247,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         dumpLdap();
         assertLdapConnectorInstances(1, INSTANCES_MAX);
@@ -310,12 +310,12 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         display("Entry from LDIF", entry);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         OperationResult taskResult = waitForTaskNextRun(TASK_LIVE_SYNC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(taskResult);
 
         assertSyncTokenIncrement(0);
@@ -345,14 +345,14 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test212SyncAddBads";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         for (int i = 0; i < SYNC_ADD_ATTEMPTS; i++) {
             syncAddAttemptBad("bad", i);
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         dumpLdap();
 
@@ -367,12 +367,12 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test219StopSyncTask";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         suspendTask(TASK_LIVE_SYNC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertSyncTokenIncrement(0);
         assertLdapConnectorInstances(1, INSTANCES_MAX);
@@ -390,14 +390,14 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         for (PrismObject<UserType> user : users) {
             reconcile(TEST_NAME, user);
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
@@ -413,7 +413,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         int segmentSize = users.size() / NUMBER_OF_TEST_THREADS;
         ParallelTestThread[] threads = multithread(TEST_NAME,
@@ -426,7 +426,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
                 }, NUMBER_OF_TEST_THREADS, TEST_THREADS_RANDOM_START_RANGE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         waitForThreads(threads, PARALLEL_TEST_TIMEOUT);
 
         // When system is put under load, this means more threads. But not huge number of threads.

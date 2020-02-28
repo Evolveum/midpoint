@@ -183,22 +183,22 @@ public class TestSemiManualDisable extends TestSemiManual {
         closeCase(phoenixLastCaseOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_PHOENIX_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);
@@ -226,22 +226,22 @@ public class TestSemiManualDisable extends TestSemiManual {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         phoenixLastCaseOid = assertInProgress(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);

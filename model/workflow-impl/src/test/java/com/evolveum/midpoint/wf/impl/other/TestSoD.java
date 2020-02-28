@@ -88,7 +88,7 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         // THEN
         display("jack as a Judge", getUser(userJackOid));
-        assertAssignedRole(userJackOid, roleJudgeOid, task, result);
+        assertAssignedRole(userJackOid, roleJudgeOid, result);
     }
 
     /**
@@ -183,7 +183,7 @@ public class TestSoD extends AbstractWfTestPolicy {
 
                     case 1:
                         if (yes) {
-                            assertAssignedRole(userJackOid, rolePirateOid, opTask, result);
+                            assertAssignedRole(userJackOid, rolePirateOid, result);
                         } else {
                             assertNotAssignedRole(userJackOid, rolePirateOid, opTask, result);
                         }
@@ -201,8 +201,8 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         // THEN
         display("jack as a Pirate + Judge", getUser(userJackOid));
-        assertAssignedRole(userJackOid, roleJudgeOid, task, result);
-        assertAssignedRole(userJackOid, rolePirateOid, task, result);
+        assertAssignedRole(userJackOid, roleJudgeOid, result);
+        assertAssignedRole(userJackOid, rolePirateOid, result);
     }
 
     /**
@@ -284,7 +284,7 @@ public class TestSoD extends AbstractWfTestPolicy {
                 switch (number) {
                     case 1:
                         if (yes) {
-                            assertAssignedRole(userJackOid, roleRespectableOid, opTask, result);
+                            assertAssignedRole(userJackOid, roleRespectableOid, result);
                         } else {
                             assertNotAssignedRole(userJackOid, roleRespectableOid, opTask, result);
                         }
@@ -302,7 +302,7 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         // THEN
         display("jack as a Judge + Respectable", getUser(userJackOid));
-        assertAssignedRole(userJackOid, roleJudgeOid, task, result);
-        assertAssignedRole(userJackOid, roleRespectableOid, task, result);
+        assertAssignedRole(userJackOid, roleJudgeOid, result);
+        assertAssignedRole(userJackOid, roleRespectableOid, result);
     }
 }

@@ -78,12 +78,12 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         assertUsers(7);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountMancomb);
@@ -120,14 +120,14 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         assertUsers(7);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountMancomb);

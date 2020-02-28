@@ -125,11 +125,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ITSM_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Test result", testResult);
         TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
@@ -153,11 +153,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -184,11 +184,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         closeDummyTicket(jackLastTicketIdentifier);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -208,11 +208,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -242,11 +242,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         dumpItsm();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -276,11 +276,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         clockForward("PT3H");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -300,11 +300,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         DummyItsm.getInstance().clearFailureClass();
         assertInProgress(result);
 
@@ -341,12 +341,12 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         display("Repo shadow before", shadowRepoBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         // This in fact should be a call to reconcile, not refresh directly (TODO: MID-4542)
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -380,11 +380,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         DummyItsm.getInstance().clearFailureClass();
         assertPartialError(result);
 
@@ -416,11 +416,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         DummyItsm.getInstance().clearFailureClass();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -450,11 +450,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         DummyItsm.getInstance().clearFailureClass();
         assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
@@ -507,12 +507,12 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         display("Repo shadow before", shadowRepoBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         // This in fact should be a call to reconcile, not refresh directly (TODO: MID-4542)
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -547,11 +547,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         DummyItsm.getInstance().clearFailureClass();
         assertPartialError(result);
 
@@ -586,12 +586,12 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         display("Repo shadow before", shadowRepoBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         // This in fact should be a call to reconcile, not refresh directly (TODO: MID-4542)
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -624,11 +624,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         clockForward("PT3H");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)

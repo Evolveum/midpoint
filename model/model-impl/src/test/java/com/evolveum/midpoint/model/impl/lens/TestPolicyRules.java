@@ -91,11 +91,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -126,11 +126,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -152,11 +152,11 @@ public class TestPolicyRules extends AbstractLensTest {
         // GIVEN
 
         // WHEN
-        displayWhen();
+        when();
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -185,11 +185,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -222,11 +222,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -255,11 +255,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -298,11 +298,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -337,11 +337,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -388,11 +388,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -429,11 +429,11 @@ public class TestPolicyRules extends AbstractLensTest {
         // GIVEN
 
         // WHEN
-        displayWhen();
+        when();
         assignRole(USER_JACK_OID, ROLE_CORP_CONTRACTOR_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -462,11 +462,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -503,11 +503,11 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -560,7 +560,7 @@ public class TestPolicyRules extends AbstractLensTest {
         // GIVEN
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<? extends ObjectType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE, prismContext))
@@ -571,7 +571,7 @@ public class TestPolicyRules extends AbstractLensTest {
         modelService.executeChanges(Collections.singletonList(delta), null, task, Collections.singleton(recordingListener), result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -604,11 +604,11 @@ public class TestPolicyRules extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen();
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

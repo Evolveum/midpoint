@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -49,7 +50,6 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
@@ -83,7 +83,7 @@ import static org.testng.AssertJUnit.*;
  *         a lesser evil for now (MID-392)
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
-public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
+public class TestUcfOpenDj extends AbstractSpringTest {
 
     private static final File RESOURCE_OPENDJ_FILE = new File(UcfTestUtil.TEST_DIR, "resource-opendj.xml");
     private static final File RESOURCE_OPENDJ_BAD_FILE = new File(UcfTestUtil.TEST_DIR, "resource-opendj-bad.xml");
@@ -99,11 +99,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestUcfOpenDj.class);
 
-    @Autowired(required = true)
+    @Autowired
     ConnectorFactory connectorFactoryIcfImpl;
-    @Autowired(required = true)
+    @Autowired
     Protector protector;
-    @Autowired(required = true)
+    @Autowired
     PrismContext prismContext;
 
     protected static OpenDJController openDJController = new OpenDJController();
@@ -123,7 +123,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
     }
 
     @AfterClass
-    public static void stopLdap() throws Exception {
+    public static void stopLdap() {
         openDJController.stop();
         LOGGER.info("------------------------------------------------------------------------------");
         LOGGER.info("STOP:  OpenDjUcfTest");

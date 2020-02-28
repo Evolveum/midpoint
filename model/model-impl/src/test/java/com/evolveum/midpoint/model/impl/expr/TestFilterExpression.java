@@ -12,10 +12,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -67,10 +63,10 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     private static final String TEST_DIR = "src/test/resources/expr";
 
-    @Autowired(required = true)
+    @Autowired
     private ExpressionFactory expressionFactory;
 
-    @Autowired(required = true)
+    @Autowired
     private TaskManager taskManager;
 
     @BeforeSuite
@@ -81,32 +77,24 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test100EvaluateExpressionEmployeeTypeUndefinedFilter() throws Exception {
-        final String TEST_NAME = "testEvaluateExpressionEmployeeTypeUndefinedFilter";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-undefined-filter.xml",
-                null, UndefinedFilter.class, task, result);
+                null, UndefinedFilter.class, task, task.getResult());
 
-        executeFilter(filter, 5, task, result);
+        executeFilter(filter, 5, task, task.getResult());
     }
 
     @Test
     public void test110EvaluateExpressionEmployeeTypeNoneFilter() throws Exception {
-        final String TEST_NAME = "testEvaluateExpressionEmployeeTypeNoneFilter";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-none-filter.xml",
-                null, NoneFilter.class, task, result);
+                null, NoneFilter.class, task, task.getResult());
 
-        executeFilter(filter, 0, task, result);
+        executeFilter(filter, 0, task, task.getResult());
     }
 
     @Test

@@ -117,7 +117,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test100AllocateBucket() throws Exception {
         final String TEST_NAME = "test100AllocateBucket";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
         addObjectFromFile(workerTaskFilename(TEST_NAME));
 
@@ -150,7 +150,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test105AllocateBucketStandalone() throws Exception {
         final String TEST_NAME = "test105AllocateBucketStandalone";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -177,7 +177,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test107AllocateBucketStandaloneBatched() throws Exception {
         final String TEST_NAME = "test107AllocateBucketStandaloneBatched";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -204,7 +204,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     public void test110AllocateTwoBucketsStandalone() throws Exception {
         final String TEST_NAME = "test110AllocateTwoBucketsStandalone";
 
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -271,7 +271,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test120UnspecifiedBuckets() throws Exception {
         final String TEST_NAME = "test120UnspecifiedBuckets";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -288,7 +288,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test130AllocateReleaseCompleteSequence() throws Exception {
         final String TEST_NAME = "test130AllocateReleaseCompleteSequence";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
         addObjectFromFile(taskFilename(TEST_NAME, "1"));
         addObjectFromFile(taskFilename(TEST_NAME, "2"));
@@ -516,7 +516,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test200OneWorkerTask() throws Exception {
         final String TEST_NAME = "test200OneWorkerTask";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
         addObjectFromFile(workerTaskFilename(TEST_NAME));
 
@@ -544,7 +544,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test210ThreeWorkersTask() throws Exception {
         final String TEST_NAME = "test210ThreeWorkersTask";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
         addObjectFromFile(taskFilename(TEST_NAME, "1"));
         addObjectFromFile(taskFilename(TEST_NAME, "2"));
@@ -596,7 +596,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test220WorkerSuspend() throws Exception {
         final String TEST_NAME = "test220WorkerSuspend";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
         addObjectFromFile(taskFilename(TEST_NAME, "1"));
         addObjectFromFile(taskFilename(TEST_NAME, "2"));
@@ -623,7 +623,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             });
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
             taskManager.resumeTask(worker1, result);
             taskManager.resumeTask(worker2, result);
             taskManager.resumeTask(worker3, result);
@@ -656,7 +656,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             // TODO other asserts
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             workBucketsTaskHandler.setDelayProcessor(50);
 
@@ -685,7 +685,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test230WorkerException() throws Exception {
         final String TEST_NAME = "test230WorkerException";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
         addObjectFromFile(taskFilename(TEST_NAME, "1"));
         addObjectFromFile(taskFilename(TEST_NAME, "2"));
@@ -708,7 +708,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             });
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
             taskManager.resumeTask(worker1, result);
             taskManager.resumeTask(worker2, result);
             taskManager.resumeTask(worker3, result);
@@ -741,7 +741,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             // TODO other asserts
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             workBucketsTaskHandler.setDelayProcessor(50);
 
@@ -778,7 +778,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
     @Test
     public void test300NarrowQueryOneWorkerTask() throws Exception {
         final String TEST_NAME = "test300NarrowQueryOneWorkerTask";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
         addObjectFromFile(workerTaskFilename(TEST_NAME));
 

@@ -145,11 +145,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         dumpPolicyRules(context);
@@ -187,11 +187,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -237,11 +237,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -289,12 +289,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         clockwork.run(context, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -343,13 +343,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         // cannot run the clockwork as in the secondary state the deltas are no longer considered (!)
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -385,12 +385,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -443,12 +443,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -492,11 +492,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -532,11 +532,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -571,11 +571,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         clockwork.run(context, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -628,12 +628,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -663,13 +663,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             clockwork.run(context, task, result);
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             fail("unexpected success");
         } catch (ObjectNotFoundException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             System.out.println("Expected exception: " + e);
             e.printStackTrace(System.out);
             if (!e.getMessage().contains("No policy constraint named 'unresolvable' could be found")) {
@@ -693,13 +693,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             clockwork.run(context, task, result);
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             fail("unexpected success");
         } catch (SchemaException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             System.out.println("Expected exception: " + e);
             e.printStackTrace(System.out);
             if (!e.getMessage().contains("Trying to resolve cyclic reference to constraint")) {
@@ -723,10 +723,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         clockwork.run(context, task, result);
 
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Output context", context);
 
         Map<String,EvaluatedPolicyRule> rules = new HashMap<>();
@@ -782,13 +782,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             clockwork.run(context, task, result);
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             fail("unexpected success");
         } catch (SchemaException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             System.out.println("Expected exception: " + e);
             e.printStackTrace(System.out);
             if (!e.getMessage().contains("Conflicting definitions of 'constraint-B'")) {
@@ -816,13 +816,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             clockwork.run(context, task, result);
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             fail("unexpected success");
         } catch (PolicyViolationException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             System.out.println("Expected exception: " + e);
             e.printStackTrace(System.out);
             if (!getTranslatedMessage(e).contains("Role \"Immutable inducements\" is to be modified")) {
@@ -850,9 +850,9 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         clockwork.run(context, task, result);
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         assertSuccess("unexpected failure", result);
     }
@@ -876,9 +876,9 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         clockwork.run(context, task, result);
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         result.computeStatus();
         assertSuccess("unexpected failure", result);
     }
@@ -902,13 +902,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             clockwork.run(context, task, result);
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             fail("unexpected success");
         } catch (PolicyViolationException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             System.out.println("Expected exception: " + e);
             e.printStackTrace(System.out);
             if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete\" is to be modified")) {
@@ -936,13 +936,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             clockwork.run(context, task, result);
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             fail("unexpected success");
         } catch (PolicyViolationException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             System.out.println("Expected exception: " + e);
             e.printStackTrace(System.out);
             if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete (expression)\" is to be modified")) {

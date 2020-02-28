@@ -176,7 +176,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
@@ -205,7 +205,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
                 USER_TELEKE_GIVEN_NAME, USER_TELEKE_FAMILY_NAME, orgRolyulaCarpathiaOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
@@ -234,7 +234,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
@@ -264,7 +264,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
                 USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
@@ -289,7 +289,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
@@ -319,7 +319,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
                 USER_DEZI_GIVEN_NAME, USER_DEZI_FAMILY_NAME, orgVysneVlkodlakyOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
@@ -343,7 +343,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         modifyObjectReplaceProperty(OrgType.class, orgCortuvHradOid, OrgType.F_NAME, task, result, new PolyString(ORG_CORTUV_HRAD_NAME2));
 
@@ -376,11 +376,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
                 USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         modifyObjectReplaceProperty(UserType.class, userGorcOid, UserType.F_NAME, task, result, new PolyString(USER_GORC_USERNAME2));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         dumpOrgTree();
@@ -398,12 +398,12 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         dumpOrgTree();
@@ -441,13 +441,13 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         delta.addModificationAddContainer(OrgType.F_ASSIGNMENT, newAssignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         display("Modifying "+orgBefore+"with delta", delta);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         dumpOrgTree();

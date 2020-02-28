@@ -367,11 +367,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -434,11 +434,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Provisioning shadow", shadowProvisioning);
@@ -469,11 +469,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -523,11 +523,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         syncServiceMock.reset();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Provisioning shadow", shadowProvisioning);
@@ -564,11 +564,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Provisioning shadow", shadowProvisioning);
@@ -606,7 +606,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         options.setNoFetch(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(options),
@@ -614,7 +614,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Provisioning shadow (future,noFetch)", shadowProvisioningFuture);
@@ -652,11 +652,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -712,11 +712,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -764,11 +764,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -816,11 +816,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -857,12 +857,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -935,11 +935,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1019,11 +1019,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1110,11 +1110,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1178,11 +1178,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         backingStoreUpdateWill(ACCOUNT_WILL_FULLNAME_PIRATE, ActivationStatusType.ENABLED, ACCOUNT_WILL_PASSWORD_OLD);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1244,12 +1244,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -1330,12 +1330,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -1414,12 +1414,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1526,11 +1526,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1613,11 +1613,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         backingStoreUpdateWill(ACCOUNT_WILL_FULLNAME_PIRATE, ActivationStatusType.DISABLED, ACCOUNT_WILL_PASSWORD_OLD);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1682,11 +1682,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillSecondCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountWillSecondCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1777,11 +1777,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1875,11 +1875,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1970,11 +1970,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         backingStoreUpdateWill(ACCOUNT_WILL_FULLNAME_PIRATE, ActivationStatusType.ENABLED, ACCOUNT_WILL_PASSWORD_NEW);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -2034,11 +2034,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -2122,11 +2122,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -2184,11 +2184,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -2250,7 +2250,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
@@ -2258,7 +2258,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Provisioning shadow (future)", shadowProvisioningFuture);
@@ -2278,7 +2278,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         options.setNoFetch(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(options),
@@ -2286,7 +2286,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         display("Provisioning shadow (future,noFetch)", shadowProvisioningFuture);
@@ -2315,11 +2315,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -2379,11 +2379,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);

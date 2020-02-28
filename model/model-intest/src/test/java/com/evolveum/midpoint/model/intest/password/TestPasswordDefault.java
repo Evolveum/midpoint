@@ -65,11 +65,11 @@ public class TestPasswordDefault extends AbstractPasswordTest {
         assertLinks(userBefore, 4);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

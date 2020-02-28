@@ -68,11 +68,11 @@ public class TestCommandLine extends AbstractIntegrationTest {
         CommandLineScriptType scriptType = getScript(REPORT_PLAIN_ECHO_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         commandLineScriptExecutor.executeScript(scriptType, null, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
     }
@@ -95,11 +95,11 @@ public class TestCommandLine extends AbstractIntegrationTest {
             VAR_HELLOTEXT, "Hello World", PrimitiveType.STRING);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         commandLineScriptExecutor.executeScript(scriptType, variables, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         File targetFile = new File(MidPointTestConstants.TARGET_DIR_PATH, "echo-out");

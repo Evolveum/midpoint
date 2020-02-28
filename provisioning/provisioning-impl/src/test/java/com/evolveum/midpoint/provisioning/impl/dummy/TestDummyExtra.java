@@ -118,11 +118,11 @@ public class TestDummyExtra extends TestDummy {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
@@ -167,7 +167,7 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
@@ -213,7 +213,7 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
@@ -251,11 +251,11 @@ public class TestDummyExtra extends TestDummy {
         syncServiceMock.reset();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         syncServiceMock.assertNotifySuccessOnly();

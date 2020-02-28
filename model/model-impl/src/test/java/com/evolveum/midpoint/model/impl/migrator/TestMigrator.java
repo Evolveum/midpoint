@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -23,10 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +38,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestMigrator extends AbstractTestNGSpringContextTests {
+public class TestMigrator extends AbstractSpringTest {
 
     @Autowired PrismContext prismContext;
     @Autowired Migrator migrator;
@@ -48,12 +46,6 @@ public class TestMigrator extends AbstractTestNGSpringContextTests {
     public static final File TEST_DIR = new File("src/test/resources/migrator");
     private static final File TEST_DIR_BEFORE = new File(TEST_DIR, "before");
     private static final File TEST_DIR_AFTER = new File(TEST_DIR, "after");
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-//        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-//        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @Test
     public void testMigrateUserTemplate() throws Exception {

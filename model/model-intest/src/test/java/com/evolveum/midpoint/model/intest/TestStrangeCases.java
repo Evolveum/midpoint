@@ -380,7 +380,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 
         // THEN
@@ -427,11 +427,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -473,12 +473,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PolyString fullNamePolyString = new PolyString("Magnificent Captain Jack Sparrow", null);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
                 fullNamePolyString);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
 
@@ -512,11 +512,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -542,11 +542,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -577,12 +577,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
                 new PolyString("Cpt. Jack Sparrow", null));
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         display("Result", result);
         TestUtil.assertPartialError(result);
@@ -619,11 +619,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserChangePassword(USER_JACK_OID, "whereStheRUM", task, result);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         display("Result", result);
         TestUtil.assertPartialError(result);
@@ -661,11 +661,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setModifyBreakMode(BreakMode.CONFLICT);
 
         // WHEN
-        displayWhen();
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString("High seas"));
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         display("Result", result);
         TestUtil.assertPartialError(result);
@@ -707,14 +707,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         try {
             // WHEN
-            displayWhen();
+            when();
             modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result, "broke");
 
             assertNotReached();
 
         } catch (ExpressionEvaluationException e) {
             // THEN
-            displayThen();
+            then();
 
             display("Exception (expected)", e);
             assertExceptionUserFriendly(e, "We do not serve your kind here");
@@ -1169,11 +1169,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen();
+        when();
         importObjectFromFile(TASK_MOCK_JACK_FILE);
 
         // THEN
-        displayThen();
+        then();
         result.computeStatus();
         assertSuccess(result);
 
@@ -1190,11 +1190,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen();
+        when();
         List<PrismObject<TaskType>> objects = modelService.searchObjects(TaskType.class, null, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         display("Tasks", objects);
@@ -1236,11 +1236,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen();
+        when();
         deleteObject(UserType.class, USER_JACK_OID, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         // Make sure the user is gone
@@ -1331,7 +1331,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
                 task, result, "bravery");
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
@@ -1367,7 +1367,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismProperty<String> markProp = user.findProperty(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
@@ -1399,7 +1399,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         modelService.getObject(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(createTolerateRawData()), task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
     }
 
@@ -1484,7 +1484,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
             assertNotReached();
         } catch (PolicyViolationException e) {
             // THEN
-            displayThen();
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -1505,11 +1505,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
         // WHEN
-        displayWhen();
+        when();
         modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1544,11 +1544,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setEnforceSchema(true);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountGuybrushOid, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         assertSuccess(result);
 
         display("Shadow after", shadow);

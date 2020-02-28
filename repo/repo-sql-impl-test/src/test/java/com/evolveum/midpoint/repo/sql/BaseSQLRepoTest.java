@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -48,7 +49,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
 import org.xml.sax.SAXException;
@@ -68,7 +68,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 /**
  * @author lazyman
  */
-public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
+public class BaseSQLRepoTest extends AbstractSpringTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseSQLRepoTest.class);
 
@@ -93,9 +93,11 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     static final ItemName ATTR_MANAGER = new ItemName(NS_RI, "manager");
 
     @Autowired protected LocalSessionFactoryBean sessionFactoryBean;
+
     @Autowired
     @Qualifier("sqlRepositoryServiceImpl")
     protected SqlRepositoryServiceImpl sqlRepositoryService;
+
     @Autowired protected RepositoryService repositoryService;
     @Autowired protected BaseHelper baseHelper;
     @Autowired protected AuditService auditService;

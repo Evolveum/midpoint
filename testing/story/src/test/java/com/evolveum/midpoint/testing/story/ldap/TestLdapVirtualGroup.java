@@ -212,7 +212,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("recompute role "+ROLE_IT_HR_NAME);
 
         modelService.recompute(RoleType.class, ROLE_IT_HR_OID, task, result);
@@ -243,7 +243,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<RoleType> roleBefore = createLdapRole(ROLE_IT_DEV_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding role", roleBefore);
         addObject(roleBefore, task, result);
 
@@ -272,7 +272,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<RoleType> roleBefore = createLdapRole(ROLE_IT_OP_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding role", roleBefore);
         addObject(roleBefore, task, result);
 
@@ -304,7 +304,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user3Before = createUser(USER_3_NAME, "givenName3", "familyName3", true);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user0", user0Before);
         addObject(user0Before, task, result);
         display("Adding user1", user1Before);
@@ -346,7 +346,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user0Before = getObjectByName(UserType.class, USER_0_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user0Before: ", user0Before);
         assignRole(user0Before.getOid(), ROLE_IT_HR_OID);
 
@@ -378,7 +378,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user1Before = getObjectByName(UserType.class, USER_1_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user1Before: ", user1Before);
         assignRole(user1Before.getOid(), roleItDevOid);
 
@@ -412,7 +412,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user2Before = getObjectByName(UserType.class, USER_2_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user2Before: ", user2Before);
         assignRole(user2Before.getOid(), ROLE_JOB_DEVOPS_OID);
 
@@ -448,7 +448,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user3Before = getObjectByName(UserType.class, USER_3_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user3Before: ", user3Before);
         assignRole(user3Before.getOid(), ROLE_JOB_MULTIJOBS_OID);
 

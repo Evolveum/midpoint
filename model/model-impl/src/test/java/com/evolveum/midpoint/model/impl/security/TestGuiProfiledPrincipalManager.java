@@ -94,7 +94,7 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
                 .assignment(assignment);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Logging in as", deputy);
         login(deputy.asPrismObject());
 

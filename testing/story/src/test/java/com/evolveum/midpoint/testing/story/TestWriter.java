@@ -77,12 +77,12 @@ public class TestWriter extends AbstractStoryTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString(USER_JACK_LOCALITY));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assignAccountToUser(USER_JACK_OID, RESOURCE_WRITER_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_WRITER_DUMMY_NAME, USER_JACK_USERNAME)
@@ -100,12 +100,12 @@ public class TestWriter extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, createPolyString(USER_JACK_FULL_NAME_CAPTAIN));
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_WRITER_DUMMY_NAME, USER_JACK_USERNAME)

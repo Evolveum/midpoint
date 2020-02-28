@@ -116,11 +116,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Adding shadow", account);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
         syncServiceMock.assertNotifySuccessOnly();
@@ -179,11 +179,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertInProgress(result);
         assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
@@ -211,11 +211,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.resetBreakMode();
 
         // WHEN
-        displayWhen();
+        when();
         assertGetUncreatedShadow(ACCOUNT_MORGAN_OID);
 
         // THEN
-        displayThen();
+        then();
         syncServiceMock.assertNoNotifcations();
 
         assertUncreatedMorgan(1);
@@ -240,11 +240,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -272,7 +272,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, options, task, result);
 
@@ -283,7 +283,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertFailure(result);
         syncServiceMock.assertNoNotifcations();
@@ -315,11 +315,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
@@ -354,11 +354,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
@@ -479,11 +479,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -514,11 +514,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         shadowMorganOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertInProgress(result);
         account.checkConsistence();
@@ -549,11 +549,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -585,11 +585,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
@@ -618,12 +618,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("ObjectDelta", delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertNotifyInProgressOnly();
@@ -652,11 +652,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -688,11 +688,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
@@ -727,11 +727,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
@@ -761,11 +761,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -789,12 +789,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("ObjectDelta", delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertNotifyInProgressOnly();
@@ -824,12 +824,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertPartialError(result);
         syncServiceMock.assertNoNotifcations();
@@ -860,7 +860,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
 
             provisioningService.getObject(ShadowType.class, shadowMorganOid, options, task, result);
 
@@ -871,7 +871,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertFailure(result);
         syncServiceMock.assertNoNotifcations();
@@ -901,11 +901,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.getObject(ShadowType.class, shadowMorganOid, options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertPartialError(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
@@ -938,11 +938,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
@@ -971,11 +971,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("ObjectDelta", delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.deleteObject(ShadowType.class, shadowMorganOid, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertNotifyInProgressOnly();
@@ -1004,11 +1004,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -1040,11 +1040,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
@@ -1079,11 +1079,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
@@ -1112,11 +1112,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -1140,11 +1140,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("ObjectDelta", delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> returnedShadow = provisioningService.deleteObject(ShadowType.class, shadowMorganOid, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertNotifyInProgressOnly();
@@ -1179,11 +1179,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
@@ -1219,11 +1219,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -1304,11 +1304,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
@@ -1373,11 +1373,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNotifySuccessOnly();
@@ -1409,11 +1409,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         syncServiceMock.assertNotifySuccessOnly();
@@ -1447,12 +1447,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Adding shadow", account);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             provisioningService.addObject(account, null, null, task, result);
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("expected exception", e);
         }
 
@@ -1526,12 +1526,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Adding shadow", account);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             provisioningService.addObject(account, null, null, task, result);
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("expected exception", e);
         }
 
@@ -1612,11 +1612,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Adding shadow", account);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
         account.checkConsistence();
 
@@ -1647,17 +1647,17 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 ACCOUNT_BETTY_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             provisioningService.modifyObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, delta.getModifications(), null, null, task, result);
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("expected exception", e);
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
 
         PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
@@ -1726,17 +1726,17 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 ACCOUNT_BETTY_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             provisioningService.modifyObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, delta.getModifications(), null, null, task, result);
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("expected exception", e);
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
 
         PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
@@ -1817,11 +1817,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResourceCtl.deleteAccount(ACCOUNT_MORGAN_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertSuccess(result);
 
         // @formatter:off
@@ -1888,12 +1888,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, delta.getModifications(), null, null, task, result);
             assertNotReached();
         } catch (ObjectNotFoundException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("expected exception", e);
         }
 
@@ -1959,11 +1959,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResourceCtl.deleteAccount(ACCOUNT_ELIZABETH_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertHadnledError(result);
 
@@ -2030,16 +2030,16 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Adding shadow", account);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         try {
             provisioningService.addObject(account, null, null, task, result);
         } catch (ObjectAlreadyExistsException e) {
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("expected exception", e);
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertFailure(result);
 
         // @formatter:off
@@ -2094,11 +2094,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_PENDING_FILE, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> accountMurray = provisioningService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_PENDING_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Result", result);
         assertSuccess(result);
         accountMurray.checkConsistence();

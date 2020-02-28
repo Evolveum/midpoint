@@ -55,7 +55,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCampaignType campaign =
                 certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
@@ -85,7 +85,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
@@ -107,7 +107,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -137,7 +137,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -184,7 +184,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -214,7 +214,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
@@ -239,7 +239,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
 
@@ -273,7 +273,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
 
@@ -303,7 +303,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         List<AccessCertificationWorkItemType> workItems =
                 queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
 
@@ -342,7 +342,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         AccessCertificationCaseType ceoDummyCase = findCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID);
         AccessCertificationCaseType cooDummyCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID);
@@ -398,7 +398,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -429,7 +429,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -476,7 +476,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -506,7 +506,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
@@ -565,7 +565,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -594,7 +594,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, false, task, result);
 
@@ -625,7 +625,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         AccessCertificationCaseType cooDummyBlackCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID);
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
@@ -710,7 +710,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
@@ -740,7 +740,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
@@ -801,7 +801,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         certificationManager.startRemediation(campaignOid, task, result);
 
         // THEN
@@ -874,7 +874,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         AccessCertificationCasesStatisticsType stat =
                 certificationManager.getCampaignStatistics(campaignOid, false, task, result);
 

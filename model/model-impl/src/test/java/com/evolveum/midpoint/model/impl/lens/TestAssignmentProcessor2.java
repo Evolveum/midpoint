@@ -231,11 +231,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         LensContext<RoleType> context = createContextForAssignment(RoleType.class, ROLE_R1_OID, RoleType.class, ROLE_MR1_OID, null, null, result);
 
         // WHEN
-        displayWhen();
+        when();
         assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
         // THEN
-        displayThen();
+        then();
         display("Output context", context);
         display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
         assertSuccess(result);
@@ -530,12 +530,12 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                             jackGuybrushAssignment.asPrismContainerValue().getDefinition());
 
         // WHEN
-        displayWhen();
+        when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator
                 .evaluate(assignmentIdi, PlusMinusZero.ZERO, false, jack.asObjectable(), jack.toString(), false, task, result);
 
         // THEN
-        displayThen();
+        then();
         display("Output context", context);
         display("Evaluated assignment", evaluatedAssignment);
 

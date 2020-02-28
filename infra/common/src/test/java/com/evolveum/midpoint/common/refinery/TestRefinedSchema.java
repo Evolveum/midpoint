@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.test.util.AbstractUnitTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -71,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  */
 @Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
-public class TestRefinedSchema {
+public class TestRefinedSchema extends AbstractUnitTest {
 
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
     private static final File RESOURCE_COMPLEX_FILE = new File(TEST_DIR_NAME, "resource-complex.xml");
@@ -96,9 +97,6 @@ public class TestRefinedSchema {
 
     @Test
     public void test010ParseFromResourceComplex() throws Exception {
-        final String TEST_NAME = "test010ParseFromResourceComplex";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -106,11 +104,11 @@ public class TestRefinedSchema {
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
         System.out.println(rSchema.debugDump());
@@ -136,9 +134,6 @@ public class TestRefinedSchema {
 
     @Test
     public void test020ParseFromResourceSimple() throws Exception {
-        final String TEST_NAME = "test020ParseFromResourceSimple";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -292,9 +287,6 @@ public class TestRefinedSchema {
 
     @Test
     public void test100ParseAccount() throws Exception {
-        final String TEST_NAME = "test100ParseAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -327,9 +319,6 @@ public class TestRefinedSchema {
 
     @Test
     public void test110ApplyAttributeDefinition() throws Exception {
-        final String TEST_NAME = "test110ApplyAttributeDefinition";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -404,9 +393,6 @@ public class TestRefinedSchema {
 
     @Test
     public void test120CreateShadow() throws Exception {
-        final String TEST_NAME = "test120CreateShadow";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -434,9 +420,6 @@ public class TestRefinedSchema {
 
     @Test
     public void test130ProtectedAccount() throws Exception {
-        final String TEST_NAME = "test130ProtectedAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = createInitializedPrismContext();
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
@@ -560,9 +543,6 @@ public class TestRefinedSchema {
 
     @Test
     public void test140ParseFromResourcePosix() throws Exception {
-        final String TEST_NAME = "test140ParseFromResourcePosix";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -570,11 +550,11 @@ public class TestRefinedSchema {
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        when();
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
         System.out.println(rSchema.debugDump());
@@ -690,9 +670,6 @@ public class TestRefinedSchema {
     // MID-5648
     @Test
     public void test200ParseFromResourceMultithreaded() throws Exception {
-        final String TEST_NAME = "test200ParseFromResourceMultithreaded";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         int THREADS = 50;
 
         // GIVEN
@@ -702,7 +679,7 @@ public class TestRefinedSchema {
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         AtomicInteger errors = new AtomicInteger(0);
         List<Thread> threads = new ArrayList<>(THREADS);
@@ -721,7 +698,7 @@ public class TestRefinedSchema {
         }
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        when();
         TestUtil.waitForCompletion(threads, 20000);
 
         assertEquals("Wrong # of errors", 0, errors.get());

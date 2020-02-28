@@ -97,11 +97,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         TestUtil.assertSuccess(testResult);
 
         ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN_NAME);
@@ -125,11 +125,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         importSyncTask();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         waitForSyncTaskStart();
     }
@@ -153,14 +153,14 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
 
         waitForSyncTaskNextRun();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -204,7 +204,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME)
                 .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -215,7 +215,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -239,7 +239,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         // stop the task to avoid interference with the reconciliations
         suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
@@ -256,7 +256,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         reconcileUser(userMancomb.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -278,7 +278,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -289,7 +289,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         executeChanges(delta, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertSuccess(result);
 
@@ -318,7 +318,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         //assertUsers(5);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -326,7 +326,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         reconcileUser(userMancomb.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -372,7 +372,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         display("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
@@ -382,7 +382,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -410,11 +410,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         deleteObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertNoObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
     }
@@ -437,7 +437,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
 
@@ -446,7 +446,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForTaskFinish(task, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         userLeelooOid = assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
@@ -482,12 +482,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
@@ -515,12 +515,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
@@ -556,12 +556,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -594,12 +594,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         recomputeUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -627,12 +627,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -668,12 +668,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -707,12 +707,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)

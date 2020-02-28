@@ -101,7 +101,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -112,7 +112,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
     }
 
     @Test
@@ -128,7 +128,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -139,7 +139,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertAllow(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -166,7 +166,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
     }
 
@@ -186,7 +186,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -197,7 +197,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
     }
 
@@ -207,7 +207,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test300ConflictingAuthorizationIds() throws Exception {
         final String TEST_NAME = "test300ConflictingAuthorizationIds";
-        displayTestTitle(TEST_NAME);
+
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_AUTHORIZATION_1.oid);
@@ -216,11 +216,11 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         display("user before", user);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when("Jack logs in");
         login(USER_JACK_USERNAME);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         assertLoggedInUsername(USER_JACK_USERNAME);
     }
 

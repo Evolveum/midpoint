@@ -74,11 +74,11 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         RemoteReportParametersType parameters = createReportParameters();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         ObjectListType userList = reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Returned user list ("+userList.getObject().size()+" objects)", userList);
 
         assertUserList(userList);
@@ -94,14 +94,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             reportWebService.processReport(null, query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("Expected fault", f);
         }
     }
@@ -116,14 +116,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             reportWebService.processReport("l00n3y", query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("Expected fault", f);
         }
     }
@@ -143,14 +143,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
@@ -172,14 +172,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then(TEST_NAME);
             display("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
@@ -202,7 +202,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when(TEST_NAME);
             userList = reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
         } finally {
@@ -210,7 +210,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
         display("Returned user list ("+userList.getObject().size()+" objects)", userList);
 
         assertUserList(userList);

@@ -61,11 +61,11 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test050SanityLost1";
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         assertShadow(shadowLost1Repo, "Repo shadow")
             .assertPrimaryIdentifierValue(null);
@@ -82,12 +82,12 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
         addObject(TASK_SHADOW_REFRESH_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         waitForTaskStart(TASK_SHADOW_REFRESH_OID, false);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
         assertShadow(shadowLost1Repo, "Repo shadow")
@@ -106,12 +106,12 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
         addObject(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when(TEST_NAME);
         waitForTaskStart(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
         waitForTaskFinish(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then(TEST_NAME);
 
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
         assertShadow(shadowLost1Repo, "Repo shadow")

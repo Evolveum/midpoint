@@ -77,7 +77,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
@@ -104,7 +104,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
@@ -131,7 +131,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
