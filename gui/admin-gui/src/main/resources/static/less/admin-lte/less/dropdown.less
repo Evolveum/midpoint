@@ -26,9 +26,26 @@
 
 .auto-width {
   white-space: nowrap;
+  max-width: 20vw;
+  width: max-content;
 
   > li {
+    padding-left: 10px;
+    padding-right: 10px;
     display: inline-block;
+
+    .btn:first-child {
+      margin-left: -1px;
+    }
+
+    .btn:last-child {
+      margin-right: -1px;
+    }
+
+    .btn {
+      float: left;
+      margin-bottom: -1px;
+    }
   }
 
 }
@@ -355,5 +372,23 @@
         background: #fff;
       }
     }
+  }
+}
+
+@media (min-width: @screen-sm-max) and (max-width: @screen-md-max) {
+  .auto-width {
+    max-width: 30vw;
+  }
+}
+
+@media (min-width: @screen-xs-max) and (max-width: @screen-sm-max) {
+  .auto-width {
+    max-width: 30vw;
+  }
+}
+
+@media (max-width: @screen-xs-max) {
+  .auto-width {
+    max-width: 50vw;
   }
 }

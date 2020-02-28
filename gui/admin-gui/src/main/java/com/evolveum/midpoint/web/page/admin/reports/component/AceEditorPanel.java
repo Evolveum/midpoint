@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AceEditor;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -39,6 +41,12 @@ public class AceEditorPanel extends BasePanel<String> {
 
     private void initLayout(int minSize) {
         Label title = new Label(ID_TITLE, this.title);
+        title.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return title != null;
+            }
+        });
         add(title);
 
         AceEditor editor = new AceEditor(ID_EDITOR, getModel());
@@ -46,10 +54,15 @@ public class AceEditorPanel extends BasePanel<String> {
         if (minSize > 0) {
             editor.setMinHeight(minSize);
         }
+        editor.setResizeToMaxHeight(isResizeToMaxHeight());
         add(editor);
     }
 
     public AceEditor getEditor(){
         return (AceEditor)get(ID_EDITOR);
+    }
+
+    protected boolean isResizeToMaxHeight() {
+        return true;
     }
 }

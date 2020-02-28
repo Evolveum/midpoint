@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -240,10 +241,10 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
         return (PropertyDelta<T>) super.narrow(object, assumeMissingItems);
     }
 
-    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule,
-            boolean assumeMissingItems) {
+    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy,
+            MatchingRule<T> matchingRule, boolean assumeMissingItems) {
         Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
-            if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA, matchingRule)) {
+            if (o1.equals(o2, strategy, matchingRule)) {
                 return 0;
             } else {
                 return 1;
@@ -252,10 +253,10 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
         return (PropertyDelta<T>) super.narrow(object, comparator, assumeMissingItems);
     }
 
-    public boolean isRedundant(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule,
-            boolean assumeMissingItems) {
+    public boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy,
+            MatchingRule<T> matchingRule, boolean assumeMissingItems) {
         Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
-            if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA, matchingRule)) {
+            if (o1.equals(o2, strategy, matchingRule)) {
                 return 0;
             } else {
                 return 1;

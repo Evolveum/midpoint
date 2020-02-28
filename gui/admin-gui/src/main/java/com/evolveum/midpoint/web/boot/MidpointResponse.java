@@ -44,19 +44,21 @@ public class MidpointResponse extends Response {
 
     @Override
     public void setHeader(String name, String value) {
-        String publicUrlPrefix = getPublicUrlPrefix();
-        if ("Location".equals(name) && publicUrlPrefix != null && StringUtils.isNotBlank(value)) {
-            if (value.startsWith(".")) {
-                value = publicUrlPrefix + value.substring(1);
-            } else if (StringUtils.isBlank(servletPath)) {
-                if (value.startsWith("/")) {
-                    value = publicUrlPrefix + value;
-                } else {
-                    String partAfterSchema = value.substring(value.indexOf("://") + 3);
-                    value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
+        if ("Location".equals(name)) {
+            String publicUrlPrefix = getPublicUrlPrefix();
+            if (publicUrlPrefix != null && StringUtils.isNotBlank(value)) {
+                if (value.startsWith(".")) {
+                    value = publicUrlPrefix + value.substring(1);
+                } else if (StringUtils.isBlank(servletPath)) {
+                    if (value.startsWith("/")) {
+                        value = publicUrlPrefix + value;
+                    } else {
+                        String partAfterSchema = value.substring(value.indexOf("://") + 3);
+                        value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
+                    }
+                } else if (value.contains(servletPath + "/")) {
+                    value = publicUrlPrefix + value.substring(value.indexOf(servletPath) + servletPath.length());
                 }
-            } else if (value.contains(servletPath + "/")) {
-                value = publicUrlPrefix + value.substring(value.indexOf(servletPath) + servletPath.length());
             }
         }
         super.setHeader(name, value);

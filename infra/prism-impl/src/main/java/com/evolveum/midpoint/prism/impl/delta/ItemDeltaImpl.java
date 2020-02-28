@@ -449,7 +449,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         newValue.recompute();
     }
 
-    protected boolean containsEquivalentValue(Collection<V> collection, V value) {
+    private boolean containsEquivalentValue(Collection<V> collection, V value) {
         if (collection == null) {
             return false;
         }
@@ -795,15 +795,15 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     public boolean isReplace() {
-        return (valuesToReplace != null);
+        return valuesToReplace != null;
     }
 
     public boolean isAdd() {
-        return (valuesToAdd != null && !valuesToAdd.isEmpty());
+        return valuesToAdd != null && !valuesToAdd.isEmpty();
     }
 
     public boolean isDelete() {
-        return (valuesToDelete != null && !valuesToDelete.isEmpty());
+        return valuesToDelete != null && !valuesToDelete.isEmpty();
     }
 
     public void clear() {
@@ -812,7 +812,6 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         valuesToAdd = null;
         valuesToDelete = null;
     }
-
 
     /**
      * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,

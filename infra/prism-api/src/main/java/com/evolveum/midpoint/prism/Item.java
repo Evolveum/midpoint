@@ -55,7 +55,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Returns true if this item and all contained items have proper definition.
      */
-    boolean hasCompleteDefinition();
+    default boolean hasCompleteDefinition() {
+        return getDefinition() != null;
+    }
 
     /**
      * Returns the name of the item.
@@ -109,7 +111,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return display name for the item
      */
-    String getDisplayName();
+    default String getDisplayName() {
+        return getDefinition() == null ? null : getDefinition().getDisplayName();
+    }
 
     /**
      * Returns help message defined for the item.
@@ -121,7 +125,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return help message for the item
      */
-    String getHelp();
+    default String getHelp() {
+        return getDefinition() == null ? null : getDefinition().getHelp();
+    }
 
     /**
      * Flag that indicates incomplete item. If set to true then the
@@ -205,7 +211,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * Returns any of the values. Usually called when we are quite confident that there is only a single value;
      * or we don't care which of the values we get. Does not create values if there are none.
      */
-    V getAnyValue();
+    default V getAnyValue() {
+        return !getValues().isEmpty() ? getValues().get(0) : null;
+    }
 
     /**
      * Returns the value, if there is only one. Throws exception if there are more values.
@@ -274,7 +282,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return true if this item changed as a result of the call (i.e. if the value was really added)
      */
-    boolean add(@NotNull V newValue) throws SchemaException;
+    default boolean add(@NotNull V newValue) throws SchemaException {
+        return add(newValue, true);
+    }
 
     /**
      * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
@@ -505,11 +515,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     Item cloneComplex(CloneStrategy strategy);
 
-    static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
+    static <T extends Item<?,?>> Collection<T> cloneCollection(Collection<T> items) {
         Collection<T> clones = new ArrayList<>(items.size());
         for (T item: items) {
             //noinspection unchecked
-            clones.add((T)item.clone());
+            clones.add((T)((Item<?,?>)item).clone());
         }
         return clones;
     }
@@ -555,9 +565,14 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     boolean hasRaw();
 
-    boolean isEmpty();
+    default boolean isEmpty() {
+        return hasNoValues();
+    }
 
-    boolean hasNoValues();
+    default boolean hasNoValues() {
+        return getValues().isEmpty();
+    }
+
 
     @SuppressWarnings("unused")
     static boolean hasNoValues(Item<?, ?> item) {
@@ -569,10 +584,14 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * Returns true if this item is metadata item that should be ignored
      * for metadata-insensitive comparisons and hashCode functions.
      */
-    boolean isOperational();
-
-    boolean isImmutable();
-
+    default boolean isOperational() {
+        D def = getDefinition();
+        if (def != null) {
+            return def.isOperational();
+        } else {
+            return false;
+        }
+    }
 
     @NotNull
     static <V extends PrismValue> Collection<V> getValues(Item<V, ?> item) {

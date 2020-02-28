@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -27,8 +28,10 @@ import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -38,12 +41,14 @@ import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -72,8 +77,6 @@ public class PageNodes extends PageAdmin {
     private static final String OPERATION_START_SCHEDULERS = DOT_CLASS + "startSchedulers";
     private static final String OPERATION_STOP_SCHEDULERS_AND_TASKS = DOT_CLASS + "stopSchedulersAndTasks";
     private static final String OPERATION_STOP_SCHEDULERS = DOT_CLASS + "stopSchedulers";
-    private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_CLASS + "deactivateServiceThreads";
-    private static final String OPERATION_REACTIVATE_SERVICE_THREADS = DOT_CLASS + "reactivateServiceThreads";
 
     public PageNodes() {
         initLayout();
@@ -108,95 +111,9 @@ public class PageNodes extends PageAdmin {
                 return createNodesInlineMenu();
             }
 
-            @Override
-            protected List<Component> createToolbarButtonsList(String buttonId){
-                List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
-                List<AjaxButton> diagnosticButtons = initDiagnosticButtons(buttonId);
-                buttonsList.addAll(diagnosticButtons);
-                return buttonsList;
-            }
         };
         add(table);
     }
-
-    private List<AjaxButton> initDiagnosticButtons(String buttonId) {
-        List<AjaxButton> diagnosticButtons = new ArrayList<>(2);
-        AjaxButton deactivate = new AjaxButton(buttonId,
-                createStringResource("pageTasks.button.deactivateServiceThreads")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deactivateServiceThreadsPerformed(target);
-            }
-        };
-        deactivate.add(AttributeModifier.append("class", "btn btn-margin-left btn-danger"));
-        diagnosticButtons.add(deactivate);
-
-        AjaxButton reactivate = new AjaxButton(buttonId,
-                createStringResource("pageTasks.button.reactivateServiceThreads")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                reactivateServiceThreadsPerformed(target);
-            }
-        };
-        reactivate.add(AttributeModifier.append("class", "btn btn-margin-left btn-success"));
-        diagnosticButtons.add(reactivate);
-        return diagnosticButtons;
-    }
-
-    // region Diagnostics actions
-    private void deactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        Task opTask = createSimpleTask(OPERATION_DEACTIVATE_SERVICE_THREADS);
-        OperationResult result = opTask.getResult();
-
-        try {
-            boolean stopped = getTaskService().deactivateServiceThreads(WAIT_FOR_TASK_STOP, opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                if (stopped) {
-                    result.recordStatus(OperationResultStatus.SUCCESS,
-                            createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.success").getString());
-                } else {
-                    result.recordWarning(
-                            createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.warning").getString());
-                }
-            }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(
-                    createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
-
-        // refresh feedback and table
-        getTable().refreshTable(NodeType.class, target);
-        target.add(getTable());
-    }
-
-    private void reactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        Task opTask = createSimpleTask(OPERATION_REACTIVATE_SERVICE_THREADS);
-        OperationResult result = opTask.getResult();
-
-        try {
-            getTaskService().reactivateServiceThreads(opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS,
-                        createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.success").getString());
-            }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(
-                    createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
-
-        // refresh feedback and table
-        getTable().refreshTable(NodeType.class, target);
-        target.add(getTable());
-    }
-
 
     private List<IColumn<SelectableBean<NodeType>, String>> initNodeColumns() {
         List<IColumn<SelectableBean<NodeType>, String>> columns = new ArrayList<>();
@@ -207,6 +124,34 @@ public class PageNodes extends PageAdmin {
             @Override
             protected String translate(Enum en) {
                 return createStringResource(en).getString();
+            }
+        });
+
+        columns.add(new CheckBoxColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.actualNode")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<Boolean> getEnabled(IModel<SelectableBean<NodeType>> rowModel) {
+                return Model.of(Boolean.FALSE);
+            }
+
+            @Override
+            protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<NodeType>> rowModel) {
+                return new IModel<Boolean>() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Boolean getObject() {
+                        if (getTaskManager().getNodeId() != null && rowModel != null
+                                && rowModel.getObject() != null && rowModel.getObject().getValue() != null
+                                && getTaskManager().getNodeId().equals(rowModel.getObject().getValue().getNodeIdentifier())) {
+                            return Boolean.TRUE;
+                        }
+
+                        return Boolean.FALSE;
+                    }
+                };
             }
         });
 

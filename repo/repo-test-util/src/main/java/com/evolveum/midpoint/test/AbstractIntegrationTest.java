@@ -1827,10 +1827,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
     }
 
-    protected <O extends ObjectType> void assertLastProvisioningTimestamp(PrismObject<O> object,
-            XMLGregorianCalendar start, XMLGregorianCalendar end) {
+    protected <O extends ObjectType> void assertLastProvisioningTimestamp(
+            PrismObject<O> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
         MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in " + object);
+        assertNotNull("No metadata in " + object, metadata);
         assertBetween("Wrong last provisioning timestamp in " + object, start, end, metadata.getLastProvisioningTimestamp());
     }
 

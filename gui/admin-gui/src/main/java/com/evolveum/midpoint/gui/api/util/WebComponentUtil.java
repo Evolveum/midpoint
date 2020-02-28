@@ -1226,10 +1226,10 @@ public final class WebComponentUtil {
                 displayName = name;
             }
         } else if (prismContainerValue.canRepresent(ItemConstraintType.class)) {
-            ItemConstraintType itemConstraintType = (ItemConstraintType) prismContainerValue.asContainerable();
+            ItemConstraintType propertyConstraintType = (ItemConstraintType) prismContainerValue.asContainerable();
             String path = "";
-            if (itemConstraintType.getPath() != null) {
-                path = itemConstraintType.getPath().getItemPath().toString();
+            if (propertyConstraintType.getPath() != null) {
+                path = propertyConstraintType.getPath().getItemPath().toString();
             }
 
             if (path != null && !path.isEmpty()) {
@@ -3781,7 +3781,7 @@ public final class WebComponentUtil {
     public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
         Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
 
-        PrismProperty property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+        PrismProperty<?> property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
 
         if(property == null){
             return;

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -265,7 +267,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     protected WebMarkupContainer initButtonToolbar(String id) {
         return getNewItemButton(id);
     }
-    
+
     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
         return null;
     }
@@ -414,7 +416,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         return (WebMarkupContainer) get(ID_ITEMS);
     }
 
-    public PrismObject getFocusObject(){
+    public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject(){
         AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
         if (mainPanel != null) {
             return mainPanel.getObjectWrapper().getObject();
@@ -453,7 +455,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         return performedItems;
     }
 
-    //TODO generalize for properites
+    //TODO generalize for properties
     public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
             PrismContainerValue<C> newItem,
             PrismContainerWrapper<C> model, AjaxRequestTarget target) {

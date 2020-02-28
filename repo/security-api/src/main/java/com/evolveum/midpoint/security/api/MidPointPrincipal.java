@@ -30,7 +30,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDumpable {
     private static final long serialVersionUID = 8299738301872077768L;
 
-    // TODO: user may be switched to FocusType later (MID-4205)
     @NotNull private final FocusType focus;
     private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
