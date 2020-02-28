@@ -30,6 +30,26 @@
             <path>extension/mext:kind</path>
             <visibility>visible</visibility>
         </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:intent</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectQuery</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:workerThreads</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:finishOperationsOnly</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:dryRun</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>

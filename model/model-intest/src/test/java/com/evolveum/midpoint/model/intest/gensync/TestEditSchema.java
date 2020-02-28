@@ -1212,7 +1212,14 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertObjectDefinition(editDef)
             .container(ObjectType.F_EXTENSION)
-                .assertSize(2);
+                .assertSize(7)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_KIND)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_INTENT)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 
         assertSteadyResources();
     }

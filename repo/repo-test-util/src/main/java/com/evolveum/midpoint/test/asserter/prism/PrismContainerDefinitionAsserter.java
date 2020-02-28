@@ -12,6 +12,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -49,6 +50,13 @@ public class PrismContainerDefinitionAsserter<C extends Containerable,RA> extend
         return this;
     }
 
+
+    public PrismContainerDefinitionAsserter<C,RA> assertProperty(ItemName itemPath) {
+        PrismPropertyDefinition<Object> propertyDefinition = getDefinition().findPropertyDefinition(itemPath);
+        assertNotNull("No property definition for path "+itemPath+" in "+desc(), propertyDefinition);
+        return this;
+    }
+
     public <CC extends Containerable> PrismContainerDefinitionAsserter<CC,PrismContainerDefinitionAsserter<C,RA>> container(ItemPath subDefPath) {
         PrismContainerDefinition<CC> subDefinition = getDefinition().findContainerDefinition(subDefPath);
         assertNotNull("No container for path "+subDefPath+" in "+desc(), subDefinition);
@@ -70,4 +78,5 @@ public class PrismContainerDefinitionAsserter<C extends Containerable,RA> extend
         IntegrationTestTools.display(message, getDefinition());
         return this;
     }
+
 }

@@ -4094,6 +4094,9 @@
                     <xsd:documentation>
                         Work management configuration to use for partition task.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
@@ -4168,6 +4171,9 @@
                         Work management configuration to use for partition task.
                         Overrides the value specified in the parent element.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
