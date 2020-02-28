@@ -272,7 +272,7 @@ public class ExpressionUtil {
         expressionObject.getExpressionEvaluator().clear();
         if (StringUtils.isNotBlank(xml)) {
             xml = WebXmlUtil.wrapInElement("expression", xml, true);
-            LOGGER.info("Expression to serialize: {}", xml);
+            LOGGER.trace("Expression to serialize: {}", xml);
             JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
             expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
         }

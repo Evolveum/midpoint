@@ -39,6 +39,10 @@ public class TransientCache<K, V> implements Serializable {
         cache.put(name, value);
     }
 
+    public void remove(K name) {
+        cache.remove(name);
+    }
+
     // used to provide a new object when deserializing
     private Object readResolve() {
         return new TransientCache<>();
