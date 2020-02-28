@@ -17,8 +17,9 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * @author semancik
+ * Related to PrismContainerDefinitionAsserter
  *
+ * @author semancik
  */
 public class ComplexTypeDefinitionAsserter<RA> extends AbstractAsserter<RA> {
 

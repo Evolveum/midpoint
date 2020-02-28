@@ -486,6 +486,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
     protected static final String SECURITY_POLICY_OID = "28bf845a-b107-11e3-85bc-001e8c717e5b";
 
+    protected static final File ARCHETYPE_TASK_RECONCILIATION_FILE = new File(COMMON_DIR, "archetype-task-reconciliation.xml");
+    protected static final String ARCHETYPE_TASK_RECONCILIATION_OID = "00000000-0000-0000-0000-000000000501";
+
     protected static final File ARCHETYPE_EMPLOYEE_FILE = new File(COMMON_DIR, "archetype-employee.xml");
     protected static final String ARCHETYPE_EMPLOYEE_OID = "7135e68c-ee53-11e8-8025-170b77da3fd6";
     protected static final String ARCHETYPE_EMPLOYEE_DISPLAY_LABEL = "Employee";

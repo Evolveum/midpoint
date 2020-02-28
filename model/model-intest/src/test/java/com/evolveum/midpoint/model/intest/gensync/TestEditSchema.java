@@ -19,6 +19,8 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -55,22 +57,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -1203,6 +1189,40 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
+    @Test
+    public void test240EditSchemaReconciliationTask() throws Exception {
+        final String TEST_NAME="test240EditSchemaReconciliationTask";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        PrismObjectDefinition<TaskType> taskDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+        PrismObject<TaskType> task = taskDef.instantiate();
+        task.asObjectable()
+                .beginAssignment()
+                    .targetRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE);
+
+        display("Task before", task);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        PrismObjectDefinition<TaskType> editDef = getEditObjectDefinition(task);
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        assertObjectDefinition(editDef)
+            .container(ObjectType.F_EXTENSION)
+                .assertSize(7)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_KIND)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_INTENT)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY)
+                .assertProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+
+        assertSteadyResources();
+    }
 
     @Test
     public void test250EditSchemaRole() throws Exception {
