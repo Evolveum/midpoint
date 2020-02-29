@@ -43,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.ITestResult;
@@ -181,13 +183,26 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      */
     protected PredefinedTestMethodTracing predefinedTestMethodTracing;
 
+    private boolean initSystemExecuted = false;
+
     /**
      * With TestNG+Spring we can use {@code PostConstruct} for class-wide initialization.
      * All test methods run on a single instance (unlike with JUnit).
      * Using {@code BeforeClass} is not good as the Spring wiring happens later.
+     * <p>
+     * There is still danger that annotation processor will run this multiple times
+     * for web/servlet-based tests, see text context attributes
+     * {@link DependencyInjectionTestExecutionListener#REINJECT_DEPENDENCIES_ATTRIBUTE}
+     * and {@link ServletTestExecutionListener#RESET_REQUEST_CONTEXT_HOLDER_ATTRIBUTE} for more.
+     * That's why we start with the guard enforcing once-only initSystem execution.
      */
     @PostConstruct
     public void initSystem() throws Exception {
+        if (initSystemExecuted) {
+            logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
+            return;
+        }
+        initSystemExecuted = true;
         logger.trace("initSystem: initializing class {}", getClass().getName());
 
         // Check whether we are already initialized
