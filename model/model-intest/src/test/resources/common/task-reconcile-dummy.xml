@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -20,6 +20,10 @@
     <extension>
         <syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
     </extension>
+
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000501" type="ArchetypeType"/> <!-- Reconciliation task archetype -->
+    </assignment>
 
     <taskIdentifier>10000000-0000-0000-5656-565600000004</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

@@ -4094,6 +4094,9 @@
                     <xsd:documentation>
                         Work management configuration to use for partition task.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
@@ -4168,6 +4171,9 @@
                         Work management configuration to use for partition task.
                         Overrides the value specified in the parent element.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
@@ -14931,10 +14937,23 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="itemConstraint" type="tns:ItemConstraintType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
+                        <a:displayName>ObjectPolicyConfigurationType.itemConstraint</a:displayName>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="propertyConstraint" type="tns:ItemConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. Use itemConstraint instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
                         <a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.1</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -19522,21 +19541,28 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="PropertyConstraintType">
+    <xsd:complexType name="ItemConstraintType">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of a property constraints.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:displayName>PropertyConstraintType.details</a:displayName>
+                <a:displayName>ItemConstraintType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="path" type="t:ItemPathType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>PropertyConstraintType.path</a:displayName>
+                        <a:displayName>ItemConstraintType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemConstraintType.visibility</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -21433,6 +21459,27 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_RECONCILIATION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000503">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_IMPORT_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000504">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_LIVE_SYNCH_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000528">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_UTILITY_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -24212,32 +24259,33 @@
                 <a:since>3.7</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-               <xsd:sequence>
-                   <xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                   <xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            <p>
-                                Definition of object with respect to subject relation to a role.
-                                Used to specify role approvers, owners and so on.
-                            </p>
-                            <p>
-                                EXPERIMENTAL. Use at your own risk.
-                            </p>
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                            <a:since>3.9</a:since>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                   <!-- TODO: object filter -->
-               </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definition of object with respect to subject relation to a role.
+                            Used to specify role approvers, owners and so on.
+                        </p>
+                        <p>
+                            EXPERIMENTAL. Use at your own risk.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: object filter -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GuiObjectDetailsPageType">

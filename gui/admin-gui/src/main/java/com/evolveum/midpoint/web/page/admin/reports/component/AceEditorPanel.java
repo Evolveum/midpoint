@@ -54,10 +54,15 @@ public class AceEditorPanel extends BasePanel<String> {
         if (minSize > 0) {
             editor.setMinHeight(minSize);
         }
+        editor.setResizeToMaxHeight(isResizeToMaxHeight());
         add(editor);
     }
 
     public AceEditor getEditor(){
         return (AceEditor)get(ID_EDITOR);
+    }
+
+    protected boolean isResizeToMaxHeight() {
+        return true;
     }
 }

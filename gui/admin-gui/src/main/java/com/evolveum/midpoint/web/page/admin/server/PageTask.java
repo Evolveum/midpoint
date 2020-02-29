@@ -1,21 +1,25 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -74,6 +79,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private static final long serialVersionUID = 1L;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PageTask.class);
+    private static final String DOT_CLASS = PageTask.class.getName() + ".";
+    protected static final String OPERATION_EXECUTE_TASK_CHANGES = DOT_CLASS + "executeTaskChanges";
 
     private static final int REFRESH_INTERVAL_IF_RUNNING = 2000;
     private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
@@ -139,7 +146,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         showResult(result);
         getObjectModel().reset();
         refresh(target);
-        target.add(PageTask.this);
     }
 
 
@@ -205,8 +211,57 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         resumePauseRefreshing.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
         repeatingView.add(resumePauseRefreshing);
 
-        setOutputMarkupId(true);
+        AjaxIconButton cleanupPerformance = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
+                createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance")) {
 
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                try {
+                    getObjectWrapper().findProperty(ItemPath.create(TaskType.F_OPERATION_STATS,
+                            OperationStatsType.F_ENVIRONMENTAL_PERFORMANCE_INFORMATION)).getValue().setRealValue(null);
+                } catch (SchemaException e){
+                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                }
+                saveTaskChanges();
+                refresh(target);
+            }
+        };
+        cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        cleanupPerformance.add(new VisibleBehaviour(this::isNotRunning));
+        repeatingView.add(cleanupPerformance);
+
+        AjaxIconButton cleanupResults = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
+                createStringResource("operationalButtonsPanel.cleanupResults")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                try {
+                    getObjectWrapper().findProperty(TaskType.F_RESULT).getValue().setRealValue(null);
+                    getObjectWrapper().findProperty(TaskType.F_RESULT_STATUS).getValue().setRealValue(null);
+                } catch (SchemaException e){
+                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                }
+                saveTaskChanges();
+                refresh(target);
+            }
+        };
+        cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
+        cleanupResults.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        repeatingView.add(cleanupResults);
+
+//        AjaxIconButton cleanupErrors = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
+//        createStringResource("operationalButtonsPanel.cleanupErrors")) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                refresh(target);
+//            }
+//        };
+//        cleanupErrors.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+//        cleanupErrors.add(new VisibleBehaviour(this::isNotRunning));
+//        repeatingView.add(cleanupErrors);
+
+        setOutputMarkupId(true);
 
         final Label status = new Label(repeatingView.newChildId(), () -> createRefreshingLabel());
         status.setOutputMarkupId(true);
@@ -214,6 +269,22 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     }
 
+    private void saveTaskChanges(){
+        OperationResult result = new OperationResult(OPERATION_EXECUTE_TASK_CHANGES);
+        Task task = createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
+        try {
+            ObjectDelta<TaskType> taskDelta = getObjectWrapper().getObjectDelta();
+            if (!taskDelta.isEmpty()) {
+                taskDelta.revive(getPrismContext());
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(taskDelta), null, task, result);
+                result.computeStatus();
+                getObjectModel().reset();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Cannot save tasks changes: {}", e.getMessage());
+        }
+        showResult(result);
+    }
 
     private String createRefreshingLabel() {
         if (isRefreshEnabled()) {
@@ -265,6 +336,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return taskType.getNodeAsObserved() != null;
     }
 
+    private boolean isNotRunning(){
+        return !isRunning();
+    }
+
     private boolean isSuspended(TaskType task) {
         return TaskExecutionStatusType.SUSPENDED == task.getExecutionStatus();
     }
@@ -281,6 +356,9 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return TaskCategory.WORKFLOW.equals(task.getCategory());
     }
 
+    private TaskType getTask(){
+        return getObjectWrapper().getObject().asObjectable();
+    }
 
     private IModel<TaskType> createSummaryPanelModel() {
         return isEditingFocus() ?
@@ -521,6 +599,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 //        getObjectModel().reset();
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
+        target.add(getFeedbackPanel());
+        target.add(getMainPanel());
 
         for (Component component : getMainPanel().getTabbedPanel()) {
             if (component instanceof TaskTabPanel) {

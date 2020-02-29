@@ -18,6 +18,14 @@
                 <color>green</color>
             </icon>
         </display>
+        <itemConstraint>
+            <path>extension</path>
+            <visibility>vacant</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:executeScript</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>

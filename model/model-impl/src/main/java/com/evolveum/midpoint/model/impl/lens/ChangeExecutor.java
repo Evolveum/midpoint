@@ -573,16 +573,23 @@ public class ChangeExecutor {
         PrismObject<O> objectNew = focusContext.getObjectNew();
         if (focusDelta.isAdd() && objectNew.getOid() == null) {
 
-            for (PropertyConstraintType propertyConstraintType : archetypePolicy
-                    .getPropertyConstraint()) {
-                if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
-                    ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
-                    PrismProperty<Object> prop = objectNew.findProperty(itemPath);
-                    String stringValue = prop.getRealValue().toString();
-                    focusContext.setOid(stringValue);
-                }
+            for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
+                processItemConstraint(focusContext, objectNew, itemConstraintType);
+            }
+            // Deprecated
+            for (ItemConstraintType itemConstraintType : archetypePolicy.getPropertyConstraint()) {
+                processItemConstraint(focusContext, objectNew, itemConstraintType);
             }
 
+        }
+    }
+
+    private <O extends ObjectType> void processItemConstraint(LensFocusContext<O> focusContext, PrismObject<O> objectNew, ItemConstraintType itemConstraintType) {
+        if (BooleanUtils.isTrue(itemConstraintType.isOidBound())) {
+            ItemPath itemPath = itemConstraintType.getPath().getItemPath();
+            PrismProperty<Object> prop = objectNew.findProperty(itemPath);
+            String stringValue = prop.getRealValue().toString();
+            focusContext.setOid(stringValue);
         }
     }
 

@@ -450,7 +450,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
         return status;
     }
 
-
+    @NotNull
     @Override
     public ItemName getItemName() {
         return getItemDefinition().getItemName();

@@ -1225,8 +1225,8 @@ public final class WebComponentUtil {
             if (name != null && !name.isEmpty()) {
                 displayName = name;
             }
-        } else if (prismContainerValue.canRepresent(PropertyConstraintType.class)) {
-            PropertyConstraintType propertyConstraintType = (PropertyConstraintType) prismContainerValue.asContainerable();
+        } else if (prismContainerValue.canRepresent(ItemConstraintType.class)) {
+            ItemConstraintType propertyConstraintType = (ItemConstraintType) prismContainerValue.asContainerable();
             String path = "";
             if (propertyConstraintType.getPath() != null) {
                 path = propertyConstraintType.getPath().getItemPath().toString();
