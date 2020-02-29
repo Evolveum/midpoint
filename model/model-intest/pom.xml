@@ -336,10 +336,6 @@
             <artifactId>spring-aop</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
