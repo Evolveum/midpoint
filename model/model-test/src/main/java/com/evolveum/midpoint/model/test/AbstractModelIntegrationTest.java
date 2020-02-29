@@ -218,10 +218,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
         }
+        // TODO inttest: Previously in postInitSystem, but it should not be a problem
         if (dummyResourceCollection != null) {
             dummyResourceCollection.resetResources();
         }
     }
+
+    // TODO left temporarily, should go away
+//    @Override
+//    public void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
+//        if (dummyResourceCollection != null) {
+//            dummyResourceCollection.resetResources();
+//        }
+//    }
 
     protected boolean isAvoidLoggingChange() {
         return true;
@@ -655,7 +664,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifyAccountShadowReplace(accountOid, PASSWORD_VALUE_PATH, task, result, userPasswordPs);
     }
 
-    protected void clearUserPassword(String userOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    protected void clearUserPassword(String userOid)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         Task task = createTask("clearUserPassword");
         OperationResult result = task.getResult();
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
@@ -1112,6 +1122,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Consumer<AssignmentType> modificationBlock, boolean add, ModelExecuteOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<F> focusDelta = createAssignmentFocusDelta(focusClass, focusOid, elementName, roleOid, refType, relation, modificationBlock, add);
+        // TODO inttest: seems useless and doesn't change the problem with TestSecurityAdvanced 320
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
         executeChanges(focusDelta, options, task, result);
     }
 
@@ -3292,8 +3304,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
                 OperationResult taskResult = freshTask.getResult();
-//                display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp)
-//                        + " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
                 if (verbose) { display("Check result", taskResult); }
                 taskResultHolder.setValue(taskResult);
                 if (isError(taskResult, checkSubresult)) {
@@ -5582,7 +5592,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return task -> {
             try {
                 if (lastTimeShown.get() + period < System.currentTimeMillis()) {
-                    dumpTaskTree(task.getOid(), getResult());
+                    // TODO inttest: task. is missing in master, is it good?
+                    dumpTaskTree(task.getOid(), task.getResult());
                     lastTimeShown.set(System.currentTimeMillis());
                 }
             } catch (CommonException e) {

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.intest.security;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
 
@@ -1102,7 +1101,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected <T extends ObjectType, O extends ObjectType> void assertCanSearch(String message, Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
+        Task task = createTask("assertCanSearch");
         OperationResult result = task.getResult();
         String opName = "canSearch("+message+")";
         logAttempt(opName);
