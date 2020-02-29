@@ -6332,7 +6332,7 @@
                     <xsd:element name="operationalStateHistory" type="tns:OperationalStateType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Holds the information when the change of availabilityStatus was made.
+                                Previous values of the operationalState item.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
@@ -6444,7 +6444,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Structure containing metadata about operational state of the resource.
-                E.g. if resource is up or down, when it was last checked, etc.
+                E.g. if resource is up or down, when it was last changed, etc.
                 It should not contain configuration, just the operational state.
             </xsd:documentation>
             <xsd:appinfo>
@@ -6456,7 +6456,7 @@
             <xsd:element name="message" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Describes the reason for changing availability status of the resource.
+                        The reason for the last change of availability status.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
@@ -6466,7 +6466,7 @@
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Holds the information when the change of availabilityStatus was made.
+                        The time of the last change of availability status.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
@@ -6476,7 +6476,7 @@
             <xsd:element name="nodeId" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Holds the information when the change of availabilityStatus was made.
+                        The node that recorded the last change of availability status.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
@@ -6484,7 +6484,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="AvailabilityStatusType">

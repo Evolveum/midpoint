@@ -6,12 +6,19 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.w3c.dom.Element;
+
+import static com.evolveum.midpoint.prism.Containerable.asPrismContainerValue;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -117,5 +124,21 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType,RA> {
     public ResourceAsserter<RA> assertNoTrigger() {
         super.assertNoTrigger();
         return this;
+    }
+
+    public PrismContainerValueAsserter<OperationalStateType, ResourceAsserter<RA>> operationalState() {
+        PrismContainerValue<OperationalStateType> operationalState = asPrismContainerValue(getObject().asObjectable().getOperationalState());
+        PrismContainerValueAsserter<OperationalStateType, ResourceAsserter<RA>> asserter =
+                new PrismContainerValueAsserter<>(operationalState, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public PrismContainerAsserter<OperationalStateType, ResourceAsserter<RA>> operationalStateHistory() {
+        PrismContainer<OperationalStateType> operationalStateHistory = getObject().findContainer(ResourceType.F_OPERATIONAL_STATE_HISTORY);
+        PrismContainerAsserter<OperationalStateType, ResourceAsserter<RA>> asserter =
+                new PrismContainerAsserter<>(operationalStateHistory, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 }

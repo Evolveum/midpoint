@@ -9,12 +9,8 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.*;
 
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
@@ -22,8 +18,6 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -50,7 +44,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -79,8 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 
-import static java.util.Collections.singletonList;
-
 @Component
 public class ResourceManager {
 
@@ -91,21 +82,18 @@ public class ResourceManager {
     @Autowired private ConnectorManager connectorManager;
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private TaskManager taskManager;
-    @Autowired private Clock clock;
+    @Autowired private ResourceOperationalStateManager operationalStateManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
 
     private static final String OP_COMPLETE_RESOURCE = ResourceManager.class.getName() + ".completeResource";
 
-    private static final int MAX_OPERATIONAL_HISOTRY_SIZE = 5;
     /**
      * Completes a resource that has been - we expect - just retrieved from the repository, usually by a search operation.
      */
     PrismObject<ResourceType> completeResource(PrismObject<ResourceType> repositoryObject, GetOperationOptions options, Task task,
             OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            ConfigurationException, CommunicationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         String oid = repositoryObject.getOid();
         boolean readonly = GetOperationOptions.isReadOnly(options);
@@ -125,7 +113,7 @@ public class ResourceManager {
      * Gets a resource.
      */
     public PrismObject<ResourceType> getResource(String oid, GetOperationOptions options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
         boolean readonly = GetOperationOptions.isReadOnly(options);
         PrismObject<ResourceType> cachedResource = resourceCache.getIfLatest(oid, readonly, parentResult);
         if (cachedResource != null) {
@@ -155,8 +143,7 @@ public class ResourceManager {
      */
     private PrismObject<ResourceType> completeAndCacheResource(PrismObject<ResourceType> repositoryObject,
             GetOperationOptions options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            ConfigurationException, CommunicationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         checkMutable(repositoryObject);
 
@@ -258,7 +245,7 @@ public class ResourceManager {
 
                 try {
 
-                    completeSchemaAndCapabilities(repoResource, resourceSchema, fetchedSchema, capabilityMap, task, result);
+                    completeSchemaAndCapabilities(repoResource, resourceSchema, fetchedSchema, capabilityMap, result);
 
                 } catch (Exception ex) {
                     // Catch the exceptions. There are not critical. We need to catch them all because the connector may
@@ -322,7 +309,7 @@ public class ResourceManager {
 
 
     private void completeSchemaAndCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema, boolean fetchedSchema,
-            Map<String,Collection<Object>> capabilityMap, Task task, OperationResult result)
+            Map<String, Collection<Object>> capabilityMap, OperationResult result)
                     throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException, ConfigurationException {
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -342,7 +329,7 @@ public class ResourceManager {
 
             LOGGER.trace("Fetching resource schema for {}", resource);
 
-            resourceSchema = fetchResourceSchema(resource, capabilityMap, task, result);
+            resourceSchema = fetchResourceSchema(resource, capabilityMap, result);
 
             if (resourceSchema == null) {
                 LOGGER.warn("No resource schema fetched from {}", resource);
@@ -354,23 +341,29 @@ public class ResourceManager {
             }
         }
 
-        if (fetchedSchema) {
-            adjustSchemaForSimulatedCapabilities(resource, resourceSchema);
-            modifications.add(createSchemaUpdateDelta(resource, resourceSchema));
-
-            // We have successfully fetched the resource schema. Therefore the resource must be up.
-            modifications.add(createResourceAvailabilityStatusDelta(AvailabilityStatusType.UP));
-        } else {
-            if (resourceSchema != null) {
+        if (resourceSchema != null) {
+            if (fetchedSchema) {
+                adjustSchemaForSimulatedCapabilities(resource, resourceSchema);
+                modifications.add(createSchemaUpdateDelta(resource, resourceSchema));
+                AvailabilityStatusType previousStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource.asObjectable());
+                if (previousStatus != AvailabilityStatusType.UP) {
+                    modifications.addAll(operationalStateManager.createAndLogOperationalStateDeltas(previousStatus,
+                            AvailabilityStatusType.UP, resource.toString(),
+                            "resource schema was successfully fetched", resource));
+                } else {
+                    // just for sure (if the status changed in the meanwhile)
+                    modifications.add(operationalStateManager.createAvailabilityStatusDelta(AvailabilityStatusType.UP));
+                }
+            } else {
                 CachingMetadataType schemaCachingMetadata = resource.asObjectable().getSchema().getCachingMetadata();
                 if (schemaCachingMetadata == null) {
                     schemaCachingMetadata = MiscSchemaUtil.generateCachingMetadata();
                     modifications.add(
                             prismContext.deltaFactory().property().createModificationReplaceProperty(
-                                ItemPath.create(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA),
-                                resource.getDefinition(),
-                                schemaCachingMetadata)
-                        );
+                                    ItemPath.create(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA),
+                                    resource.getDefinition(),
+                                    schemaCachingMetadata)
+                    );
                 }
             }
         }
@@ -455,6 +448,7 @@ public class ResourceManager {
         CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
         capType.setCachingMetadata(cachingMetadata);
 
+        //noinspection unchecked
         ObjectDelta<ResourceType> capabilitiesReplaceDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceContainer(ResourceType.class, connectorSpec.getResource().getOid(),
                 itemPath, capType.asPrismContainerValue().clone());
@@ -541,6 +535,7 @@ public class ResourceManager {
             configurationContainer.applyDefinition(configurationContainerDefinition, true);
 
             try {
+                //noinspection unchecked
                 configurationContainer.accept(visitable -> {
                     if ((visitable instanceof PrismProperty<?>)) {
                         try {
@@ -614,7 +609,7 @@ public class ResourceManager {
             PrismValueDeltaSetTriple<PrismPropertyValue<T>> expressionOutputTriple = expression.evaluate(expressionContext,
                     result);
             Collection<PrismPropertyValue<T>> expressionOutputValues = expressionOutputTriple.getNonNegativeValues();
-            if (expressionOutputValues != null && !expressionOutputValues.isEmpty()) {
+            if (!expressionOutputValues.isEmpty()) {
                 Iterator<PrismPropertyValue<T>> iterator = expressionOutputValues.iterator();
                 PrismPropertyValue<T> firstValue = iterator.next();
                 configurationPropertyValue.setValue(firstValue.getValue());
@@ -628,7 +623,7 @@ public class ResourceManager {
         }
     }
 
-    private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Task task, OperationResult parentResult)
+    private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, Map<String, Collection<Object>> capabilityMap, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException, SchemaException {
         ConnectorSpec connectorSpec = selectConnectorSpec(resource, capabilityMap, SchemaCapabilityType.class);
         if (connectorSpec == null) {
@@ -664,17 +659,17 @@ public class ResourceManager {
 
         String resourceOid = resource.getOid();
 
-        String operationCtx = "test resource " + resourceOid + "connection";
+        String operationDesc = "test resource " + resourceOid + "connection";
 
         List<ConnectorSpec> allConnectorSpecs;
         try {
             allConnectorSpecs = getAllConnectorSpecs(resource);
         } catch (SchemaException e) {
-            operationCtx += ", getting all connectors failed: " + e.getMessage();
+            String statusChangeReason = operationDesc + ", getting all connectors failed: " + e.getMessage();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.error("Configuration error: {}", e.getMessage(), e);
             }
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             parentResult.recordFatalError("Configuration error: " + e.getMessage(), e);
             return;
         }
@@ -705,22 +700,22 @@ public class ResourceManager {
         ResourceSchema schema;
         try {
 
-            schema = fetchResourceSchema(resource, capabilityMap, task, schemaResult);
+            schema = fetchResourceSchema(resource, capabilityMap, schemaResult);
 
         } catch (CommunicationException e) {
-            operationCtx += " failed while fetching schema: " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while fetching schema: " + e.getMessage();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.error("Communication error: {}", e.getMessage(), e);
             }
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, statusChangeReason, task, parentResult, true);
             schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
             return;
         } catch (GenericFrameworkException | ConfigurationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
-            operationCtx += " failed while fetching schema: " + e.getMessage();
+            String statusChangeReason = operationDesc + " failed while fetching schema: " + e.getMessage();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.error("Error: {}", e.getMessage(), e);
             }
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             schemaResult.recordFatalError("Error: " + e.getMessage(), e);
             return;
         }
@@ -731,19 +726,19 @@ public class ResourceManager {
             try {
                 schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
             } catch (SchemaException e) {
-                operationCtx += " failed while parsing refined schema: " + e.getMessage();
+                String statusChangeReason = operationDesc + " failed while parsing refined schema: " + e.getMessage();
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.error("Error: {}", e.getMessage(), e);
                 }
-                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
                 schemaResult.recordFatalError(e);
                 return;
             }
 
             if (schema == null || schema.isEmpty()) {
                 String msg = "Connector does not support schema and no static schema available";
-                operationCtx += ". " + msg;
-                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+                String statusChangeReason = operationDesc + ". " + msg;
+                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
                 schemaResult.recordFatalError(msg);
                 return;
             }
@@ -754,29 +749,31 @@ public class ResourceManager {
         // have full schema caching capability.
         PrismObject<ResourceType> completedResource;
         try {
-            completedResource = completeResourceInternal(resource, schema, true, capabilityMap, null, task, schemaResult);
+            // Re-fetching from repository to get up-to-date availability status (to avoid phantom state change records).
+            PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, resourceOid, null, schemaResult);
+            completedResource = completeResourceInternal(repoResource, schema, true, capabilityMap, null, task, schemaResult);
         } catch (ObjectNotFoundException e) {
             String msg = "Object not found (unexpected error, probably a bug): " + e.getMessage();
-            operationCtx += " failed while completing resource. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             schemaResult.recordFatalError(msg, e);
             return;
         } catch (SchemaException e) {
             String msg = "Schema processing error (probably connector bug): " + e.getMessage();
-            operationCtx += " failed while completing resource. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             schemaResult.recordFatalError(msg, e);
             return;
         } catch (ExpressionEvaluationException e) {
             String msg = "Expression error: " + e.getMessage();
-            operationCtx += " failed while completing resource. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             schemaResult.recordFatalError(msg, e);
             return;
         } catch (RuntimeException e) {
             String msg = "Unspecified exception: " + e.getMessage();
-            operationCtx += " failed while completing resource. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            String statusChangeReason = operationDesc + " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             schemaResult.recordFatalError(msg, e);
             return;
         }
@@ -786,8 +783,8 @@ public class ResourceManager {
         try {
             updateResourceSchema(allConnectorSpecs, parentResult, completedResource);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
-            operationCtx += " failed while updating resource schema: " + e.getMessage();
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            String statusChangeReason = operationDesc + " failed while updating resource schema: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             parentResult.recordFatalError("Couldn't update resource schema: " + e.getMessage(), e);
             return;
         }
@@ -1016,128 +1013,47 @@ public class ResourceManager {
      * is invalidated because of the modification. But it will be loaded on the next occasion. This should be quite harmless,
      * as we do not expect availability changes to occur frequently.
      *
-     *
-     * @param operationCtx
+     * @param statusChangeReason Description of the reason of changing the availability status.
      * @param skipGetResource True if we want to skip "getResource" operation and therefore apply the change regardless of
      *                        the current resource availability status. This is to be used in situations where we expect that
      *                        the resource might not be successfully retrievable (e.g. if it's broken).
      *
      * @throws ObjectNotFoundException If the resource object does not exist in repository.
      */
-    public void modifyResourceAvailabilityStatus(String resourceOid, AvailabilityStatusType newStatus, String operationCtx, Task task, OperationResult result, boolean skipGetResource) throws ObjectNotFoundException {
+    public void modifyResourceAvailabilityStatus(String resourceOid, AvailabilityStatusType newStatus, String statusChangeReason,
+            Task task, OperationResult result, boolean skipGetResource) throws ObjectNotFoundException {
 
         AvailabilityStatusType currentStatus;
-        String description;
-        PrismObject<ResourceType> resource = null;
+        String resourceDesc;
+        PrismObject<ResourceType> resource;
         if (skipGetResource) {
+            resource = null;
             currentStatus = null;
-            description = "resource " + resourceOid;
+            resourceDesc = "resource " + resourceOid;
         } else {
             try {
                 resource = getResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
-            } catch (SchemaException | ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
+            } catch (SchemaException | ExpressionEvaluationException e) {
                 // We actually do not expect any of these exceptions here. The resource is most probably in use
                 result.recordFatalError("Unexpected exception: " + e.getMessage(), e);
                 throw new SystemException("Unexpected exception: " + e.getMessage(), e);
             }
             ResourceType resourceBean = resource.asObjectable();
             currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resourceBean);
-            description = resource.toString();
+            resourceDesc = resource.toString();
         }
 
         if (newStatus != currentStatus) {
-            //info becasue it's for diagnosing the issues with resource availability
-            LOGGER.info("Availability status changed from {} to {} for {} because {}", currentStatus, newStatus, description, operationCtx);
             try {
-                String message = "Availability status changed from " + currentStatus + " to " + newStatus + " for " + description + " because " +operationCtx;
-                List<ItemDelta<?, ?>> modifications = createOperationalStateDelta(newStatus, message, resource);//singletonList(createResourceAvailabilityStatusDelta(newStatus));
+                List<ItemDelta<?, ?>> modifications = operationalStateManager.createAndLogOperationalStateDeltas(currentStatus, newStatus,
+                        resourceDesc, statusChangeReason, resource);
                 repositoryService.modifyObject(ResourceType.class, resourceOid, modifications, result);
                 result.computeStatusIfUnknown();
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
             } catch (SchemaException | ObjectAlreadyExistsException e) {
-                throw new SystemException("Unexpected exception: " + e.getMessage(), e);
+                throw new SystemException("Unexpected exception while recording operation state change: " + e.getMessage(), e);
             }
         }
-    }
-
-    private List<ItemDelta<?, ?>> createOperationalStateDelta(AvailabilityStatusType status, String message, PrismObject<ResourceType> resource) throws SchemaException {
-        OperationalStateType state = new OperationalStateType(prismContext);
-        state.setMessage(message);
-        state.setLastAvailabilityStatus(status);
-        state.setNodeId(taskManager.getNodeId());
-        state.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-
-        ItemDelta<?, ?> lastAvailabilityStatus = prismContext.deltaFor(ResourceType.class).item(ResourceType.F_OPERATIONAL_STATE).replace(state).asItemDelta();
-
-        List<ItemDelta<?, ?>> deltas = new ArrayList<>();
-        deltas.add(lastAvailabilityStatus);
-        addHistoryDeltas(resource, state, deltas);
-        return deltas;
-    }
-
-    private void addHistoryDeltas(PrismObject<ResourceType> resource, OperationalStateType newState, List<ItemDelta<?, ?>> deltas) throws SchemaException {
-        cleanupHistoryDeltas(resource, deltas);
-
-        ItemDelta<?, ?> addNewDelta = prismContext.deltaFor(ResourceType.class).item(ResourceType.F_OPERATIONAL_STATE_HISTORY).add(newState.clone()).asItemDelta();
-        deltas.add(addNewDelta);
-    }
-
-    private void cleanupHistoryDeltas(PrismObject<ResourceType> resource, List<ItemDelta<?, ?>> deltas) throws SchemaException {
-        if (resource == null) {
-            return;
-        }
-
-        List<OperationalStateType> history = new ArrayList<>(resource.asObjectable().getOperationalStateHistory());
-        int historySize = history.size();
-        if (historySize >= MAX_OPERATIONAL_HISOTRY_SIZE) {
-            Comparator timestampCompare = (r1, r2) -> {
-                OperationalStateType state1 = (OperationalStateType) r1;
-                OperationalStateType state2 = (OperationalStateType) r2;
-                if (state1 == null) {
-                    return (state2 == null ? DatatypeConstants.EQUAL : DatatypeConstants.GREATER);
-                }
-
-                if (state2 == null) {
-                    return (state1 == null ? DatatypeConstants.EQUAL : DatatypeConstants.LESSER);
-                }
-
-                XMLGregorianCalendar gc1 = state1.getTimestamp();
-                XMLGregorianCalendar gc2 = state2.getTimestamp();
-
-                Long t1 = MiscUtil.asLong(gc1);
-                Long t2 = MiscUtil.asLong(gc2);
-                return t2.compareTo(t1);
-            };
-
-            Collections.sort(history, timestampCompare);
-            if (MAX_OPERATIONAL_HISOTRY_SIZE == historySize) {
-                ItemDelta<?, ?> deleteOldDelta = prismContext.deltaFor(ResourceType.class)
-                        .item(ResourceType.F_OPERATIONAL_STATE_HISTORY)
-                        .delete(history.get(historySize - 1).clone())
-                        .asItemDelta();
-                deltas.add(deleteOldDelta);
-            }
-
-            // in case the resource was not available last time we updated history
-            // there might me more then MAX_OPERATIONAL_HISOTY_SIZE records, so
-            // just remove them now.
-            if (MAX_OPERATIONAL_HISOTRY_SIZE < historySize) {
-                int recordsToDelete = historySize - MAX_OPERATIONAL_HISOTRY_SIZE + 1;
-                for (int i = 1; i <= recordsToDelete; i++) {
-                    ItemDelta<?, ?> deleteOldDelta = prismContext.deltaFor(ResourceType.class)
-                            .item(ResourceType.F_OPERATIONAL_STATE_HISTORY)
-                            .delete(history.get(historySize - i).clone())
-                            .asItemDelta();
-                    deltas.add(deleteOldDelta);
-                }
-            }
-        }
-    }
-
-    private ItemDelta<?, ?> createResourceAvailabilityStatusDelta(AvailabilityStatusType status) throws SchemaException {
-        return prismContext.deltaFor(ResourceType.class)
-                .item(SchemaConstants.PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS).replace(status)
-                .asItemDelta();
     }
 
     /**
@@ -1165,7 +1081,7 @@ public class ResourceManager {
                     ResourceAttributeDefinition attributeDefinition = objectClassDefinition
                             .findAttributeDefinition(attributeName);
                     if (attributeDefinition != null) {
-                        if (ignore == null || ignore.booleanValue()) {
+                        if (ignore == null || ignore) {
                             ((MutableItemDefinition) attributeDefinition).setProcessing(ItemProcessing.IGNORE);
                         }
                     } else {
@@ -1189,6 +1105,7 @@ public class ResourceManager {
         }
     }
 
+    // TODO should this one be used?
     private void checkSchema(PrismSchema schema) throws SchemaException {
         // This is resource schema, it should contain only
         // ResourceObjectDefinitions
@@ -1213,7 +1130,7 @@ public class ResourceManager {
         }
     }
 
-    public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, GetOperationOptions options, Task task, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, GetOperationOptions options, Task task, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         if (delta.isAdd()) {
             PrismObject<ResourceType> resource = delta.getObjectToAdd();
@@ -1271,8 +1188,8 @@ public class ResourceManager {
             }
         }
 
-        PrismObject<ConnectorType> connector = null;
-        ConnectorType connectorType = null;
+        PrismObject<ConnectorType> connector;
+        ConnectorType connectorType;
         try {
             connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, objectResult);
             connectorType = connector.asObjectable();
@@ -1286,7 +1203,7 @@ public class ResourceManager {
             // Mark the error ... there is nothing more to do
             objectResult.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
             LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}-{}",
-                new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
+                    connectorOid, resourceType.getName(), e.getMessage(), e);
             return;
         }
 
@@ -1319,6 +1236,7 @@ public class ResourceManager {
         }
 
         PrismContainer configContainer = resourceType.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+        //noinspection unchecked
         configContainer.applyDefinition(configContainerDef);
 
         for (ItemDelta<?,?> itemDelta : delta.getModifications()){
@@ -1353,8 +1271,7 @@ public class ResourceManager {
     }
 
     public void applyDefinition(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
         applyConnectorSchemasToResource(resource, task, parentResult);
     }
 
@@ -1362,7 +1279,7 @@ public class ResourceManager {
         // TODO: not implemented yet
     }
 
-    public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ResourceType> resource = getResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = selectConnectorSpec(resource, ScriptCapabilityType.class);
         if (connectorSpec == null) {
@@ -1484,15 +1401,8 @@ public class ResourceManager {
     }
 
     private boolean hasConfiguredCapabilities(CapabilitiesType supportedCapabilities) {
-        if (supportedCapabilities.getConfigured() == null) {
-            return false;
-        }
-
-        if (supportedCapabilities.getConfigured().getAny().isEmpty()) {
-            return false;
-
-        }
-        return true;
+        CapabilityCollectionType configured = supportedCapabilities.getConfigured();
+        return configured != null && !configured.getAny().isEmpty();
     }
 
     private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Class<T> capabilityClass) throws SchemaException {
@@ -1556,6 +1466,7 @@ public class ResourceManager {
         if (StringUtils.isBlank(connectorOid)) {
             throw new SchemaException("No connector OID in additional connector in "+resource);
         }
+        //noinspection unchecked
         PrismContainer<ConnectorConfigurationType> connectorConfiguration = additionalConnectorType.asPrismContainerValue().findContainer(ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);
         String connectorName = additionalConnectorType.getName();
         if (StringUtils.isBlank(connectorName)) {

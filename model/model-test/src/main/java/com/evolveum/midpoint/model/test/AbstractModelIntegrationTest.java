@@ -6123,13 +6123,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertResource(resource, message);
     }
 
-    protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ResourceAsserter<Void> asserter = ResourceAsserter.forResource(user, message);
-        initializeAsserter(asserter);
-        asserter.display();
-        return asserter;
-    }
-
     protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceAsserter<Void> asserter = assertResource(oid, "after");
         asserter.assertOid(oid);
