@@ -117,6 +117,11 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 @Listeners({ CurrentTestResultHolder.class })
 public abstract class AbstractIntegrationTest extends AbstractSpringTest {
 
+    // TODO inttest: tests should be fixed and this should go before merge to master
+    // value is false, as it is used in enable= flag
+    @Deprecated
+    public static final boolean DISABLED_IN_NEW_INTEST = false;
+
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
     public static final String COMMON_DIR_NAME = "common";
@@ -149,9 +154,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     @Autowired protected Tracer tracer;
 
     /**
-     * Task manager should not be used directly in subclasses, better use provided methods,
-     * even better just utilize prepared method-test-scoped task via {@link #getTestTask()}.
-     * TODO: can the goal be to make this private and only access it through behaviour (method)?
+     * Task manager can be used directly in subclasses but prefer various provided methods
+     * like {@link #getTestTask()}, {@link #createTask}, etc.
      */
     @Autowired protected TaskManager taskManager;
 
@@ -183,8 +187,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * Using {@code BeforeClass} is not good as the Spring wiring happens later.
      */
     @PostConstruct
-    public void initSystemConditional() throws Exception {
-        logger.trace("initSystemConditional: initializing class {}", getClass().getName());
+    public void initSystem() throws Exception {
+        logger.trace("initSystem: initializing class {}", getClass().getName());
 
         // Check whether we are already initialized
         assertNotNull("Repository is not wired properly", repositoryService);
@@ -237,8 +241,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         TestUtil.displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
 
         Task task = createTask(testMethodName);
-        customizeTask(task);
-        // TODO do we need that subresult? :-) (Virgo's brave new world)
+        // TODO inttest do we need that subresult? :-) (Virgo's brave new world)
         // maybe it doesn't break tests, but changes traceability/maintenance?
 //        OperationResult rootResult = task.getResult();
 //        TracingProfileType tracingProfile = getTestMethodTracingProfile();
@@ -253,13 +256,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
 //        task.setResult(result);
 
         MidpointTestMethodContext.create(testClass, testMethodName, task, task.getResult());
-    }
-
-    /**
-     * Subclasses may override this if test task needs additional customization.
-     */
-    protected void customizeTask(Task task) {
-        // nothing by default
     }
 
     /**
@@ -338,8 +334,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * Provided name is automatically prefixed by {@link #contextName()}.
      */
     protected Task createTask(String operationName) {
-        return taskManager.createTaskInstance(contextName() + "." + operationName);
+        Task task = taskManager.createTaskInstance(contextName() + "." + operationName);
+        customizeTask(task);
+        return task;
     }
+
+    /**
+     * Subclasses may override this if test task needs additional customization.
+     * Each task used or created by the test is customized - this applies to default
+     * method-scoped task and also to any task created by {@link #createTask(String)}.
+     */
+    protected void customizeTask(Task task) {
+        // nothing by default
+    }
+
 
     /**
      * Context name is "class-simple-name.method" if test method context is available,
