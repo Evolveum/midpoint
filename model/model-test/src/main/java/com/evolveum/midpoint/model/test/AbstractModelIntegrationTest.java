@@ -6315,7 +6315,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private Task createAllowDenyTask(String opname) {
-        Task task = createTracedTask("createAllowDenyTask." + opname);
+        Task task = createTask("createAllowDenyTask." + opname);
         task.setOwner(getSecurityContextPrincipalFocus());
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         return task;
