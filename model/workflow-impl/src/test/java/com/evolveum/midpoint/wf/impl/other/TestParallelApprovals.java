@@ -220,9 +220,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test120ParallelApprovalsInTwoOperations() throws Exception {
         login(userAdministrator);
 
-        Task task0 = createTask("task0");
-        Task task1 = createTask("task1");
-        Task task2 = createTask("task2");
+        Task task0 = createPlainTask("task0");
+        Task task1 = createPlainTask("task1");
+        Task task2 = createPlainTask("task2");
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();
@@ -284,10 +284,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test130ParallelApprovalsInThreeSummarizingOperations() throws Exception {
         login(userAdministrator);
 
-        Task task0 = createTask("task0");
-        Task task1 = createTask("task1");
-        Task task2 = createTask("task2");
-        Task task3 = createTask("task3");
+        Task task0 = createPlainTask("task0");
+        Task task1 = createPlainTask("task1");
+        Task task2 = createPlainTask("task2");
+        Task task3 = createPlainTask("task3");
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();

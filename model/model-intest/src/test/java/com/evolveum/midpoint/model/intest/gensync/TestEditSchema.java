@@ -1164,9 +1164,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test240EditSchemaReconciliationTask() throws Exception {
-        final String TEST_NAME="test240EditSchemaReconciliationTask";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismObjectDefinition<TaskType> taskDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
         PrismObject<TaskType> task = taskDef.instantiate();
@@ -1177,11 +1174,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         display("Task before", task);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObjectDefinition<TaskType> editDef = getEditObjectDefinition(task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertObjectDefinition(editDef)
             .container(ObjectType.F_EXTENSION)

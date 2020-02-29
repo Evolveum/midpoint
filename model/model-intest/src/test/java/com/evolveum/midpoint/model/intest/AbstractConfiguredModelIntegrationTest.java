@@ -613,7 +613,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         return userAdministrator;
     }
 
-    // TODO: let's try it without this after 6 years
+    // TODO inttest: let's try it without this after 6 years
 //    @AfterClass(alwaysRun = true)
     public void clearClassFields() throws Exception {
         logger.trace("Clearing all fields for test class {}", getClass().getName());

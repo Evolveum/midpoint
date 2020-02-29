@@ -761,7 +761,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                     } else if (threadIndex == CONCURRENT_TEST_THREAD_COUNT_HIGH / 2) {
                         for (int i = 0; /* neverending */ ; i++) {
-                            Task localTask = createTask("test-" + i);
+                            Task localTask = createPlainTask("test-" + i);
                             OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, localTask);
 
                             logger.debug("PAR: TESTing " + threadIndex + "." + i);
@@ -784,7 +784,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                         try {
                             // TODO: why is the constant MESS_RESOURCE_ITERATIONS used for operations?
                             for (int i = 0; i < MESS_RESOURCE_ITERATIONS; i++) {
-                                Task localTask = createTask("op-" + i);
+                                Task localTask = createPlainTask("op-" + i);
                                 OperationResult localResult = localTask.getResult();
 
                                 logger.debug("PAR: OPing " + threadIndex + "." + i);
@@ -855,7 +855,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException,
             ObjectAlreadyExistsException, ExpressionEvaluationException {
-        Task task = createTask("mess-" + threadIndex + "-" + i);
+        Task task = createPlainTask("mess-" + threadIndex + "-" + i);
         OperationResult result = task.getResult();
         List<ItemDelta<?, ?>> deltas = deltaFor(ResourceType.class)
                 .item(ResourceType.F_DESCRIPTION).replace("Iter " + threadIndex + "." + i)

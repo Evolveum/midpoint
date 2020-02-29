@@ -3049,7 +3049,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     /**
      * MID-4304
      */
-    @Test(enabled = DISABLED_IN_NEW_INTEST)
+    @Test
     public void test320AutzJackGuybrushValutDweller() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -3240,7 +3240,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("modifyJackValidTo");
+        Task task = createPlainTask("modifyJackValidTo");
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result, JACK_VALID_TO_LONG_AHEAD);
         assertSuccess(result);
@@ -3320,7 +3320,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
             ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
         super.cleanupAutzTest(userOid);
 
-        Task task = createTask("cleanupAutzTest");
+        Task task = createPlainTask("cleanupAutzTest");
         OperationResult result = task.getResult();
 
         cleanupDelete(RoleType.class, ROLE_EXCLUSION_PIRATE_OID, task, result);

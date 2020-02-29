@@ -113,6 +113,7 @@ import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.*;
@@ -218,19 +219,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
         }
-        // TODO inttest: Previously in postInitSystem, but it should not be a problem
+    }
+
+    @Override
+    public void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
         if (dummyResourceCollection != null) {
             dummyResourceCollection.resetResources();
         }
     }
-
-    // TODO left temporarily, should go away
-//    @Override
-//    public void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
-//        if (dummyResourceCollection != null) {
-//            dummyResourceCollection.resetResources();
-//        }
-//    }
 
     protected boolean isAvoidLoggingChange() {
         return true;
@@ -330,7 +326,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult subResult = result.createSubresult(contextName() + ".importObjectFromFile");
         subResult.addParam("filename", file.getPath());
         logger.trace("importObjectFromFile: {}", file);
-        Task task = createTask("importObjectFromFile");
+        Task task = createPlainTask("importObjectFromFile");
         importObjectFromFile(file, task, result);
         subResult.computeStatus();
         if (subResult.isError()) {
@@ -430,7 +426,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> int getObjectCount(Class<O> type, ObjectQuery query)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("getObjectCount");
+        Task task = createPlainTask("getObjectCount");
         OperationResult result = task.getResult();
         List<PrismObject<O>> users = modelService.searchObjects(type, query, null, task, result);
         if (verbose) { display(type.getSimpleName() + "s", users); }
@@ -441,7 +437,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ObjectQuery query, Consumer<PrismObject<O>> handler, Integer expectedNumberOfObjects)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("searchObjectsIterative");
+        Task task = createPlainTask("searchObjectsIterative");
         OperationResult result = task.getResult();
         final MutableInt count = new MutableInt(0);
         // Cannot convert to lambda here. Java does not want to understand the generic types properly.
@@ -631,7 +627,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void modifyUserChangePassword(String userOid, String newPassword) throws CommonException {
-        Task task = createTask("modifyUserChangePassword");
+        Task task = createPlainTask("modifyUserChangePassword");
         OperationResult result = task.getResult();
         modifyUserChangePassword(userOid, newPassword, task, result);
         assertSuccess(result);
@@ -666,7 +662,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void clearUserPassword(String userOid)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        Task task = createTask("clearUserPassword");
+        Task task = createPlainTask("clearUserPassword");
         OperationResult result = task.getResult();
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
                 .item(SchemaConstants.PATH_PASSWORD).replace()
@@ -680,7 +676,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void recomputeUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createTask("recomputeUser");
+        Task task = createPlainTask("recomputeUser");
         OperationResult result = task.getResult();
         modelService.recompute(UserType.class, userOid, null, task, result);
         assertSuccess(result);
@@ -702,7 +698,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("assignRole");
+        Task task = createPlainTask("assignRole");
         OperationResult result = task.getResult();
         assignRole(userOid, roleOid, task, result);
         assertSuccess(result);
@@ -796,7 +792,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assignRole(String userOid, String roleOid, QName relation) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("assignRole");
+        Task task = createPlainTask("assignRole");
         OperationResult result = task.getResult();
         assignRole(userOid, roleOid, relation, task, result);
         result.computeStatus();
@@ -810,7 +806,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void unassignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("unassignRole");
+        Task task = createPlainTask("unassignRole");
         OperationResult result = task.getResult();
         unassignRole(userOid, roleOid, task, result);
         result.computeStatus();
@@ -897,7 +893,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void unassignAllRoles(String userOid, boolean useRawPlusRecompute) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("unassignAllRoles");
+        Task task = createPlainTask("unassignAllRoles");
         OperationResult result = task.getResult();
         PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
@@ -995,7 +991,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("assignOrg");
+        Task task = createPlainTask("assignOrg");
         OperationResult result = task.getResult();
         assignOrg(userOid, orgOid, relation, task, result);
         result.computeStatus();
@@ -1028,7 +1024,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void unassignOrg(String userOid, String orgOid, QName relation) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("unassignOrg");
+        Task task = createPlainTask("unassignOrg");
         OperationResult result = task.getResult();
         unassignOrg(userOid, orgOid, relation, task, result);
         assertSuccess(result);
@@ -1185,7 +1181,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("unlinkUser");
+        Task task = createPlainTask("unlinkUser");
         OperationResult result = task.getResult();
         unlink(UserType.class, userOid, targetOid, task, result);
         assertSuccess(result);
@@ -1566,7 +1562,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <F extends FocusType> void assignAccount(Class<F> type, String focusOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("assignAccount");
+        Task task = createPlainTask("assignAccount");
         OperationResult result = task.getResult();
         assignAccount(type, focusOid, resourceOid, intent, task, result);
         assertSuccess(result);
@@ -1590,7 +1586,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <F extends FocusType> void unassignAccount(Class<F> type, String focusOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("unassignAccount");
+        Task task = createPlainTask("unassignAccount");
         OperationResult result = task.getResult();
         unassignAccount(type, focusOid, resourceOid, intent, task, result);
         assertSuccess(result);
@@ -1621,7 +1617,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("getUser");
+        Task task = createPlainTask("getUser");
         OperationResult result = task.getResult();
         PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
         result.computeStatus();
@@ -1636,7 +1632,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("findObjectByName");
+        Task task = createPlainTask("findObjectByName");
         OperationResult result = task.getResult();
         List<PrismObject<O>> objects = modelService.searchObjects(type, createNameQuery(name), null, task, result);
         if (objects.isEmpty()) {
@@ -1667,7 +1663,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected PrismObject<RoleType> getRole(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("getRole");
+        Task task = createPlainTask("getRole");
         OperationResult result = task.getResult();
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, oid, null, task, result);
         result.computeStatus();
@@ -1676,7 +1672,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected PrismObject<ShadowType> findAccountByUsername(String username, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("findAccountByUsername");
+        Task task = createPlainTask("findAccountByUsername");
         OperationResult result = task.getResult();
         return findAccountByUsername(username, resource, task, result);
     }
@@ -1722,7 +1718,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected PrismObject<ShadowType> getShadowModel(String shadowOid, GetOperationOptions rootOptions, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("getShadowModel");
+        Task task = createPlainTask("getShadowModel");
         OperationResult result = task.getResult();
         Collection<SelectorOptions<GetOperationOptions>> opts = null;
         if (rootOptions != null) {
@@ -1741,7 +1737,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> void assertNoObject(Class<O> type, String oid)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("assertNoObject");
+        Task task = createPlainTask("assertNoObject");
         assertNoObject(type, oid, task, task.getResult());
     }
 
@@ -2233,7 +2229,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertSubOrgs(String baseOrgOid, int expected) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("assertSubOrgs");
+        Task task = createPlainTask("assertSubOrgs");
         OperationResult result = task.getResult();
         List<PrismObject<OrgType>> subOrgs = getSubOrgs(baseOrgOid, task, result);
         result.computeStatus();
@@ -2242,7 +2238,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertSubOrgs(PrismObject<OrgType> baseOrg, int expected) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("assertSubOrgs");
+        Task task = createPlainTask("assertSubOrgs");
         OperationResult result = task.getResult();
         List<PrismObject<OrgType>> subOrgs = getSubOrgs(baseOrg.getOid(), task, result);
         result.computeStatus();
@@ -2269,7 +2265,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected String dumpOrgTree(String topOrgOid, boolean dumpUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("dumpOrgTree");
+        Task task = createPlainTask("dumpOrgTree");
         OperationResult result = task.getResult();
         PrismObject<OrgType> topOrg = modelService.getObject(OrgType.class, topOrgOid, null, task, result);
         String dump = dumpOrgTree(topOrg, dumpUsers, task, result);
@@ -2315,7 +2311,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void displayUsers() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("displayUsers");
+        Task task = createPlainTask("displayUsers");
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = (user, parentResult) -> {
             display("User", user);
@@ -2822,7 +2818,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void purgeResourceSchema(String resourceOid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("purgeResourceSchema");
+        Task task = createPlainTask("purgeResourceSchema");
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(ResourceType.class,
@@ -2845,7 +2841,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <T extends ObjectType> PrismObject<T> searchObjectByName(Class<T> type, String name)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("searchObjectByName");
+        Task task = createPlainTask("searchObjectByName");
         OperationResult result = task.getResult();
         PrismObject<T> out = searchObjectByName(type, name, task, result);
         result.computeStatus();
@@ -3632,7 +3628,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void setSecurityContextUser(String userOid)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("setSecurityContextUser");
+        Task task = createPlainTask("setSecurityContextUser");
         PrismObject<UserType> object = modelService.getObject(UserType.class, userOid, null, task, task.getResult());
 
         assertNotNull("User " + userOid + " is null", object.asObjectable());
@@ -3772,7 +3768,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected PrismObject<TaskType> getTask(String taskOid)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("getTask");
+        Task task = createPlainTask("getTask");
         OperationResult result = task.getResult();
         PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT), task, result);
         result.computeStatus();
@@ -3781,7 +3777,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("getTaskTree");
+        Task task = createPlainTask("getTaskTree");
         OperationResult result = task.getResult();
         PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK), task, result);
         result.computeStatus();
@@ -3819,7 +3815,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("getObject");
+        Task task = createPlainTask("getObject");
         OperationResult result = task.getResult();
         PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
         result.computeStatus();
@@ -3829,7 +3825,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <O extends ObjectType> PrismObject<O> getObjectViaRepo(Class<O> type, String oid)
             throws ObjectNotFoundException, SchemaException {
-        Task task = createTask("getObjectViaRepo");
+        Task task = createPlainTask("getObjectViaRepo");
         OperationResult result = task.getResult();
         PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
         result.computeStatus();
@@ -3884,7 +3880,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("addObject");
+        Task task = createPlainTask("addObject");
         OperationResult result = task.getResult();
         String oid = addObject(object, task, result);
         result.computeStatus();
@@ -3918,7 +3914,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("deleteObject");
+        Task task = createPlainTask("deleteObject");
         OperationResult result = task.getResult();
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
         executeChanges(delta, null, task, result);
@@ -3937,7 +3933,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("forceDeleteShadow");
+        Task task = createPlainTask("forceDeleteShadow");
         OperationResult result = task.getResult();
         forceDeleteObject(ShadowType.class, oid, task, result);
         assertSuccess(result);
@@ -3957,7 +3953,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
-        Task task = createTask("addTrigger");
+        Task task = createPlainTask("addTrigger");
         OperationResult result = task.getResult();
         TriggerType triggerType = new TriggerType();
         triggerType.setTimestamp(timestamp);
@@ -3971,7 +3967,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void addTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri, boolean makeDistinct) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("addTriggers");
+        Task task = createPlainTask("addTriggers");
         OperationResult result = task.getResult();
         Collection<TriggerType> triggers = timestamps.stream()
                 .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
@@ -4001,7 +3997,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void replaceTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("replaceTriggers");
+        Task task = createPlainTask("replaceTriggers");
         OperationResult result = task.getResult();
         Collection<TriggerType> triggers = timestamps.stream()
                 .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
@@ -4661,7 +4657,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = createTask("displayAllUsers");
+        Task task = createPlainTask("displayAllUsers");
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = (object, parentResult) -> {
             display("User", object);
@@ -4737,14 +4733,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected Task createTask(String operationName, MidPointPrincipal principal) {
-        Task task = createTask(operationName);
+        Task task = createPlainTask(operationName);
         task.setOwner(principal.getFocus().asPrismObject());
         task.setChannel(DEFAULT_CHANNEL);
         return task;
     }
 
     protected void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("modifyRoleAddConstruction");
+        Task task = createPlainTask("modifyRoleAddConstruction");
         OperationResult result = task.getResult();
         ConstructionType construction = new ConstructionType();
         ObjectReferenceType resourceRedRef = new ObjectReferenceType();
@@ -4899,7 +4895,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected AssignmentType findInducementByTarget(String roleOid, String targetOid)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createTask("findInducementByTarget");
+        Task task = createPlainTask("findInducementByTarget");
         OperationResult result = task.getResult();
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, roleOid, null, task, result);
         for (AssignmentType inducement : role.asObjectable().getInducement()) {
@@ -4913,7 +4909,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void modifyRoleDeleteInducementTarget(String roleOid, String targetOid,
             ModelExecuteOptions options) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("modifyRoleDeleteInducementTarget");
+        Task task = createPlainTask("modifyRoleDeleteInducementTarget");
         OperationResult result = task.getResult();
         AssignmentType inducement = findInducementByTarget(roleOid, targetOid);
         ObjectDelta<RoleType> roleDelta =
@@ -5089,7 +5085,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-        Task task = createTask("getEditObjectDefinition");
+        Task task = createPlainTask("getEditObjectDefinition");
         OperationResult result = task.getResult();
         PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, task, result);
         result.computeStatus();
@@ -5109,7 +5105,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> focus, Class<R> targetType, int assignmentOrder) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-        Task task = createTask("getAssignableRoleSpecification");
+        Task task = createPlainTask("getAssignableRoleSpecification");
         OperationResult result = task.getResult();
         RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, targetType, assignmentOrder, task, result);
         assertSuccess(result);
@@ -5139,7 +5135,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String userOid, String targetRoleOid, ItemPath... expectedAllowedItemPaths)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("assertAllowRequestAssignmentItems");
+        Task task = createPlainTask("assertAllowRequestAssignmentItems");
         OperationResult result = task.getResult();
         assertAllowRequestAssignmentItems(userOid, targetRoleOid, task, result, expectedAllowedItemPaths);
         assertSuccess(result);
@@ -5274,7 +5270,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected List<AuditEventRecord> getObjectAuditRecords(String oid)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Task task = createTask("getObjectAuditRecords");
+        Task task = createPlainTask("getObjectAuditRecords");
         OperationResult result = task.getResult();
         Map<String, Object> params = new HashMap<>();
         params.put("targetOid", oid);
@@ -5349,7 +5345,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     // just guessing (good enough for testing)
     protected boolean isH2() {
-        Task task = createTask("isH2");
+        Task task = createPlainTask("isH2");
         RepositoryDiag diag = modelDiagnosticService.getRepositoryDiag(task, task.getResult());
         return diag.isEmbedded() || "org.h2.Driver".equals(diag.getDriverShortName());
     }
@@ -5523,7 +5519,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             PrismObject<UserType> user, String passwordPolicyOid)
             throws EncryptionException, ObjectNotFoundException, ExpressionEvaluationException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createTask("assertPasswordCompliesWithPolicy");
+        Task task = createPlainTask("assertPasswordCompliesWithPolicy");
         OperationResult result = task.getResult();
         assertPasswordCompliesWithPolicy(user, passwordPolicyOid, task, result);
         assertSuccess(result);
@@ -5612,7 +5608,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestCtx(Object testCase, String name) {
             this.name = name;
             TestUtil.displayTestTitle(testCase, name);
-            task = createTask(name);
+            task = createPlainTask(name);
             result = task.getResult();
             dummyAuditService.clear();
         }
@@ -5993,12 +5989,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // Change to PrismObjectDefinitionAsserter later
-    protected <O extends ObjectType> PrismContainerDefinitionAsserter<O,Void> assertObjectDefinition(PrismObjectDefinition<O> objectDef) {
+    protected <O extends ObjectType> PrismContainerDefinitionAsserter<O, Void> assertObjectDefinition(PrismObjectDefinition<O> objectDef) {
         return assertContainerDefinition(objectDef);
     }
 
-    protected <C extends Containerable> PrismContainerDefinitionAsserter<C,Void> assertContainerDefinition(PrismContainerDefinition<C> containerDef) {
-        PrismContainerDefinitionAsserter<C,Void> asserter = PrismContainerDefinitionAsserter.forContainerDefinition(containerDef);
+    protected <C extends Containerable> PrismContainerDefinitionAsserter<C, Void> assertContainerDefinition(PrismContainerDefinition<C> containerDef) {
+        PrismContainerDefinitionAsserter<C, Void> asserter = PrismContainerDefinitionAsserter.forContainerDefinition(containerDef);
         initializeAsserter(asserter);
         asserter.display();
         return asserter;
@@ -6025,7 +6021,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("assertGetDeny");
+        Task task = createPlainTask("assertGetDeny");
         OperationResult result = task.getResult();
         try {
             logAttempt("get", type, oid, null);
@@ -6044,7 +6040,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = createTask("assertGetAllow");
+        Task task = createPlainTask("assertGetAllow");
         OperationResult result = task.getResult();
         logAttempt("get", type, oid, null);
         PrismObject<O> object = modelService.getObject(type, oid, options, task, result);
@@ -6136,7 +6132,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, SearchAssertion<O> assertion) throws Exception {
-        Task task = createTask("assertSearchObjects");
+        Task task = createPlainTask("assertSearchObjects");
         OperationResult result = task.getResult();
         SearchResultList<PrismObject<O>> objects;
         try {
@@ -6153,7 +6149,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             return null; // not reached
         }
 
-        task = createTask("assertSearchObjectsIterative");
+        task = createPlainTask("assertSearchObjectsIterative");
         result = task.getResult();
         try {
             logAttempt("searchIterative", type, query);
@@ -6177,7 +6173,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             return null; // not reached
         }
 
-        task = createTask("assertSearchObjects.count");
+        task = createPlainTask("assertSearchObjects.count");
         result = task.getResult();
         try {
             logAttempt("count", type, query);
@@ -6210,7 +6206,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void assertAddDeny(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
-        Task task = createTask("assertAddDeny");
+        Task task = createPlainTask("assertAddDeny");
         OperationResult result = task.getResult();
         ObjectDelta<O> addDelta = object.createAddDelta();
         try {
@@ -6274,7 +6270,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
-        Task task = createTask("assertDeleteDeny");
+        Task task = createPlainTask("assertDeleteDeny");
         OperationResult result = task.getResult();
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
         try {
@@ -6300,7 +6296,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("assertDeleteAllow");
+        Task task = createPlainTask("assertDeleteAllow");
         OperationResult result = task.getResult();
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
         logAttempt("delete", type, oid, null);
@@ -6363,7 +6359,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void asAdministrator(Attempt attempt) throws Exception {
-        Task task = createTask("asAdministrator");
+        Task task = createPlainTask("asAdministrator");
         OperationResult result = task.getResult();
         MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
         login(USER_ADMINISTRATOR_USERNAME);

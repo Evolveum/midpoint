@@ -119,11 +119,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 @Listeners({ CurrentTestResultHolder.class })
 public abstract class AbstractIntegrationTest extends AbstractSpringTest {
 
-    // TODO inttest: tests should be fixed and this should go before merge to master
-    // value is false, as it is used in enable= flag
-    @Deprecated
-    public static final boolean DISABLED_IN_NEW_INTEST = false;
-
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
     public static final String COMMON_DIR_NAME = "common";
@@ -157,7 +152,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
 
     /**
      * Task manager can be used directly in subclasses but prefer various provided methods
-     * like {@link #getTestTask()}, {@link #createTask}, etc.
+     * like {@link #getTestTask()}, {@link #createPlainTask}, etc.
      */
     @Autowired protected TaskManager taskManager;
 
@@ -210,7 +205,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         assertNotNull("Task manager is not wired properly", taskManager);
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.setPrismContext(prismContext);
-        Task initTask = createTask("INIT");
+        Task initTask = createPlainTask("INIT");
         initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
         OperationResult result = initTask.getResult();
 
@@ -239,14 +234,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * May be used to clean up initialized objects as all of the initialized objects should be
      * available at this time.
      */
-    @Deprecated // let's try to use initSystem only
     protected void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
         // Nothing to do by default
     }
 
     /**
-     * Creates appropriate task and result and set it into MidpointTestMethodContext.
-     * This implementation fully overrides (without use) the one from {@link AbstractSpringTest}.
+     * Creates test method context which includes customized {@link Task}
+     * (see {@link #createTask(String)}) and other test related info wrapped as
+     * {@link MidpointTestMethodContext} and stores it in thread-local variable for future access.
+     * This implementation fully overrides version from {@link AbstractSpringTest}.
      */
     @BeforeMethod
     public void startTestContext(ITestResult testResult) {
@@ -341,15 +337,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     }
 
     /**
-     * Creates new {@link Task}.
+     * Creates new {@link Task} with operation name prefixed with {@link #contextName()}.
      * For most tests this should be unnecessary and the default test-method-scoped task
      * that can be obtained with {@link #getTestTask()} should be enough.
-     * Even for multi-threaded tests we may not need a new task and new subresult
-     * (using {@link #createSubresult(String)} should suffice.
-     * Provided name is automatically prefixed by {@link #contextName()}.
+     * Even for multi-threaded tests we may not need the whole task - instead
+     * {@link #createSubresult(String)} should suffice.
+     */
+    protected Task createPlainTask(String operationName) {
+        return taskManager.createTaskInstance(contextName() + "." + operationName);
+    }
+
+    /**
+     * Just like {@link #createPlainTask} but also calls overridable {@link #customizeTask}.
      */
     protected Task createTask(String operationName) {
-        Task task = taskManager.createTaskInstance(contextName() + "." + operationName);
+        Task task = createPlainTask(operationName);
         customizeTask(task);
         return task;
     }
@@ -362,7 +364,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     protected void customizeTask(Task task) {
         // nothing by default
     }
-
 
     /**
      * Context name is "class-simple-name.method" if test method context is available,
