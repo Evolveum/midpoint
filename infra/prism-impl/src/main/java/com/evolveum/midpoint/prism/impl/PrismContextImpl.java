@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.prism.impl.marshaller.*;
 import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
-import com.evolveum.midpoint.prism.impl.path.UniformItemPathImpl;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;

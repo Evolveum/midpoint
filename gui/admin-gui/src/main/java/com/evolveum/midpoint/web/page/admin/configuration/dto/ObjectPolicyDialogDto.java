@@ -8,14 +8,13 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.wicket.util.convert.IConverter;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -24,11 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConstraintType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -47,7 +42,7 @@ public class ObjectPolicyDialogDto implements Serializable{
     public static final String F_SUBTYPE = "subtype";
     public static final String F_PROPERTY_LIST = "propertyConstraintsList";
 
-    private List<PropertyConstraintType> propertyConstraintsList;
+    private List<ItemConstraintType> propertyConstraintsList;
     private ObjectPolicyConfigurationType config;
     private QName type;
     private String subtype;
@@ -67,7 +62,7 @@ public class ObjectPolicyDialogDto implements Serializable{
         propertyConstraintsList = config.getPropertyConstraint();
 
         if (propertyConstraintsList.isEmpty()) {
-                propertyConstraintsList.add(new PropertyConstraintType());
+                propertyConstraintsList.add(new ItemConstraintType());
         }
 
         if(config.getObjectTemplateRef() != null){
@@ -79,8 +74,8 @@ public class ObjectPolicyDialogDto implements Serializable{
     public ObjectPolicyConfigurationType preparePolicyConfig(OperationResult result){
         ObjectPolicyConfigurationType newConfig = new ObjectPolicyConfigurationType();
 
-        for (PropertyConstraintType constraintType : propertyConstraintsList) {
-                PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
+        for (ItemConstraintType constraintType : propertyConstraintsList) {
+                PrismContainerValue<ItemConstraintType> constraint = constraintType.asPrismContainerValue();
                 if (BooleanUtils.isTrue(constraintType.isOidBound()) && constraintType.getPath() == null) {
                     result.recordWarning(page.createStringResource("ObjectPolicyDialogDto.message.preparePolicyConfig.warning").getString());
                 }
@@ -104,11 +99,11 @@ public class ObjectPolicyDialogDto implements Serializable{
         return newConfig;
     }
 
-    public List<PropertyConstraintType> getPropertyConstraintsList() {
+    public List<ItemConstraintType> getPropertyConstraintsList() {
         return propertyConstraintsList;
     }
 
-    public void setPropertyConstraintsList(List<PropertyConstraintType> propertyConstraintsList) {
+    public void setPropertyConstraintsList(List<ItemConstraintType> propertyConstraintsList) {
         this.propertyConstraintsList = propertyConstraintsList;
     }
 

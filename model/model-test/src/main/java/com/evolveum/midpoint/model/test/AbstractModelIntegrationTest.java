@@ -5992,6 +5992,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
+    // Change to PrismObjectDefinitionAsserter later
+    protected <O extends ObjectType> PrismContainerDefinitionAsserter<O,Void> assertObjectDefinition(PrismObjectDefinition<O> objectDef) {
+        return assertContainerDefinition(objectDef);
+    }
+
+    protected <C extends Containerable> PrismContainerDefinitionAsserter<C,Void> assertContainerDefinition(PrismContainerDefinition<C> containerDef) {
+        PrismContainerDefinitionAsserter<C,Void> asserter = PrismContainerDefinitionAsserter.forContainerDefinition(containerDef);
+        initializeAsserter(asserter);
+        asserter.display();
+        return asserter;
+    }
+
     protected <O extends ObjectType> ModelContextAsserter<O, Void> assertPreviewContext(ModelContext<O> previewContext) {
         ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
         initializeAsserter(asserter);
