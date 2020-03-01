@@ -60,6 +60,26 @@ public interface UnitTestMixin {
     }
 
     /**
+     * Displays "given" subsection header with test name.
+     * Even better, use {@link #given(String)} and provide human readable description.
+     */
+    default void given() {
+        given(null);
+    }
+
+    /**
+     * Displays "given" subsection header with test name and provided description (nullable).
+     */
+    default void given(String description) {
+        String testName = getTestNameShort();
+        if (description == null) {
+            description = "";
+        }
+        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": GIVEN " + description + TEST_OUT_SECTION_SUFFIX);
+        logger().info(TEST_LOG_SECTION_PREFIX + testName + ": GIVEN " + description + TEST_LOG_SECTION_SUFFIX);
+    }
+
+    /**
      * Displays "when" subsection header with test name.
      * Even better, use {@link #when(String)} and provide human readable description.
      */
@@ -96,6 +116,25 @@ public interface UnitTestMixin {
         logger().info(TEST_LOG_SECTION_PREFIX + testName + ": THEN " + description);
     }
 
-    // TODO introduce "expect" as well? sometimes we use when/then combined section
-    // in such a case instead of "given - when/then" we should have "given - expect"
+    /**
+     * Displays "expect" subsection header with test name.
+     * Even better, use {@link #expect(String)} and provide human readable description.
+     */
+    default void expect() {
+        expect(null);
+    }
+
+    /**
+     * Displays "expect" subsection header with test name and provided description (nullable).
+     * This is for tests with simpler given-expect structure.
+     * In other words, if "when" and "then" can't be clearly separated, we want "expect".
+     */
+    default void expect(String description) {
+        String testName = getTestNameShort();
+        if (description == null) {
+            description = "";
+        }
+        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_OUT_SECTION_SUFFIX);
+        logger().info(TEST_LOG_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_LOG_SECTION_SUFFIX);
+    }
 }
