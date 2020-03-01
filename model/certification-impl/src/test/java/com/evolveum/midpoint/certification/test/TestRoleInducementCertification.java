@@ -835,7 +835,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         login(userAdministrator.asPrismObject());
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
