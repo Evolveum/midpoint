@@ -116,7 +116,7 @@ public class TestUniversity extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -163,7 +163,6 @@ public class TestUniversity extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
@@ -180,8 +179,6 @@ public class TestUniversity extends AbstractStoryTest {
     @Test
     public void test100AddComeniusUniversity() throws Exception {
         final String TEST_NAME = "test100AddComeniusUniversity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
         DummyPrivilege comenius = new DummyPrivilege("UK");
 
@@ -205,8 +202,6 @@ public class TestUniversity extends AbstractStoryTest {
     @Test
     public void test110AddComeniusStructure() throws Exception {
         final String TEST_NAME = "test110AddComeniusStructure";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
         DummyPrivilege srcFmfi = new DummyPrivilege("FMFI");
         srcFmfi.addAttributeValue(DUMMY_PRIVILEGE_ATTRIBUTE_HR_ORGPATH, "UK");
@@ -280,8 +275,6 @@ public class TestUniversity extends AbstractStoryTest {
     @Test
     public void test120MoveComputingCentre() throws Exception {
         final String TEST_NAME = "test120MoveComputingCentre";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
         DummyPrivilege srcVc = dummyResourceHr.getPrivilegeByName("VC");
 
@@ -329,172 +322,6 @@ public class TestUniversity extends AbstractStoryTest {
         assertSubOrgs(vc, 0);
         assertNoGroupMembers(vc);
     }
-
-//    @Test
-//    public void test500ReconcileOpenDJDefault() throws Exception {
-//        final String TEST_NAME = "test500ReconcileOpenDJDefault";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TestInsurance.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-//
-//        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-//        display("Users before recon", users);
-//        assertUsers(15);
-//
-//        reconciliationTaskResultListener.clear();
-//
-//        // WHEN
-//        when();
-//        importObjectFromFile(TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
-//
-//        users = modelService.searchObjects(UserType.class, null, null, task, result);
-//        display("Users after recon", users);
-//
-//        assertUsers(18);
-//
-//        // Task result
-//        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
-//        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
-//        display("Recon task result", reconTaskResult);
-//        TestUtil.assertSuccess(reconTaskResult);
-//    }
-//
-//    @Test
-//    public void test502ReconcileOpenDJDefaultAgain() throws Exception {
-//        final String TEST_NAME = "test502ReconcileOpenDJDefaultAgain";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TestInsurance.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-//
-//        assertUsers(18);
-//        reconciliationTaskResultListener.clear();
-//
-//        // WHEN
-//        when();
-//        restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
-//
-//        assertUsers(18);
-//
-//        // Task result
-//        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
-//        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
-//        display("Recon task result", reconTaskResult);
-//        TestUtil.assertSuccess(reconTaskResult);
-//    }
-//
-//    @Test
-//    public void test510ReconcileOpenDJLdapGroup() throws Exception {
-//        final String TEST_NAME = "test510ReconcileOpenDJLdapGroup";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TestInsurance.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-//
-//        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-//        display("Users before recon", users);
-//        assertUsers(18);
-//
-//        reconciliationTaskResultListener.clear();
-//
-//        // WHEN
-//        when();
-//        importObjectFromFile(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 2, 0, 0);
-//
-//        users = modelService.searchObjects(UserType.class, null, null, task, result);
-//        display("Users after recon", users);
-//
-//        assertUsers(18);
-//
-//        // Task result
-//        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID);
-//        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
-//        display("Recon task result", reconTaskResult);
-//        TestUtil.assertSuccess(reconTaskResult);
-//    }
-//
-//    @Test
-//    public void test550ReconcileOpenDJAfterMembershipChange() throws Exception {
-//        final String TEST_NAME = "test550ReconcileOpenDJAfterMembershipChange";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // We manually remove Lemonhead from R_canibalism group
-//        // And check whether reconciliation re-adds him again
-//
-//        // GIVEN
-//        Task task = createTask(TestInsurance.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-//
-//        Collection<String> membersBeforeTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
-//        System.out.println("group members before test = " + membersBeforeTest);
-//        assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN, membersBeforeTest.contains(ACCOUNT_LEMONHEAD_DN));
-//
-//        openDJController.removeGroupUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
-//
-//        System.out.println("group members after removal = " + openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN));
-//
-//        openDJController.assertNoUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
-//
-//        // WHEN
-//        when();
-//        restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        // Task result
-//        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
-//        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
-//        display("Recon task result", reconTaskResult);
-//        TestUtil.assertSuccess(reconTaskResult);
-//
-//        Collection<String> membersAfterTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
-//        System.out.println("group members after test = " + membersAfterTest);
-//        assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN, membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));    // ...it seems to get lowercased during the reconciliation
-//    }
 
     private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
         PrismObject<OrgType> org = getOrg(orgName);

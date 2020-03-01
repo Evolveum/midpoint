@@ -123,9 +123,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void test010ModifyWithExistingName() throws Exception {
-        final String TEST_NAME = "test010ModifyWithExistingName";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         OperationResult result = new OperationResult("MODIFY");
 
         File userFile = new File(TEST_DIR, "modify-user.xml");
@@ -153,9 +150,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test(expectedExceptions = ObjectNotFoundException.class)
     public void test020ModifyNotExistingUser() throws Exception {
-        final String TEST_NAME = "test020ModifyNotExistingUser";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
 
@@ -166,9 +160,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
-        final String TEST_NAME = "test030ModifyUserOnNonExistingAccountTest";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         OperationResult result = new OperationResult("MODIFY");
 
         //add user
@@ -202,11 +193,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
-        final String TEST_NAME = "test031ModifyUserOnExistingAccountTest";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         //add account
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_FILE);
@@ -242,10 +230,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test032ModifyTaskObjectRef() throws Exception {
-        final String TEST_NAME = "test032ModifyTaskObjectRef";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
         File taskFile = new File(TEST_DIR, "task.xml");
         System.out.println("ADD");
         PrismObject<TaskType> task = prismContext.parseObject(taskFile);
@@ -334,10 +319,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801 (this passed even before fixing that issue)
     public void test035ModifyTaskOwnerRef() throws Exception {
-        final String TEST_NAME = "test035ModifyTaskOwnerRef";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
         TaskType task = new TaskType(prismContext)
                 .oid("035")
                 .name("task035")
@@ -356,10 +338,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801 (this failed before fixing that issue)
     public void test036ModifyTaskOwnerRefAddAndDelete() throws Exception {
-        final String TEST_NAME = "test036ModifyTaskOwnerRefAddAndDelete";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
         TaskType task = new TaskType(prismContext)
                 .oid("036")
                 .name("task036")
@@ -380,10 +359,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801
     public void test050ModifyUserEmployeeNumber() throws Exception {
-        final String TEST_NAME = "test050ModifyUserEmployeeNumber";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
         UserType user = new UserType(prismContext)
                 .oid("050")
                 .name("user050")
@@ -403,10 +379,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801
     public void test055DeleteUserEmployeeNumberWrong() throws Exception {
-        final String TEST_NAME = "test055DeleteUserEmployeeNumberWrong";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
         UserType user = new UserType(prismContext)
                 .oid("055")
                 .name("user055")
@@ -430,10 +403,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801
     public void test056EmptyUserEmployeeNumberDelta() throws Exception {
-        final String TEST_NAME = "test056EmptyUserEmployeeNumberDelta";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
         UserType user = new UserType(prismContext)
                 .oid("056")
                 .name("user056")
@@ -473,9 +443,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test100ModifyUserAddRole() throws Exception {
-        final String TEST_NAME = "test100ModifyUserAddRole";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         OperationResult parentResult = new OperationResult("Modify user -> add roles");
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
 
@@ -524,11 +491,8 @@ public class ModifyTest extends BaseSQLRepoTest {
      */
     @Test
     public void test120ModifyAccountMetadata() throws Exception {
-        final String TEST_NAME = "test120ModifyAccountMetadata";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repositoryService.deleteObject(ShadowType.class, "1234567890", parentResult);       // from earlier test
 
@@ -569,7 +533,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         System.out.println("\nRepo shadow");
         System.out.println(repoShadow.debugDump());
 
@@ -596,7 +560,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, oid, modifications, getModifyOptions(), parentResult);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class,
                 oid, null, parentResult);
         System.out.println("\nAfter modify 1");
@@ -624,7 +588,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 //        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         afterModify = repositoryService.getObject(ShadowType.class,
                 oid, null, parentResult);
         System.out.println("\nAfter modify 2");
@@ -633,9 +597,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test130ExtensionModify() throws Exception {
-        final String TEST_NAME = "test130ExtensionModify";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         File userFile = new File(TEST_DIR, "user-with-extension.xml");
         //add first user
         PrismObject<UserType> user = prismContext.parseObject(userFile);
@@ -670,9 +631,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test140ModifyAccountSynchronizationSituation() throws Exception {
-        final String TEST_NAME = "test140ModifyAccountSynchronizationSituation";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         OperationResult result = new OperationResult("testModifyAccountSynchronizationSituation");
 
         //add account
@@ -725,10 +683,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test142ModifyAccountAttributeSameValue() throws Exception {
-        final String TEST_NAME = "test142ModifyAccountAttributeSameValue";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
         repositoryService.addObject(account, null, result);
@@ -751,10 +706,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test144ModifyAccountAttributeDifferent() throws Exception {
-        final String TEST_NAME = "test144ModifyAccountAttributeDifferent";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         assertNotNull("account-attribute was not imported in previous tests", accountOid);
 
@@ -775,10 +727,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test148ModifyAssignmentExtension() throws Exception {
-        final String TEST_NAME = "test148ModifyAssignmentExtension";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user-with-assignment-extension.xml"));
         repositoryService.addObject(user, null, result);
@@ -802,10 +751,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test150ModifyRoleAddInducements() throws Exception {
-        final String TEST_NAME = "test150ModifyRoleAddInducements";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         File roleFile = new File(TEST_DIR, "role-modify.xml");
         //add first user
@@ -853,9 +799,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test160ModifyWithPrecondition() throws Exception {
-        final String TEST_NAME = "test160ModifyWithPrecondition";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
@@ -879,9 +823,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test162ModifyWithPrecondition2() throws Exception {
-        final String TEST_NAME = "test162ModifyWithPrecondition2";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
@@ -906,9 +848,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test164ModifyWithVersionPreconditionFalse() throws Exception {
-        final String TEST_NAME = "test164ModifyWithVersionPreconditionFalse";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
@@ -933,9 +873,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test166ModifyWithVersionPreconditionTrue() throws Exception {
-        final String TEST_NAME = "test166ModifyWithVersionPreconditionTrue";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
@@ -955,10 +893,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test200ReplaceAttributes() throws Exception {
-        final String TEST_NAME = "test200ReplaceAttributes";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
         account.setOid(null);
@@ -1053,9 +988,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test210ModifyObjectCollection() throws Exception {
-        final String TEST_NAME = "test210ModifyObjectCollection";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         OperationResult result = new OperationResult("test210ModifyObjectCollection");
 
         ObjectCollectionType collection = prismContext.createObjectable(ObjectCollectionType.class)
@@ -1107,11 +1039,8 @@ public class ModifyTest extends BaseSQLRepoTest {
      */
     @Test
     public void test250AddShadowPendingOperations() throws Exception {
-        final String TEST_NAME = "test250AddShadowPendingOperations";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("shadow1")
@@ -1146,11 +1075,8 @@ public class ModifyTest extends BaseSQLRepoTest {
      */
     @Test
     public void test260DeleteShadowPendingOperations() throws Exception {
-        final String TEST_NAME = "test260DeleteShadowPendingOperations";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("shadow2")
@@ -1187,11 +1113,8 @@ public class ModifyTest extends BaseSQLRepoTest {
      */
     @Test
     public void test300AddCaseWorkItem() throws Exception {
-        final String TEST_NAME = "test300AddCaseWorkItem";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<CaseType> caseObject = prismContext.createObjectable(CaseType.class)
                 .name("testcase1")
@@ -1223,11 +1146,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test310ModifyCaseWorkItemAssignee() throws Exception {
-        final String TEST_NAME = "test310ModifyCaseWorkItemAssignee";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         final String OLD_OID = "0f4082cf-c0b6-4cd2-a3db-544c668bab0c";
         final String NEW_OID = "4cbdc40b-5693-4174-8634-acd3e0b96168";
@@ -1261,11 +1181,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test320ModifyCaseWorkItemAssigneeAndCandidate() throws Exception {
-        final String TEST_NAME = "test320ModifyCaseWorkItemAssigneeAndCandidate";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         final String OLD_OID = "d886a44c-732d-44d4-8403-e7c44bbfba8b";
         final String OLD2_OID = "9a28119e-1283-4328-9e2f-ef383728a4d1";
@@ -1332,11 +1249,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-5104
     public void test350ReplaceAssignmentModifyApprover() throws Exception {
-        final String TEST_NAME = "test350ReplaceAssignmentModifyApprover";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("test350")
@@ -1363,11 +1277,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-5105
     public void test360ReplaceModifyApprovers() throws Exception {
-        final String TEST_NAME = "test360ReplaceModifyApprovers";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("test360")
@@ -1457,11 +1368,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-5516
     public void test420RemoveExtensionProtectedStringValueInRepo() throws Exception {
-        final String TEST_NAME = "test420RemoveExtensionProtectedStringValueInRepo";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         ProtectedStringType protectedValue = protector.encryptString("hi");
         UserType jack = new UserType(prismContext)
@@ -1496,11 +1404,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test  // MID-5826 - fortunately, in 4.0 this works due to reworked handling of extension values in repo
     public void test450ReplaceExtensionItem() throws Exception {
-        final String TEST_NAME = "test400ReplaceExtensionItem";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("test400")
@@ -1538,11 +1443,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test(enabled = false)  // MID-5958
     public void test500ReferenceTargetNameAdding() throws Exception {
-        final String TEST_NAME = "test500ReferenceTargetNameAdding";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PolyStringType parentName = new PolyStringType("Parent");
         parentName.setNorm("Parent");
@@ -1578,11 +1480,8 @@ public class ModifyTest extends BaseSQLRepoTest {
      */
     @Test
     public void test510ModifySystemConfiguration() throws Exception {
-        final String TEST_NAME = "test510ModifySystemConfiguration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<SystemConfigurationType> before = prismContext.parseObject(SYSTEM_CONFIGURATION_BEFORE_FILE);
         repositoryService.addObject(before, null, result);

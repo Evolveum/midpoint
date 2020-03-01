@@ -67,7 +67,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         executeChangesAssertSuccess(objectDelta, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);

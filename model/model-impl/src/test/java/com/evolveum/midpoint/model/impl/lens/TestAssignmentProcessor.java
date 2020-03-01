@@ -71,7 +71,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test001OutboundEmpty() throws Exception {
         final String TEST_NAME = "test001OutboundEmpty";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -96,7 +95,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test002ModifyUser() throws Exception {
         final String TEST_NAME = "test002ModifyUser";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -159,7 +157,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test011AddAssignmentAddAccountDirect() throws Exception {
         final String TEST_NAME = "test011AddAssignmentAddAccountDirect";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -201,7 +198,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws Exception {
         final String TEST_NAME = "test012AddAssignmentAddAccountDirectAssignmentWithAttrs";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -221,7 +217,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         display("Output context", context);
         display("outbound processor result", result);
 //        assertSuccess("Outbound processor failed (result)", result);
@@ -272,7 +268,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test021AddAssignmentModifyAccountAssignment() throws Exception {
         final String TEST_NAME = "test021AddAssignmentModifyAccountAssignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -451,9 +446,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
      public void test032ModifyUserLegalizeAccount() throws Exception {
         final String TEST_NAME = "test032ModifyUserLegalizeAccount";
-            TestUtil.displayTestTitle(this, TEST_NAME);
 
-            // GIVEN
+        // GIVEN
             Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
             OperationResult result = task.getResult();
 
@@ -500,7 +494,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test100AddAssignmentWithConditionalMetarole() throws Exception {
         final String TEST_NAME = "test100AddAssignmentWithConditionalMetarole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -565,7 +558,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test102EnableConditionalMetarole() throws Exception {
         final String TEST_NAME = "test102EnableConditionalMetarole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -649,7 +641,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test200AssignVisitor() throws Exception {
         final String TEST_NAME = "test200AssignVisitor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -704,7 +695,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Test
     public void test210AssignEngineer() throws Exception {
         final String TEST_NAME = "test210AssignEngineer";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

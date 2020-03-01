@@ -69,8 +69,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test100PrismParseFile() throws Exception {
-        final String TEST_NAME = "test100PrismParseFile";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -87,8 +85,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test110PrismParseFileNoNs() throws Exception {
-        final String TEST_NAME = "test110PrismParseFileNoNs";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -105,9 +101,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test120PrismParseFileObject() throws Exception {
-        final String TEST_NAME = "test120PrismParseFileObject";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -124,9 +117,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test130PrismParseFileAdhoc() throws Exception {
-        final String TEST_NAME = "test130PrismParseFileAdhoc";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -143,25 +133,16 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test200RoundTrip() throws Exception {
-        final String TEST_NAME = "test200RoundTrip";
-        displayTestTitle(TEST_NAME);
-
         roundTrip(getFile(USER_JACK_FILE_BASENAME), true, true);
     }
 
     @Test
     public void test210RoundTripNoNs() throws Exception {
-        final String TEST_NAME = "test210RoundTripNoNs";
-        displayTestTitle(TEST_NAME);
-
         roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true, false);
     }
 
     @Test
     public void test220RoundTripObject() throws Exception {
-        final String TEST_NAME = "test220RoundTripObject";
-        displayTestTitle(TEST_NAME);
-
         roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false, false);
     }
 
@@ -209,9 +190,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test230RoundTripAdhoc() throws Exception {
-        final String TEST_NAME = "test230RoundTripAdhoc";
-        displayTestTitle(TEST_NAME);
-
         roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
     }
 
@@ -252,9 +230,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test300MeleeContext() throws Exception {
-        final String TEST_NAME = "test300MeleeContext";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -313,9 +288,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test400UserWill() throws Exception {
-        final String TEST_NAME = "test400UserWill";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -332,9 +304,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test410UserWillRoundTrip() throws Exception {
-        final String TEST_NAME = "test410UserWillRoundTrip";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -370,9 +339,6 @@ public abstract class TestPrismParsing {
 
     @Test
     public void test500UserElisabethRoundTrip() throws Exception {
-        final String TEST_NAME = "test500UserElisabethRoundTrip";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -409,9 +375,6 @@ public abstract class TestPrismParsing {
     // MID-5326
     @Test
     public void test600AccountBarbossa() throws Exception {
-        final String TEST_NAME = "test600AccountBarbossa";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -602,6 +565,6 @@ public abstract class TestPrismParsing {
     }
 
     protected void displayTestTitle(final String TEST_NAME) {
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME+"("+getSubdirName()+")");
+        getSubdirName();
     }
 }

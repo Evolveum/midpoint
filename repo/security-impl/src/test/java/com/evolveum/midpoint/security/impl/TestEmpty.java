@@ -75,9 +75,6 @@ public class TestEmpty extends AbstractIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // TODO
     }
 

@@ -39,9 +39,6 @@ public class TestPerformance {
      */
     @Test
     public void testPerfContainerNewValue() throws Exception {
-        final String TEST_NAME = "testPerfContainerNewValue";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO, "user"));

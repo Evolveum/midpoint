@@ -390,7 +390,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
 

@@ -12,7 +12,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -25,8 +24,6 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-
-import static com.evolveum.midpoint.test.util.TestUtil.displayTestTitle;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -81,7 +78,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         AssertJUnit.assertNotNull("Returned entity in body must not be null.", userType);
@@ -104,7 +101,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
@@ -131,7 +128,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 403);
 
         IntegrationTestTools.display("Audit", getDummyAuditService());
@@ -154,7 +151,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
@@ -181,7 +178,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 403);
 
         IntegrationTestTools.display("Audit", getDummyAuditService());

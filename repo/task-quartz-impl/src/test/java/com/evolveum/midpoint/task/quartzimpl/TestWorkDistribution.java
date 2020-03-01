@@ -629,7 +629,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             taskManager.resumeTask(worker3, result);
 
             // THEN
-            TestUtil.displayThen(TEST_NAME);
+            then();
             String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
             waitFor("waiting for all items to be processed", () -> getTotalItemsProcessed(coordinatorTaskOid) == 107 - 6,
                     DEFAULT_TIMEOUT, 500);
@@ -665,7 +665,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             taskManager.deleteTask(oidToDelete, result);
 
             // THEN
-            TestUtil.displayThen(TEST_NAME);
+            then();
             display("Waiting for coordinator task close");
             waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
 
@@ -714,7 +714,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             taskManager.resumeTask(worker3, result);
 
             // THEN
-            TestUtil.displayThen(TEST_NAME);
+            then();
             String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
             waitFor("waiting for all items to be processed", () -> getTotalItemsProcessed(coordinatorTaskOid) == 107 - 6,
                     DEFAULT_TIMEOUT, 500);
@@ -750,7 +750,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             taskManager.closeTask(taskManager.getTask(oidToClose, result), result);
 
             // THEN
-            TestUtil.displayThen(TEST_NAME);
+            then();
             display("Waiting for coordinator task close");
             waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
 

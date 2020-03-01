@@ -92,7 +92,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ImportLiveSyncTaskDummyHr() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyHr";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestVolatility.class.getName();
@@ -104,7 +103,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         importSyncTask();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         waitForSyncTaskStart();
     }
@@ -112,7 +111,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110AddDummyHrAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyHrAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestVolatility.class.getName();
@@ -134,7 +132,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
                 getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
@@ -177,7 +175,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120UpdateDummyHrAccountMancomb() throws Exception {
         final String TEST_NAME = "test120UpdateDummyHrAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestVolatility.class.getName();
@@ -195,7 +192,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
                 getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
@@ -244,7 +241,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ModifyGuybrushAssignAccount() throws Exception {
         final String TEST_NAME = "test200ModifyGuybrushAssignAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestVolatility.class.getName();
@@ -264,7 +260,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userGuybrush = findUserByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("User guybrush", userGuybrush);
@@ -298,7 +294,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddLargo() throws Exception {
         final String TEST_NAME = "test300AddLargo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestVolatility.class.getName();
@@ -317,7 +312,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userLargo = findUserByUsername(ACCOUNT_LARGO_DUMMY_USERNAME);
         display("User largo", userLargo);
@@ -354,7 +349,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400AddHerman() throws Exception {
         final String TEST_NAME = "test400AddHerman";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestVolatility.class.getName();
@@ -374,7 +368,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -397,7 +391,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test402ModifyHermanMonster() throws Exception {
         final String TEST_NAME = "test402ModifyHermanMonster";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestVolatility.class.getName();
@@ -410,7 +403,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
                 createPolyString(DummyResource.VALUE_MONSTER));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

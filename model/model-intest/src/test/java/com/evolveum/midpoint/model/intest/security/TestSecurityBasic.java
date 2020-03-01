@@ -2171,7 +2171,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                 (task, result) -> addObject(USER_ANGELICA_FILE, task, result));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         login(USER_ADMINISTRATOR_USERNAME);                 // user jack seemingly has no rights to search for angelika
 

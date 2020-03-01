@@ -6,22 +6,16 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.exception.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -30,14 +24,8 @@ import org.w3c.dom.Document;
 import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -46,6 +34,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -54,51 +43,36 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Simple UCF tests. No real resource, just basic setup and sanity.
- *
- * @author Radovan Semancik
- *
+ * <p>
  * This is an UCF test. It shold not need repository or other things from the midPoint spring context
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
+ *
+ * @author Radovan Semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummy extends AbstractUcfDummyTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
-
     @Test
-    public void test000PrismContextSanity() throws Exception {
-        final String TEST_NAME = "test000PrismContextSanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
+    public void test000PrismContextSanity() {
         SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
         PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
-        assertNotNull("ICFC schema not found in the context ("+SchemaConstants.NS_ICF_CONFIGURATION+")", schemaIcfc);
+        assertNotNull("ICFC schema not found in the context (" + SchemaConstants.NS_ICF_CONFIGURATION + ")", schemaIcfc);
         PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef =
-            schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-        assertNotNull("icfc:configurationProperties not found in icfc schema ("+
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+")", configurationPropertiesDef);
+                schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+        assertNotNull("icfc:configurationProperties not found in icfc schema (" +
+                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + ")", configurationPropertiesDef);
         PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
-        assertNotNull("ICFS schema not found in the context ("+SchemaConstants.NS_ICF_SCHEMA+")", schemaIcfs);
+        assertNotNull("ICFS schema not found in the context (" + SchemaConstants.NS_ICF_SCHEMA + ")", schemaIcfs);
     }
 
     @Test
-    public void test001ResourceSanity() throws Exception {
-        final String TEST_NAME = "test001ResourceSanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
+    public void test001ResourceSanity() {
         display("Resource", resource);
 
         assertEquals("Wrong oid", "ef2bc95b-76e0-59e2-86d6-9999dddddddd", resource.getOid());
@@ -117,21 +91,18 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
         PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
-        Collection<Item<?,?>> configItems = configContainerValue.getItems();
+        Collection<Item<?, ?>> configItems = configContainerValue.getItems();
         assertEquals("Wrong number of config items", 2, configItems.size());
 
         PrismContainer<?> dummyConfigPropertiesContainer = configurationContainer.findContainer(
                 SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
         assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
-        Collection<Item<?,?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
+        Collection<Item<?, ?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
         assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
     }
 
     @Test
     public void test002ConnectorSchema() throws Exception {
-        final String TEST_NAME = "test002ConnectorSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         PrismSchema connectorSchema = connectorFactory.generateConnectorConfigurationSchema(connectorType);
         IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "generated", true);
         assertEquals("Unexpected number of definitions", 3, connectorSchema.getDefinitions().size());
@@ -141,7 +112,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         display("Serialized XSD connector schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 
         // Try to re-parse
-        PrismSchema reparsedConnectorSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from "+cc, PrismTestUtil.getPrismContext());
+        PrismSchema reparsedConnectorSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from " + cc, PrismTestUtil.getPrismContext());
         IntegrationTestTools.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed", true);
         // TODO: 3 definitions would be cleaner. But we can live with this
         assertEquals("Unexpected number of definitions in re-parsed schema", 6, reparsedConnectorSchema.getDefinitions().size());
@@ -150,14 +121,10 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     /**
      * Test listing connectors. Very simple. Just test that the list is
      * non-empty and that there are mandatory values filled in.
-     * @throws CommunicationException
      */
     @Test
     public void test010ListConnectors() throws Exception {
-        final String TEST_NAME = "test010ListConnectors";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TestUcfDummy.class+"."+TEST_NAME);
+        OperationResult result = createResult();
         Set<ConnectorType> connectors = connectorFactory.listConnectors(null, result);
 
         System.out.println("---------------------------------------------------------------------");
@@ -180,14 +147,11 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test020CreateConfiguredConnector() throws Exception {
-        final String TEST_NAME = "test020CreateConfiguredConnector";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
-        OperationResult result = new OperationResult(TestUcfDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createResult();
         PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
         display("Configuration container", configContainer);
 
@@ -201,9 +165,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test022ConnectorStatsConfigured() throws Exception {
-        final String TEST_NAME = "test022ConnectorStatsConfigured";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // WHEN
         ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
 
@@ -213,21 +174,18 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
         assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
-        assertEquals("Wrong poolConfigMaxSize", (Integer)10, operationalStatus.getPoolConfigMaxSize());
-        assertEquals("Wrong poolConfigMinIdle", (Integer)1, operationalStatus.getPoolConfigMinIdle());
-        assertEquals("Wrong poolConfigMaxIdle", (Integer)10, operationalStatus.getPoolConfigMaxIdle());
-        assertEquals("Wrong poolConfigWaitTimeout", (Long)150000L, operationalStatus.getPoolConfigWaitTimeout());
-        assertEquals("Wrong poolConfigMinEvictableIdleTime", (Long)120000L, operationalStatus.getPoolConfigMinEvictableIdleTime());
-        assertEquals("Wrong poolStatusNumIdle", (Integer)0, operationalStatus.getPoolStatusNumIdle());
-        assertEquals("Wrong poolStatusNumActive", (Integer)0, operationalStatus.getPoolStatusNumActive());
+        assertEquals("Wrong poolConfigMaxSize", (Integer) 10, operationalStatus.getPoolConfigMaxSize());
+        assertEquals("Wrong poolConfigMinIdle", (Integer) 1, operationalStatus.getPoolConfigMinIdle());
+        assertEquals("Wrong poolConfigMaxIdle", (Integer) 10, operationalStatus.getPoolConfigMaxIdle());
+        assertEquals("Wrong poolConfigWaitTimeout", (Long) 150000L, operationalStatus.getPoolConfigWaitTimeout());
+        assertEquals("Wrong poolConfigMinEvictableIdleTime", (Long) 120000L, operationalStatus.getPoolConfigMinEvictableIdleTime());
+        assertEquals("Wrong poolStatusNumIdle", (Integer) 0, operationalStatus.getPoolStatusNumIdle());
+        assertEquals("Wrong poolStatusNumActive", (Integer) 0, operationalStatus.getPoolStatusNumActive());
     }
 
     @Test
     public void test030ResourceSchema() throws Exception {
-        final String TEST_NAME = "test030ResourceSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
                 "dummy",
@@ -263,10 +221,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test031ResourceSchemaAccountObjectClass() throws Exception {
-        final String TEST_NAME = "test031ResourceSchemaAccountObjectClass";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
                 "dummy",
@@ -280,7 +235,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         objectClassesToGenerate.add(accountObjectClass);
 
         cc.configure(configContainer, objectClassesToGenerate, result);
-
 
         // WHEN
         resourceSchema = cc.fetchResourceSchema(result);
@@ -296,9 +250,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test033ConnectorStatsInitialized() throws Exception {
-        final String TEST_NAME = "test033ConnectorStatsInitialized";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // WHEN
         ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
 
@@ -308,19 +259,18 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
         assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
-        assertEquals("Wrong poolConfigMaxSize", (Integer)10, operationalStatus.getPoolConfigMaxSize());
-        assertEquals("Wrong poolConfigMinIdle", (Integer)1, operationalStatus.getPoolConfigMinIdle());
-        assertEquals("Wrong poolConfigMaxIdle", (Integer)10, operationalStatus.getPoolConfigMaxIdle());
-        assertEquals("Wrong poolConfigWaitTimeout", (Long)150000L, operationalStatus.getPoolConfigWaitTimeout());
-        assertEquals("Wrong poolConfigMinEvictableIdleTime", (Long)120000L, operationalStatus.getPoolConfigMinEvictableIdleTime());
-        assertEquals("Wrong poolStatusNumIdle", (Integer)1, operationalStatus.getPoolStatusNumIdle());
-        assertEquals("Wrong poolStatusNumActive", (Integer)0, operationalStatus.getPoolStatusNumActive());
+        assertEquals("Wrong poolConfigMaxSize", (Integer) 10, operationalStatus.getPoolConfigMaxSize());
+        assertEquals("Wrong poolConfigMinIdle", (Integer) 1, operationalStatus.getPoolConfigMinIdle());
+        assertEquals("Wrong poolConfigMaxIdle", (Integer) 10, operationalStatus.getPoolConfigMaxIdle());
+        assertEquals("Wrong poolConfigWaitTimeout", (Long) 150000L, operationalStatus.getPoolConfigWaitTimeout());
+        assertEquals("Wrong poolConfigMinEvictableIdleTime", (Long) 120000L, operationalStatus.getPoolConfigMinEvictableIdleTime());
+        assertEquals("Wrong poolStatusNumIdle", (Integer) 1, operationalStatus.getPoolStatusNumIdle());
+        assertEquals("Wrong poolStatusNumActive", (Integer) 0, operationalStatus.getPoolStatusNumActive());
     }
 
     @Test
     public void test040AddAccount() throws Exception {
         final String TEST_NAME = "test040AddAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
@@ -342,15 +292,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         // THEN
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
-        assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" was not created", dummyAccount);
-        assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" has no username", dummyAccount.getName());
+        assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " was not created", dummyAccount);
+        assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " has no username", dummyAccount.getName());
 
     }
 
     @Test
     public void test050Search() throws Exception {
-        final String TEST_NAME = "test050Search";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -369,7 +317,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
             }
         };
 
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         // WHEN
         cc.search(accountDefinition, null, handler, null, null, null, null, result);
@@ -379,17 +327,16 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     }
 
     private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
-        assertNotNull("No objectClass in shadow "+shadow, shadow.asObjectable().getObjectClass());
-        assertEquals("Wrong objectClass in shadow "+shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
+        assertNotNull("No objectClass in shadow " + shadow, shadow.asObjectable().getObjectClass());
+        assertEquals("Wrong objectClass in shadow " + shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-        assertNotNull("No attributes in shadow "+shadow, attributes);
-        assertFalse("Empty attributes in shadow "+shadow, attributes.isEmpty());
+        assertNotNull("No attributes in shadow " + shadow, attributes);
+        assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
     }
 
     @Test
     public void test100FetchEmptyChanges() throws Exception {
         final String TEST_NAME = "test100FetchEmptyChanges";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -417,7 +364,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     @Test
     public void test101FetchAddChange() throws Exception {
         final String TEST_NAME = "test101FetchAddChange";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -451,9 +397,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     }
 
     @Test
-    public void test500SelfTest() throws Exception {
+    public void test500SelfTest() {
         final String TEST_NAME = "test500SelfTest";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);

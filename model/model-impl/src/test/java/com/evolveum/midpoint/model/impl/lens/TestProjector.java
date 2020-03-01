@@ -203,7 +203,7 @@ public class TestProjector extends AbstractLensTest {
         projector.project(context, "test", task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         display("Output context", context);
         // Not loading anything. The account is already loaded in the context
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);

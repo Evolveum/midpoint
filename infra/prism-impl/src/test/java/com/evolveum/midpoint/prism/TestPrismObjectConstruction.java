@@ -57,9 +57,6 @@ public class TestPrismObjectConstruction {
      */
     @Test
     public void testConstructionWithSchema() throws Exception {
-        final String TEST_NAME = "testConstructionWithSchema";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
@@ -82,9 +79,6 @@ public class TestPrismObjectConstruction {
      */
     @Test(enabled = false)            // definition-less containers are no longer supported
     public void testDefinitionlessConstruction() throws Exception {
-        final String TEST_NAME = "testDefinitionlessConstruction";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         // No context needed
 
@@ -107,9 +101,6 @@ public class TestPrismObjectConstruction {
      */
 //    @Test
     public void testDefinitionlessConstructionAndSchemaApplication() throws Exception {
-        final String TEST_NAME = "testDefinitionlessConstructionAndSchemaApplication";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         // No context needed (yet)
         PrismObject<UserType> user = new PrismObjectImpl<>(USER_QNAME, UserType.class);
@@ -137,9 +128,6 @@ public class TestPrismObjectConstruction {
 
     @Test
     public void testClone() throws Exception {
-        final String TEST_NAME = "testClone";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
@@ -160,9 +148,6 @@ public class TestPrismObjectConstruction {
 
     @Test
     public void testCloneEquals() throws Exception {
-        final String TEST_NAME = "testCloneEquals";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));

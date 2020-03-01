@@ -75,7 +75,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test100AddOrgCaribbean() throws Exception {
         final String TEST_NAME = "test100AddOrgCaribbean";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -85,7 +84,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         repoAddObjectsFromFile(ORG_CARIBBEAN_FILE, OrgType.class, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -111,7 +110,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test102RecomputeJamaica() throws Exception {
         final String TEST_NAME = "test102RecomputeJamaica";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -121,7 +119,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_JAMAICA_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -142,7 +140,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test103ReconcileJamaica() throws Exception {
         final String TEST_NAME = "test103ReconcileJamaica";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -152,7 +149,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         reconcileOrg(ORG_CARIBBEAN_JAMAICA_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -173,7 +170,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test104RecomputeGovernor() throws Exception {
         final String TEST_NAME = "test104RecomputeGovernor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -183,7 +179,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         modelService.recompute(OrgType.class, ORG_GOVERNOR_OFFICE_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -204,7 +200,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test105ReconcileGovernor() throws Exception {
         final String TEST_NAME = "test105ReconcileGovernor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -214,7 +209,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         reconcileOrg(ORG_GOVERNOR_OFFICE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -238,7 +233,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test106RecomputeDoT() throws Exception {
         final String TEST_NAME = "test106RecomputeDoT";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -249,7 +243,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
                 ModelExecuteOptions.createReconcileFocus(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -275,7 +269,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test107ReconcileDoT() throws Exception {
         final String TEST_NAME = "test107ReconcileDoT";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -285,7 +278,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         reconcileOrg(ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -315,7 +308,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test110RecomputeDoP() throws Exception {
         final String TEST_NAME = "test110RecomputeDoP";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -325,7 +317,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -350,7 +342,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test115AssignJackToDoP() throws Exception {
         final String TEST_NAME = "test115AssignJackToDoP";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -366,7 +357,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assignOrg(USER_JACK_OID, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -401,7 +392,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test120AssignBarbossaDoTManager() throws Exception {
         final String TEST_NAME = "test120AssignBarbossaDoTManager";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -414,7 +404,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assignOrg(USER_BARBOSSA_OID, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, SchemaConstants.ORG_MANAGER);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -439,7 +429,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test130AssignGibbsAsJacksDeputy() throws Exception {
         final String TEST_NAME = "test130AssignGibbsAsJacksDeputy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -452,7 +441,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assignDeputy(USER_GIBBS_OID, USER_JACK_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -479,7 +468,6 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test140AssignPintelAsBarbossasDeputy() throws Exception {
         final String TEST_NAME = "test140AssignPintelAsBarbossasDeputy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -492,7 +480,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assignDeputy(USER_PINTEL_OID, USER_BARBOSSA_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

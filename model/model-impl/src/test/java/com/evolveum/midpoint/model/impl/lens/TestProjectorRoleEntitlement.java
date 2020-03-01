@@ -34,7 +34,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -71,7 +70,6 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
     @Test
     public void test100AddEntitlementToPirateDirect() throws Exception {
         final String TEST_NAME = "test100AddEntitlementToPirateDirect";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
@@ -134,7 +132,6 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
     @Test
     public void test110AssignEntitlementToPirate() throws Exception {
         final String TEST_NAME = "test110AssignEntitlementToPirate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
@@ -164,7 +161,6 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
     @Test
     public void test111AssignEntitlementToPirateBroken() throws Exception {
         final String TEST_NAME = "test110AssignEntitlementToPirate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);

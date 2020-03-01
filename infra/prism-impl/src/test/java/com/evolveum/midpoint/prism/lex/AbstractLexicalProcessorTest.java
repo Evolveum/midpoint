@@ -85,9 +85,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseUserToPrism() throws Exception {
-        final String TEST_NAME = "testParseUserToPrism";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -116,9 +113,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseUserRoundTrip() throws Exception {
-        final String TEST_NAME = "testParseUserRoundTrip";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -187,9 +181,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseResourceRumToPrism() throws Exception {
-        final String TEST_NAME = "testParseResourceRumToPrism";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -212,9 +203,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseResourceRoundTrip() throws Exception {
-        final String TEST_NAME = "testParseResourceRoundTrip";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -342,9 +330,6 @@ public abstract class AbstractLexicalProcessorTest {
     // Enable it if that changes.
     @Test(enabled = false)
     public void testParseEventHandler() throws Exception {
-        final String TEST_NAME = "testParseEventHandler";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -383,7 +368,6 @@ public abstract class AbstractLexicalProcessorTest {
     }
 
     protected List<RootXNodeImpl> standardTest(String TEST_NAME, String fileName, int expectedCount) throws SchemaException, IOException {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
@@ -414,10 +398,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_1_FirstTwo() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_1_FirstTwo";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -448,10 +428,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_3_NS() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_3_NS";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -486,10 +462,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_4_noRootNs() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_4_noRootNs";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -524,10 +496,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_5_error() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_5_error";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -558,10 +526,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_6_single() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_6_single";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -594,10 +558,6 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_7_single() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_7_single";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 

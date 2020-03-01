@@ -75,7 +75,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         RoleType judge = new RoleType(prismContext)
                 .name("judge")

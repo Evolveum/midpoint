@@ -574,8 +574,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test102ModifyUserJackEnable() throws Exception {
-        TestUtil.displayTestTitle(this, "test102ModifyUserJackEnable");
-
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
         OperationResult result = task.getResult();
@@ -605,7 +603,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test111ModifyAccountJackDisable() throws Exception {
-        TestUtil.displayTestTitle(this, "test111ModifyAccountJackDisable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test111ModifyAccountJackDisable");
@@ -899,7 +896,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test130ModifyAccountDefaultAndRed() throws Exception {
-        TestUtil.displayTestTitle(this, "test130ModifyAccountDefaultAndRed");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");

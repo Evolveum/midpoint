@@ -1141,9 +1141,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
 //    @Test
 //    public void test835ModifySchemaHandling() throws Exception {
-//        final String TEST_NAME = "test835ModifySchemaHandling";
-//        displayTestTitle(TEST_NAME);
-//
+//        //
 //        Task task = createTask(TEST_NAME);
 //        OperationResult result = task.getResult();
 //        CarefulAnt<ResourceType> ant = ants.get(1);

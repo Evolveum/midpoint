@@ -55,7 +55,6 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        TestUtil.displayTestTitle(this, "test100ModifyUserAddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test100ModifyUserAddAccount");
@@ -167,9 +166,8 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test102modifyAddAttributeTolerantPattern() throws Exception{
-         TestUtil.displayTestTitle(this, "test102modifyAddAttributeTolerantPattern");
 
-            // GIVEN
+        // GIVEN
             Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test102modifyAddAttributeTolerantPattern");
             OperationResult result = task.getResult();
             assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -214,9 +212,8 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test103modifyReplaceAttributeIntolerant() throws Exception{
-         TestUtil.displayTestTitle(this, "test103modifyReplaceAttributeIntolerant");
 
-            // GIVEN
+        // GIVEN
             Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test103modifyReplaceAttributeIntolerant");
             OperationResult result = task.getResult();
             assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -261,9 +258,8 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test104modifyReplaceAttributeTolerantPattern() throws Exception{
-         TestUtil.displayTestTitle(this, "test104modifyReplaceAttributeTolerantPattern");
 
-            // GIVEN
+        // GIVEN
             Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test104modifyReplaceAttributeTolerantPattern");
             OperationResult result = task.getResult();
             assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);

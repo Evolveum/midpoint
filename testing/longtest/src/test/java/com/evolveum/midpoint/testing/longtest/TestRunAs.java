@@ -103,9 +103,6 @@ public class TestRunAs extends AbstractLongTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         assertUsers(NUM_INITIAL_USERS);
     }
 

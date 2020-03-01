@@ -60,11 +60,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test010CreateCampaign() throws Exception {
-        final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -73,7 +70,7 @@ public class TestEscalation extends AbstractCertificationTest {
                 certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -89,16 +86,13 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test013SearchAllCases() throws Exception {
-        final String TEST_NAME = "test013SearchAllCases";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        searchWithNoCasesExpected(TEST_NAME);
+        searchWithNoCasesExpected();
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void searchWithNoCasesExpected(String TEST_NAME) throws Exception {
+    private void searchWithNoCasesExpected() throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -108,7 +102,7 @@ public class TestEscalation extends AbstractCertificationTest {
                 null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -118,11 +112,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test021OpenFirstStage() throws Exception {
-        final String TEST_NAME = "test021OpenFirstStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -131,7 +122,7 @@ public class TestEscalation extends AbstractCertificationTest {
         certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -157,11 +148,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test032SearchAllCases() throws Exception {
-        final String TEST_NAME = "test032SearchAllCases";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -170,7 +158,7 @@ public class TestEscalation extends AbstractCertificationTest {
                 AccessCertificationCaseType.class, null, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -180,11 +168,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test050SearchWorkItems() throws Exception {
-        final String TEST_NAME = "test050SearchWorkItems";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -195,7 +180,7 @@ public class TestEscalation extends AbstractCertificationTest {
                         false, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -206,11 +191,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test100RecordDecision() throws Exception {
-        final String TEST_NAME = "test100RecordDecision";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -223,7 +205,7 @@ public class TestEscalation extends AbstractCertificationTest {
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -242,12 +224,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test110Escalate() throws Exception {
-        final String TEST_NAME = "test110Escalate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyTransport.clearMessages();
@@ -260,7 +240,7 @@ public class TestEscalation extends AbstractCertificationTest {
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -309,12 +289,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test120EscalateAgain() throws Exception {
-        final String TEST_NAME = "test120EscalateAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyTransport.clearMessages();
@@ -327,7 +305,7 @@ public class TestEscalation extends AbstractCertificationTest {
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -378,12 +356,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test130Remediation() throws Exception {
-        final String TEST_NAME = "test130Remediation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyTransport.clearMessages();
@@ -396,7 +372,7 @@ public class TestEscalation extends AbstractCertificationTest {
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -407,12 +383,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test140Close() throws Exception {
-        final String TEST_NAME = "test140Close";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -426,7 +400,7 @@ public class TestEscalation extends AbstractCertificationTest {
         certificationManager.closeCampaign(campaignOid, true, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -438,12 +412,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test200AutomaticReiteration() throws Exception {
-        final String TEST_NAME = "test200AutomaticReiteration";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -457,7 +429,7 @@ public class TestEscalation extends AbstractCertificationTest {
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -496,12 +468,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test300Close() throws Exception {
-        final String TEST_NAME = "test300Close";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -515,7 +485,7 @@ public class TestEscalation extends AbstractCertificationTest {
         certificationManager.closeCampaign(campaignOid, true, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -527,12 +497,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test310ManualReiteration() throws Exception {
-        final String TEST_NAME = "test310ManualReiteration";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -546,7 +514,7 @@ public class TestEscalation extends AbstractCertificationTest {
         certificationManager.reiterateCampaign(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -575,11 +543,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test320OpenFirstStage() throws Exception {
-        final String TEST_NAME = "test320OpenFirstStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -588,7 +553,7 @@ public class TestEscalation extends AbstractCertificationTest {
         certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -627,12 +592,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test400Close() throws Exception {
-        final String TEST_NAME = "test300Close";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -646,7 +609,7 @@ public class TestEscalation extends AbstractCertificationTest {
         certificationManager.closeCampaign(campaignOid, true, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -658,12 +621,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     @Test
     public void test410ManualReiterationUnavailable() throws Exception {
-        final String TEST_NAME = "test410ManualReiterationUnavailable";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 

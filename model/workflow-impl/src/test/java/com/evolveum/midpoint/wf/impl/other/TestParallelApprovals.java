@@ -118,7 +118,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -166,7 +166,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         if (listener != null) {
             taskManager.unregisterTaskListener(listener);

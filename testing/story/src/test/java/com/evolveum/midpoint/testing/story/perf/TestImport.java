@@ -131,7 +131,7 @@ public class TestImport extends AbstractStoryTest {
         importObjectFromFile(TASK_IMPORT_FILE, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         long lastProfilingStarted = 0;
         long start = System.currentTimeMillis();
         for (;;) {

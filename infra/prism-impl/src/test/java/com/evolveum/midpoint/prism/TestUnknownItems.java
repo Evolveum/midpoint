@@ -37,8 +37,6 @@ public class TestUnknownItems {
 
     @Test(expectedExceptions = SchemaException.class)
     public void test010ParseWrongItemStrict() throws Exception {
-        final String TEST_NAME = "testParseWrongItemStrict";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -53,8 +51,6 @@ public class TestUnknownItems {
 
     @Test
     public void test020ParseWrongItemCompat() throws Exception {
-        final String TEST_NAME = "testParseWrongItemCompat";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -73,8 +69,6 @@ public class TestUnknownItems {
     // TODO discuss this
     @Test(enabled = false, expectedExceptions = SchemaException.class)
     public void test110ParseWrongNamespaceStrict() throws Exception {
-        final String TEST_NAME = "test110ParseWrongNamespaceStrict";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -87,8 +81,6 @@ public class TestUnknownItems {
 
     @Test
     public void test120ParseWrongNamespaceCompat() throws Exception {
-        final String TEST_NAME = "test120ParseWrongNamespaceCompat";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 

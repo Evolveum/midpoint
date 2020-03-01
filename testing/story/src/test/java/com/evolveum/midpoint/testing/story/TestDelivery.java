@@ -174,7 +174,7 @@ public class TestDelivery extends AbstractStoryTest {
     @Test
     public void test100Assign_IT_2_failure() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         try {
             assignRole(userBobOid, roleIt2Oid, task, result);         // hard constraint
@@ -187,7 +187,7 @@ public class TestDelivery extends AbstractStoryTest {
     @Test
     public void test110Assign_IT_2_success() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userBarkeeperOid, roleIt2Oid, task, result);         // hard constraint
         result.computeStatus();
@@ -199,7 +199,7 @@ public class TestDelivery extends AbstractStoryTest {
     @Test
     public void test120Assign_IT_1() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userBobOid, roleIt1Oid, task, result);         // approval constraint
 
@@ -225,7 +225,7 @@ public class TestDelivery extends AbstractStoryTest {
     @Test
     public void test130Assign_IT_3() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userCarlaOid, roleIt3Oid, task, result);         // two approval constraints
 
@@ -260,7 +260,7 @@ public class TestDelivery extends AbstractStoryTest {
     @Test
     public void test140Assign_IT_4() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userBarkeeperOid, roleIt4Oid, task, result);         // approval constraint
 
@@ -286,7 +286,7 @@ public class TestDelivery extends AbstractStoryTest {
     @Test
     public void test150Assign_IT_5() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userBarkeeperOid, roleIt5Oid, task, result);         // approval constraint
 

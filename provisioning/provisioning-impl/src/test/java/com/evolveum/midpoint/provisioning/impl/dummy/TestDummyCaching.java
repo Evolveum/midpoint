@@ -115,7 +115,7 @@ public class TestDummyCaching extends TestDummy {
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("getObject result", result);
         TestUtil.assertSuccess(result);

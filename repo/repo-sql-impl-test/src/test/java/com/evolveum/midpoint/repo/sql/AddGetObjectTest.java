@@ -338,7 +338,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         PrismObject<SecurityPolicyType> securityPolicy = prismContext.parseObject(new File(FOLDER_BASIC, "security-policy-special.xml"));
 
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
         String securityPolicyOid = "ce74cb86-c8e8-11e9-bee8-b37bf7a7ab4a";
         String oid = repositoryService.addObject(securityPolicy, null, result);
         AssertJUnit.assertNotNull(oid);

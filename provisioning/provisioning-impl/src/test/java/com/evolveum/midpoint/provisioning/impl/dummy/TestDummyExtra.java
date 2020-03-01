@@ -153,9 +153,6 @@ public class TestDummyExtra extends TestDummy {
      */
     @Test
     public void test410AssociateCrewWillElizabeth() throws Exception {
-        final String TEST_NAME = "test410AssociateCrewWillElizabeth";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -172,7 +169,7 @@ public class TestDummyExtra extends TestDummy {
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -199,9 +196,6 @@ public class TestDummyExtra extends TestDummy {
      */
     @Test
     public void test419DisassociateCrewWillElizabeth() throws Exception {
-        final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -218,7 +212,7 @@ public class TestDummyExtra extends TestDummy {
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);

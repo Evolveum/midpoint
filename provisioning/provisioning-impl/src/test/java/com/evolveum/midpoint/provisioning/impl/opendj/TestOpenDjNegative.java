@@ -138,11 +138,8 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
     @Test
     public void test004ResourceAndConnectorCaching() throws Exception {
-        TestUtil.displayTestTitle("test004ResourceAndConnectorCaching");
-
-        OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()+".test004ResourceAndConnectorCaching");
-
-        Task task = taskManager.createTaskInstance();
+        OperationResult result = createResult();
+        Task task = createPlainTask();
         // WHEN
         // This should NOT throw an exception. It should just indicate the failure in results
         resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, task, result);

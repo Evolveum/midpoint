@@ -90,7 +90,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userJackOid, ROLE_E1_OID, task, result);                // should start approval process
         assertNotAssignedRole(userJackOid, ROLE_E1_OID, task, result);
@@ -118,7 +118,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         clock.overrideDuration("P5DT1H");            // at P5D there's a notify action
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
@@ -140,7 +140,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         clock.resetOverride();
         clock.overrideDuration("P12DT1H");        // at -P2D (i.e. P12D) there is a delegate action
@@ -162,7 +162,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         clock.resetOverride();
         clock.overrideDuration("P14DT1H");        // at 0 (i.e. P14D) there is a delegate action
@@ -184,7 +184,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         clock.resetOverride();
         resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
@@ -213,7 +213,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -246,7 +246,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();

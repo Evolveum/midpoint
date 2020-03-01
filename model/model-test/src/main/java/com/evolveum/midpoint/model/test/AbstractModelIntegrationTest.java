@@ -45,6 +45,7 @@ import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.FilterInvocation;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeMethod;
 
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -240,6 +241,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void cleanUpSecurity() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(null);
+    }
+
+    @BeforeMethod
+    protected void prepareBeforeTestMethod() {
+        dummyAuditService.clear();
     }
 
     protected void initDummyResource(String name, DummyResourceContoller controller) {
@@ -1399,6 +1405,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assignmentType;
     }
 
+    protected AssignmentType createTargetAssignment(String targetOid, QName targetType) {
+        return FocusTypeUtil.createTargetAssignment(targetOid, targetType);
+    }
+
     protected ObjectDelta<UserType> createParametricAssignmentDelta(
             String userOid, String roleOid, String orgOid, String tenantOid, boolean adding)
             throws SchemaException {
@@ -1803,14 +1813,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         initializeAsserter(asserter);
         asserter.display();
         return asserter;
-    }
-
-    protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name,
-            PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-        return findShadowByNameViaModel(kind, intent, name, resource, schemaHelper.getOperationOptionsBuilder().noFetch().build(),
-                task, result);
     }
 
     protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name,
@@ -5596,34 +5598,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 throw new AssertionError(e);
             }
         };
-    }
-
-    // highly experimental
-    public class TestCtx {
-        public final String name;
-
-        public final Task task;
-        public final OperationResult result;
-
-        TestCtx(Object testCase, String name) {
-            this.name = name;
-            TestUtil.displayTestTitle(testCase, name);
-            task = createPlainTask(name);
-            result = task.getResult();
-            dummyAuditService.clear();
-        }
-
-        public void displayWhen() {
-            TestUtil.displayWhen(name);
-        }
-
-        public void displayThen() {
-            TestUtil.displayThen(name);
-        }
-    }
-
-    protected TestCtx createContext(Object testCase, String testName) {
-        return new TestCtx(testCase, testName);
     }
 
     protected <T> T runPrivileged(Producer<T> producer) {

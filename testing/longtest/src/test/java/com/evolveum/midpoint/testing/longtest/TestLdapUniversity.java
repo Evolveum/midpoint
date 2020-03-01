@@ -128,14 +128,11 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
     @Test
     public void test100BigImportWithLinking() throws Exception {
-        final String TEST_NAME = "test100BigImportWithLinking";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
 
         InternalsConfig.turnOffAllChecks();
 
-        Task task = taskManager.createTaskInstance(TestLdapUniversity.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -151,14 +148,14 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000, 10000L);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -201,12 +198,9 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
     @Test
     public void test120BigReconciliation() throws Exception {
-        final String TEST_NAME = "test120BigReconciliation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestLdapUniversity.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -219,7 +213,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         // TODO
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
@@ -227,7 +221,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000, 10000L);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);

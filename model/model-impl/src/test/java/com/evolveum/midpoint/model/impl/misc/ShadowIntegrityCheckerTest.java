@@ -12,7 +12,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -66,7 +65,6 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
     @Test
     public void test100FixDuplicatesWithDifferentObjectClasses() throws Exception {
         final String TEST_NAME = "test100FixDuplicatesWithDifferentObjectClasses";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         login(userAdministrator);
         Task task = getTestTask();

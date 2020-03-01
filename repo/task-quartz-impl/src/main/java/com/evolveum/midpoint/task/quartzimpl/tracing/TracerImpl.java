@@ -362,6 +362,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         rv.put(MACRO_OPERATION_NAME, operationName);
         rv.put(MACRO_OPERATION_NAME_SHORT, shorten(operationName));
         String testName;
+        // TODO inttest: subclass TracerImpl in test scope with change here (use template method)
         if (TestNameHolder.getCurrentTestName() != null) {
             testName = TestNameHolder.getCurrentTestName();
         } else {

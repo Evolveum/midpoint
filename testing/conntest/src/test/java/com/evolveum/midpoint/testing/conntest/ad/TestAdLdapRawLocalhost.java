@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,16 +8,8 @@ package com.evolveum.midpoint.testing.conntest.ad;
 
 import java.io.File;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Listeners;
-
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 /**
  * @author semancik
- *
  */
 public class TestAdLdapRawLocalhost extends AbstractAdLdapRawTest {
 

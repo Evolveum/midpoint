@@ -159,7 +159,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());

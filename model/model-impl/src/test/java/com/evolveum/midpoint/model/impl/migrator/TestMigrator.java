@@ -49,8 +49,6 @@ public class TestMigrator extends AbstractSpringTest {
 
     @Test
     public void testMigrateUserTemplate() throws Exception {
-        TestUtil.displayTestTitle("testMigrateUserTemplate");
-
         for (File beforeFile: TEST_DIR_BEFORE.listFiles()) {
             String beforeName = beforeFile.getName();
             if (!beforeName.endsWith(".xml")) {

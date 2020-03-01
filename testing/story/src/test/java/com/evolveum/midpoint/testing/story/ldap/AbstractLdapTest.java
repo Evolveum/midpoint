@@ -115,7 +115,7 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
     protected void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        assignRoleToOrg(orgOid, roleOid, (ActivationType) null, task, result);
+        assignRoleToOrg(orgOid, roleOid, null, task, result);
     }
 
     protected void assignRoleToOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
@@ -128,7 +128,7 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
     protected void unassignRoleFromOrg(String orgOid, String roleOid, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        unassignRoleFromOrg(orgOid, roleOid, (ActivationType) null, task, result);
+        unassignRoleFromOrg(orgOid, roleOid, null, task, result);
     }
 
     protected void unassignRoleFromOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
@@ -136,11 +136,6 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
         modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
-    }
-
-    protected <F extends FocusType> void assertOrgNotAssignedRole(PrismObject<F> focus, String roleOid) {
-        assertNotAssigned(focus, roleOid, RoleType.COMPLEX_TYPE);
-        // assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
     }
 
     // TODO: maybe a replacement for MidpointAsserts.assertNotAssigned()

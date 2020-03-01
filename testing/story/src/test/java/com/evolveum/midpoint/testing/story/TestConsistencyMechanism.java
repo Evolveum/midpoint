@@ -620,7 +620,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assignAccount(UserType.class, USER_WILL_OID, RESOURCE_OPENDJ_OID, null, task, parentResult);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         String accountOid = checkUser(USER_WILL_OID, task, parentResult);
 //        MidPointAsserts.assertAssignments(user, 1);
 
@@ -732,7 +732,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test130DeleteObjectNotFound() throws Exception {
         final String TEST_NAME = "test130DeleteObjectNotFound";
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
         repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, parentResult);
@@ -852,7 +852,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         final String TEST_NAME = "test142ModifyObjectNotFoundAssignedAccountq";
 
         // GIVEN
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repoAddShadowFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE, parentResult);
         repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, parentResult);
@@ -884,7 +884,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 //        requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID, ShadowType.class, task, null, parentResult);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_NOT_FOUND_OID);
         UserAsserter.forUser(userAfter)
                 .assertLinks(1);
@@ -914,7 +914,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         final String TEST_NAME = "test144GetObjectNotFoundAssignedAccount";
 
         // GIVEN
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repoAddShadowFromFile(ACCOUNT_HECTOR_FILE, parentResult);
         repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, parentResult);
@@ -980,7 +980,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         recomputeUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1171,7 +1171,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         //THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertRepoShadow(accountOid)
                 .display(TEST_NAME + "Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1225,7 +1225,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         String accountOid = assertUserOneAccountRef(USER_JACK_OID);
 
@@ -1244,7 +1244,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         //THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertModelShadowNoFetch(ACCOUNT_JACKIE_OID)
                 .display(TEST_NAME + "Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1339,7 +1339,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         ShadowType account = modelService.getObject(ShadowType.class, ACCOUNT_DENIELS_OID,
                 null, null, result).asObjectable();
@@ -1374,7 +1374,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_ELAINE_FILE);
         Entry searchResult = openDJController.searchByUid("elaine");
@@ -1447,7 +1447,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         assertUser(USER_JACK_OID, "User before")
                 .assertLinks(1);
@@ -1530,7 +1530,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         assertUser(USER_JACKIE_OID, "User before")
                 .assertLinks(1)
@@ -1646,7 +1646,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // GIVEN
         openDJController.assumeStopped();
         display("OpenDJ stopped");
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repoAddObjectFromFile(USER_ANGELIKA_FILENAME, parentResult);
 
@@ -1663,7 +1663,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         parentResult.computeStatus();
         assertInProgress(parentResult);
 
@@ -1907,7 +1907,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         //check the state after execution
         assertModelShadowNoFetch(shadowOid)
                 .display(TEST_NAME + "Shadow after")
@@ -1949,7 +1949,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         reconcileUser(USER_ALICE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         openDJController.assertPassword(aliceAccountDn, "UNDEADmenTELLscaryTALES");
 
         assertUser(USER_ALICE_OID, "User after")
@@ -1968,7 +1968,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         // WHEN
         repoAddObjectFromFile(USER_BOB_NO_GIVEN_NAME_FILENAME, parentResult);
@@ -2023,7 +2023,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, parentResult);
         assertUser(USER_JOHN_WEAK_OID, "User before")
@@ -2072,7 +2072,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repoAddObjectFromFile(USER_DONALD_FILENAME, parentResult);
 
@@ -2139,7 +2139,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         assertUser(USER_DONALD_OID, "User before")
                 .assertLinks(1);
@@ -2176,7 +2176,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     public void test284ModifyObjectAssignToGroupCommunicationProblem() throws Exception {
         final String TEST_NAME = "test284ModifyObjectAssignToGroupCommunicationProblem";
         Task task = taskManager.createTaskInstance();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
         // GIVEN
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_ADMINS_GROUP_FILE);
 
@@ -2251,7 +2251,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         repoAddObjectFromFile(USER_DISCOVERY_FILENAME, parentResult);
 
@@ -2358,7 +2358,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         addObject(USER_CHUCK_FILE);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
 //        assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
 
@@ -2420,7 +2420,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assignAccount(UserType.class, USER_HERMAN_OID, RESOURCE_OPENDJ_OID, "internal", task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
 //        assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
 
@@ -2488,7 +2488,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         repositoryService.deleteObject(ShadowType.class, linkRef.getOid(), result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
 //        assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
 
@@ -2572,7 +2572,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
 //        assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
 
@@ -2625,7 +2625,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String TEST_NAME = "test601GetDiscoveryModifyCommunicationProblemDirectAccount";
 
         openDJController.assumeRunning();
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
 
         //prepare user
         repoAddObjectFromFile(USER_ALICE_FILENAME, parentResult);

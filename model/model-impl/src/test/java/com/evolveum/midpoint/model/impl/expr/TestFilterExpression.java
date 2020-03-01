@@ -46,7 +46,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -99,12 +98,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test120EvaluateExpressionEmployeeTypeAllFilter() throws Exception {
-        final String TEST_NAME = "testEvaluateExpressionEmployeeTypeAllFilter";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-all-filter.xml",
                 null, AllFilter.class, task, result);
@@ -114,12 +110,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test130EvaluateExpressionEmployeeTypeError() throws Exception {
-        final String TEST_NAME = "testEvaluateExpressionEmployeeTypeError";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         try {
             evaluateExpressionAssertFilter("expression-employeeType-error.xml",
@@ -134,12 +127,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test140EvaluateExpressionEmployeeTypeEmptyFilter() throws Exception {
-        final String TEST_NAME = "testEvaluateExpressionEmployeeTypeEmptyFilter";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-empty-filter.xml",
                 null, EqualFilter.class, task, result);
@@ -152,13 +142,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test150EvaluateExpressionEmployeeTypeDefaultsNull() throws Exception {
-        final String TEST_NAME = "test150EvaluateExpressionEmployeeTypeDefaultsNull";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-filter-defaults.xml",
                 null, EqualFilter.class, task, result);
@@ -171,12 +157,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test152EvaluateExpressionEmployeeTypeDefaultsCaptain() throws Exception {
-        final String TEST_NAME = "test152EvaluateExpressionEmployeeTypeDefaultsCaptain";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-filter-defaults.xml",
                 "CAPTAIN", EqualFilter.class, task, result);
@@ -190,12 +173,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test200EvaluateExpressionLinkRefDefaultsNull() throws Exception {
-        final String TEST_NAME = "test200EvaluateExpressionLinkRefDefaultsNull";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-linkref-filter-defaults.xml",
                 null, RefFilter.class, task, result);
@@ -208,12 +188,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test202EvaluateExpressionLinkRefObjectReferenceTypeDefaultsNull() throws Exception {
-        final String TEST_NAME = "test202EvaluateExpressionLinkRefObjectReferenceTypeDefaultsNull";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-linkref-object-reference-type-filter-defaults.xml",
                 null, RefFilter.class, task, result);
@@ -226,12 +203,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test210EvaluateExpressionLinkRefDefaultsVal() throws Exception {
-        final String TEST_NAME = "test210EvaluateExpressionLinkRefDefaultsVal";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-linkref-filter-defaults.xml",
                 ACCOUNT_SHADOW_GUYBRUSH_OID, RefFilter.class, task, result);
@@ -244,12 +218,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test212EvaluateExpressionLinkRefObjectReferenceTypeDefaultsVal() throws Exception {
-        final String TEST_NAME = "test212EvaluateExpressionLinkRefObjectReferenceTypeDefaultsVal";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-linkref-object-reference-type-filter-defaults.xml",
                 ACCOUNT_SHADOW_GUYBRUSH_OID, RefFilter.class, task, result);

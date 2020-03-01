@@ -390,7 +390,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test000Integrity() throws Exception {
         final String TEST_NAME = "test000Integrity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
@@ -743,8 +742,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test003TestConnectionDerby() throws Exception {
-        TestUtil.displayTestTitle("test003TestConnectionDerby");
-
         // GIVEN
 
         checkRepoDerbyResource();
@@ -790,10 +787,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test004Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
-            FaultMessage {
-        TestUtil.displayTestTitle("test004Capabilities");
-
+    public void test004Capabilities()
+            throws ObjectNotFoundException, CommunicationException, SchemaException, FaultMessage {
         // GIVEN
 
         checkRepoOpenDjResource();
@@ -851,9 +846,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test005resolveConnectorRef() throws Exception{
-
-        TestUtil.displayTestTitle("test005resolveConnectorRef");
-
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
 
         ModelExecuteOptionsType options = new ModelExecuteOptionsType();
@@ -873,9 +865,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test006reimportResourceDummy() throws Exception{
-
-        TestUtil.displayTestTitle("test006reimportResourceDummy");
-
         //get object from repo (with version set and try to add it - it should be re-added, without error)
          OperationResult repoResult = new OperationResult("getObject");
 
@@ -1117,9 +1106,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test014AddDerbyAccountToUser() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTitle("test014AddDerbyAccountToUser");
-
+            ObjectNotFoundException, SchemaException, SQLException {
         // GIVEN
 
         checkRepoDerbyResource();
@@ -1228,8 +1215,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
-        TestUtil.displayTestTitle("test015AccountOwner");
-
         // GIVEN
         checkRepoOpenDjResource();
         assertNoRepoCache();
@@ -1254,8 +1239,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test016ProvisioningSearchAccountsIterative() throws Exception {
-        TestUtil.displayTestTitle("test016ProvisioningSearchAccountsIterative");
-
         // GIVEN
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test016ProvisioningSearchAccountsIterative");
 
@@ -1822,10 +1805,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * The account will not be deleted, just the association to user will be broken.
      */
     @Test
-    public void test040UnlinkDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTitle("test040UnlinkDerbyAccountFromUser");
-
+    public void test040UnlinkDerbyAccountFromUser()
+            throws FaultMessage, ObjectNotFoundException, SchemaException {
         // GIVEN
 
         ObjectDeltaType objectChange = new ObjectDeltaType();
@@ -1873,10 +1854,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * The account was unlinked in the previous test, therefore no operation with user is needed.
      */
     @Test
-    public void test041DeleteDerbyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTitle("test041DeleteDerbyAccount");
-
+    public void test041DeleteDerbyAccount()
+            throws FaultMessage, SchemaException, SQLException {
         // GIVEN
 
         assertNoRepoCache();
@@ -2048,8 +2027,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * @throws JAXBException
      */
     @Test
-    public void test049DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
-        TestUtil.displayTestTitle("test049DeleteUser");
+    public void test049DeleteUser() throws SchemaException, FaultMessage, DirectoryException {
         // GIVEN
 
         assertNoRepoCache();
@@ -3669,11 +3647,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test485ListResourcesWithBrokenResource() throws Exception {
-        TestUtil.displayTestTitle("test485ListResourcesWithBrokenResource");
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test410ListResourcesWithBrokenResource");
-        final OperationResult result = task.getResult();
+        Task task = getTestTask();
+        final OperationResult result = getTestResult();
 
         // WHEN
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
@@ -3703,8 +3679,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test500NotifyChangeCreateAccount() throws Exception{
-        final String TEST_NAME = "test500NotifyChangeCreateAccount";
-
         Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ANGELIKA_FILENAME);
         display("Entry from LDIF", ldifEntry);
 
@@ -3771,7 +3745,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test501NotifyChangeModifyAccount() throws Exception{
         final String TEST_NAME = "test501NotifyChangeModifyAccount";
 
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createResult();
         PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
         assertNotNull("User with the name angelika must exist.", userAngelika);
 

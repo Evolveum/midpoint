@@ -525,7 +525,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     @Test
     public void test010SanitySelf() throws Exception {
         final String TEST_NAME = "test010SanitySelf";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
@@ -549,7 +548,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     @Test
     public void test020SanityArchetypedRoles() throws Exception {
         final String TEST_NAME = "test020SanityArchetypedRoles";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN, THEN

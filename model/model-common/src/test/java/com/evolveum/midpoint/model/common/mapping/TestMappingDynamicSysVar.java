@@ -13,10 +13,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -26,15 +22,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -70,19 +68,16 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionAddObjectTrue(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectTrue";
-        displayTestTitle(TEST_NAME);
-
         PrismObject<UserType> user = evaluator.getUserOld();
         user.asObjectable().getEmployeeType().clear();
         user.asObjectable().getEmployeeType().add("CAPTAIN");
         ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename,
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+                filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -90,8 +85,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     /**
@@ -99,26 +94,24 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
      */
     @Test
     public void testScriptSystemVariablesConditionModifyObjectTrueGroovyUnrelated() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectTrueGroovyUnrelated";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("employeeNumber"), "666");
+                        evaluator.toPath("employeeNumber"), "666");
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 "mapping-script-system-variables-condition-groovy.xml",
-                TEST_NAME, "title", delta);
+                shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
+        assertNull("Unexpected value in outputTriple: " + outputTriple, outputTriple);
     }
 
     @Test
@@ -133,26 +126,23 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionAddObjectFalse(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalse";
-        displayTestTitle(TEST_NAME);
-
         PrismObject<UserType> user = evaluator.getUserOld();
         user.asObjectable().getEmployeeType().clear();
         user.asObjectable().getEmployeeType().add("SAILOR");
         ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename,
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        assertNull("Unexpected output triple: "+outputTriple, outputTriple);
+        assertNull("Unexpected output triple: " + outputTriple, outputTriple);
     }
 
     @Test
@@ -167,26 +157,23 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionAddObjectFalseNoVal(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalseNoVal";
-        displayTestTitle(TEST_NAME);
-
         PrismObject<UserType> user = evaluator.getUserOld();
         PrismProperty<String> employeeTypeProperty = user.findProperty(UserType.F_EMPLOYEE_TYPE);
         employeeTypeProperty.clear();
         ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename,
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        assertNull("Unexpected output triple: "+outputTriple, outputTriple);
+        assertNull("Unexpected output triple: " + outputTriple, outputTriple);
     }
 
     @Test
@@ -201,28 +188,23 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionAddObjectFalseNoProperty(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalseNoProperty";
-        displayTestTitle(TEST_NAME);
-
-
         PrismObject<UserType> user = evaluator.getUserOld();
         user.removeProperty(UserType.F_EMPLOYEE_TYPE);
         ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename,
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        assertNull("Unexpected output triple: "+outputTriple, outputTriple);
+        assertNull("Unexpected output triple: " + outputTriple, outputTriple);
     }
-
 
     @Test
     public void testScriptSystemVariablesConditionTrueToTrueGroovy() throws Exception {
@@ -231,22 +213,19 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionTrueToTrue(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrue";
-        displayTestTitle(TEST_NAME);
-
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename,
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(filename, shortTestName, "title", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().getEmployeeType().add("CAPTAIN");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -254,8 +233,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain Jack"));
-          PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain Jack"));
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
     }
 
     @Test
@@ -265,25 +244,22 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionFalseToFalse(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionFalseToFalse";
-        displayTestTitle(TEST_NAME);
-
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename,
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
+        assertNull("Unexpected value in outputTriple: " + outputTriple, outputTriple);
     }
 
     @Test
@@ -293,18 +269,16 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionFalseToTrue(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionFalseToTrue";
-        displayTestTitle(TEST_NAME);
-
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
         delta.addModificationAddProperty(evaluator.toPath("employeeType"), "CAPTAIN");
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename, TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -312,8 +286,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain Jack"));
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain Jack"));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
@@ -323,22 +297,20 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     public void testScriptSystemVariablesConditionTrueToFalse(String filename) throws Exception {
         // GIVEN
-        final String TEST_NAME = "testScriptSystemVariablesConditionTrueToFalse";
-        displayTestTitle(TEST_NAME);
-
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("name"), "Jack");
+                        evaluator.toPath("name"), "Jack");
         delta.addModificationDeleteProperty(evaluator.toPath("employeeType"), "CAPTAIN");
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                filename, TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(filename, shortTestName, "title", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().getEmployeeType().add("CAPTAIN");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -346,52 +318,51 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTripleNoPlus(outputTriple);
-          PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptyTrue() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptyTrue";
-        testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptyTrue";
+        testScriptSystemVariablesConditionEmptyTrue(shortTestName, "mapping-script-system-variables-condition-empty.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptyTrueFunction() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptyTrueFunction";
-        testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-function.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptyTrueFunction";
+        testScriptSystemVariablesConditionEmptyTrue(shortTestName, "mapping-script-system-variables-condition-empty-function.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleTrue() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrue";
-        testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleTrue";
+        testScriptSystemVariablesConditionEmptyTrue(shortTestName, "mapping-script-system-variables-condition-empty-single.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleTrueFunction() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrueFunction";
-        testScriptSystemVariablesConditionEmptyTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleTrueFunction";
+        testScriptSystemVariablesConditionEmptyTrue(shortTestName, "mapping-script-system-variables-condition-empty-single-function.xml");
     }
 
-    public void testScriptSystemVariablesConditionEmptyTrue(final String TEST_NAME, String filename) throws Exception {
-        displayTestTitle(TEST_NAME);
+    public void testScriptSystemVariablesConditionEmptyTrue(final String shortTestName, String filename) throws Exception {
 
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 filename,
-                TEST_NAME, "title", delta);
+                shortTestName, "title", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().getEmployeeType().clear();
         user.asObjectable().setEmployeeNumber(null);
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -399,39 +370,38 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber Jack"));
-          PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber Jack"));
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleFalseToTrue() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalseToTrue";
-        testScriptSystemVariablesConditionEmptyFalseToTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleFalseToTrue";
+        testScriptSystemVariablesConditionEmptyFalseToTrue(shortTestName, "mapping-script-system-variables-condition-empty-single.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleFalseToTrueFunction() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalseToTrueFunction";
-        testScriptSystemVariablesConditionEmptyFalseToTrue(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleFalseToTrueFunction";
+        testScriptSystemVariablesConditionEmptyFalseToTrue(shortTestName, "mapping-script-system-variables-condition-empty-single-function.xml");
     }
 
-    public void testScriptSystemVariablesConditionEmptyFalseToTrue(final String TEST_NAME, String filename) throws Exception {
-        displayTestTitle(TEST_NAME);
+    public void testScriptSystemVariablesConditionEmptyFalseToTrue(final String shortTestName, String filename) throws Exception {
 
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("employeeNumber"));
+                        evaluator.toPath("employeeNumber"));
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 filename,
-                TEST_NAME, "title", delta);
+                shortTestName, "title", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().setEmployeeNumber("666");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -439,90 +409,88 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptyFalse() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptyFalse";
-        testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptyFalse";
+        testScriptSystemVariablesConditionEmptyFalse(shortTestName, "mapping-script-system-variables-condition-empty.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptyFalseFunction() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptyFalse";
-        testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-function.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptyFalse";
+        testScriptSystemVariablesConditionEmptyFalse(shortTestName, "mapping-script-system-variables-condition-empty-function.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleFalse() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalse";
-        testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleFalse";
+        testScriptSystemVariablesConditionEmptyFalse(shortTestName, "mapping-script-system-variables-condition-empty-single.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleFalseFunction() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleFalseFunction";
-        testScriptSystemVariablesConditionEmptyFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleFalseFunction";
+        testScriptSystemVariablesConditionEmptyFalse(shortTestName, "mapping-script-system-variables-condition-empty-single-function.xml");
     }
 
-    public void testScriptSystemVariablesConditionEmptyFalse(final String TEST_NAME, String filename) throws Exception {
-        displayTestTitle(TEST_NAME);
+    public void testScriptSystemVariablesConditionEmptyFalse(final String shortTestName, String filename) throws Exception {
 
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 filename,
-                TEST_NAME, "title", delta);
+                shortTestName, "title", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().getEmployeeType().add("SAILOR");
         user.asObjectable().setEmployeeNumber("666");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
+        assertNull("Unexpected value in outputTriple: " + outputTriple, outputTriple);
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleTrueToFalse() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrueToFalse";
-        testScriptSystemVariablesConditionEmptyTrueToFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleTrueToFalse";
+        testScriptSystemVariablesConditionEmptyTrueToFalse(shortTestName, "mapping-script-system-variables-condition-empty-single.xml");
     }
 
     @Test
     public void testScriptSystemVariablesConditionEmptySingleTrueToFalseFunction() throws Exception {
-        final String TEST_NAME = "testScriptSystemVariablesConditionEmptySingleTrueToFalseFunction";
-        testScriptSystemVariablesConditionEmptyTrueToFalse(TEST_NAME, "mapping-script-system-variables-condition-empty-single-function.xml");
+        final String shortTestName = "testScriptSystemVariablesConditionEmptySingleTrueToFalseFunction";
+        testScriptSystemVariablesConditionEmptyTrueToFalse(shortTestName, "mapping-script-system-variables-condition-empty-single-function.xml");
     }
 
-    public void testScriptSystemVariablesConditionEmptyTrueToFalse(final String TEST_NAME, String filename) throws Exception {
-        displayTestTitle(TEST_NAME);
+    public void testScriptSystemVariablesConditionEmptyTrueToFalse(final String shortTestName, String filename) throws Exception {
 
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                evaluator.toPath("employeeNumber"), "666");
+                        evaluator.toPath("employeeNumber"), "666");
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 filename,
-                TEST_NAME, "title", delta);
+                shortTestName, "title", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().setEmployeeNumber(null);
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -530,25 +498,22 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTripleNoPlus(outputTriple);
-          PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
     }
 
     @Test
     public void testNpeFalseToTrue() throws Exception {
-        final String TEST_NAME = "testNpeFalseToTrue";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                UserType.F_ADDITIONAL_NAME, "Captain Sparrow");
+                        UserType.F_ADDITIONAL_NAME, "Captain Sparrow");
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                "mapping-npe.xml",
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping("mapping-npe.xml", shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -556,29 +521,26 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("15"));
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("15"));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
     public void testNpeTrueToFalse() throws Exception {
-        final String TEST_NAME = "testNpeTrueToFalse";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                UserType.F_ADDITIONAL_NAME);
+                        UserType.F_ADDITIONAL_NAME);
 
-        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                "mapping-npe.xml",
-                TEST_NAME, "title", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping("mapping-npe.xml", shortTestName, "title", delta);
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Sultan of the Caribbean"));
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -586,25 +548,22 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTripleNoPlus(outputTriple);
-          PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("23"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("23"));
     }
 
     @Test
     public void testPathEnum() throws Exception {
-        final String TEST_NAME = "testPathEnum";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
+                        SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
 
-        MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
-                "mapping-path-enum.xml",
-                TEST_NAME, "costCenter", delta);
+        String shortTestName = getTestNameShort();
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping =
+                evaluator.createMapping("mapping-path-enum.xml", shortTestName, "costCenter", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(shortTestName);
 
         // WHEN
         System.out.println("WHEN");
@@ -616,8 +575,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         System.out.println("\nOutput triple");
         System.out.println(outputTriple.debugDump(1));
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, ActivationStatusType.DISABLED.value());
-          PrismAsserts.assertTripleMinus(outputTriple, ActivationStatusType.ENABLED.value());
+        PrismAsserts.assertTriplePlus(outputTriple, ActivationStatusType.DISABLED.value());
+        PrismAsserts.assertTripleMinus(outputTriple, ActivationStatusType.ENABLED.value());
     }
 
     @Test
@@ -638,15 +597,15 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     @Test
     public void testEmployeeNumberPolyString() throws Exception {
-        final String TEST_NAME = "testEmployeeNumberPolyString";
-        displayTestTitle(TEST_NAME);
         // WHEN
-        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
-                "mapping-script-system-variables-employee-number.xml",
-                TEST_NAME,
-                "additionalName",                    // target
-                "employeeNumber",                // changed property
-                "666");    // changed values
+        String shortTestName = getTestNameShort();
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple =
+                evaluator.evaluateMappingDynamicReplace(
+                        "mapping-script-system-variables-employee-number.xml",
+                        shortTestName,
+                        "additionalName", // target
+                        "employeeNumber", // changed property
+                        "666"); // changed values
 
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
@@ -655,7 +614,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // Make sure it is recomputed
         PolyString plusval = outputTriple.getPlusSet().iterator().next().getValue();
-        System.out.println("Plus polystring\n"+ plusval.debugDump());
+        System.out.println("Plus polystring\n" + plusval.debugDump());
         assertEquals("Wrong norm value", "666", plusval.getNorm());
     }
 
@@ -744,10 +703,10 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     public void testEmployeeTypeDeltaAreplaceB() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                UserType.F_EMPLOYEE_TYPE, "B");
+                .createModificationReplaceProperty(
+                        UserType.class, evaluator.USER_OLD_OID, UserType.F_EMPLOYEE_TYPE, "B");
 
-        MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "employeeType", delta);
 
@@ -764,18 +723,18 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         evaluator.assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, "B");
-          PrismAsserts.assertTripleMinus(outputTriple, "A");
+        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleMinus(outputTriple, "A");
     }
 
     @Test
     public void testEmployeeTypeDeltaNullreplaceB() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                UserType.F_EMPLOYEE_TYPE, "B");
+                .createModificationReplaceProperty(
+                        UserType.class, evaluator.USER_OLD_OID, UserType.F_EMPLOYEE_TYPE, "B");
 
-        MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "employeeType", delta);
 
@@ -792,18 +751,18 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         evaluator.assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, "B");
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
     public void testEmployeeTypeDeltaBreplaceB() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                UserType.F_EMPLOYEE_TYPE, "B");
+                .createModificationReplaceProperty(
+                        UserType.class, evaluator.USER_OLD_OID, UserType.F_EMPLOYEE_TYPE, "B");
 
-        MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "employeeType", delta);
 
@@ -820,8 +779,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         evaluator.assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, "B");
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
@@ -832,8 +791,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleZero(outputTriple, "A");
-          PrismAsserts.assertTriplePlus(outputTriple, "B");
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
@@ -844,8 +803,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleZero(outputTriple, "A");
-          PrismAsserts.assertTriplePlus(outputTriple, "B");
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
@@ -856,8 +815,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, "B");
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
@@ -868,18 +827,18 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, "B");
-          PrismAsserts.assertTripleNoMinus(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     public PrismValueDeltaSetTriple<PrismPropertyValue<String>> employeeTypeDeltaABAdd(
             String addVal, String... oldVals) throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
-                UserType.F_EMPLOYEE_TYPE, addVal);
+                .createModificationAddProperty(
+                        UserType.class, evaluator.USER_OLD_OID, UserType.F_EMPLOYEE_TYPE, addVal);
 
-        MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "employeeType", delta);
 
@@ -899,7 +858,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
     private void setEmployeeType(UserType userType, String... vals) {
         userType.getEmployeeType().clear();
-        for (String val: vals) {
+        for (String val : vals) {
             userType.getEmployeeType().add(val);
         }
     }
@@ -912,8 +871,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTripleNoPlus(outputTriple);
-          PrismAsserts.assertTripleMinus(outputTriple, "B");
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, "B");
     }
 
     @Test
@@ -924,8 +883,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleZero(outputTriple, "A");
-          PrismAsserts.assertTripleNoPlus(outputTriple);
-          PrismAsserts.assertTripleMinus(outputTriple, "B");
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, "B");
     }
 
     @Test
@@ -936,8 +895,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleZero(outputTriple, "A");
-          PrismAsserts.assertTripleNoPlus(outputTriple);
-          PrismAsserts.assertTripleMinus(outputTriple, "B");
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, "B");
     }
 
     @Test
@@ -948,18 +907,18 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTripleNoPlus(outputTriple);
-          PrismAsserts.assertTripleMinus(outputTriple, "B");
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, "B");
     }
 
     public PrismValueDeltaSetTriple<PrismPropertyValue<String>> employeeTypeDeltaDelete(
             String delVal, String... oldVals) throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
-                UserType.F_EMPLOYEE_TYPE, delVal);
+                .createModificationDeleteProperty(
+                        UserType.class, evaluator.USER_OLD_OID, UserType.F_EMPLOYEE_TYPE, delVal);
 
-        MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "employeeType", delta);
 

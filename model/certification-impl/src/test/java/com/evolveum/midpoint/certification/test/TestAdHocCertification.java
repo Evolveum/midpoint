@@ -64,20 +64,17 @@ public class TestAdHocCertification extends AbstractCertificationTest {
 
     @Test
     public void test010HireIndigo() throws Exception {
-        final String TEST_NAME = "test010HireIndigo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAdHocCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignOrg(USER_INDIGO_OID, ORG_LABORATORY_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -94,16 +91,13 @@ public class TestAdHocCertification extends AbstractCertificationTest {
 
     @Test
     public void test020ModifyIndigo() throws Exception {
-        final String TEST_NAME = "test020ModifyIndigo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAdHocCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         @SuppressWarnings({ "unchecked", "raw" })
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("new description")
@@ -112,7 +106,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         executeChanges(delta, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

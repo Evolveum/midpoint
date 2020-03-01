@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.testing.story.ldap.hierarchy;
 
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.DirectoryException;
@@ -37,33 +35,16 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.ldap.AbstractLdapTest;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Common superclass for LDAP hierarchy tests TestLdapFlat, TestLdapNested
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
@@ -134,14 +115,13 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
@@ -169,7 +149,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
-        final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -181,7 +160,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -197,7 +176,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test110AddUserTeleke() throws Exception {
-        final String TEST_NAME = "test110AddUserTeleke";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -210,7 +188,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -227,7 +205,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test200AddOrgCortuvHrad() throws Exception {
-        final String TEST_NAME = "test200AddOrgCortuvHrad";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -239,7 +216,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -256,7 +233,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test210AddUserGorc() throws Exception {
-        final String TEST_NAME = "test210AddUserGorc";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -269,7 +245,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -282,7 +258,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
-        final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -294,7 +269,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -311,7 +286,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test230AddUserViljaDezi() throws Exception {
-        final String TEST_NAME = "test230AddUserViljaDezi";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -324,7 +298,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -336,7 +310,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test300RenameOrgCortuvHrad() throws Exception {
-        final String TEST_NAME = "test300RenameOrgCortuvHrad";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -348,7 +321,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         modifyObjectReplaceProperty(OrgType.class, orgCortuvHradOid, OrgType.F_NAME, task, result, new PolyString(ORG_CORTUV_HRAD_NAME2));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -428,8 +401,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         ObjectDelta<OrgType> delta = orgBefore.createModifyDelta();
 
         PrismContainerValue<AssignmentType> oldAssignment = null;
-        for (PrismContainerValue aval: orgBefore.findContainer(OrgType.F_ASSIGNMENT).getValues()) {
-            oldAssignment = (PrismContainerValue<AssignmentType>)aval;
+        for (PrismContainerValue aval : orgBefore.findContainer(OrgType.F_ASSIGNMENT).getValues()) {
+            oldAssignment = (PrismContainerValue<AssignmentType>) aval;
             if (OrgType.COMPLEX_TYPE.equals(oldAssignment.asContainerable().getTargetRef().getType())) {
                 break;
             }
@@ -443,7 +416,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         // WHEN
         when(TEST_NAME);
 
-        display("Modifying "+orgBefore+"with delta", delta);
+        display("Modifying " + orgBefore + "with delta", delta);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
@@ -471,7 +444,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         assertSubOrgs(orgVysneVlkodlakyOid, 0);
     }
 
-    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException  {
+    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // nothing to do by default
     }
 
@@ -516,17 +489,19 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         return org;
     }
 
-    protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+    protected PrismObject<UserType> getAndAssertUser(
+            String username, String directOrgGroupname, String... indirectGroupNames)
+            throws CommonException, DirectoryException {
         PrismObject<UserType> user = findUserByUsername(username);
         display("user", user);
 
         String shadowOid = getLinkRefOid(user, RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         PrismObject<ShadowType> accountShadow = getShadowModel(shadowOid);
-        display("Account "+username+" shadow", accountShadow);
+        display("Account " + username + " shadow", accountShadow);
         // TODO assert shadow content
 
-        Entry accountEntry = openDJController.searchSingle("uid="+username);
-        assertNotNull("No account LDAP entry for "+username, accountEntry);
+        Entry accountEntry = openDJController.searchSingle("uid=" + username);
+        assertNotNull("No account LDAP entry for " + username, accountEntry);
         display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
         openDJController.assertObjectClass(accountEntry, "inetOrgPerson");
 
@@ -541,11 +516,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
         String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, LDAP_GROUP_INTENT);
         PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-        display("Org "+orgName+" group shadow", groupShadow);
+        display("Org " + orgName + " group shadow", groupShadow);
         // TODO assert shadow content
 
-        Entry groupEntry = openDJController.searchSingle("cn="+orgName);
-        assertNotNull("No group LDAP entry for "+orgName, groupEntry);
+        Entry groupEntry = openDJController.searchSingle("cn=" + orgName);
+        assertNotNull("No group LDAP entry for " + orgName, groupEntry);
         display("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
         openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
 
@@ -557,8 +532,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     protected PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-        assertNotNull("The org "+orgName+" is missing!", org);
-        display("Org "+orgName, org);
+        assertNotNull("The org " + orgName + " is missing!", org);
+        display("Org " + orgName, org);
         PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
         return org;
     }
@@ -571,7 +546,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         display("LDAP server tree", openDJController.dumpTree());
         display("LDAP server content", openDJController.dumpEntries());
     }
-
 
     protected void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
         String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
@@ -592,7 +566,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
             @Override
             public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
                 try {
-                    display("reconciling "+object);
+                    display("reconciling " + object);
                     reconcileUser(object.getOid(), task, parentResult);
                 } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
                         | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
@@ -613,7 +587,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
             @Override
             public boolean handle(PrismObject<OrgType> object, OperationResult parentResult) {
                 try {
-                    display("reconciling "+object);
+                    display("reconciling " + object);
                     reconcileOrg(object.getOid(), task, parentResult);
                 } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
                         | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException

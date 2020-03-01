@@ -107,7 +107,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityTaskFinish();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
 
@@ -202,7 +202,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assignRole(USER_JACK_OID, ROLE_BIG_JUDGE_OID, activationType, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_JACK_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
 
@@ -211,7 +211,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_JACK_USERNAME);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -234,7 +234,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assignRole(USER_JACK_OID, ROLE_BIG_JUDGE_OID, activationType, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_JACK_USERNAME);
 
         // WHEN
@@ -242,7 +242,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_JACK_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
 
@@ -286,7 +286,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.DISABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -313,7 +313,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -337,7 +337,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.DISABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -361,7 +361,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.ENABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -387,7 +387,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -413,7 +413,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -440,7 +440,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 task, result, activationType);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -469,7 +469,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 task, result, activationType);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -496,7 +496,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 task, result, validTo);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -538,7 +538,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assignRole(USER_BARBOSSA_OID, ROLE_JUDGE_OID, activationType, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -546,7 +546,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -579,7 +579,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assignRole(USER_BARBOSSA_OID, ROLE_SAILOR_OID, activationType, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -587,7 +587,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -620,7 +620,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.DISABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -628,7 +628,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertNoDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
@@ -660,7 +660,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.DISABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
 
         // WHEN
@@ -668,7 +668,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -695,7 +695,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.ENABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -732,7 +732,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.ENABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -779,7 +779,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
 
         // WHEN
@@ -787,7 +787,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -830,7 +830,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -838,7 +838,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -912,7 +912,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
 
         // WHEN
@@ -920,7 +920,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
 
         user = getUser(USER_BARBOSSA_OID);
@@ -961,7 +961,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assignRole(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID, activationType, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -969,7 +969,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -1002,7 +1002,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assignRole(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID, activationType, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -1010,7 +1010,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -1043,7 +1043,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.DISABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -1051,7 +1051,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
@@ -1083,7 +1083,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.DISABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
 
         // WHEN
@@ -1091,7 +1091,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
         assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
@@ -1122,7 +1122,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.ENABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -1159,7 +1159,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 ActivationStatusType.ENABLED, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -1212,7 +1212,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
 
         // WHEN
@@ -1220,7 +1220,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
         assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
@@ -1267,7 +1267,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
 
         // WHEN
@@ -1275,7 +1275,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
@@ -1346,7 +1346,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME); // to be on the safe side
 
@@ -1355,7 +1355,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
         assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
@@ -1398,7 +1398,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForValidityNextRunAssertSuccess();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -1429,7 +1429,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 
@@ -1541,7 +1541,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
     }
@@ -1813,7 +1813,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, activationType, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertNoDummyAccount(null, USER_HERMAN_USERNAME);
     }
 

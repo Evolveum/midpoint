@@ -64,7 +64,7 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
         login(userAdministrator);
         Task task = getTestTask();
         task.setOwner(userAdministrator);
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         try {
             assignRole(userJackOid, roleRole15Oid, task, result);

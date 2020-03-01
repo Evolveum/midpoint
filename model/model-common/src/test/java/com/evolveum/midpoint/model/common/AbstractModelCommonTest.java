@@ -10,12 +10,10 @@ import java.io.File;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.test.util.AbstractUnitTest;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 /**
  * @author semancik
- *
  */
 public class AbstractModelCommonTest extends AbstractUnitTest {
 
@@ -23,10 +21,6 @@ public class AbstractModelCommonTest extends AbstractUnitTest {
 
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     protected static final String EXPRESSION_PROFILE_SAFE_NAME = "safe";
-
-    protected void displayTestTitle(final String TEST_NAME) {
-        TestUtil.displayTestTitle(this, TEST_NAME);
-    }
 
     protected Task createTask() {
         return new NullTaskImpl();

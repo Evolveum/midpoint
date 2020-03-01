@@ -94,9 +94,6 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test001Triggers() throws Exception {
-        final String TEST_NAME = "test001Triggers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN, WHEN
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("jack", jack);
@@ -153,11 +150,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test010CreateCampaign() throws Exception {
-        final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         certificationDefinition = repoAddObjectFromFile(SOD_CERTIFICATION_DEF_FILE,
@@ -169,7 +163,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
                 certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -185,11 +179,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test012SearchAllCases() throws Exception {
-        final String TEST_NAME = "test012SearchAllCases";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -197,7 +188,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -207,11 +198,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test014Statistics() throws Exception {
-        final String TEST_NAME = "test014Statistics";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -220,7 +208,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
                 certificationManager.getCampaignStatistics(campaignOid, true, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -236,11 +224,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test020OpenFirstStage() throws Exception {
-        final String TEST_NAME = "test020OpenFirstStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -251,7 +236,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -283,11 +268,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test030SearchAllCases() throws Exception {
-        final String TEST_NAME = "test030SearchCases";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -295,7 +277,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -308,11 +290,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test100RecordDecisions() throws Exception {
-        final String TEST_NAME = "test100RecordDecisions";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -333,7 +312,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         recordDecision(campaignOid, test3bCase, NOT_DECIDED, "dunno", USER_JACK_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -365,11 +344,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test150CloseFirstStage() throws Exception {
-        final String TEST_NAME = "test150CloseFirstStage";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -378,7 +354,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -411,11 +387,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test200StartRemediation() throws Exception {
-        final String TEST_NAME = "test200StartRemediation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -424,7 +397,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         certificationManager.startRemediation(campaignOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
@@ -464,8 +437,6 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     @Test
     public void test210CheckAfterClose() throws Exception {
-        final String TEST_NAME = "test210CheckAfterClose";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator.asPrismObject());
 
         // GIVEN

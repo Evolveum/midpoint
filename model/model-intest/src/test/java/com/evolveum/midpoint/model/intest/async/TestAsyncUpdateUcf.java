@@ -73,7 +73,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
@@ -90,7 +89,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100AddAnderson() throws Exception {
         final String TEST_NAME = "test100AddAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -130,7 +128,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test110AddAlumniAndStaff() throws Exception {
         final String TEST_NAME = "test110AddAlumni";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -177,7 +174,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test120AddWhite() throws Exception {
         final String TEST_NAME = "test120AddWhite";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -217,7 +213,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test200AddAlumniForAnderson() throws Exception {
         final String TEST_NAME = "test200AddAlumniForAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -257,7 +252,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test210AddStaffForAnderson() throws Exception {
         final String TEST_NAME = "test210AddStaffForAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -297,7 +291,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test220AddAlumniForLewis() throws Exception {
         final String TEST_NAME = "test220AddAlumniForLewis";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -337,7 +330,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test230MentionLewis() throws Exception {
         final String TEST_NAME = "test230MentionLewis";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -377,7 +369,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test300DeleteAnderson() throws Exception {
         final String TEST_NAME = "test300DeleteAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -409,7 +400,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test310DeleteStaff() throws Exception {
         final String TEST_NAME = "test310DeleteStaff";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 

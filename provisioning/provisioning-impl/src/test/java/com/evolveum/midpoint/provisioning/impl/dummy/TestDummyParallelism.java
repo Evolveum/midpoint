@@ -214,7 +214,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         accountMorganOid = null;
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     OperationResult localResult = task.getResult().createSubresult("thread-" + i);
 
@@ -306,7 +306,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // WHEN
         when(TEST_NAME);
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     OperationResult localResult = task.getResult().createSubresult("thread-" + i);
 
@@ -364,7 +364,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         when(TEST_NAME);
 
         Task task = getTestTask();
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     OperationResult localResult = task.getResult().createSubresult("thread-" + i);
 
@@ -423,7 +423,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // WHEN
         when(TEST_NAME);
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     OperationResult localResult = task.getResult().createSubresult("thread-" + i);
 
@@ -511,7 +511,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // WHEN
         when(TEST_NAME);
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     OperationResult localResult = task.getResult().createSubresult("thread-" + i);
 
@@ -569,7 +569,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         when(TEST_NAME);
 
         Task task = getTestTask();
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     OperationResult localResult = task.getResult().createSubresult("thread-" + i);
 
@@ -644,7 +644,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         dummyResource.setOperationDelayRange(0);
         dummyResource.setSyncSearchHandlerStart(true);
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     ObjectQuery query = createGroupNameQuery(GROUP_SCUM_NAME);
 
@@ -744,7 +744,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         long t0 = System.currentTimeMillis();
         MutableBoolean readFinished = new MutableBoolean();
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (threadIndex) -> {
 
                     // roughly half the threads will try to mess with the resource

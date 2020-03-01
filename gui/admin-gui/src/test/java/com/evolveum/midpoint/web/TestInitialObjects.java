@@ -30,9 +30,6 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
 
     @Test
     public void testInitialObjects() throws Exception {
-        final String TEST_NAME = "testInitialObjects";
-        displayTestTitle(TEST_NAME);
-
         ObjectValidator validator = new ObjectValidator(getPrismContext());
         validator.setAllWarnings();
 

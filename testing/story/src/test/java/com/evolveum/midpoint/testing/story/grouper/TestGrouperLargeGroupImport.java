@@ -54,7 +54,7 @@ public class TestGrouperLargeGroupImport extends AbstractGrouperTest {
     @Test
     public void test100ImportGroups() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
         task.setOwner(userAdministrator);
 
         addObject(TASK_IMPORT_GROUPS, task, result);

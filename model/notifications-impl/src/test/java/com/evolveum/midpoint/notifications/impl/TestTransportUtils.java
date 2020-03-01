@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -68,8 +67,6 @@ public class TestTransportUtils extends AbstractSpringTest {
     public void test010CheckVariablesWhiteList() {
         final String TEST_NAME = "test010CheckVariablesWhiteList";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
@@ -94,7 +91,7 @@ public class TestTransportUtils extends AbstractSpringTest {
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         assertTrue("Expected <4> allowed recipient(s), but was <" +allowRecipient.size()+ ">", allowRecipient.size() == 4);
         assertTrue("janko@evodevel.com shoud be allowed, but isn't.", allowRecipient.contains("janko@evodevel.com"));
@@ -110,8 +107,6 @@ public class TestTransportUtils extends AbstractSpringTest {
     @Test
     public void test020CheckVariablesBlackList() {
         final String TEST_NAME = "test020CheckVariablesBlackList";
-
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
@@ -137,7 +132,7 @@ public class TestTransportUtils extends AbstractSpringTest {
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         assertTrue("Expected <4> forbidden recipient(s), but was <" +forbiddenRecipient.size()+ ">", forbiddenRecipient.size() == 4);
         assertTrue("janko@evodevel.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evodevel.com"));

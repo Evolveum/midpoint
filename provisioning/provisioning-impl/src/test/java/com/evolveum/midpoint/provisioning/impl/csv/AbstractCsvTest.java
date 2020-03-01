@@ -6,16 +6,11 @@
  */
 package com.evolveum.midpoint.provisioning.impl.csv;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.FileUtils;
@@ -27,16 +22,11 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -50,16 +40,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
@@ -68,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
  * The test of Provisioning service on the API level. The test is using CSV resource.
  *
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -86,8 +66,6 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
     protected static final String ACCOUNT_JACK_FIRSTNAME = "Jack";
     protected static final String ACCOUNT_JACK_LASTNAME = "Sparrow";
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractCsvTest.class);
 
     protected static final String ATTR_FIRSTNAME = "firstname";
     protected static final QName ATTR_FIRSTNAME_QNAME = new QName(RESOURCE_NS, ATTR_FIRSTNAME);
@@ -120,14 +98,10 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test000Integrity() throws Exception {
-        final String TEST_NAME = "test000Integrity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
 
-        OperationResult result = new OperationResult(AbstractCsvTest.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
@@ -143,15 +117,13 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
     /**
      * This should be the very first test that works with the resource.
-     *
+     * <p>
      * The original repository object does not have resource schema. The schema
      * should be generated from the resource on the first use. This is the test
      * that executes testResource and checks whether the schema was generated.
      */
     @Test
     public void test003Connection() throws Exception {
-        final String TEST_NAME = "test003Connection";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -200,8 +172,6 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test004Configuration() throws Exception {
-        final String TEST_NAME = "test004Configuration";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -215,7 +185,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         PrismContainerDefinition confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
         PrismContainer confingurationPropertiesContainer =
-            configurationContainer.findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                configurationContainer.findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
         assertNotNull("No configuration properties container", confingurationPropertiesContainer);
         PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
         assertNotNull("No configuration properties container definition", confPropDef);
@@ -224,9 +194,6 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test005ParsedSchema() throws Exception {
-        final String TEST_NAME = "test005ParsedSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // THEN
         // The returned type should have the schema pre-parsed
         assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
@@ -263,11 +230,8 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test006Capabilities() throws Exception {
-        final String TEST_NAME = "test006Capabilities";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
+        OperationResult result = createResult();
 
         // WHEN
         ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
@@ -278,11 +242,11 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
+        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
 
         // Connector cannot do activation, this should be null
         ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
-        assertNull("Found activation capability while not expecting it" ,capAct);
+        assertNull("Found activation capability while not expecting it", capAct);
 
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
@@ -293,25 +257,22 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
-            System.out.println("Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
+            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
 
     }
 
     private void assertScriptHost(ScriptCapabilityType capScript, ProvisioningScriptHostType expectedHostType) {
-        for (Host host: capScript.getHost()) {
+        for (Host host : capScript.getHost()) {
             if (host.getType() == expectedHostType) {
                 return;
             }
         }
-        AssertJUnit.fail("No script capability with host type "+expectedHostType);
+        AssertJUnit.fail("No script capability with host type " + expectedHostType);
     }
 
     @Test
     public void test100AddAccountJack() throws Exception {
-        final String TEST_NAME = "test100AddAccountJack";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -322,15 +283,12 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         provisioningService.addObject(shadowBefore, null, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
     }
 
     @Test
     public void test110GetAccountJack() throws Exception {
-        final String TEST_NAME = "test110GetAccountJack";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -339,7 +297,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, getAccountJackOid(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNotNull(shadow);
@@ -366,9 +324,6 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test120ModifyShadowPrimaryIdentifier() throws Exception {
-        final String TEST_NAME = "test120ModifyShadowPrimaryIdentifier";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -386,7 +341,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
                 null, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowBefore.getOid(), null, result);
         ShadowType repoShadowType = repoShadow.asObjectable();
@@ -396,7 +351,4 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     protected abstract void assertAccountJackAttributes(ShadowType shadowType);
 
     protected abstract void assertAccountJackAttributesRepo(ShadowType shadowType);
-
-    protected abstract QName getQNameOfUID();
-
 }

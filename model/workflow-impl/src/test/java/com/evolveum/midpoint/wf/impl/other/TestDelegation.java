@@ -76,7 +76,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userJackOid, ROLE_PRINCE_OID, task, result);                // should start approval process
         assertNotAssignedRole(userJackOid, ROLE_PRINCE_OID, task, result);
@@ -96,7 +96,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         login(getUserFromRepo(USER_KEEN_OID));
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         try {
             WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
@@ -117,7 +117,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         login(getUserFromRepo(USER_LONGSHANKS_OID));
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .delegate(ort(USER_GIRTH_OID))
@@ -149,7 +149,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         login(getUserFromRepo(USER_LONGSHANKS_OID));
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .delegate(ort(USER_KEEN_OID))
@@ -178,7 +178,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         login(getUserFromRepo(USER_KEEN_OID));
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .method(REPLACE_ASSIGNEES);

@@ -1060,7 +1060,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test050SelfTest() throws Exception {
         final String TEST_NAME = "test050SelfTest";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = getTestTask();

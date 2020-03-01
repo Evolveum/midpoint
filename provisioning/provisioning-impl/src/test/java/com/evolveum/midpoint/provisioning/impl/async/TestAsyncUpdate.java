@@ -118,7 +118,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test000Sanity() throws Exception {
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
         assertNotNull("Resource is null", resource);
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, result).asObjectable();
@@ -137,7 +137,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test
     public void test003Connection() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // Check that there is a schema, but no capabilities before test (pre-condition)
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_ASYNC_OID,
@@ -183,7 +183,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test004Configuration() throws Exception {
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
         // WHEN
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, null, result);
 
@@ -224,7 +224,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test
     public void test100ListeningForShadowAdd() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // GIVEN
 
@@ -256,7 +256,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test
     public void test110ListeningForValueAdd() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         prepareMessage(CHANGE_110);
 
@@ -294,7 +294,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test
     public void test112ListeningForValueAddMore() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         prepareMessage(CHANGE_112);
 
@@ -332,7 +332,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test // MID-5832
     public void test115ListeningForValueDelete() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         prepareMessage(CHANGE_115);
 
@@ -370,7 +370,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test // MID-5832
     public void test117ListeningForValueReplace() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         prepareMessage(CHANGE_117);
 
@@ -408,7 +408,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test
     public void test120ListeningForShadowReplace() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         prepareMessage(CHANGE_120);
 
@@ -435,7 +435,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test
     public void test125ListeningForNotificationOnly() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         if (!hasReadCapability()) {
             System.out.println("Skipping this test because there's no real read capability");
@@ -469,7 +469,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @Test
     public void test130ListeningForShadowDelete() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         prepareMessage(CHANGE_130);
 

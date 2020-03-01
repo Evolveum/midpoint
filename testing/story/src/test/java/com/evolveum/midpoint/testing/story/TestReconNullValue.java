@@ -130,7 +130,6 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestReconNullValue.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -146,7 +145,6 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test100CreateUsers() throws Exception {
         final String TEST_NAME = "test200CreateUsers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestReconNullValue.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -159,7 +157,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         addObject(user0Before, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

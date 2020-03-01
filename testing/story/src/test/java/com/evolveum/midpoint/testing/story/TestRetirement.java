@@ -154,7 +154,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -167,7 +166,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test050AddOrgRetired() throws Exception {
         final String TEST_NAME = "test050AddOrgRetired";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -179,7 +177,7 @@ public class TestRetirement extends AbstractStoryTest {
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -206,7 +204,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
         final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -218,7 +215,7 @@ public class TestRetirement extends AbstractStoryTest {
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -235,7 +232,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test110AddUserTeleke() throws Exception {
         final String TEST_NAME = "test110AddUserTeleke";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -248,7 +244,7 @@ public class TestRetirement extends AbstractStoryTest {
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -266,7 +262,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test200AddOrgCortuvHrad() throws Exception {
         final String TEST_NAME = "test200AddOrgCortuvHrad";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -278,7 +273,7 @@ public class TestRetirement extends AbstractStoryTest {
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -296,7 +291,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test210AddUserGorc() throws Exception {
         final String TEST_NAME = "test210AddUserGorc";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -309,7 +303,7 @@ public class TestRetirement extends AbstractStoryTest {
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -323,7 +317,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
         final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -335,7 +328,7 @@ public class TestRetirement extends AbstractStoryTest {
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -353,7 +346,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test230AddUserViljaDezi() throws Exception {
         final String TEST_NAME = "test230AddUserViljaDezi";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -366,7 +358,7 @@ public class TestRetirement extends AbstractStoryTest {
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -379,7 +371,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test300RetireUserGorc() throws Exception {
         final String TEST_NAME = "test300RetireUserGorc";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -395,7 +386,7 @@ public class TestRetirement extends AbstractStoryTest {
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -409,7 +400,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test302ReconcileUserGorc() throws Exception {
         final String TEST_NAME = "test302ReconcileUserGorc";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -418,7 +408,7 @@ public class TestRetirement extends AbstractStoryTest {
         reconcileUser(userGorcOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -432,7 +422,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test303ReconcileUserGorcAgain() throws Exception {
         final String TEST_NAME = "test303ReconcileUserGorcAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -441,7 +430,7 @@ public class TestRetirement extends AbstractStoryTest {
         reconcileUser(userGorcOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

@@ -66,7 +66,6 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Test
     public void test202ReconcileUserJack() throws Exception {
         final String TEST_NAME = "test202ReconcileUserJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);

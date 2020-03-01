@@ -94,7 +94,7 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         RoleType pirate = new RoleType(prismContext);
         pirate.setName(PolyStringType.fromOrig("pirate"));

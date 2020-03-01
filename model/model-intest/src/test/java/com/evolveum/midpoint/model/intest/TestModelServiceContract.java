@@ -386,7 +386,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test102GetAccountNoFetch() throws Exception {
-        TestUtil.displayTestTitle(this, "test102GetAccountNoFetch");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountNoFetch");
@@ -413,7 +412,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test103GetAccountRaw() throws Exception {
-        TestUtil.displayTestTitle(this, "test103GetAccountRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test103GetAccountRaw");
@@ -440,7 +438,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test105SearchAccount() throws Exception {
-        TestUtil.displayTestTitle(this, "test105SearchAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test105SearchAccount");
@@ -472,7 +469,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test106SearchAccountWithoutResourceSchema() throws Exception {
-        TestUtil.displayTestTitle(this, "test106SearchAccountWithoutResourceSchema");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test106SearchAccountWithoutResourceSchema");
@@ -499,7 +495,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test108ModifyUserAddAccountAgain() throws Exception {
-        TestUtil.displayTestTitle(this, "test108ModifyUserAddAccountAgain");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test108ModifyUserAddAccountAgain");
@@ -933,7 +928,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test128ModifyUserDeleteAccountRef() throws Exception {
-        TestUtil.displayTestTitle(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test128ModifyUserDeleteAccountRef");
@@ -1001,7 +995,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test129DeleteAccount() throws Exception {
-        TestUtil.displayTestTitle(this, "test129DeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test129DeleteAccount");
@@ -1060,7 +1053,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test130PreviewModifyUserJackAssignAccount() throws Exception {
-        TestUtil.displayTestTitle(this, "test130PreviewModifyUserJackAssignAccount");
 
         // GIVEN
         try{
@@ -2272,7 +2264,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      */
     @Test
     public void test189ModifyUserJackUnassignAndDeleteAccount() throws Exception {
-        TestUtil.displayTestTitle(this, "test189ModifyUserJackUnassignAndDeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackUnassignAccount");
@@ -2767,7 +2758,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test198ModifyUserJackRaw() throws Exception {
-        TestUtil.displayTestTitle(this, "test198ModifyUserJackRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test196ModifyUserJackRaw");
@@ -2821,7 +2811,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test199DeleteUserJack() throws Exception {
-        TestUtil.displayTestTitle(this, "test199DeleteUserJack");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test199DeleteUserJack");
@@ -3354,9 +3343,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test   // MID-5516
     public void test400RemoveExtensionProtectedStringValue() throws Exception {
-        final String TEST_NAME = "test400RemoveExtensionProtectedStringValue";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

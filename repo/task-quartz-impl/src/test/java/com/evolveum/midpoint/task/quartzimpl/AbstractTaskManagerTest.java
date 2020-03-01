@@ -88,7 +88,6 @@ public class AbstractTaskManagerTest extends AbstractSpringTest {
     protected MockLongTaskHandler longTaskHandler;
 
     protected static OperationResult createResult(String test) {
-        TestUtil.displayTestTitle(test);
         return new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".test" + test);
     }
 

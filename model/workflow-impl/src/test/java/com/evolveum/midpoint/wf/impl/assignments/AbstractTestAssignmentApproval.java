@@ -155,7 +155,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, userJackOid, result);
@@ -180,7 +180,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     public void test030AddRole1AssignmentAgain() throws Exception {
         login(userAdministrator);
 
-        importLead10(getTestTask(), getResult());
+        importLead10(getTestTask(), getTestResult());
 
         executeAssignRole1ToJack(false, false, null, null, false);
     }
@@ -271,7 +271,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
         Task task = getTestTask();
         task.setOwner(userAdministrator);
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         assignDeputy(userJackDeputyOid, userJackOid, a -> {
@@ -295,7 +295,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         Task task = getTestTask();
-        importLead1Deputies(task, getResult());
+        importLead1Deputies(task, getTestResult());
 
         unassignAllRoles(userJackOid);
         executeAssignRole1ToJack(false, true, null, null, false);

@@ -259,7 +259,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test102GetAccountMurrayRaw() throws Exception {
-        TestUtil.displayTestTitle(this, "test102GetAccountMurrayRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test102GetAccountMurrayRaw");
@@ -282,7 +281,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test120SearchAccountByUsernameJack() throws Exception {
-        TestUtil.displayTestTitle(this, "test120SearchAccountByUsernameJack");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test120SearchAccountByUsernameJack");
@@ -307,7 +305,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test210TestResourceNotFound() throws Exception {
-        TestUtil.displayTestTitle(this, "test210TestResourceNotFound");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test210TestResourceNotFound");
@@ -381,7 +378,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test310TestResourceNoJars() throws Exception {
-        TestUtil.displayTestTitle(this, "test310TestResourceNoJars");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test310TestResourceNoJars");

@@ -556,9 +556,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test011OrgFilter() throws Exception {
-        final String TEST_NAME = "test011OrgFilter";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createResult();
 
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .isDirectChildOf(ORG_F001_OID)
@@ -574,9 +572,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test100ParentOrgRefFilterNullRelation() throws Exception {
-        final String TEST_NAME = "test100ParentOrgRefFilterNullRelation";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createResult();
 
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(itemFactory().createReferenceValue(ORG_F001_OID))
@@ -591,9 +587,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test101ParentOrgRefFilterManagerRelation() throws Exception {
-        final String TEST_NAME = "test101ParentOrgRefFilterManagerRelation";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createResult();
 
         PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);
         refVal.setRelation(SchemaConstants.ORG_MANAGER);
@@ -610,9 +604,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test102ParentOrgRefFilterAnyRelation() throws Exception {
-        final String TEST_NAME = "test102ParentOrgRefFilterAnyRelation";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createResult();
 
         PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);
         refVal.setRelation(PrismConstants.Q_ANY);

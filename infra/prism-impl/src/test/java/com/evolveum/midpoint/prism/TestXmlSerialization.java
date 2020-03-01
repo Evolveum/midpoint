@@ -21,7 +21,7 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
+
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -39,9 +39,6 @@ public class TestXmlSerialization {
 
     @Test
     public void testHandlingInvalidChars() throws Exception {
-        final String TEST_NAME = "testHandlingInvalidChars";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();

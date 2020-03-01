@@ -96,7 +96,7 @@ public class TestLargeGroups extends AbstractStoryTest {
     @Test
     public void test100GetLargeGroup(ITestContext ctx) throws Exception {
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         final int MEMBERS = 20000;
 
@@ -123,7 +123,7 @@ public class TestLargeGroups extends AbstractStoryTest {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
         ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
                 .getAttributeDefinition(resourceDummy, dummyResourceCtl.getGroupObjectClass(), SchemaConstants.ICFS_NAME);
         ObjectQuery query = prismContext.queryFor(ShadowType.class)

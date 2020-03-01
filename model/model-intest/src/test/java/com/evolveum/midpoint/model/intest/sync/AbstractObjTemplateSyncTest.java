@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -109,7 +108,6 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
     @Test
     public void test100ImportLiveSyncTaskDummyByzantine() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyByzantine";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         AbstractObjTemplateSyncTest.class.getName();
@@ -121,7 +119,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         importSyncTask(resourceDummyByzantine);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         waitForSyncTaskStart(resourceDummyByzantine);
     }

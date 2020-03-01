@@ -126,7 +126,7 @@ public class ManualResourceTest extends AbstractWfTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_MANUAL_OID,
                 null, result).asObjectable();
@@ -167,7 +167,7 @@ public class ManualResourceTest extends AbstractWfTest {
     public void test100AssignWillRoleOne() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -198,7 +198,7 @@ public class ManualResourceTest extends AbstractWfTest {
     public void test110CloseCaseAndRecomputeWill() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();

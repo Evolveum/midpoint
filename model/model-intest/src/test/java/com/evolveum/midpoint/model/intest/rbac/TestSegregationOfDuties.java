@@ -553,7 +553,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_GOLD_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -586,7 +586,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_SILVER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -620,7 +620,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -655,7 +655,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -689,7 +689,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         unassignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -721,7 +721,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         unassignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -846,7 +846,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_GREEN_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -878,7 +878,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_NONE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -908,7 +908,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1815,7 +1815,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assignRole(jim.getOid(), ROLE_PRIZE_GOLD_BY_MAPPING_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

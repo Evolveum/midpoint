@@ -10,7 +10,6 @@ package com.evolveum.midpoint.prism.query;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createPolyString;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayQuery;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayTestTitle;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getFilterCondition;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DomAsserts;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -46,7 +46,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public class TestQueryConverters {
+public class TestQueryConverters extends AbstractUnitTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestQueryConverters.class);
 
@@ -66,8 +66,6 @@ public class TestQueryConverters {
 
     @Test
     public void testFilterUserNameJaxb() throws Exception {
-        displayTestTitle("testFilterUserNameJaxb");
-
         SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_USER_NAME_FILE);
         ObjectQuery query = toObjectQuery(UserType.class, filterType);
         displayQuery(query);
@@ -99,8 +97,6 @@ public class TestQueryConverters {
 
     @Test
     public void testFilterUserAndJaxb() throws Exception {
-        displayTestTitle("testFilterUserAndJaxb");
-
         SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_USER_AND_FILE);
         ObjectQuery query = toObjectQuery(UserType.class, filterType);
         displayQuery(query);
@@ -154,9 +150,6 @@ public class TestQueryConverters {
 
     @Test
     public void testFilterTypeUserNone() throws Exception {
-        displayTestTitle("testFilterTypeUserNone");
-
-
         SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_TYPE_USER_NONE);
 
         ObjectQuery query = toObjectQuery(UserType.class, filterType);
@@ -184,15 +177,10 @@ public class TestQueryConverters {
         LOGGER.info(filterAsString);
 
         DomAsserts.assertElementQName(filterClauseElement, new QName(PrismConstants.NS_QUERY, "type"));
-
-
-
     }
 
     @Test
     public void testFilterNotInOid() throws Exception {
-        displayTestTitle("testFilterNotInOid");
-
         SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_NOT_IN_OID);
 
         ObjectQuery query = toObjectQuery(UserType.class, filterType);
@@ -225,8 +213,6 @@ public class TestQueryConverters {
 
     @Test
     public void testFilterNotFullText() throws Exception {
-        displayTestTitle("testFilterNotFullText");
-
         SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_NOT_FULL_TEXT);
 
         ObjectQuery query = toObjectQuery(UserType.class, filterType);

@@ -69,8 +69,6 @@ import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -106,8 +104,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     protected static final File TEST_DIR = new File("src/test/resources/manual/");
 
     public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
 
     protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
     protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_MANUAL_CONF, "defaultAssignee");
@@ -390,18 +386,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         PrismProperty<String> propDefaultAssignee = configurationContainer.findProperty(CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME);
         assertNotNull("No defaultAssignee conf prop", propDefaultAssignee);
 
-//        assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-//        PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
-//        assertNotNull("No configuration properties container definition", confPropDef);
-
         assertSteadyResources();
     }
 
     @Test
     public void test016ParsedSchema() throws Exception {
-        final String TEST_NAME = "test016ParsedSchema";
         // GIVEN
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
         // THEN
         // The returned type should have the schema pre-parsed
@@ -1369,7 +1359,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        setupPhantom(TEST_NAME);
+        setupPhantom();
 
         // WHEN
         when(TEST_NAME);
@@ -1418,7 +1408,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertSteadyResources();
     }
 
-    protected void setupPhantom(final String TEST_NAME) throws Exception {
+    protected void setupPhantom() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1740,7 +1730,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         display("System config", systemConfiguration);
@@ -1802,7 +1791,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // WHEN
         when(TEST_NAME);
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     login(userAdministrator);
                     Task localTask = getTestTask();
@@ -1825,7 +1814,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("Repo shadow", shadowRepo);
         assertShadowNotDead(shadowRepo);
 
-        assertTest910ShadowRepo(shadowRepo, task, result);
+        assertTest910ShadowRepo(shadowRepo);
 
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountDrakeOid, options, task, result);
@@ -1834,7 +1823,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 //        assertObjects(CaseType.class, numberOfCasesBefore + getConcurrentTestNumberOfThreads());
     }
 
-    protected void assertTest910ShadowRepo(PrismObject<ShadowType> shadowRepo, Task task, OperationResult result) throws Exception {
+    protected void assertTest910ShadowRepo(PrismObject<ShadowType> shadowRepo) throws Exception {
         assertShadowNotDead(shadowRepo);
         ObjectDeltaType addPendingDelta = null;
         for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
@@ -1880,7 +1869,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // WHEN
         when(TEST_NAME);
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     display("Thread "+Thread.currentThread().getName()+" START");
                     login(userAdministrator);

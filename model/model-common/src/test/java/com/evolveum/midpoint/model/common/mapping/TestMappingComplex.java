@@ -44,9 +44,6 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
     @Test
     public void testModifyObjectSetAdditionalName() throws Exception {
-        final String TEST_NAME = "testModifyObjectSetAdditionalName";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -55,9 +52,9 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
-                TEST_NAME, "title", delta);
+                getTestNameShort(), "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -72,9 +69,6 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
     @Test
     public void testModifyObjectSetAdditionalNameFalse() throws Exception {
-        final String TEST_NAME = "testModifyObjectSetAdditionalNameFalse";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -86,9 +80,9 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         userOld.asObjectable().getEmployeeType().add("WHATEVER");
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
-                TEST_NAME, "title", delta, userOld);
+                getTestNameShort(), "title", delta, userOld);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -103,9 +97,6 @@ public class TestMappingComplex extends AbstractModelCommonTest {
      */
     @Test
     public void testModifyObjectUnrelated() throws Exception {
-        final String TEST_NAME = "testModifyObjectUnrelated";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -113,9 +104,9 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
-                TEST_NAME, "title", delta);
+                getTestNameShort(), "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -130,9 +121,6 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
     @Test
     public void testModifyObjectUnrelatedFalse() throws Exception {
-        final String TEST_NAME = "testModifyObjectUnrelatedFalse";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -143,9 +131,9 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         userOld.asObjectable().getEmployeeType().add("WHATEVER");
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
-                TEST_NAME, "title", delta, userOld);
+                getTestNameShort(), "title", delta, userOld);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -157,9 +145,6 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
     @Test
     public void testAddObjectUnrelatedFalse() throws Exception {
-        final String TEST_NAME = "testAddObjectUnrelatedFalse";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = evaluator.getUserOld();
         user.asObjectable().getEmployeeType().clear();
@@ -168,9 +153,9 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
-                TEST_NAME, "title", delta);
+                getTestNameShort(), "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -182,9 +167,6 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
     @Test
     public void testAddObjectUnrelatedEmptyFalse() throws Exception {
-        final String TEST_NAME = "testAddObjectUnrelatedEmptyFalse";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = evaluator.getUserOld();
         user.asObjectable().getEmployeeType().clear();
@@ -192,9 +174,9 @@ public class TestMappingComplex extends AbstractModelCommonTest {
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_COMPLEX_FILENAME,
-                TEST_NAME, "title", delta);
+                getTestNameShort(), "title", delta);
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);

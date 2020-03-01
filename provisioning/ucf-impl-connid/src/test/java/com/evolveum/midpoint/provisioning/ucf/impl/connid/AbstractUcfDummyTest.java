@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -83,6 +84,9 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest {
         connectorType = connector.asObjectable();
     }
 
+    protected OperationResult createResult() {
+        return new OperationResult(contextName());
+    }
 
     protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
             int maxOccurs) {

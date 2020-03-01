@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -46,7 +46,7 @@ public class TestImportGroups extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -70,13 +70,10 @@ public class TestImportGroups extends AbstractStoryTest {
 
     @Test
     public void test001importGroups() throws Exception {
-        String TEST_NAME = "test001importGroups";
-
         addObject(TASK_IMPORT_GROUPS);
 
         waitForTaskFinish(TASK_IMPORT_GROUPS_OID, true);
 
         assertObjects(OrgType.class, DEFAULT_GROUPS + GROUPS);
-
     }
 }

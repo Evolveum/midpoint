@@ -87,7 +87,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         PrismObject<RoleType> employee = prismContext.parseObject(ROLE_EMPLOYEE_FILE);
         executeTest(null, new TestDetails() {
@@ -169,7 +169,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
@@ -203,7 +203,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
@@ -235,7 +235,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userEmployeeOwnerOid, roleEmployeeOid, SchemaConstants.ORG_APPROVER, task, result);
         result.computeStatus();
@@ -248,7 +248,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)

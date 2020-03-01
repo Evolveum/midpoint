@@ -86,17 +86,13 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
     @Test
     public void test770AddAccountFettuciniAlfredo() throws Exception {
-        final String TEST_NAME = "test770AddAccountFettuciniAlfredo";
-        TestUtil.displayTestTitle(TEST_NAME);
-        addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_ALFREDO_FILE, ACCOUNT_FETTUCINI_ALFREDO_OID, ACCOUNT_FETTUCINI_ALFREDO_FULLNAME);
+        addFettucini(ACCOUNT_FETTUCINI_ALFREDO_FILE, ACCOUNT_FETTUCINI_ALFREDO_OID, ACCOUNT_FETTUCINI_ALFREDO_FULLNAME);
         searchFettucini(1);
     }
 
     @Test
     public void test772AddAccountFettuciniBill() throws Exception {
-        final String TEST_NAME = "test772AddAccountFettuciniBill";
-        TestUtil.displayTestTitle(TEST_NAME);
-        addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_BILL_FILE, ACCOUNT_FETTUCINI_BILL_OID, ACCOUNT_FETTUCINI_BILL_FULLNAME);
+        addFettucini(ACCOUNT_FETTUCINI_BILL_FILE, ACCOUNT_FETTUCINI_BILL_OID, ACCOUNT_FETTUCINI_BILL_FULLNAME);
         searchFettucini(2);
     }
 
@@ -105,19 +101,17 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
      */
     @Test
     public void test774AddAccountFettuciniCarlo() throws Exception {
-        final String TEST_NAME = "test774AddAccountFettuciniCarlo";
-        TestUtil.displayTestTitle(TEST_NAME);
         dummyResourceCtl.addAccount(ACCOUNT_FETTUCINI_NAME, ACCOUNT_FETTUCINI_CARLO_FULLNAME);
         searchFettucini(3);
     }
 
     @Override
     @Test
-    public void test600AddAccountAlreadyExist() throws Exception {
+    public void test600AddAccountAlreadyExist() {
         // DO nothing. This test is meaningless in non-unique environment
     }
 
-    private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws Exception {
+    private String addFettucini(File file, String oid, String expectedFullName) throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

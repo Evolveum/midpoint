@@ -279,7 +279,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test300ApprovalAndEnforce() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         try {
             assignRole(userJackOid, roleRole24Oid, task, result);
@@ -327,7 +327,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test500NoApprovers() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         assignRole(userJackOid, roleRole26Oid, task, result);
         String ref = result.findAsynchronousOperationReference();       // TODO use recompute + getAsync... when fixed
@@ -353,7 +353,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test600AssignRole29() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -593,7 +593,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test630UnassignRole29() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -935,7 +935,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test800AssignRole27() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -957,7 +957,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test810ModifyAssignmentOfRole27() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -982,7 +982,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test820UnassignRole27() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -999,7 +999,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test900AssignIdempotentRole() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -1039,7 +1039,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     public void test910AssignRoleWithIdempotentMetarole() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         when();
@@ -1219,7 +1219,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private void previewAssignRolesToJack(boolean immediate, boolean also24) throws Exception {
         String testName = getTestNameShort();
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
         boolean TRACE = false;
         //noinspection ConstantConditions
         if (TRACE) {

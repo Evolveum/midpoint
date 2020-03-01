@@ -37,7 +37,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -92,13 +91,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     protected static final String RESOURCE_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
 
     protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
-    protected static final String RESOURCE_SEMI_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
 
     public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 
     protected static final String MANUAL_CONNECTOR_TYPE = "ManualConnector";
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
 
     protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
     protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_MANUAL_CONF, "defaultAssignee");
@@ -163,14 +159,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
 
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
@@ -188,8 +180,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test003Connection() throws Exception {
-        final String TEST_NAME = "test003Connection";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -241,11 +231,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test004Configuration() throws Exception {
-        final String TEST_NAME = "test004Configuration";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         // WHEN
         resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
@@ -266,10 +253,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test005ParsedSchema() throws Exception {
-        final String TEST_NAME = "test005ParsedSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
         // THEN
         // The returned type should have the schema pre-parsed
@@ -316,11 +300,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test006Capabilities() throws Exception {
-        final String TEST_NAME = "test006Capabilities";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
+        OperationResult result = createResult();
 
         // WHEN
         ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();

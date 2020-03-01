@@ -303,7 +303,7 @@ public class TestVillage extends AbstractStoryTest {
         modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -346,7 +346,7 @@ public class TestVillage extends AbstractStoryTest {
         long t1 = System.currentTimeMillis();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -735,7 +735,7 @@ public class TestVillage extends AbstractStoryTest {
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = findUserByUsername(getUsername(ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, null));
         assertUserNoRole(user, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, null);
         assertLocGov(user, null, null);
@@ -750,7 +750,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
         final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
         Task task = getTestTask();
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         //prepare password policies
         addObject(GLOBAL_PASSWORD_POLICY_FILE);
@@ -859,7 +859,7 @@ public class TestVillage extends AbstractStoryTest {
         SearchResultList<PrismObject<ShadowType>> groupShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -882,7 +882,7 @@ public class TestVillage extends AbstractStoryTest {
         deleteObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -909,7 +909,7 @@ public class TestVillage extends AbstractStoryTest {
         recomputeUser(USER_MURRAY_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

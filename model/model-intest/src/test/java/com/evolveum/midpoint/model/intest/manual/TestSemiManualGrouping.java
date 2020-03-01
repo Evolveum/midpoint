@@ -127,7 +127,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        setupPhantom(TEST_NAME);
+        setupPhantom();
 
         // WHEN (mid1)
         when("mid1");

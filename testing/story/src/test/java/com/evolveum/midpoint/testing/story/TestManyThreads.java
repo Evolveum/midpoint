@@ -73,7 +73,7 @@ public class TestManyThreads extends AbstractStoryTest {
     @Test
     public void test100SearchResourceObjects() throws Exception {
         Task globalTask = getTestTask();
-        OperationResult globalResult = getResult();
+        OperationResult globalResult = getTestResult();
 
         dummyResource.addAccount(new DummyAccount("jack"));
 

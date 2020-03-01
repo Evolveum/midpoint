@@ -65,7 +65,7 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.AbstractUnitTest;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -494,10 +494,6 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest {
 
     protected <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
         return getPrismContext().parseObject(file);
-    }
-
-    protected void displayTestTitle(String testName) {
-        TestUtil.displayTestTitle(this, testName);
     }
 
     protected void displayCleanup(String testName) {

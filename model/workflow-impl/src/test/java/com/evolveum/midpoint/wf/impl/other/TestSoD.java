@@ -81,7 +81,7 @@ public class TestSoD extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // WHEN
         assignRole(userJackOid, roleJudgeOid, task, result);
@@ -99,7 +99,7 @@ public class TestSoD extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         PrismObject<UserType> jack = getUser(userJackOid);
         String originalDescription = jack.asObjectable().getDescription();
@@ -213,7 +213,7 @@ public class TestSoD extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestResult();
 
         // GIVEN
         unassignRole(userJackOid, rolePirateOid, task, result);

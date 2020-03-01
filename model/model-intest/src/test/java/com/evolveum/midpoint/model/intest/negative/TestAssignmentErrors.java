@@ -104,8 +104,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test010RefinedSchemaWhite() throws Exception {
-        final String TEST_NAME = "test010RefinedSchemaWhite";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -563,7 +561,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
         final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID,

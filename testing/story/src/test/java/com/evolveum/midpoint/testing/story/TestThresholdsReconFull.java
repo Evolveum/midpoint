@@ -87,7 +87,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test610testFullRecon() throws Exception {
         final String TEST_NAME = "test610testFullRecon";
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         //WHEN
         when(TEST_NAME);
@@ -107,7 +107,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test611testFullRecon() throws Exception {
         final String TEST_NAME = "test611testFullRecon";
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         openDJController.delete("uid=user10,ou=People,dc=example,dc=com");
         openDJController.delete("uid=user11,ou=People,dc=example,dc=com");

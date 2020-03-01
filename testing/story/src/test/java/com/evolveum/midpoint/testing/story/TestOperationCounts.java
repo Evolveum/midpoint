@@ -137,7 +137,7 @@ public class TestOperationCounts extends AbstractStoryTest {
         addObject(USER_ALICE_FILE, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -184,7 +184,7 @@ public class TestOperationCounts extends AbstractStoryTest {
         addObject(USER_BOB_FILE, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -232,7 +232,7 @@ public class TestOperationCounts extends AbstractStoryTest {
         executeChanges(delta, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

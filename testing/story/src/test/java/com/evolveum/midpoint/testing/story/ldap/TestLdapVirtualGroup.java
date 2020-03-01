@@ -192,7 +192,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -207,7 +206,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test090AddItRoleHR() throws Exception {
         final String TEST_NAME = "test090AddItRoleHR";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -218,7 +216,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         modelService.recompute(RoleType.class, ROLE_IT_HR_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -236,7 +234,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test100AddItDevRole() throws Exception {
         final String TEST_NAME = "test100AddItDevRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -248,7 +245,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         addObject(roleBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -265,7 +262,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test110AddItOpRole() throws Exception {
         final String TEST_NAME = "test100AddItOpRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -277,7 +273,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         addObject(roleBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -294,7 +290,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test200CreateUsers() throws Exception {
         final String TEST_NAME = "test200CreateUsers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -315,7 +310,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         addObject(user3Before, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -339,7 +334,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test210AssignItHrRoleToUser0() throws Exception {
         final String TEST_NAME = "test210AssignItHrRoleToUser0";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -351,7 +345,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         assignRole(user0Before.getOid(), ROLE_IT_HR_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -371,7 +365,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test220AssignItDevRoleToUser1() throws Exception {
         final String TEST_NAME = "test220AssignItDevRoleToUser1";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -383,7 +376,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         assignRole(user1Before.getOid(), roleItDevOid);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -403,7 +396,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test230AssignJobRoleToUser2() throws Exception {
         final String TEST_NAME = "test230AssignJobRoleToUser2";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -417,7 +409,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         assignRole(user2Before.getOid(), ROLE_JOB_DEVOPS_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -439,7 +431,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test240AssignJobRoleMultiJobToUser3() throws Exception {
         final String TEST_NAME = "test230AssignJobRoleMultiJobToUser3";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -453,7 +444,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         assignRole(user3Before.getOid(), ROLE_JOB_MULTIJOBS_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

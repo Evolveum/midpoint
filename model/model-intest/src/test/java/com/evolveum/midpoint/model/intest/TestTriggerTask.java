@@ -31,7 +31,6 @@ import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.Arrays;
@@ -80,7 +79,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ImportScannerTask() throws Exception {
         final String TEST_NAME = "test100ImportScannerTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -101,7 +99,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 
@@ -115,7 +113,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test105NoTrigger() throws Exception {
         final String TEST_NAME = "test105NoTrigger";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -130,7 +127,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -144,7 +141,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110TriggerCalledAgain() throws Exception {
         final String TEST_NAME = "test110TriggerCalledAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -161,7 +157,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -176,7 +172,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120TwoTriggers() throws Exception {
         final String TEST_NAME = "test120TwoTriggers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -194,7 +189,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -211,7 +206,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test130TwoTriggersSame() throws Exception {
         final String TEST_NAME = "test130TwoTriggersSame";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -227,7 +221,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -242,7 +236,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test135TwoTriggersSamePlusOne() throws Exception {
         final String TEST_NAME = "test135TwoTriggersSamePlusOne";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -260,7 +253,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -275,7 +268,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test140TwoTriggersSameAggregable() throws Exception {
         final String TEST_NAME = "test140TwoTriggersSameAggregable";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -291,7 +283,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -307,7 +299,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test145TwoTriggersSamePlusOneAggregable() throws Exception {
         final String TEST_NAME = "test145TwoTriggersSamePlusOneAggregable";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -326,7 +317,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -342,7 +333,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test147TwoTriggersIdempotent() throws Exception {
         final String TEST_NAME = "test147TwoTriggersIdempotent";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -362,7 +352,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
             waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
             // THEN
-            TestUtil.displayThen(TEST_NAME);
+            then();
 
             // THEN
             XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -380,7 +370,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test150NoTriggerAgain() throws Exception {
         final String TEST_NAME = "test115NoTriggerAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -395,7 +384,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -410,7 +399,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test160TwoTriggersFirstFails() throws Exception {
         final String TEST_NAME = "test160TwoTriggersFirstFails";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -430,7 +418,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 10000);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -455,7 +443,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         endCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -468,7 +456,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200TwoDistantTriggers() throws Exception {
         final String TEST_NAME = "test200TwoDistantTriggers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -486,7 +473,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -502,7 +489,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210InterruptedScanner() throws Exception {
         final String TEST_NAME = "test210InterruptedScanner";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         TestTriggerTask.class.getName();
@@ -534,7 +520,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertTrue("trigger scanner task was not suspended (after operation)", suspended);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         // THEN
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());

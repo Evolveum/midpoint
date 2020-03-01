@@ -70,7 +70,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         display("Jack before", userJackBefore);
@@ -98,7 +97,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100MergeJackGuybrushPreviewDelta() throws Exception {
         final String TEST_NAME = "test100MergeJackGuybrushPreviewDelta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -116,7 +114,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -161,7 +159,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test102MergeJackGuybrushPreviewObject() throws Exception {
         final String TEST_NAME = "test102MergeJackGuybrushPreviewObject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -173,7 +170,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -212,7 +209,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110MergeGuybrushJackPreviewDelta() throws Exception {
         final String TEST_NAME = "test110MergeGuybrushJackPreviewDelta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -230,7 +226,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                         USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -272,7 +268,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test112MergeGuybrushJackPreviewObject() throws Exception {
         final String TEST_NAME = "test112MergeGuybrushJackPreviewObject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -284,7 +279,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                         USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -320,7 +315,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200MergeJackGuybrushExpressionPreviewDelta() throws Exception {
         final String TEST_NAME = "test200MergeJackGuybrushExpressionPreviewDelta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -338,7 +332,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_EXPRESSION_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -373,7 +367,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test202MergeJackGuybrushExpressionPreviewObject() throws Exception {
         final String TEST_NAME = "test202MergeJackGuybrushExpressionPreviewObject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -385,7 +378,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_EXPRESSION_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -424,7 +417,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300MergeJackGuybrushPreviewDeltaDefaultSpecific() throws Exception {
         final String TEST_NAME = "test300MergeJackGuybrushPreviewDeltaDefaultSpecific";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -442,7 +434,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_SPECIFIC_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -487,7 +479,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test500MergeJackGuybrush() throws Exception {
         final String TEST_NAME = "test500MergeJackGuybrush";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -498,7 +489,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
                 USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

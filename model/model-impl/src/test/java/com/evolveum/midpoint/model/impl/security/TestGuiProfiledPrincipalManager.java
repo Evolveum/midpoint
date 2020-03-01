@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -79,7 +78,6 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
 
     private void executeDeputyLimitationsTest(String TEST_NAME, List<OtherPrivilegesLimitationType> expectedLimitations,
             Consumer<AssignmentType> assignmentModifier) throws CommonException {
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         AssignmentType assignment = new AssignmentType()
@@ -99,7 +97,7 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
         login(deputy.asPrismObject());
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         MidPointPrincipal principal = securityContextManager.getPrincipal();
         Collection<DelegatorWithOtherPrivilegesLimitations> delegators = principal.getDelegatorWithOtherPrivilegesLimitationsCollection();
         display("delegators with other privileges limitations", delegators);

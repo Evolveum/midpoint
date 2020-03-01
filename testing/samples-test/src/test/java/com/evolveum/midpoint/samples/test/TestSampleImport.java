@@ -64,7 +64,7 @@ public class TestSampleImport extends AbstractSampleTest {
 //    }
 
     public <T extends ObjectType> void importSample(File sampleFile, Class<T> type, String objectName) throws FileNotFoundException, SchemaException {
-        TestUtil.displayTestTitle(this, "Import sample "+sampleFile.getPath());
+        sampleFile.getPath();
         // GIVEN
         sampleFile.getName();
         Task task = getTestTask();

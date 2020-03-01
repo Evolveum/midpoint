@@ -287,10 +287,6 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertEquals("Wrong number of visits for path "+path, expectedVisits, visits.size());
     }
 
-    public static void displayTestTitle(String testName) {
-        PrismTestUtil.displayTestTitle(testName);
-    }
-
     public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions, boolean withIncomplete) throws SchemaException {
         assertUserJack(user, expectRawInConstructions, true, withIncomplete);
     }
@@ -312,9 +308,6 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertPathVisitor(user, ItemPath.create(UserType.F_ASSIGNMENT, null), false, 2);
         assertPathVisitor(user, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
         assertPathVisitor(user, UserType.F_EXTENSION, false, 1);
-//        assertPathVisitor(user, ItemPath.create(
-//                UserType.F_EXTENSION,
-//                NameItemPathSegment.WILDCARD), false, 5);
     }
 
     public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions,
@@ -462,7 +455,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertEquals("Wrong lang in polystring for key "+key, expectedValue, lang.get(key));
     }
 
-    private static void assertUserJackExtension(PrismObject<UserType> user, boolean withIncomplete) throws SchemaException {
+    private static void assertUserJackExtension(PrismObject<UserType> user, boolean withIncomplete) {
         PrismContext prismContext = user.getPrismContext();
         PrismContainer<?> extension = user.getExtension();
         assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);

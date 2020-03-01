@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DomAsserts;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -41,13 +42,14 @@ import org.xml.sax.SAXException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
 import static org.testng.AssertJUnit.*;
 
-public class TestQueryConverter {
+public class TestQueryConverter extends AbstractUnitTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestQueryConverter.class);
 
@@ -61,8 +63,6 @@ public class TestQueryConverter {
     private static final QName stringExtensionDefinition = new QName(NS_EXTENSION, "stringType");
     private static final QName fooBlaDefinition = new QName(NS_BLA, "foo");
     private static final QName ICF_NAME = new QName(NS_ICFS, "name");
-
-    private static final QName TAG_QNAME = new QName(SchemaConstantsGenerated.NS_COMMON, "tag");
 
     private static final File FILTER_AND_GENERIC_FILE = new File(TEST_DIR, "filter-and-generic.xml");
     private static final File FILTER_ACCOUNT_FILE = new File(TEST_DIR, "filter-account.xml");
@@ -82,8 +82,6 @@ public class TestQueryConverter {
 
     @Test
     public void testAccountFilter() throws Exception {
-        displayTestTitle("testAccountFilter");
-
         SearchFilterType filterType = unmarshalFilter(FILTER_ACCOUNT_FILE);
         ObjectQuery query = toObjectQuery(ShadowType.class, filterType);
         displayQuery(query);
@@ -135,8 +133,6 @@ public class TestQueryConverter {
 
     @Test
     public void testAccountQueryAttributesAndResource() throws Exception {
-        displayTestTitle("testAccountQueryAttributesAndResource");
-
         SearchFilterType filterType = unmarshalFilter(FILTER_ACCOUNT_ATTRIBUTES_RESOURCE_REF_FILE);
         ObjectQuery query = toObjectQuery(ShadowType.class, filterType);
         displayQuery(query);
@@ -157,14 +153,10 @@ public class TestQueryConverter {
 
         QueryType convertedQueryType = toQueryType(query);
         LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
-
-        // TODO: add some asserts
     }
 
     @Test
     public void testAccountQueryAttributesAndResourceNoNs() throws Exception {
-        displayTestTitle("testAccountQueryAttributesAndResourceNoNs");
-
         SearchFilterType filterType = unmarshalFilter(FILTER_ACCOUNT_ATTRIBUTES_RESOURCE_REF_NO_NS_FILE);
         ObjectQuery query = toObjectQuery(ShadowType.class, filterType);
         displayQuery(query);
@@ -185,8 +177,6 @@ public class TestQueryConverter {
 
         QueryType convertedQueryType = toQueryType(query);
         System.out.println(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
-
-        // TODO: add some asserts
     }
 
     @Test
@@ -223,8 +213,6 @@ public class TestQueryConverter {
 
         QueryType convertedQueryType = toQueryType(query);
         LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
-
-        // TODO: add some asserts
     }
 
     @Test
@@ -257,7 +245,6 @@ public class TestQueryConverter {
 
     @Test
     public void testTypeFilterQuery() throws Exception {
-        displayTestTitle("testConnectorQuery");
         SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
         ObjectQuery query;
         try {
@@ -275,9 +262,6 @@ public class TestQueryConverter {
             PrismPropertyDefinition ppd = getUserDefinition().findPropertyDefinition(namePath);
             PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), ppd.getItemName(), ppd.getTypeName(), namePath);
             PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), PrismTestUtil.createPolyString("some name identificator"));
-//            PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
-//                    prismContext.path(ConnectorType.F_CONNECTOR_TYPE));
-//            PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
 
             QueryType convertedQueryType = toQueryType(query);
             displayQueryType(convertedQueryType);
@@ -290,7 +274,6 @@ public class TestQueryConverter {
 
     @Test
     public void testShadowKindTypeQuery() throws Exception {
-        displayTestTitle("testShadowKindTypeQuery");
         SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
         ObjectQuery query;
         try {
@@ -324,8 +307,6 @@ public class TestQueryConverter {
         PrismReferenceValue val = (PrismReferenceValue) values.get(0);
 
         assertEquals(oid, val.getOid());
-        // TODO: maybe some more asserts for type, relation and other reference
-        // values
     }
 
     private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {
@@ -360,8 +341,6 @@ public class TestQueryConverter {
 
     @Test
     public void testGenericQuery() throws Exception {
-        displayTestTitle("testGenericQuery");
-
         SearchFilterType queryType = unmarshalFilter(FILTER_AND_GENERIC_FILE);
         ObjectQuery query = toObjectQuery(GenericObjectType.class, queryType);
 
@@ -390,8 +369,6 @@ public class TestQueryConverter {
 
     @Test
     public void testUserQuery() throws Exception {
-        displayTestTitle("testUserQuery");
-
         File[] userQueriesToTest = new File[] { new File(TEST_DIR, "filter-user-by-fullName.xml"),
                 new File(TEST_DIR, "filter-user-by-name.xml"),
                 new File(TEST_DIR, "filter-user-substring-fullName.xml"),
@@ -467,100 +444,81 @@ public class TestQueryConverter {
         checkQuery(objectClass, q2object, q1xml);
     }
 
-    private void checkQueryRoundtripFile(Class<? extends Containerable> objectClass, ObjectQuery query, String testName) throws Exception {
-        String fileName = TEST_DIR + "/" + testName + ".xml";
-        checkQueryRoundtrip(objectClass, query, FileUtils.readFileToString(new File(fileName)));
+    private void checkQueryRoundtripFile(Class<? extends Containerable> objectClass, ObjectQuery query) throws Exception {
+        String fileName = TEST_DIR + "/" + getTestNameShort() + ".xml";
+        checkQueryRoundtrip(objectClass, query,
+                FileUtils.readFileToString(new File(fileName), StandardCharsets.UTF_8));
     }
 
     @Test
     public void test100All() throws Exception {
-        final String TEST_NAME = "test100All";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class).all().build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test110None() throws Exception {
-        final String TEST_NAME = "test110None";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class).none().build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test120Undefined() throws Exception {
-        final String TEST_NAME = "test120Undefined";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class).undefined().build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test200Equal() throws Exception {
-        final String TEST_NAME = "test200Equal";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_NAME).eqPoly("some-name", "somename").matchingOrig()
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test210EqualMultiple() throws Exception {
-        final String TEST_NAME = "test210EqualMultiple";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_TYPE).eq("STD", "TEMP")
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test220EqualRightHandItem() throws Exception {
-        final String TEST_NAME = "test220EqualRightHandItem";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_NUMBER).eq().item(UserType.F_COST_CENTER)
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test300Greater() throws Exception {
-        final String TEST_NAME = "test300Greater";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_COST_CENTER).gt("100000")
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test305GreaterLesserMatchingNorm() throws Exception {
-        final String TEST_NAME = "test305GreaterLesserMatchingNorm";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_NAME).ge(new PolyString("00", "00")).matchingNorm()
                 .and().item(UserType.F_NAME).lt(new PolyString("0a", "0a")).matchingNorm()
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test305GreaterOrEqual() throws Exception {
-        final String TEST_NAME = "test305GreaterOrEqual";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_COST_CENTER).ge("100000")
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test310AllComparisons() throws Exception {
-        final String TEST_NAME = "test310AllComparisons";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_COST_CENTER).gt("100000")
                 .and().item(UserType.F_COST_CENTER).lt("999999")
@@ -568,27 +526,22 @@ public class TestQueryConverter {
                 .item(UserType.F_COST_CENTER).ge("X100")
                 .and().item(UserType.F_COST_CENTER).le("X999")
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test350Substring() throws Exception {
-        final String TEST_NAME = "test350Substring";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_TYPE).contains("A")
                 .or().item(UserType.F_EMPLOYEE_TYPE).startsWith("B")
                 .or().item(UserType.F_EMPLOYEE_TYPE).endsWith("C")
                 .or().item(UserType.F_NAME).startsWithPoly("john", "john").matchingOrig()
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test360Ref() throws Exception {
-        final String TEST_NAME = "test360Ref";
-        displayTestTitle(TEST_NAME);
-
         // we test only parsing here, as there are more serialized forms used here
         ObjectQuery q1object = getPrismContext().queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref("oid1")
@@ -598,7 +551,9 @@ public class TestQueryConverter {
                 .build();
         q1object.getFilter().checkConsistence(true);
 
-        String q2xml = FileUtils.readFileToString(new File(TEST_DIR + "/" + TEST_NAME + ".xml"));
+        String q2xml = FileUtils.readFileToString(
+                new File(TEST_DIR + "/" + getTestNameShort() + ".xml"),
+                StandardCharsets.UTF_8);
         displayQueryXml(q2xml);
         QueryType q2jaxb = toQueryType(q2xml);
         displayQueryType(q2jaxb);
@@ -616,8 +571,6 @@ public class TestQueryConverter {
 
     @Test
     public void test365RefTwoWay() throws Exception {
-        final String TEST_NAME = "test365RefTwoWay";
-        displayTestTitle(TEST_NAME);
         PrismReferenceValue reference3 = getPrismContext().itemFactory().createReferenceValue("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
         PrismReferenceValue reference4 = getPrismContext().itemFactory().createReferenceValue("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
         ObjectQuery q = getPrismContext().queryFor(ShadowType.class)
@@ -625,38 +578,29 @@ public class TestQueryConverter {
                 .or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)
                 .or().item(ShadowType.F_RESOURCE_REF).ref(reference3, reference4)
                 .build();
-        checkQueryRoundtripFile(ShadowType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(ShadowType.class, q);
     }
 
     @Test
     public void test400OrgFilterRoot() throws Exception {
-        final String TEST_NAME = "test400OrgFilterRoot";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(OrgType.class).isRoot().build();
-        checkQueryRoundtripFile(OrgType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(OrgType.class, q);
     }
 
     @Test
     public void test410OrgFilterSubtree() throws Exception {
-        final String TEST_NAME = "test410OrgFilterSubtree";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(OrgType.class).isChildOf("111").build();
-        checkQueryRoundtripFile(OrgType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(OrgType.class, q);
     }
 
     @Test
     public void test420OrgFilterDirect() throws Exception {
-        final String TEST_NAME = "test420OrgFilterDirect";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(OrgType.class).isDirectChildOf("222").build();
-        checkQueryRoundtripFile(OrgType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(OrgType.class, q);
     }
 
     @Test
     public void test430OrgFilterDefaultScope() throws Exception {
-        final String TEST_NAME = "test430OrgFilterDefaultScope";
-        displayTestTitle(TEST_NAME);
-
         // default scope is SUBTREE
         String queryXml = "<?xml version='1.0'?><query><filter><org>\n" +
                 "        <orgRef>\n" +
@@ -672,44 +616,36 @@ public class TestQueryConverter {
         assertEquals("Parsed query is wrong", expectedQuery.toString(), query.toString());            // primitive way of comparing queries
 
         // now reserialize the parsed query and compare with XML - the XML contains explicit scope=SUBTREE (as this is set when parsing original queryXml)
-        checkQueryRoundtripFile(OrgType.class, query, TEST_NAME);
+        checkQueryRoundtripFile(OrgType.class, query);
     }
 
     @Test
     public void test500InOid() throws Exception {
-        final String TEST_NAME = "test500InOid";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .id("oid1", "oid2", "oid3")
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test505InOidEmpty() throws Exception {
-        final String TEST_NAME = "test505InOidEmpty";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .id(new String[0])
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test510InOidContainer() throws Exception {
-        final String TEST_NAME = "test510InOidContainer";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .id(1, 2, 3)
                 .and().ownerId("oid4")
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test590Logicals() throws Exception {
-        final String TEST_NAME = "test590Logicals";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .block()
                     .all()
@@ -724,13 +660,11 @@ public class TestQueryConverter {
                             .and().undefined()
                         .endBlock()
                 .build();
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test595Logicals2() throws Exception {
-        final String TEST_NAME = "test595Logicals2";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).eq("A")
                 .and().item(UserType.F_DESCRIPTION).eq("B")
@@ -744,24 +678,20 @@ public class TestQueryConverter {
                     .endBlock()
                 .build();
 
-        checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(UserType.class, q);
     }
 
     @Test
     public void test600Type() throws Exception {
-        final String TEST_NAME = "test600Type";
-        displayTestTitle(TEST_NAME);
         ObjectQuery q = getPrismContext().queryFor(ObjectType.class)
                 .type(UserType.class)
                     .item(UserType.F_NAME).eqPoly("somename", "somename")
                 .build();
-        checkQueryRoundtripFile(ObjectType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(ObjectType.class, q);
     }
 
     @Test
     public void test700Exists() throws Exception {
-        final String TEST_NAME = "test700Exists";
-        displayTestTitle(TEST_NAME);
         PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
         ObjectQuery q = getPrismContext().queryFor(AccessCertificationCaseType.class)
                 .exists(new ParentPathSegment())        // if using T_PARENT then toString representation of paths is different
@@ -772,7 +702,7 @@ public class TestQueryConverter {
                 .and().exists(AccessCertificationCaseType.F_WORK_ITEM)
                     .item(AccessCertificationWorkItemType.F_STAGE_NUMBER).eq(3)
                 .build();
-        checkQueryRoundtripFile(AccessCertificationCaseType.class, q, TEST_NAME);
+        checkQueryRoundtripFile(AccessCertificationCaseType.class, q);
     }
 
     @Test
@@ -780,7 +710,7 @@ public class TestQueryConverter {
         final String TEST_NAME = "test900TypeWrong";
         String fileName = TEST_DIR + "/" + TEST_NAME + ".xml";
         try {
-            toQueryType(FileUtils.readFileToString(new File(fileName)));
+            toQueryType(FileUtils.readFileToString(new File(fileName), StandardCharsets.UTF_8));
             fail("Unexpected success!");
         } catch (SchemaException e) {
             System.out.println("Got expected exception: " + e.getMessage());
@@ -791,7 +721,8 @@ public class TestQueryConverter {
     public void test910TypeWrongCompat() throws Exception {
         final String TEST_NAME = "test900TypeWrong";
         String fileName = TEST_DIR + "/" + TEST_NAME + ".xml";
-        QueryType jaxb = toQueryTypeCompat(FileUtils.readFileToString(new File(fileName)));
+        QueryType jaxb = toQueryTypeCompat(
+                FileUtils.readFileToString(new File(fileName), StandardCharsets.UTF_8));
         displayQueryType(jaxb);
         try {
             ObjectQuery query = toObjectQuery(ObjectType.class, jaxb);
@@ -806,7 +737,6 @@ public class TestQueryConverter {
 
     @Test
     public void test920QueryTypeEquals() throws Exception {
-        final String TEST_NAME = "test920QueryTypeEquals";
         ObjectQuery query1 = getPrismContext().queryFor(ShadowType.class)
                 .id("8657eccf-c60d-4b5c-bbd4-4c73ecfd6436")
                 .and().item(ShadowType.F_RESOURCE_REF).ref("aeff994e-381a-4fb3-af3b-f0f5dcdc9653")

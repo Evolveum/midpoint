@@ -482,7 +482,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 //        DummyAccount wallyDummyAccount = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
 //
 //        /// WHEN
-//        displayWhen(TEST_NAME);
+//        when();
 //        wallyDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally Bloodnose");
 ////        wallyDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Cola");
 //
@@ -498,7 +498,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 //        waitForSyncTaskNextRun(resourceDummy);
 //
 //        // THEN
-//        displayThen(TEST_NAME);
+//        then();
 //
 //        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
 //        display("User wally", userWally);

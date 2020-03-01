@@ -178,7 +178,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      */
     protected PredefinedTestMethodTracing predefinedTestMethodTracing;
 
-    private boolean initSystemExecuted = false;
+    private volatile boolean initSystemExecuted = false;
 
     /**
      * With TestNG+Spring we can use {@code PostConstruct} for class-wide initialization.
@@ -249,7 +249,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
         String testMethodName = testResult.getMethod().getMethodName();
 
-        TestUtil.displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
+        displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
 
         Task task = createTask(testMethodName);
         // TODO inttest do we need that subresult? :-) (Virgo's brave new world)
@@ -267,6 +267,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
 //        task.setResult(result);
 
         MidpointTestMethodContext.create(testClass, testMethodName, task, task.getResult());
+        // TODO inttest: remove after fix in TracerImpl
+        TestNameHolder.setCurrentTestName(contextName());
     }
 
     /**
@@ -332,10 +334,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         return MidpointTestMethodContext.get().getTask();
     }
 
-    public String getTestNameShort() {
-        return MidpointTestMethodContext.get().getTestNameShort();
-    }
-
     /**
      * Creates new {@link Task} with operation name prefixed with {@link #contextName()}.
      * For most tests this should be unnecessary and the default test-method-scoped task
@@ -345,6 +343,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      */
     protected Task createPlainTask(String operationName) {
         return taskManager.createTaskInstance(contextName() + "." + operationName);
+    }
+
+    /**
+     * Creates new {@link Task} with {@link #contextName()} as root operation name.
+     */
+    protected Task createPlainTask() {
+        return taskManager.createTaskInstance(contextName());
     }
 
     /**
@@ -365,21 +370,28 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         // nothing by default
     }
 
-    /**
-     * Context name is "class-simple-name.method" if test method context is available,
-     * otherwise it is just simple name of the test class.
-     */
     @NotNull
-    protected String contextName() {
+    public String contextName() {
         MidpointTestMethodContext context = MidpointTestMethodContext.get();
         return context != null ? context.getTestName() : getClass().getSimpleName();
+    }
+
+    public String getTestNameShort() {
+        return MidpointTestMethodContext.get().getTestNameShort();
     }
 
     /**
      * Creates new subresult for default pre-created test-method-scoped {@link Task}.
      */
     protected OperationResult createSubresult(String subresultSuffix) {
-        return getResult().createSubresult(getTestNameShort() + "." + subresultSuffix);
+        return getTestResult().createSubresult(getTestNameShort() + "." + subresultSuffix);
+    }
+
+    /**
+     * Creates new {@link OperationResult} with name equal to {@link #contextName()}.
+     */
+    protected OperationResult createResult() {
+        return new OperationResult(contextName());
     }
 
     /**
@@ -387,7 +399,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * This result can be freely used in test for some "main scope", it is not asserted in any
      * after method, only displayed.
      */
-    protected OperationResult getResult() {
+    protected OperationResult getTestResult() {
         return MidpointTestMethodContext.get().getResult();
     }
 
@@ -2485,8 +2497,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         assertEquals("Unexpected user friendly exception fallback message", expectedMessage, userFriendlyMessage.getFallbackMessage());
     }
 
-    protected ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
-        return TestUtil.multithread(TEST_NAME, lambda, numberOfThreads, randomStartDelayRange);
+    protected ParallelTestThread[] multithread(MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
+        return TestUtil.multithread(lambda, numberOfThreads, randomStartDelayRange);
     }
 
     protected void randomDelay(Integer range) {

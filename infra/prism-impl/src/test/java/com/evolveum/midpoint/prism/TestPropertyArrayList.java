@@ -43,9 +43,6 @@ public class TestPropertyArrayList {
 
     @Test
     public void testPrismParseDom() throws Exception {
-        final String TEST_NAME = "testPrismParseDom";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         Document document = DOMUtil.parseFile(getFile(USER_JACK_FILE_BASENAME));
         Element userElement = DOMUtil.getFirstChildElement(document);

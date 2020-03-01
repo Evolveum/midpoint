@@ -35,8 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.testing.story.CountingInspector;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -90,8 +88,6 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
     protected static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
     protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractNotoriousTest.class);
-
     protected CountingInspector inspector;
 
     protected abstract String getNotoriousOid();
@@ -138,7 +134,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
             .roleType(ROLE_LEVEL_B_ROLETYPE);
     }
 
-    protected void fillNotorious(AbstractRoleType roleType) throws Exception {
+    protected void fillNotorious(AbstractRoleType roleType) {
         for(int i=0; i < NUMBER_OF_LEVEL_B_ROLES; i++) {
             roleType.beginInducement()
                 .targetRef(generateRoleBOid(i), RoleType.COMPLEX_TYPE)
@@ -161,8 +157,6 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + getNumberOfExtraRoles());
         assertObjects(OrgType.class, getNumberOfExtraOrgs());
 
