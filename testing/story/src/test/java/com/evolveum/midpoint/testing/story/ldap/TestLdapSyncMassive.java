@@ -104,7 +104,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -119,7 +119,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -278,8 +277,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test200SyncAddKraken() throws Exception {
-        final String TEST_NAME = "test200SyncAddKraken";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -393,7 +390,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         when(TEST_NAME);
 
         for (PrismObject<UserType> user : users) {
-            reconcile(TEST_NAME, user);
+            reconcile(user);
         }
 
         // THEN
@@ -420,7 +417,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
                 (threadIndex) -> {
                     for (int i = segmentSize * threadIndex; i < segmentSize * threadIndex + segmentSize; i++) {
                         PrismObject<UserType> user = users.get(i);
-                        reconcile(TEST_NAME, user);
+                        reconcile(user);
                     }
 
                 }, NUMBER_OF_TEST_THREADS, TEST_THREADS_RANDOM_START_RANGE);
@@ -434,7 +431,10 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         assertLdapConnectorInstances(1, NUMBER_OF_TEST_THREADS);
     }
 
-    private void reconcile(final String TEST_NAME, PrismObject<UserType> user) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private void reconcile(PrismObject<UserType> user)
+            throws SchemaException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            PolicyViolationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         user.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -503,13 +503,8 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     }
 
     private boolean isWithinTolerance(int baseline, int currentCount, int tolerance) {
-        if (currentCount > baseline + tolerance) {
-            return false;
-        }
-        if (currentCount < baseline - tolerance) {
-            return false;
-        }
-        return true;
+        return currentCount <= baseline + tolerance
+                && currentCount >= baseline - tolerance;
     }
 
     private void assertSyncTokenIncrement(int expectedIncrement) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
