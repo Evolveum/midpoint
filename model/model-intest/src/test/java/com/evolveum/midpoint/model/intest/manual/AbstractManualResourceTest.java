@@ -2320,7 +2320,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
     }
 
-    protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
+    protected void cleanupUser(String userOid, String username, String accountOid) throws Exception {
         // nothing to do here
     }
 

@@ -24,8 +24,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
@@ -42,8 +40,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualDisable extends TestSemiManual {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualDisable.class);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -150,9 +146,8 @@ public class TestSemiManualDisable extends TestSemiManual {
     }
 
     @Override
-    protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
-
-        Task task = getTestTask();
+    protected void cleanupUser(String userOid, String username, String accountOid) throws Exception {
+        Task task = createTask("cleanupUser");
         OperationResult result = task.getResult();
 
         backingStore.deleteAccount(username);
@@ -175,7 +170,6 @@ public class TestSemiManualDisable extends TestSemiManual {
     @Test
     @Override
     public void test416PhoenixAccountUnassignCloseCase() throws Exception {
-        final String TEST_NAME = "test416PhoenixAccountUnassignCloseCase";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -183,22 +177,22 @@ public class TestSemiManualDisable extends TestSemiManual {
         closeCase(phoenixLastCaseOid);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_PHOENIX_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);
@@ -220,28 +214,27 @@ public class TestSemiManualDisable extends TestSemiManual {
     @Test
     @Override
     public void test418AssignPhoenixAccountAgain() throws Exception {
-        final String TEST_NAME = "test418AssignPhoenixAccountAgain";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         phoenixLastCaseOid = assertInProgress(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);
@@ -296,9 +289,6 @@ public class TestSemiManualDisable extends TestSemiManual {
     protected void assertTest528Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
         assertPendingOperationDeltas(shadowRepo, 3);
 
-        ObjectDeltaType deltaModify = null;
-        ObjectDeltaType deltaAdd = null;
-        ObjectDeltaType deltaDelete = null;
         for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
             assertEquals("Wrong status in pending delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
         }

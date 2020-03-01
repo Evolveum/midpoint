@@ -318,7 +318,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     public void test719CleanUp() throws Exception {
         final String TEST_NAME = "test719CleanUp";
 
-        cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
+        cleanupUser(USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
     }
 
     @Override

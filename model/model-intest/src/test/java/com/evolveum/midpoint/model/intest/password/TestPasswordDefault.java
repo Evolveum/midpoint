@@ -52,10 +52,8 @@ public class TestPasswordDefault extends AbstractPasswordTest {
      */
     @Test
     public void test202ReconcileUserJack() throws Exception {
-        final String TEST_NAME = "test202ReconcileUserJack";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -63,11 +61,11 @@ public class TestPasswordDefault extends AbstractPasswordTest {
         assertLinks(userBefore, 4);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

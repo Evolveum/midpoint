@@ -941,7 +941,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test349CleanUp() throws Exception {
         final String TEST_NAME = "test349CleanUp";
 
-        cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+        cleanupUser(userWillOid, USER_WILL_NAME, accountWillOid);
     }
 
 //    TODO: test400: create -> modify -> propagation

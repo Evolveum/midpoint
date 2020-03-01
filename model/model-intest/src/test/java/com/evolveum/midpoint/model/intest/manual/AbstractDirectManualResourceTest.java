@@ -31,8 +31,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -100,11 +98,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
     protected static final File ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE = new File(TEST_DIR, "role-two-semi-manual-disable-slow-proposed.xml");
     protected static final String ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID = "5ecd6fa6-a200-11e7-b0cb-af5e1792d327";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractDirectManualResourceTest.class);
-
     private XMLGregorianCalendar roleTwoValidFromTimestamp;
-
-    protected String accountBarbossaOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1448,12 +1442,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test349CleanUp() throws Exception {
-        final String TEST_NAME = "test349CleanUp";
-
-        cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+        cleanupUser(userWillOid, USER_WILL_NAME, accountWillOid);
     }
 
-    protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
+    protected void cleanupUser(String userOid, String username, String accountOid) throws Exception {
         // nothing to do here
     }
 
@@ -1816,11 +1808,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test519CleanUp() throws Exception {
-        final String TEST_NAME = "test519CleanUp";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+        cleanupUser(userWillOid, USER_WILL_NAME, accountWillOid);
 
         // Make sure that all pending operations are expired
         clockForward("PT1H");
@@ -2102,11 +2093,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test529CleanUp() throws Exception {
-        final String TEST_NAME = "test529CleanUp";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+        cleanupUser(userWillOid, USER_WILL_NAME, accountWillOid);
 
         // Make sure that all pending operations are expired
         clockForward("PT3H");

@@ -65,10 +65,8 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
      */
     @Test
     public void test202ReconcileUserJack() throws Exception {
-        final String TEST_NAME = "test202ReconcileUserJack";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -124,7 +122,6 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     protected void assertAccountActivationNotification(String dummyResourceName, String username) {
         checkDummyTransportMessages(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 1);
         String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 0);
-        //String expectedPrefix = getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username);
         if (!body.contains("activat")) {
             fail("Activation not mentioned in "+dummyResourceName+" dummy account activation notification message : "+body);
         }
@@ -143,20 +140,18 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Test
     @Override
     public void test345AssignMonkeyAccountBlue() throws Exception {
-        final String TEST_NAME = "test345AssignMonkeyAccountBlue";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -168,7 +163,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 
         // CLEANUP
-        displayCleanup(TEST_NAME);
+        displayCleanup(contextName());
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
@@ -191,20 +186,18 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Test
     @Override
     public void test347AssignMonkeyAccountYellow() throws Exception {
-        final String TEST_NAME = "test347AssignMonkeyYellow";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -217,7 +210,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 
         // CLEANUP
-        displayCleanup(TEST_NAME);
+        displayCleanup(contextName());
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
@@ -241,20 +234,18 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Test
     @Override
     public void test966AssignMonkeyAccountYellow() throws Exception {
-        final String TEST_NAME = "test966AssignMonkeyAccountYellow";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
