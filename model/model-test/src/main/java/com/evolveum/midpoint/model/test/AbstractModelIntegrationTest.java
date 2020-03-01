@@ -4741,6 +4741,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return task;
     }
 
+    protected Task createTask(MidPointPrincipal principal) {
+        Task task = createPlainTask();
+        task.setOwner(principal.getFocus().asPrismObject());
+        task.setChannel(DEFAULT_CHANNEL);
+        return task;
+    }
+
     protected void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         Task task = createTask("modifyRoleAddConstruction");
         OperationResult result = task.getResult();
