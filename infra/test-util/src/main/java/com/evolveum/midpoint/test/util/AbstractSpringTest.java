@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.test.util;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.evolveum.midpoint.tools.testng.UnitTestMixin;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -33,7 +35,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     public void startTestContext(ITestResult testResult) {
         Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
         String testMethodName = testResult.getMethod().getMethodName();
-        TestUtil.displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
+        displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
 
         TEST_CONTEXT_THREAD_LOCAL.set(testResult);
     }
@@ -43,6 +45,19 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         TEST_CONTEXT_THREAD_LOCAL.remove();
 
         displayDefaultTestFooter(testResult);
+    }
+
+    @Override
+    public Trace logger() {
+        return logger;
+    }
+
+    @NotNull
+    public String contextName() {
+        ITestResult context = TEST_CONTEXT_THREAD_LOCAL.get();
+        return context != null
+                ? getClass().getSimpleName() + "." + context.getMethod().getMethodName()
+                : getClass().getSimpleName();
     }
 
     @Override

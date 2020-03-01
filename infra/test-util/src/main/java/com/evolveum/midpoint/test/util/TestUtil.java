@@ -44,7 +44,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.TestNameHolder;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -62,12 +61,6 @@ public class TestUtil {
 
     public static final int MAX_EXCEPTION_MESSAGE_LENGTH = 500;
 
-    public static final String TEST_LOG_PREFIX = "=====[ ";
-    public static final String TEST_LOG_SUFFIX = " ]======================================";
-    public static final String TEST_OUT_PREFIX = "\n\n=====[ ";
-    public static final String TEST_OUT_SUFFIX = " ]======================================\n";
-    public static final String TEST_OUT_FOOTER_PREFIX = "====== ";
-    public static final String TEST_OUT_FOOTER_SUFFIX = "\n";
     public static final String TEST_OUT_SECTION_PREFIX = "\n\n----- ";
     public static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
     public static final String TEST_LOG_SECTION_PREFIX = "----- ";
@@ -159,49 +152,6 @@ public class TestUtil {
         assert !e.getMessage().isEmpty() : "Empty exception message";
         assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("
                 + e.getMessage().length() + " characters): " + e.getMessage();
-    }
-
-    public static void displayTestTitle(String testName) {
-        System.out.println(TEST_OUT_PREFIX + testName + TEST_OUT_SUFFIX);
-        LOGGER.info(TEST_LOG_PREFIX + testName + TEST_LOG_SUFFIX);
-        TestNameHolder.setCurrentTestName(testName);
-    }
-
-    public static void displayTestTitle(Object testCase, String testName) {
-        String qualifiedTestName = testCase.getClass().getSimpleName() + "." + testName;
-        System.out.println(TEST_OUT_PREFIX + qualifiedTestName + TEST_OUT_SUFFIX);
-        LOGGER.info(TEST_LOG_PREFIX + qualifiedTestName + TEST_LOG_SUFFIX);
-        TestNameHolder.setCurrentTestName(qualifiedTestName);
-    }
-
-    public static void displayFooter(String footerText) {
-        System.out.println(TEST_OUT_FOOTER_PREFIX + footerText + TEST_OUT_FOOTER_SUFFIX);
-        LOGGER.info(TEST_LOG_PREFIX + footerText + TEST_LOG_SUFFIX);
-    }
-
-    @Deprecated // use version with separate testName and description
-    public static void displayWhen(String what) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + what + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + what + TEST_LOG_SECTION_SUFFIX);
-    }
-
-    public static void displayWhen(String testName, String description) {
-        if (description == null) {
-            description = "";
-        }
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": WHEN " + description + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + testName + ": WHEN " + description + TEST_LOG_SECTION_SUFFIX);
-    }
-
-    @Deprecated // use version with separate testName and description
-    public static void displayThen(String testName) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
-    }
-
-    public static void displayThen(String testName, String part) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": THEN " + part + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + testName + ": THEN " + part + TEST_LOG_SECTION_SUFFIX);
     }
 
     public static void displayCleanup(String testName) {
@@ -662,7 +612,8 @@ public class TestUtil {
         assertFalse(permissions.contains(permission), f.getPath() + ": unexpected permission " + permission);
     }
 
-    public static ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
+    public static ParallelTestThread[] multithread(
+            MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
         ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
         System.out.println("Going to create " + numberOfThreads + " threads...");
         for (int i = 0; i < numberOfThreads; i++) {

@@ -18,7 +18,7 @@
     <artifactId>test-util</artifactId>
     <packaging>jar</packaging>
 
-    <name>midPoint Infrastructure - testing mock utils</name>
+    <name>midPoint Infrastructure - testing utils (lvl 2)</name>
 
     <repositories>
         <repository>
@@ -105,8 +105,10 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.qpid</groupId>
