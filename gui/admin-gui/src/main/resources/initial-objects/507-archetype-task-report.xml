@@ -23,11 +23,11 @@
             <visibility>vacant</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/mext:reportParam</path>
+            <path>extension/rext:reportParam</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/mext:reportOutputOid</path>
+            <path>extension/rext:reportOutputOid</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
