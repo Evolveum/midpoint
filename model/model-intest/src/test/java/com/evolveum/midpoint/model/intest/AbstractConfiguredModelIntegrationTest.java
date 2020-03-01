@@ -37,8 +37,6 @@ import org.testng.AssertJUnit;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -48,7 +46,6 @@ import javax.xml.namespace.QName;
 
 /**
  * @author semancik
- *
  */
 public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegrationTest {
 
@@ -611,47 +608,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     protected PrismObject<UserType> getDefaultActor() {
         return userAdministrator;
-    }
-
-    // TODO inttest: let's try it without this after 6 years
-//    @AfterClass(alwaysRun = true)
-    public void clearClassFields() throws Exception {
-        logger.trace("Clearing all fields for test class {}", getClass().getName());
-        nullAllFields(this, getClass());
-    }
-
-    /**
-     * This method null all fields which are not static, final or primitive type.
-     *
-     * All this is just to make GC work during DirtiesContext after every test class,
-     * because memory consumption is too big. Test class instances can't be GCed
-     * immediately. If they holds autowired fields like sessionFactory (for example
-     * through SqlRepositoryService impl), their memory footprint is getting big.
-     */
-    public void nullAllFields(Object object, Class<?> forClass) throws Exception {
-        if (forClass.getSuperclass() != null) {
-            nullAllFields(object, forClass.getSuperclass());
-        }
-
-        for (Field field : forClass.getDeclaredFields()) {
-            if (Modifier.isFinal(field.getModifiers())
-                    || Modifier.isStatic(field.getModifiers())
-                    || field.getType().isPrimitive()) {
-                continue;
-            }
-
-            nullField(object, field);
-        }
-    }
-
-    private void nullField(Object obj, Field field) throws Exception {
-        logger.info("Setting {} to null on {}.", new Object[]{field.getName(), obj.getClass().getSimpleName()});
-        boolean accessible = field.isAccessible();
-        if (!accessible) {
-            field.setAccessible(true);
-        }
-        field.set(obj, null);
-        field.setAccessible(accessible);
     }
 
     protected PrismSchema getPiracySchema() {
