@@ -203,7 +203,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected boolean verbose = false;
 
     public AbstractModelIntegrationTest() {
-        super();
+        dummyAuditService = DummyAuditService.getInstance();
     }
 
     @Override
@@ -211,7 +211,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         logger.trace("initSystem");
         dummyResourceCollection = new DummyResourceCollection(modelService);
         startResources();
-        dummyAuditService = DummyAuditService.getInstance();
         InternalsConfig.reset();
         InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
         // Make sure the checks are turned on
