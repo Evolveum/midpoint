@@ -4742,7 +4742,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createPlainTask("modifyRoleAddConstruction");
+        Task task = createTask("modifyRoleAddConstruction");
         OperationResult result = task.getResult();
         ConstructionType construction = new ConstructionType();
         ObjectReferenceType resourceRedRef = new ObjectReferenceType();
@@ -4897,7 +4897,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected AssignmentType findInducementByTarget(String roleOid, String targetOid)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createPlainTask("findInducementByTarget");
+        Task task = createTask("findInducementByTarget");
         OperationResult result = task.getResult();
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, roleOid, null, task, result);
         for (AssignmentType inducement : role.asObjectable().getInducement()) {
@@ -4911,7 +4911,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void modifyRoleDeleteInducementTarget(String roleOid, String targetOid,
             ModelExecuteOptions options) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = createPlainTask("modifyRoleDeleteInducementTarget");
+        Task task = createTask("modifyRoleDeleteInducementTarget");
         OperationResult result = task.getResult();
         AssignmentType inducement = findInducementByTarget(roleOid, targetOid);
         ObjectDelta<RoleType> roleDelta =
@@ -5137,7 +5137,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String userOid, String targetRoleOid, ItemPath... expectedAllowedItemPaths)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createPlainTask("assertAllowRequestAssignmentItems");
+        Task task = createTask("assertAllowRequestAssignmentItems");
         OperationResult result = task.getResult();
         assertAllowRequestAssignmentItems(userOid, targetRoleOid, task, result, expectedAllowedItemPaths);
         assertSuccess(result);
@@ -5226,7 +5226,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void reconcileUser(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    protected void reconcileUser(String oid, Task task, OperationResult result)
+            throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         reconcileUser(oid, null, task, result);
     }
 
@@ -5272,7 +5275,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected List<AuditEventRecord> getObjectAuditRecords(String oid)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Task task = createPlainTask("getObjectAuditRecords");
+        Task task = createTask("getObjectAuditRecords");
         OperationResult result = task.getResult();
         Map<String, Object> params = new HashMap<>();
         params.put("targetOid", oid);
@@ -5347,7 +5350,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     // just guessing (good enough for testing)
     protected boolean isH2() {
-        Task task = createPlainTask("isH2");
+        Task task = createTask("isH2");
         RepositoryDiag diag = modelDiagnosticService.getRepositoryDiag(task, task.getResult());
         return diag.isEmbedded() || "org.h2.Driver".equals(diag.getDriverShortName());
     }
@@ -5521,7 +5524,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             PrismObject<UserType> user, String passwordPolicyOid)
             throws EncryptionException, ObjectNotFoundException, ExpressionEvaluationException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createPlainTask("assertPasswordCompliesWithPolicy");
+        Task task = createTask("assertPasswordCompliesWithPolicy");
         OperationResult result = task.getResult();
         assertPasswordCompliesWithPolicy(user, passwordPolicyOid, task, result);
         assertSuccess(result);
@@ -5590,7 +5593,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return task -> {
             try {
                 if (lastTimeShown.get() + period < System.currentTimeMillis()) {
-                    // TODO inttest: task. is missing in master, is it good?
+                    // TODO inttest: task. (for result) is missing in master, is it good?
                     dumpTaskTree(task.getOid(), task.getResult());
                     lastTimeShown.set(System.currentTimeMillis());
                 }
