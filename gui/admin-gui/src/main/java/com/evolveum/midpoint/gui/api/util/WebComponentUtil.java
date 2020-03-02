@@ -647,6 +647,48 @@ public final class WebComponentUtil {
         return task;
     }
 
+    public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
+        return pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())
+                && (isRunnableTask(task) || isRunningTask(task))
+                && !isWorkflowTask(task);
+    }
+
+    public static boolean canResumeTask(TaskType task, PageBase pageBase) {
+        return pageBase.isAuthorized(ModelAuthorizationAction.RESUME_TASK, task.asPrismObject())
+                && (isSuspendedTask(task) || (isClosedTask(task) && isRecurringTask(task)))
+                && !isWorkflowTask(task);
+    }
+
+    public static boolean canRunNowTask(TaskType task, PageBase pageBase) {
+        return pageBase.isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, task.asPrismObject())
+                && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)))
+                && !isWorkflowTask(task);
+    }
+
+    public static boolean isRunnableTask(TaskType task) {
+        return task != null && TaskExecutionStatusType.RUNNABLE == task.getExecutionStatus();
+    }
+
+    public static boolean isRunningTask(TaskType task) {
+        return task != null && task.getNodeAsObserved() != null;
+    }
+
+    public static boolean isSuspendedTask(TaskType task) {
+        return task != null && TaskExecutionStatusType.SUSPENDED == task.getExecutionStatus();
+    }
+
+    public static boolean isClosedTask(TaskType task) {
+        return task != null && TaskExecutionStatusType.CLOSED == task.getExecutionStatus();
+    }
+
+    public static boolean isRecurringTask(TaskType task) {
+        return task != null && TaskRecurrenceType.RECURRING == task.getRecurrence();
+    }
+
+    public static boolean isWorkflowTask(TaskType task) {
+        return task != null && TaskCategory.WORKFLOW.equals(task.getCategory());
+    }
+
     public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result )
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException{
