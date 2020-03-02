@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -56,7 +57,12 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test001testAddNewRole() throws Exception {
+    public void test001testPageRole() {
+        renderPage(PageRole.class);
+    }
+
+    @Test
+    public void test002testAddNewRole() throws Exception {
         renderPage(PageRole.class);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
@@ -74,7 +80,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
      * MID-6092
      */
     @Test
-    public void test002testMembers() throws Exception {
+    public void test003testMembers() throws Exception {
         // GIVEN
         PrismObject<RoleType> role1 = createObject(RoleType.class, "Role0001");
         PrismObject<RoleType> role2 = createObject(RoleType.class, "Role0002");
