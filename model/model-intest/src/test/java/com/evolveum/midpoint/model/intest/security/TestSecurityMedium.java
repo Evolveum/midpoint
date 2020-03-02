@@ -54,12 +54,11 @@ public class TestSecurityMedium extends AbstractSecurityTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(RoleType.class, null, getNumberOfRoles());
 
@@ -79,14 +78,13 @@ public class TestSecurityMedium extends AbstractSecurityTest {
     @Test
     public void test100AutzEmployeeManager() throws Exception {
         final String TEST_NAME = "test100AutzEmployeeManager";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_MANAGER_OID);
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -110,14 +108,13 @@ public class TestSecurityMedium extends AbstractSecurityTest {
     @Test
     public void test102AutzEmployeeManagerAddEmployee() throws Exception {
         final String TEST_NAME = "test102AutzEmployeeManagerAddEmployee";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_MANAGER_OID);
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAddAllow(USER_EMPLOYEE_FRED_FILE);
 

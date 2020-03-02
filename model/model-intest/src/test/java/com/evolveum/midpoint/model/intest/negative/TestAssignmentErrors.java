@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -105,8 +104,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test010RefinedSchemaWhite() throws Exception {
-        final String TEST_NAME = "test010RefinedSchemaWhite";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -166,10 +163,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test100UserJackAssignBlankAccount() throws Exception {
         final String TEST_NAME = "test100UserJackAssignBlankAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -209,10 +205,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
         final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -223,12 +218,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userCharles);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         //we do not expect this to throw an exception. instead the fatal error in the result is excpected
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertFailure(result);
 
         // Even though the operation failed the addition of a user should be successful. Let's check if user was really added.
@@ -252,10 +247,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test200UserLemonheadAssignAccountBrokenNetwork() throws Exception {
         final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -271,12 +265,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // not expected that it fails, instead the error in the result is expected
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display(result);
         // account cannot be updated due to a network error. The operation was postponed, therefore
         // it is "in progress".
@@ -331,10 +325,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
         final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -358,14 +351,14 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             //not expected that it fails, instead the error in the result is expected
             modelService.executeChanges(deltas, null, task, result);
 
             assertNotReached();
         } catch (GenericConnectorException e) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
         assertFailure(result);
@@ -401,10 +394,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test212UserSharptoothAssignAccountRecovery() throws Exception {
         final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -412,11 +404,11 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userSharptoothOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -475,10 +467,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 //    }
 
     public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -486,11 +477,11 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserChangePassword(userSharptoothOid, newPassword, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertStatus(result, expectedResultStatus);
 
@@ -513,13 +504,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test220UserAssignAccountDeletedShadowRecomputeSync() throws Exception {
         final String TEST_NAME = "test220UserAssignAccountDeletedShadowRecomputeSync";
-        displayTestTitle(TEST_NAME);
 
         //GIVEN
         PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
                 USER_AFET_NAME, USER_AFET_FULLNAME);
         String shadowOidBefore = getSingleLinkOid(user);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -541,7 +531,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // ... and again ...
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
         // WHEN
@@ -571,7 +561,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
         final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID,
@@ -625,14 +614,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test224UserAssignAccountDeletedShadowRecomputeReducedSync() throws Exception {
         final String TEST_NAME = "test224UserAssignAccountDeletedShadowRecomputeReducedSync";
-        displayTestTitle(TEST_NAME);
 
         //GIVEN
         PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME,
                 RESOURCE_DUMMY_YELLOW_OID, RESOURCE_DUMMY_YELLOW_NAME,
                 USER_CFET_NAME, USER_CFET_FULLNAME);
         String shadowOidBefore = getSingleLinkOid(user);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -654,7 +642,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // ... and again ...
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
         // WHEN
@@ -678,7 +666,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
             String dummyResourceName, String userName, String userFullName) throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         getDummyResource().resetBreakMode();

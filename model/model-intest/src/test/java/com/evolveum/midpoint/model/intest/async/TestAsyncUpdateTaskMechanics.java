@@ -70,11 +70,6 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     }
 
     @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
-    @Override
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
     }
@@ -86,23 +81,23 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
 
     @Test
     public void test000Sanity() throws ObjectNotFoundException {
-        Task task = getTask();
+        Task task = getTestTask();
         assertSuccess(modelService.testResource(RESOURCE_HR.oid, task));
     }
 
     @Test
     public void test100SmallTaskNoWorkers() throws IOException, TimeoutException, CommonException {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         int usersBefore = getObjectCount(UserType.class);
 
         prepareMessages(CHANGE_USER_ADD_FILE, "100-", 10, true);
 
-        displayWhen();
+        when();
         importObjectFromFile(TASK_ASYNC_UPDATE_HR_NO_WORKERS.file, result);
 
-        displayThen();
+        then();
         waitForTaskFinish(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid, false, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid);
@@ -117,17 +112,17 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
 
     @Test
     public void test110SmallTaskOneWorker() throws IOException, TimeoutException, CommonException {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         int usersBefore = getObjectCount(UserType.class);
 
         prepareMessages(CHANGE_USER_ADD_FILE, "110-", 10, true);
 
-        displayWhen();
+        when();
         importObjectFromFile(TASK_ASYNC_UPDATE_HR_ONE_WORKER.file, result);
 
-        displayThen();
+        then();
         waitForTaskFinish(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid, false, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid);

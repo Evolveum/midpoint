@@ -10,53 +10,34 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
- *
  */
-public class TestParseMisc {
+public class TestParseMisc extends AbstractSchemaTest {
 
     public static final File TEST_DIR = new File("src/test/resources/misc");
 
     protected static final File ROLE_FILTERS_FILE = new File(TEST_DIR, "role-filters.xml");
     protected static final String ROLE_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-        SchemaDebugUtil.initialize(); // Make sure the pretty printer is activated
-    }
-
-
     @Test
     public void testParseRoleFilters() throws Exception {
-        System.out.println("\n\n===[ testParseRoleFilters ]===\n");
-
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -85,9 +66,8 @@ public class TestParseMisc {
         assertEquals("Wrong number of inducements", 2, inducements.size());
     }
 
-
-    private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-            int maxOccurs) {
+    private void assertPropertyDefinition(PrismContainer<?> container,
+            String propName, QName xsdType, int minOccurs, int maxOccurs) {
         QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
         PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
     }
@@ -96,11 +76,4 @@ public class TestParseMisc {
         ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
         PrismAsserts.assertPropertyValue(container, propQName, propValue);
     }
-
-    public static <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
-        ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
-        PrismAsserts.assertPropertyValue(container, propQName, expectedValues);
-    }
-
-
 }

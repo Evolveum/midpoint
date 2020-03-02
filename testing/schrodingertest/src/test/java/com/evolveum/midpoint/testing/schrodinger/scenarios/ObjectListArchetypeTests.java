@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -19,9 +19,7 @@ import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
-import java.io.IOException;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -46,7 +44,7 @@ public class ObjectListArchetypeTests extends TestBase {
     public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "bjectListArchetypeTests";
 
     @Test(priority = 0, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
-    public void importEmployeeArchetype() throws IOException, ConfigurationException {
+    public void importEmployeeArchetype() {
         importObject(EMPLOYEE_ARCHETYPE_FILE, true);
     }
 
@@ -109,7 +107,7 @@ public class ObjectListArchetypeTests extends TestBase {
     public void actualizeArchetypeConfiguration() {
         basicPage.loggedUser().logout();
         midPoint.formLogin()
-                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
+                .loginWithReloadLoginPage(getUsername(), getPassword());
 
         //check archetype pluralLabel
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);

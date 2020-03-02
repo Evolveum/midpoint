@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import javax.xml.namespace.QName;
@@ -19,15 +21,15 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author semancik
- *
  */
-public class TestPerformance {
+public class TestPerformance extends AbstractPrismTest {
 
-    private static final int ITERATIONS = 10000;
+    private static final int ITERATIONS = 10_000;
 
+    private static final double NANOS_TO_MILLIS_DOUBLE = 1_000_000d;
 
     @BeforeSuite
-    public void setupDebug() {
+    public void initPrismContext() {
         PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
     }
 
@@ -37,12 +39,9 @@ public class TestPerformance {
      */
     @Test
     public void testPerfContainerNewValue() throws Exception {
-        final String TEST_NAME = "testPerfContainerNewValue";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
-        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO, "user"));
         PrismObject<UserType> user = userDefinition.instantiate();
         PrismContainer<AssignmentType> assignmentContainer = user.findOrCreateContainer(UserType.F_ASSIGNMENT);
         PerfRecorder recorderCreateNewValue = new PerfRecorder("createNewValue");
@@ -50,7 +49,7 @@ public class TestPerformance {
         PerfRecorder recorderSetRealValue = new PerfRecorder("setRealValue");
 
         // WHEN
-        for (int i=0; i < ITERATIONS; i++) {
+        for (int i = 0; i < ITERATIONS; i++) {
             long tsStart = System.nanoTime();
 
             PrismContainerValue<AssignmentType> newValue = assignmentContainer.createNewValue();
@@ -61,15 +60,15 @@ public class TestPerformance {
 
             long ts2 = System.nanoTime();
 
-            descriptionProperty.setRealValue("ass "+i);
+            descriptionProperty.setRealValue("ass " + i);
 
             long tsEnd = System.nanoTime();
 
-            recorderCreateNewValue.record(i, ((double)(ts1 - tsStart))/1000000);
-            recorderFindOrCreateProperty.record(i, ((double)(ts2 - ts1))/1000000);
-            recorderSetRealValue.record(i, ((double)(tsEnd - ts2))/1000000);
+            recorderCreateNewValue.record(i, (ts1 - tsStart) / NANOS_TO_MILLIS_DOUBLE);
+            recorderFindOrCreateProperty.record(i, (ts2 - ts1) / NANOS_TO_MILLIS_DOUBLE);
+            recorderSetRealValue.record(i, (tsEnd - ts2) / NANOS_TO_MILLIS_DOUBLE);
 
-            System.out.println("Run "+i+": total "+(((double)(tsEnd - tsStart))/1000000)+"ms");
+            System.out.println("Run " + i + ": total " + ((tsEnd - tsStart) / NANOS_TO_MILLIS_DOUBLE) + "ms");
         }
 
         // THEN
@@ -79,14 +78,11 @@ public class TestPerformance {
 
         // Do not assert maximum here. The maximum values may jump around
         // quite wildly (e.g. because of garbage collector runs?)
-        recorderCreateNewValue.assertAverageBelow(0.05D);
+        recorderCreateNewValue.assertAverageBelow(0.05d);
+        recorderFindOrCreateProperty.assertAverageBelow(0.1d);
+        recorderCreateNewValue.assertAverageBelow(0.05d);
 
-        recorderFindOrCreateProperty.assertAverageBelow(0.1D);
-
-        recorderCreateNewValue.assertAverageBelow(0.05D);
-
-        System.out.println("User:");
-        System.out.println(user.debugDump());
+        assertThat(assignmentContainer.size()).isEqualTo(ITERATIONS);
+        // we skip the 20k-line dump, it's heavy on some (*cough*Windows) consoles and crashes JVM
     }
-
 }

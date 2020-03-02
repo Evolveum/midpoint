@@ -28,17 +28,17 @@ public class MidpointResponse extends Response {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointResponse.class);
 
-    private String servletPath;
+    private String contextPath;
     private SystemObjectCache systemObjectCache;
 
     public MidpointResponse(String servletPath, SystemObjectCache systemObjectCache) {
         this(OutputBuffer.DEFAULT_BUFFER_SIZE, servletPath, systemObjectCache);
     }
 
-    public MidpointResponse(int outputBufferSize, String servletPath, SystemObjectCache systemObjectCache) {
+    public MidpointResponse(int outputBufferSize, String contextPath, SystemObjectCache systemObjectCache) {
         super(outputBufferSize);
 
-        this.servletPath = servletPath;
+        this.contextPath = contextPath;
         this.systemObjectCache = systemObjectCache;
     }
 
@@ -49,15 +49,17 @@ public class MidpointResponse extends Response {
             if (publicUrlPrefix != null && StringUtils.isNotBlank(value)) {
                 if (value.startsWith(".")) {
                     value = publicUrlPrefix + value.substring(1);
-                } else if (StringUtils.isBlank(servletPath)) {
+                } else if (StringUtils.isBlank(contextPath)) {
                     if (value.startsWith("/")) {
                         value = publicUrlPrefix + value;
                     } else {
                         String partAfterSchema = value.substring(value.indexOf("://") + 3);
                         value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
                     }
-                } else if (value.contains(servletPath + "/")) {
-                    value = publicUrlPrefix + value.substring(value.indexOf(servletPath) + servletPath.length());
+                } else if (value.contains(contextPath + "/")) {
+                    String partAfterHostname = value.substring(value.indexOf("://") + 3);
+                    partAfterHostname = partAfterHostname.substring(partAfterHostname.indexOf("/"));
+                    value = publicUrlPrefix + partAfterHostname.substring(partAfterHostname.indexOf(contextPath) + contextPath.length());
                 }
             }
         }

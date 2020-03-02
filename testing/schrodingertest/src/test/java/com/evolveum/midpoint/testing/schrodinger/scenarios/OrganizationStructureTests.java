@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -17,7 +16,6 @@ import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
@@ -50,7 +48,7 @@ public class OrganizationStructureTests extends TestBase {
     private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
 
     @Test
-    public void importOrgStructure() throws IOException, ConfigurationException {
+    public void importOrgStructure() throws IOException {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
@@ -72,7 +70,7 @@ public class OrganizationStructureTests extends TestBase {
     @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void assignOrgUnit(){
          ListUsersPage users = basicPage.listUsers();
-         UserPage userPage = (UserPage) users
+         UserPage userPage = users
                 .table()
                     .search()
                     .byName()
@@ -103,7 +101,7 @@ public class OrganizationStructureTests extends TestBase {
     @Test (dependsOnMethods ={ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY})
     public void unassignOrgUnit(){
         ListUsersPage users = basicPage.listUsers();
-        UserPage userPage = (UserPage) users
+        UserPage userPage = users
                 .table()
                     .search()
                     .byName()
@@ -133,7 +131,7 @@ public class OrganizationStructureTests extends TestBase {
        refreshResourceSchema(NAME_CSV_RESOURCE_ADVANCED_SYNC);
 
          ListUsersPage users = basicPage.listUsers();
-         UserPage userPage = (UserPage) users
+         UserPage userPage = users
                 .table()
                     .search()
                     .byName()

@@ -36,15 +36,11 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractHigherUnitTest;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author lazyman
  */
 public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiUnitTest.class);
 
     protected ModelServiceLocator getServiceLocator() {
         return new ModelServiceLocator() {

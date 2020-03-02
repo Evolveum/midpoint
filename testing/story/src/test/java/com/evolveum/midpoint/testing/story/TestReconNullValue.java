@@ -130,7 +130,6 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestReconNullValue.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -146,7 +145,6 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test100CreateUsers() throws Exception {
         final String TEST_NAME = "test200CreateUsers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestReconNullValue.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -154,12 +152,12 @@ public class TestReconNullValue extends AbstractStoryTest {
 
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user0", user0Before);
         addObject(user0Before, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -182,10 +180,9 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test130AddHonorificPrefix() throws Exception {
         final String TEST_NAME = "test140AddHonorificPrefix";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -204,12 +201,12 @@ public class TestReconNullValue extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -239,10 +236,9 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test140dDeleteHonorificPrefixGivenName() throws Exception {
         final String TEST_NAME = "test140dDeleteHonorificPrefixGivenName";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -262,12 +258,12 @@ public class TestReconNullValue extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -299,10 +295,9 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test150RemoveTitleRA() throws Exception {
         final String TEST_NAME = "test150RemoveTitleRA";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -321,14 +316,14 @@ public class TestReconNullValue extends AbstractStoryTest {
         dumpLdap();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
         dumpLdap();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -359,10 +354,9 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test //MID-4567
     public void test160SetGivenNameAttributeAndReconcile() throws Exception {
         final String TEST_NAME = "test160SetGivenNameAttributeAndReconcile";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -381,14 +375,14 @@ public class TestReconNullValue extends AbstractStoryTest {
         dumpLdap();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
         dumpLdap();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -415,10 +409,9 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test //MID-4567
     public void test170ReplaceGivenNameEmpty() throws Exception {
         final String TEST_NAME = "test170ReplaceGivenNameEmpty";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -434,14 +427,14 @@ public class TestReconNullValue extends AbstractStoryTest {
         dumpLdap();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(userBefore.getOid(), UserType.F_GIVEN_NAME, task, result /* no value */);
 
         display("LDAP after reconcile");
         dumpLdap();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);

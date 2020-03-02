@@ -746,35 +746,44 @@ public class LensUtil {
         PrismObject<F> focusObjectNew = focusContext.getObjectNew();
         ObjectDelta<F> focusDelta = focusContext.getDelta();
 
-        for (PropertyConstraintType propertyConstraintType: archetypePolicy.getPropertyConstraint()) {
-            ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
-            if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
-                if (focusDelta != null) {
-                    if (focusDelta.isAdd()) {
-                        PrismProperty<Object> propNew = focusObjectNew.findProperty(itemPath);
-                        if (propNew != null) {
-                            // prop delta is OK, but it has to match
-                            if (focusObjectNew.getOid() != null) {
-                                if (!focusObjectNew.getOid().equals(propNew.getRealValue().toString())) {
-                                    throw new PolicyViolationException("Cannot set "+itemPath+" to a value different than OID in oid bound mode");
+        for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
+            processItemConstraint(focusContext, focusDelta, focusObjectNew, itemConstraintType);
+        }
+        // Deprecated
+        for (ItemConstraintType itemConstraintType : archetypePolicy.getPropertyConstraint()) {
+            processItemConstraint(focusContext, focusDelta, focusObjectNew, itemConstraintType);
+        }
+
+    }
+
+    private static <F extends ObjectType> void processItemConstraint(LensFocusContext<F> focusContext, ObjectDelta<F> focusDelta, PrismObject<F> focusObjectNew, ItemConstraintType itemConstraintType) throws PolicyViolationException {
+        ItemPath itemPath = itemConstraintType.getPath().getItemPath();
+        if (BooleanUtils.isTrue(itemConstraintType.isOidBound())) {
+            if (focusDelta != null) {
+                if (focusDelta.isAdd()) {
+                    PrismProperty<Object> propNew = focusObjectNew.findProperty(itemPath);
+                    if (propNew != null) {
+                        // prop delta is OK, but it has to match
+                        if (focusObjectNew.getOid() != null) {
+                            if (!focusObjectNew.getOid().equals(propNew.getRealValue().toString())) {
+                                throw new PolicyViolationException("Cannot set "+itemPath+" to a value different than OID in oid bound mode");
+                            }
+                        }
+                    }
+                } else {
+                    PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(itemPath);
+                    if (nameDelta != null) {
+                        if (nameDelta.isReplace()) {
+                            Collection<PrismPropertyValue<Object>> valuesToReplace = nameDelta.getValuesToReplace();
+                            if (valuesToReplace.size() == 1) {
+                                String stringValue = valuesToReplace.iterator().next().getValue().toString();
+                                if (focusContext.getOid().equals(stringValue)) {
+                                    // This is OK. It is most likely a correction made by a recompute.
+                                    return;
                                 }
                             }
                         }
-                    } else {
-                        PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(itemPath);
-                        if (nameDelta != null) {
-                            if (nameDelta.isReplace()) {
-                                Collection<PrismPropertyValue<Object>> valuesToReplace = nameDelta.getValuesToReplace();
-                                if (valuesToReplace.size() == 1) {
-                                    String stringValue = valuesToReplace.iterator().next().getValue().toString();
-                                    if (focusContext.getOid().equals(stringValue)) {
-                                        // This is OK. It is most likely a correction made by a recompute.
-                                        continue;
-                                    }
-                                }
-                            }
-                            throw new PolicyViolationException("Cannot change "+itemPath+" in oid bound mode");
-                        }
+                        throw new PolicyViolationException("Cannot change "+itemPath+" in oid bound mode");
                     }
                 }
             }
@@ -1078,36 +1087,44 @@ public class LensUtil {
             return;
         }
 
-        for (PropertyConstraintType propertyConstraintType: archetypePolicy.getPropertyConstraint()) {
-            if (propertyConstraintType.getPath() == null) {
-                LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", archetypePolicy);
-                throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + archetypePolicy + " defined in system configuration.");
-            }
-            ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
-            if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
-                PrismProperty<Object> prop = focusNew.findProperty(itemPath);
-                if (prop == null || prop.isEmpty()) {
-                    String newValue = focusNew.getOid();
-                    if (newValue == null) {
-                        newValue = OidUtil.generateOid();
-                    }
-                    LOGGER.trace("Generating new OID-bound value for {}: {}", itemPath, newValue);
-                    PrismObjectDefinition<AH> focusDefinition = focusContext.getObjectDefinition();
-                    PrismPropertyDefinition<Object> propDef = focusDefinition.findPropertyDefinition(itemPath);
-                    if (propDef == null) {
-                        throw new SchemaException("No definition for property "+itemPath+" in "+focusDefinition+" as specified in object policy");
-                    }
-                    PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
-                    if (String.class.isAssignableFrom(propDef.getTypeClass())) {
-                        propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
-                    } else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
-                        propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
-                    } else {
-                        throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
-                    }
-                    focusContext.swallowToSecondaryDelta(propDelta);
-                    focusContext.recompute();
+        for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
+            applyObjectPolicyItemConstraint(focusContext, archetypePolicy, prismContext, focusNew, itemConstraintType);
+        }
+        // Deprecated
+        for (ItemConstraintType itemConstraintType : archetypePolicy.getPropertyConstraint()) {
+            applyObjectPolicyItemConstraint(focusContext, archetypePolicy, prismContext, focusNew, itemConstraintType);
+        }
+    }
+
+    private static <AH extends AssignmentHolderType> void applyObjectPolicyItemConstraint(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext, PrismObject<AH> focusNew, ItemConstraintType itemConstraintType) throws SchemaException, ConfigurationException {
+        if (itemConstraintType.getPath() == null) {
+            LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", archetypePolicy);
+            throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + archetypePolicy + " defined in system configuration.");
+        }
+        ItemPath itemPath = itemConstraintType.getPath().getItemPath();
+        if (BooleanUtils.isTrue(itemConstraintType.isOidBound())) {
+            PrismProperty<Object> prop = focusNew.findProperty(itemPath);
+            if (prop == null || prop.isEmpty()) {
+                String newValue = focusNew.getOid();
+                if (newValue == null) {
+                    newValue = OidUtil.generateOid();
                 }
+                LOGGER.trace("Generating new OID-bound value for {}: {}", itemPath, newValue);
+                PrismObjectDefinition<AH> focusDefinition = focusContext.getObjectDefinition();
+                PrismPropertyDefinition<Object> propDef = focusDefinition.findPropertyDefinition(itemPath);
+                if (propDef == null) {
+                    throw new SchemaException("No definition for property "+itemPath+" in "+focusDefinition+" as specified in object policy");
+                }
+                PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
+                if (String.class.isAssignableFrom(propDef.getTypeClass())) {
+                    propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
+                } else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
+                    propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
+                } else {
+                    throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
+                }
+                focusContext.swallowToSecondaryDelta(propDelta);
+                focusContext.recompute();
             }
         }
     }

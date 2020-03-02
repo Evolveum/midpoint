@@ -187,9 +187,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test110SimpleExclusion1() throws Exception {
         final String TEST_NAME = "test110SimpleExclusion1";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -220,9 +219,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test120SimpleExclusion2() throws Exception {
         final String TEST_NAME = "test120SimpleExclusion2";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -245,9 +243,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test130SimpleExclusionBoth1() throws Exception {
         final String TEST_NAME = "test130SimpleExclusionBoth1";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -270,9 +267,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test140SimpleExclusionBoth2() throws Exception {
         final String TEST_NAME = "test140SimpleExclusionBoth2";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -295,9 +291,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test150SimpleExclusionBothBidirectional1() throws Exception {
         final String TEST_NAME = "test150SimpleExclusionBothBidirectional1";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -320,9 +315,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test160SimpleExclusionBothBidirectional2() throws Exception {
         final String TEST_NAME = "test160SimpleExclusionBothBidirectional2";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -345,9 +339,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test171SimpleExclusion1WithPolicyException() throws Exception {
         final String TEST_NAME = "test171SimpleExclusion1WithPolicyException";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
@@ -367,9 +360,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test172SimpleExclusion2WithPolicyException() throws Exception {
         final String TEST_NAME = "test172SimpleExclusion2WithPolicyException";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
@@ -389,9 +381,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test173SimpleExclusion3WithPolicyException() throws Exception {
         final String TEST_NAME = "test173SimpleExclusion3WithPolicyException";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
@@ -411,9 +402,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test174SimpleExclusion4WithPolicyException() throws Exception {
         final String TEST_NAME = "test174SimpleExclusion4WithPolicyException";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
@@ -438,9 +428,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test180JudgeExceptionalPirateAndThief() throws Exception {
         final String TEST_NAME = "test180JudgeExceptionalPirateAndThief";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
@@ -478,9 +467,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test190DifferentRelations() throws Exception {
         final String TEST_NAME = "test190DifferentRelations";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -502,9 +490,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test193BothRelationsApprover() throws Exception {
         final String TEST_NAME = "test193BothRelationsApprover";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -526,9 +513,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test194MemberAndManager() throws Exception {
         final String TEST_NAME = "test194MemberAndManager";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -557,18 +543,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test200GuybrushAssignRoleGold() throws Exception {
         final String TEST_NAME = "test200GuybrushAssignRoleGold";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_GOLD_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -591,18 +576,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test202GuybrushAssignRoleSilver() throws Exception {
         final String TEST_NAME = "test202GuybrushAssignRoleSilver";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_SILVER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -626,18 +610,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test204GuybrushAssignRoleSailor() throws Exception {
         final String TEST_NAME = "test204GuybrushAssignRoleSailor";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -662,18 +645,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test206GuybrushAssignRoleBronze() throws Exception {
         final String TEST_NAME = "test206GuybrushAssignRoleBronze";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -697,18 +679,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test208GuybrushUnassignRoleBronze() throws Exception {
         final String TEST_NAME = "test208GuybrushUnassignRoleSilver";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -730,18 +711,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test209GuybrushUnassignRoleSailor() throws Exception {
         final String TEST_NAME = "test209GuybrushUnassignRoleSailor";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -761,14 +741,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test209aGuybrushAssignRoleGoldAndSilverEnforced() throws Exception {
         final String TEST_NAME = "test209aGuybrushAssignRoleGoldAndSilverEnforced";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_ENFORCED_OID, ObjectTypes.ROLE, prismContext),
@@ -794,14 +773,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test209bGuybrushAssignRoleGoldAndSilver() throws Exception {
         final String TEST_NAME = "test209bGuybrushAssignRoleGoldAndSilver";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_OID, ObjectTypes.ROLE, prismContext),
@@ -827,18 +805,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test210GuybrushAssignRoleRed() throws Exception {
         final String TEST_NAME = "test210GuybrushAssignRoleRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -859,18 +836,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test212GuybrushAssignRoleGreen() throws Exception {
         final String TEST_NAME = "test212GuybrushAssignRoleGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_GREEN_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -892,18 +868,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test214GuybrushAssignRoleColorNone() throws Exception {
         final String TEST_NAME = "test214GuybrushAssignRoleColorNone";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_NONE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -923,18 +898,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test216GuybrushAssignRoleBlue() throws Exception {
         final String TEST_NAME = "test216GuybrushAssignRoleBlue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -953,18 +927,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test219GuybrushUnassignRoleBlue() throws Exception {
         final String TEST_NAME = "test219GuybrushUnassignRoleBlue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -981,18 +954,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test220GuybrushAssignRoleBlue() throws Exception {
         final String TEST_NAME = "test220GuybrushAssignRoleBlue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1014,10 +986,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test221GuybrushDestroyAndRecompute() throws Exception {
         final String TEST_NAME = "test221GuybrushDestroyAndRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -1028,11 +999,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result, 2);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1055,10 +1026,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test222GuybrushDestroyAndAssignRoleRed() throws Exception {
         final String TEST_NAME = "test222GuybrushDestroyAndAssignRoleRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -1069,11 +1039,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result, 2);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1093,18 +1063,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test229GuybrushUnassignRoleRed() throws Exception {
         final String TEST_NAME = "test229GuybrushUnassignRoleRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1124,14 +1093,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test230GuybrushAssignRoleRedAndBlueAndGreen() throws Exception {
         final String TEST_NAME = "test230GuybrushAssignRoleRedAndBlueAndGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_RED_OID, ObjectTypes.ROLE, prismContext),
@@ -1158,18 +1126,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test240GuybrushAssignRoleExecutiveOne() throws Exception {
         final String TEST_NAME = "test240GuybrushAssignRoleExecutiveOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1183,10 +1150,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test242GuybrushAssignRoleControllingOne() throws Exception {
         final String TEST_NAME = "test242GuybrushAssignRoleControllingOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1202,18 +1168,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test244GuybrushAssignRoleExecutiveTwo() throws Exception {
         final String TEST_NAME = "test244GuybrushAssignRoleExecutiveTwo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_2_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1228,10 +1193,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test245GuybrushAssignRoleControllingTwo() throws Exception {
         final String TEST_NAME = "test245GuybrushAssignRoleControllingTwo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1249,18 +1213,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test246GuybrushUnassignRoleExecutiveOne() throws Exception {
         final String TEST_NAME = "test246GuybrushUnassignRoleExecutiveOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1274,10 +1237,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test247GuybrushAssignRoleControllingOne() throws Exception {
         final String TEST_NAME = "test247GuybrushAssignRoleControllingOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1295,18 +1257,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test249GuybrushUnassignRoleExecutiveTwo() throws Exception {
         final String TEST_NAME = "test249GuybrushUnassignRoleExecutiveTwo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_2_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1323,18 +1284,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test250GuybrushAssignRoleControllingOne() throws Exception {
         final String TEST_NAME = "test250GuybrushAssignRoleControllingOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1348,10 +1308,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test252GuybrushAssignRoleExecutiveOne() throws Exception {
         final String TEST_NAME = "test252GuybrushAssignRoleExecutiveOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1367,18 +1326,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test259GuybrushUnassignRoleControllingOne() throws Exception {
         final String TEST_NAME = "test259GuybrushUnassignRoleControllingOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1392,18 +1350,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test800ApplyGlobalPolicyRulesExclusion() throws Exception {
         final String TEST_NAME = "test800ApplyGlobalPolicyRulesExclusion";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_EXCLUSION_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         List<GlobalPolicyRuleType> globalPolicyRules = getSystemConfiguration().getGlobalPolicyRule();
@@ -1414,18 +1371,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test810GuybrushAssignRoleCitizenSk() throws Exception {
         final String TEST_NAME = "test810GuybrushAssignRoleCitizenSk";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_CITIZEN_SK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1436,10 +1392,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test812GuybrushAssignRoleCitizenUs() throws Exception {
         final String TEST_NAME = "test812GuybrushAssignRoleCitizenUs";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1455,18 +1410,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test814GuybrushAssignRoleEmpty() throws Exception {
         final String TEST_NAME = "test814GuybrushAssignRoleEmpty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_EMPTY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1478,18 +1432,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test818GuybrushUnassignRoleCitizenSk() throws Exception {
         final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_CITIZEN_SK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1503,18 +1456,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test819GuybrushUnassignRoleEmpty() throws Exception {
         final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_EMPTY_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1529,18 +1481,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test820GuybrushAssignRoleCriminal() throws Exception {
         final String TEST_NAME = "test820GuybrushAssignRoleCriminal";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1555,18 +1506,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test822GuybrushAssignRoleMinister() throws Exception {
         final String TEST_NAME = "test822GuybrushAssignRoleMinister";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_MINISTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1580,18 +1530,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test826GuybrushUnassignRoleCriminal() throws Exception {
         final String TEST_NAME = "test826GuybrushUnassignRoleCriminal";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1603,18 +1552,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test829GuybrushUnassignRoleMinister() throws Exception {
         final String TEST_NAME = "test829GuybrushUnassignRoleMinister";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_MINISTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1626,18 +1574,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test900ApplyGlobalPolicyRulesSoDApproval() throws Exception {
         final String TEST_NAME = "test900ApplyGlobalPolicyRulesSoDApproval";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_SOD_APPROVAL_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         List<GlobalPolicyRuleType> globalPolicyRules = getSystemConfiguration().getGlobalPolicyRule();
@@ -1653,18 +1600,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test920GuybrushAssignRoleCriminal() throws Exception {
         final String TEST_NAME = "test920GuybrushAssignRoleCriminal";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1683,21 +1629,20 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test922GuybrushPreviewAssignRoleMinister() throws Exception {
         final String TEST_NAME = "test922GuybrushPreviewAssignRoleMinister";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_GUYBRUSH_OID,
                 ROLE_MINISTER_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Preview context", modelContext);
@@ -1761,18 +1706,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test929GuybrushUnassignRoleCriminal() throws Exception {
         final String TEST_NAME = "test929GuybrushUnassignRoleCriminal";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1791,9 +1735,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test(enabled = false)
     public void test950JackSelfExclusion() throws Exception {
         final String TEST_NAME = "test950JackSelfExclusion";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -1823,9 +1766,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test952JackSelfExclusionManagerMember() throws Exception {
         final String TEST_NAME = "test952JackSelfExclusionManagerMember";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -1854,9 +1796,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     @Test
     public void test960JimGoldByMapping() throws Exception {
         final String TEST_NAME = "test960JimGoldByMapping";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -1869,12 +1810,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         addObject(jim.asPrismObject());
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         assignRole(jim.getOid(), ROLE_PRIZE_GOLD_BY_MAPPING_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1890,7 +1831,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         try {
             // WHEN
 
-            displayWhen(TEST_NAME);
+            when();
             assignRole(userOid, roleOid, task, result);
 
             assertNotReached();
@@ -1899,7 +1840,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
 
             // THEN
-            displayThen(TEST_NAME);
+            then();
             assertFailure(result);
         }
 

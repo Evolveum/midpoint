@@ -212,9 +212,6 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
     @Test
     public void testParseResourceFileExpression() throws Exception {
-        final String TEST_NAME = "testParseResourceFileExpression";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -637,9 +634,6 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         if (!"xml".equals(language)) {
             return;
         }
-        final String TEST_NAME = "testParseResourceDom";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 

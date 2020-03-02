@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -149,6 +150,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     @Override
     protected IModel<String> createPageTitleModel() {
+        if (PageAdminObjectDetails.this instanceof PageSystemConfiguration){
+            return super.createPageTitleModel();
+        }
         String simpleName = getObjectSimpleName();
         String lokalizedSimpleName = new StringResourceModel("ObjectType." + simpleName).setDefaultValue(simpleName).getString();
         if (isAdd()) {

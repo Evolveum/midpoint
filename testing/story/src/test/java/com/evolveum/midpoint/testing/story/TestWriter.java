@@ -61,8 +61,7 @@ public class TestWriter extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultWriter = modelService.testResource(RESOURCE_WRITER_OID, task);
         TestUtil.assertSuccess(testResultWriter);
@@ -71,20 +70,19 @@ public class TestWriter extends AbstractStoryTest {
     @Test
     public void test100AssignJackDummyAccount() throws Exception {
         final String TEST_NAME = "test100AssignJackDummyAccount";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString(USER_JACK_LOCALITY));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_JACK_OID, RESOURCE_WRITER_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_WRITER_DUMMY_NAME, USER_JACK_USERNAME)
@@ -97,18 +95,17 @@ public class TestWriter extends AbstractStoryTest {
     @Test
     public void test110ModifyCaptainJack() throws Exception {
         final String TEST_NAME = "test110ModifyCaptainJack";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, createPolyString(USER_JACK_FULL_NAME_CAPTAIN));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_WRITER_DUMMY_NAME, USER_JACK_USERNAME)

@@ -150,7 +150,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         assertUsers(NUM_INITIAL_USERS);
     }
@@ -162,18 +161,17 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test200AssignRolePiratesToBarbossa() throws Exception {
         final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_BARBOSSA_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -190,10 +188,9 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test202AssignLdapAccountToGuybrush() throws Exception {
         final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         byte[] photoIn = Files.readAllBytes(Paths.get(DOT_JPG_FILENAME));
@@ -211,11 +208,11 @@ public class TestLdap extends AbstractLongTest {
         assertTrue("Photo bytes do not match (user before)", Arrays.equals(photoIn, userJpegPhotoBefore));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
@@ -249,10 +246,9 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test204AssignRolePiratesToGuybrush() throws Exception {
         final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         openDJController.executeLdifChange(
                 "dn: cn=Pirates,ou=groups,dc=example,dc=com\n" +
@@ -262,11 +258,11 @@ public class TestLdap extends AbstractLongTest {
             );
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -280,10 +276,9 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test400RenameLeChuckConflicting() throws Exception {
         final String TEST_NAME = "test400RenameLeChuckConflicting";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userLechuck = createUser(USER_LECHUCK_NAME, "LeChuck", true);
@@ -302,12 +297,12 @@ public class TestLdap extends AbstractLongTest {
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME, "Charles L. Charles", true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(userLechuckOid, UserType.F_NAME, task, result,
                 PrismTestUtil.createPolyString(ACCOUNT_CHARLES_NAME));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME, "Charles L. Charles", true);
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME + "1", "LeChuck", true);
         assertNoOpenDjAccount(ACCOUNT_LECHUCK_NAME);
@@ -318,7 +313,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test800BigLdapSearch() throws Exception {
         final String TEST_NAME = "test800BigLdapSearch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -326,7 +320,7 @@ public class TestLdap extends AbstractLongTest {
 
         loadLdapEntries("a", NUM_LDAP_ENTRIES);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -344,16 +338,16 @@ public class TestLdap extends AbstractLongTest {
         };
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.getValue());
 
@@ -363,7 +357,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test810BigImport() throws Exception {
         final String TEST_NAME = "test810BigImport";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -371,25 +364,25 @@ public class TestLdap extends AbstractLongTest {
 
         loadLdapEntries("u", NUM_LDAP_ENTRIES);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -399,11 +392,10 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test820BigReconciliation() throws Exception {
         final String TEST_NAME = "test820BigReconciliation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
 //        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
@@ -415,19 +407,19 @@ public class TestLdap extends AbstractLongTest {
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconciliationTaskHandler.launch(resource,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -437,27 +429,26 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test900DeleteShadows() throws Exception {
         final String TEST_NAME = "test900DeleteShadows";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importObjectFromFile(TASK_DELETE_OPENDJ_SHADOWS_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -487,25 +478,24 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test910DeleteAccounts() throws Exception {
         final String TEST_NAME = "test910DeleteAccounts";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importObjectFromFile(TASK_DELETE_OPENDJ_ACCOUNTS_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES*3000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, (2*NUM_LDAP_ENTRIES)/100+2);
 

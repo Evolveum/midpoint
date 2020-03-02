@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -87,8 +86,8 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test010CreateRoleEmployee() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<RoleType> employee = prismContext.parseObject(ROLE_EMPLOYEE_FILE);
         executeTest(null, new TestDetails() {
@@ -169,8 +168,8 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test020ActivateIncompleteRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
@@ -203,8 +202,8 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test030ActivateIncompleteRoleAgain() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
@@ -235,8 +234,8 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test040AddApprover() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userEmployeeOwnerOid, roleEmployeeOid, SchemaConstants.ORG_APPROVER, task, result);
         result.computeStatus();
@@ -248,8 +247,8 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test045ActivateCompleteRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)

@@ -41,9 +41,6 @@ public class TestPrismParsingXml extends TestPrismParsing {
 
     @Test
     public void testPrismParseDom() throws Exception {
-        final String TEST_NAME = "testPrismParseDom";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         Document document = DOMUtil.parseFile(getFile(USER_JACK_FILE_BASENAME));
         Element userElement = DOMUtil.getFirstChildElement(document);
@@ -63,9 +60,6 @@ public class TestPrismParsingXml extends TestPrismParsing {
 
     @Test
     public void testPrismParseDomAdhoc() throws Exception {
-        final String TEST_NAME = "testPrismParseDomAdhoc";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         Document document = DOMUtil.parseFile(getFile(USER_JACK_ADHOC_BASENAME));
         Element userElement = DOMUtil.getFirstChildElement(document);
@@ -85,9 +79,6 @@ public class TestPrismParsingXml extends TestPrismParsing {
 
     @Test
     public void testPrismParseXxe() throws Exception {
-        final String TEST_NAME = "testPrismParseXxe";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         PrismContext prismContext = constructInitializedPrismContext();
 
         try {
@@ -104,10 +95,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
     }
 
     @Test
-    public void testPrismParseDomXxe() throws Exception {
-        final String TEST_NAME = "testPrismParseDomXxe";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
+    public void testPrismParseDomXxe() {
         try {
             // WHEN
             DOMUtil.parseFile(getFile(USER_JACK_XXE_BASENAME));
@@ -119,14 +107,5 @@ public class TestPrismParsingXml extends TestPrismParsing {
             assertTrue("Unexpected exception message: "+e.getMessage(), e.getMessage().contains("DOCTYPE"));
         }
 
-    }
-
-    @Override
-    protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
-//        Document xmlDocument = DOMUtil.parseDocument(xmlString);
-//        Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-//        Validator validator = javaxSchema.newValidator();
-//        validator.setResourceResolver(prismContext.getEntityResolver());
-//        validator.validate(new DOMSource(xmlDocument));
     }
 }

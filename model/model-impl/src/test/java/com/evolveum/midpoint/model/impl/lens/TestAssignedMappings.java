@@ -16,7 +16,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,10 +141,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test100AssignSimpleToJim() throws Exception {
         final String TEST_NAME = "test100AssignSimpleToJim";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -189,10 +188,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test110AssignRingToFrodo() throws Exception {
         final String TEST_NAME = "test110AssignRingToFrodo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -239,10 +238,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test120AssignStingToFrodo() throws Exception {
         final String TEST_NAME = "test120AssignStingToFrodo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -288,10 +287,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test130UnassignRingFromFrodo() throws Exception {
         final String TEST_NAME = "test130UnassignRingFromFrodo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -344,10 +343,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test200AssignRolesToAdam() throws Exception {
         final String TEST_NAME = "test200AssignRolesToAdam";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -402,10 +401,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test210AssignRolesToBenjamin() throws Exception {
         final String TEST_NAME = "test210AssignRolesToBenjamin";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -487,10 +486,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test220AdamConditionFalseToTrue() throws Exception {
         final String TEST_NAME = "test220AdamConditionFalseToTrue";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -566,10 +565,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test230BenjaminConditionTrueToFalse() throws Exception {
         final String TEST_NAME = "test230BenjaminConditionTrueToFalse";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -600,10 +599,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test280UnassignRolesFromAdam() throws Exception {
         final String TEST_NAME = "test280UnassignRolesFromAdam";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -630,10 +629,10 @@ public class TestAssignedMappings extends AbstractLensTest {
     @Test
     public void test290UnassignRolesFromBenjamin() throws Exception {
         final String TEST_NAME = "test290UnassignRolesFromBenjamin";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

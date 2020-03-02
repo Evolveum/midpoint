@@ -10,7 +10,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -27,15 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedGuiIntegrationTest.class);
-
-//    protected final static String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-//    protected final static ItemName PIRACY_WEAPON = new ItemName(PIRACY_NS, "weapon");
-
 
     protected DummyResource dummyResource;
     protected DummyResourceContoller dummyResourceCtl;
@@ -71,21 +65,18 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 
     @Test
     public void test000PreparationAndSanity() throws Exception {
-        final String TEST_NAME = "test000PreparationAndSanity";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNotNull("No model service", modelService);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when("Jack is assigned with account");
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then("One link (account) is created");
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -94,7 +85,5 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         display("User after change execution", userJack);
         assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
-
     }
-
 }

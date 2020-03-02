@@ -21,7 +21,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
@@ -39,9 +38,6 @@ public class TestFilterResolver extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test001resolveDependencyFilter() throws Exception {
-        final String TEST_NAME = "test001resolveDependencyFilter";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // WHEN
         importObjectFromFile(RESOURCE_DUMMY_DEPENDENCY_FILTER_FILE);
 

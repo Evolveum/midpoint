@@ -145,7 +145,7 @@ public abstract class AbstractScriptTest {
 
         // WHEN
 
-        ParallelTestThread[] threads = TestUtil.multithread(TEST_NAME,
+        ParallelTestThread[] threads = TestUtil.multithread(
                 (threadIndex) -> {
 
                     String foo = "FOO"+threadIndex;
@@ -399,7 +399,6 @@ public abstract class AbstractScriptTest {
     }
 
     private List<PrismPropertyValue<String>> evaluateStringExpresssion(String fileName, String testName, ExpressionVariables variables, boolean scalar) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        displayTestTitle(testName);
         ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
         OperationResult opResult = new OperationResult(testName);
 
@@ -407,22 +406,13 @@ public abstract class AbstractScriptTest {
     }
 
     private List<PrismPropertyValue<Boolean>> evaluateBooleanExpresssion(String fileName, String testName, ExpressionVariables variables, boolean scalar) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        displayTestTitle(testName);
         ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
         OperationResult opResult = new OperationResult(testName);
 
-
         return evaluateExpression(scriptType, DOMUtil.XSD_BOOLEAN, true, variables, testName, opResult);
-    }
-
-
-    private void displayTestTitle(String testName) {
-        System.out.println("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
-        LOGGER.info("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
     }
 
     protected ExpressionVariables createVariables(Object... params) {
         return ExpressionVariables.create(prismContext, params);
     }
-
 }

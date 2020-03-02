@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DefinitionProcessingOption;
@@ -51,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -796,6 +798,92 @@ public class SchemaTransformer {
         }
     }
 
+    private class VisibilityPolicyEntry {
+        UniformItemPath path;
+        UserInterfaceElementVisibilityType visibility;
+
+        public VisibilityPolicyEntry(UniformItemPath path, UserInterfaceElementVisibilityType visibility) {
+            this.path = path;
+            this.visibility = visibility;
+        }
+    }
+
+    public <O extends ObjectType> void applyItemsConstraints(MutablePrismContainerDefinition<O> objectDefinition, ArchetypePolicyType archetypePolicy, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        if (archetypePolicy == null) {
+            return;
+        }
+        List<VisibilityPolicyEntry> visibilityPolicy = new ArrayList<>();
+        for (ItemConstraintType itemConstraint: archetypePolicy.getItemConstraint()) {
+            UserInterfaceElementVisibilityType visibility = itemConstraint.getVisibility();
+            if (visibility == null) {
+                continue;
+            }
+            ItemPathType itemPathType = itemConstraint.getPath();
+            if (itemPathType == null) {
+                throw new SchemaException("No 'path' in item definition in archetype policy for "+objectDefinition);
+            }
+            UniformItemPath itemPath = prismContext.toUniformPath(itemPathType);
+            visibilityPolicy.add(new VisibilityPolicyEntry(itemPath, visibility));
+        }
+        if (visibilityPolicy.isEmpty()) {
+            return;
+        }
+        // UniformItemPath.EMPTY_PATH is null here. WHY?!?
+        reduceItems(objectDefinition, UniformItemPathImpl.EMPTY_PATH, visibilityPolicy);
+    }
+
+    private UserInterfaceElementVisibilityType reduceItems(PrismContainerDefinition containerDefinition, UniformItemPath containerPath, List<VisibilityPolicyEntry> visibilityPolicy) {
+        UserInterfaceElementVisibilityType containerVisibility = determineVisibility(visibilityPolicy, containerPath);
+        if (containerVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+            containerDefinition.getDefinitions().clear();
+            return containerVisibility;
+        }
+        if (containerDefinition.isElaborate()) {
+            return containerVisibility;
+        }
+        ArrayList<ItemName> itemsToDelete = new ArrayList<>();
+        for (ItemDefinition subDefinition : (List<ItemDefinition>)containerDefinition.getDefinitions()) {
+            UniformItemPath itemPath = containerPath.append(subDefinition.getItemName());
+            if (subDefinition instanceof PrismContainerDefinition) {
+                PrismContainerDefinition subContainerDef = (PrismContainerDefinition)subDefinition;
+                UserInterfaceElementVisibilityType itemVisibility = reduceItems(subContainerDef, itemPath, visibilityPolicy);
+                if (subContainerDef.isEmpty() && itemVisibility != UserInterfaceElementVisibilityType.VISIBLE) {
+                    itemsToDelete.add(subDefinition.getItemName());
+                }
+            } else {
+                UserInterfaceElementVisibilityType itemVisibility = determineVisibility(visibilityPolicy, itemPath);
+                if (itemVisibility == UserInterfaceElementVisibilityType.VACANT || itemVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+                    itemsToDelete.add(subDefinition.getItemName());
+                }
+            }
+        }
+        MutableComplexTypeDefinition mutableContainerCtDef = containerDefinition.getComplexTypeDefinition().toMutable();
+        for (ItemName itemName : itemsToDelete) {
+            LOGGER.trace("Removing item {} due to visibility item constraint", containerPath.append(itemName));
+            mutableContainerCtDef.delete(itemName);
+        }
+        return containerVisibility;
+    }
+
+    private UserInterfaceElementVisibilityType determineVisibility(List<VisibilityPolicyEntry> visibilityPolicy, UniformItemPath itemPath) {
+        if (itemPath == null || itemPath.isEmpty()) {
+            return UserInterfaceElementVisibilityType.AUTOMATIC;
+        }
+        UserInterfaceElementVisibilityType visibility = getVisibilityPolicy(visibilityPolicy, itemPath);
+        if (visibility != null) {
+            return visibility;
+        }
+        return determineVisibility(visibilityPolicy, itemPath.allExceptLast());
+    }
+
+    private UserInterfaceElementVisibilityType getVisibilityPolicy(List<VisibilityPolicyEntry> visibilityPolicy, UniformItemPath itemPath) {
+        for (VisibilityPolicyEntry entry : visibilityPolicy) {
+            if (itemPath.equivalent(entry.path)) {
+                return entry.visibility;
+            }
+        }
+        return null;
+    }
 
     private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {
         try {

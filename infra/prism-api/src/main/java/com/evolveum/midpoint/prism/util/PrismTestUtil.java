@@ -203,6 +203,7 @@ public class PrismTestUtil {
         return new PolyStringType(createPolyString(orig, norm));
     }
 
+    // TODO inttest: replace with UnitTestMixin (TestUtil?)
     public static void displayTestTitle(String testName) {
         System.out.println("\n\n===[ "+testName+" ]===\n");
         LOGGER.info("===[ {} ]===",testName);

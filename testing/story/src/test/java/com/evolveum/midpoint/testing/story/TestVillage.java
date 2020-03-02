@@ -264,7 +264,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_SOURCE_OID, task);
@@ -288,7 +287,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test020ResourceOpenDjGet() throws Exception {
         final String TEST_NAME = "test020ResourceOpenDjGet";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -301,11 +299,11 @@ public class TestVillage extends AbstractStoryTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -326,7 +324,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test022ResourceOpenDjRefinedSchema() throws Exception {
         final String TEST_NAME = "test022ResourceOpenDjRefinedSchema";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -343,13 +340,13 @@ public class TestVillage extends AbstractStoryTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         long t0 = System.currentTimeMillis();
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
         long t1 = System.currentTimeMillis();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -379,7 +376,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test100AddSrcAccountHerman() throws Exception {
         final String TEST_NAME = "test100AddSrcAccountHerman";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
@@ -401,7 +397,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test101HermanAssignBasicRole() throws Exception {
         final String TEST_NAME = "test101HermanAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -419,7 +414,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test102HermanUnAssignBasicRole() throws Exception {
         final String TEST_NAME = "test102HermanUnAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -437,7 +431,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test103HermanAssignBasicAndSimpleRole() throws Exception {
         final String TEST_NAME = "test103HermanAssignBasicAndSimpleRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -457,7 +450,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test104HermanUnAssignSimpleRoleThenBasic() throws Exception {
         final String TEST_NAME = "test104HermanUnAssignSimpleRoleThenBasic";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -486,7 +478,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test105ModifySrcAccountHermanRemoveLoc() throws Exception {
         final String TEST_NAME = "test105ModifySrcAccountHermanRemoveLoc";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
@@ -504,7 +495,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test106HermanAssignBasicRole() throws Exception {
         final String TEST_NAME = "test106HermanAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -522,7 +512,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test107ModifySrcAccountHermanAddLoc() throws Exception {
         final String TEST_NAME = "test107ModifySrcAccountHermanAddLoc";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
@@ -541,7 +530,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test108ModifySrcAccountHermanRemoveLoc() throws Exception {
         final String TEST_NAME = "test108ModifySrcAccountHermanRemoveLoc";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
@@ -560,7 +548,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test109HermanUnAssignBasicRole() throws Exception {
         final String TEST_NAME = "test109HermanUnAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -578,7 +565,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test110AddSrcAccountLemonhead() throws Exception {
         final String TEST_NAME = "test110AddSrcAccountLemonhead";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
@@ -605,7 +591,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test120AddSrcAccountWally() throws Exception {
         final String TEST_NAME = "test120AddSrcAccountWally";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
@@ -625,7 +610,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test121WallyAssignBasicRole() throws Exception {
         final String TEST_NAME = "test121WallyAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
@@ -642,7 +626,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test122WallyUnAssignBasicRole() throws Exception {
         final String TEST_NAME = "test122WallyUnAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
@@ -662,7 +645,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test130AddSrcAccountMancomb() throws Exception {
         final String TEST_NAME = "test130AddSrcAccountMancomb";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
@@ -684,7 +666,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test131MancombAssignBasicRole() throws Exception {
         final String TEST_NAME = "test131WallyAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
@@ -701,7 +682,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test132MancombUnAssignBasicRole() throws Exception {
         final String TEST_NAME = "test132MancombUnAssignBasicRole";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
@@ -722,7 +702,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test150ModifySrcAccountHermanReplaceOrg() throws Exception {
         final String TEST_NAME = "test150ModifySrcAccountHermanReplaceOrg";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
@@ -746,18 +725,17 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test152ModifySrcAccountHermanDeleteOrg() throws Exception {
         final String TEST_NAME = "test152ModifySrcAccountHermanDeleteOrg";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = findUserByUsername(getUsername(ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, null));
         assertUserNoRole(user, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, null);
         assertLocGov(user, null, null);
@@ -771,9 +749,8 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
         final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = createOperationalResult();
 
         //prepare password policies
         addObject(GLOBAL_PASSWORD_POLICY_FILE);
@@ -796,12 +773,12 @@ public class TestVillage extends AbstractStoryTest {
         ObjectDelta<UserType> addUserMikeDelta = DeltaFactory.Object.createAddDelta(userMikeBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         //The user's password has length 4..if the policy is not chosen correctly, it fails
         modelService.executeChanges(MiscUtil.createCollection(addUserMikeDelta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertPartialError(result);
 
         //TODO: assert added user
@@ -814,7 +791,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test201unassignRole() throws Exception{
         final String TEST_NAME = "test201unassignRole";
-        displayTestTitle(TEST_NAME);
         unassignRole(USER_MIKE_OID, ROLE_BASIC_OID);
         //TODO: assertions
     }
@@ -822,10 +798,9 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test202assignRoleOrgPwdPolicy() throws Exception{
         final String TEST_NAME = "test202assignRoleOrgPwdPolicy";
-        displayTestTitle(TEST_NAME);
 
         //this will throw exception, if incorrect pwd policy is selected...but some assertion will be nice :)
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assignRole(USER_MIKE_OID, ROLE_BASIC_OID, task, result);
         assertPartialError(result);
@@ -836,16 +811,15 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test300AddProjectJollyRoger() throws Exception {
         final String TEST_NAME = "test300AddProjectJollyRoger";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(ORG_PROJECT_JOLLY_ROGER_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID);
@@ -863,7 +837,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test310ProjectJollyRogerNestedGroup() throws Exception {
         final String TEST_NAME = "test310ProjectJollyRogerNestedGroup";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -881,12 +854,12 @@ public class TestVillage extends AbstractStoryTest {
                 .build();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         // TODO: search for cn=admins,ou=Jolly Roger,dc=example,dc=com
         SearchResultList<PrismObject<ShadowType>> groupShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -901,16 +874,15 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test319DeleteProjectJollyRoger() throws Exception {
         final String TEST_NAME = "test319DeleteProjectJollyRoger";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         deleteObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -926,7 +898,6 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test350AddRepoUserNoEmployeeNumberRecompute() throws Exception {
         final String TEST_NAME = "test350AddRepoUserNoEmployeeNumberRecompute";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -934,11 +905,11 @@ public class TestVillage extends AbstractStoryTest {
         repositoryService.addObject(user, null, result);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_MURRAY_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

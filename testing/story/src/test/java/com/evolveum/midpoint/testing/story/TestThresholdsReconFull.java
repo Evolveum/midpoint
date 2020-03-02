@@ -69,7 +69,6 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test600chageTaskPolicyRule() throws Exception {
         final String TEST_NAME = "test600chageTaskPolicyRule";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -88,11 +87,10 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test610testFullRecon() throws Exception {
         final String TEST_NAME = "test610testFullRecon";
-        displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationalResult();
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult reconResult = waitForTaskResume(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000);
         assertSuccess(reconResult);
 
@@ -109,8 +107,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test611testFullRecon() throws Exception {
         final String TEST_NAME = "test611testFullRecon";
-        displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationalResult();
 
         openDJController.delete("uid=user10,ou=People,dc=example,dc=com");
         openDJController.delete("uid=user11,ou=People,dc=example,dc=com");
@@ -120,7 +117,7 @@ public class TestThresholdsReconFull extends TestThresholds {
         openDJController.delete("uid=user15,ou=People,dc=example,dc=com");
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult reconResult = waitForTaskNextRun(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000, false);
         assertSuccess(reconResult);
 

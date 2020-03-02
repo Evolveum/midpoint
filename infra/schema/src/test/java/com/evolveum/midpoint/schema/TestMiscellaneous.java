@@ -6,49 +6,34 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
+import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
+
+import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author mederly
- *
  */
-public class TestMiscellaneous {
+public class TestMiscellaneous extends AbstractSchemaTest {
 
     public static final File TEST_DIR = new File("src/test/resources/misc");
     private static final File FILE_ROLE_REMOVE_ITEMS = new File(TEST_DIR, "role-remove-items.xml");
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test
     public void singleValuedItems() throws Exception {
-        System.out.println("===[ singleValuedItems ]===");
-
         UserType userBean = getPrismContext().createObjectable(UserType.class)
                 .beginAssignment()
-                        .id(1L)
-                        .targetRef(new ObjectReferenceType().oid("123456").type(RoleType.COMPLEX_TYPE))
+                .id(1L)
+                .targetRef(new ObjectReferenceType().oid("123456").type(RoleType.COMPLEX_TYPE))
                 .end();
 
         //noinspection unchecked
@@ -69,7 +54,6 @@ public class TestMiscellaneous {
 
     @Test
     public void removeOperationalItems() throws Exception {
-        System.out.println("===[ removeOperationalItems ]===");
         PrismObject<RoleType> role = getPrismContext().parseObject(FILE_ROLE_REMOVE_ITEMS);
 
         AtomicInteger propertyValuesBefore = new AtomicInteger(0);
@@ -99,7 +83,7 @@ public class TestMiscellaneous {
         assertNull("assignment[1]/activation/effectiveStatus present",
                 role.findProperty(ItemPath.create(RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
 
-        assertEquals("Wrong property values after", propertyValuesBefore.intValue()-6, propertyValuesAfter.intValue());
+        assertEquals("Wrong property values after", propertyValuesBefore.intValue() - 6, propertyValuesAfter.intValue());
     }
 
 }

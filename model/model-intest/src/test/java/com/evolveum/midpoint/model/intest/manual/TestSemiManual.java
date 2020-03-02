@@ -117,9 +117,8 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     @Test
     public void test700AssignAccountJackExisting() throws Exception {
         final String TEST_NAME = "test700AssignAccountJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         if (accountJackOid != null) {
@@ -135,11 +134,11 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result, 2);
         assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
@@ -177,9 +176,8 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     @Test
     public void test710UnassignAccountJack() throws Exception {
         final String TEST_NAME = "test710UnassignAccountJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clock.overrideDuration("PT5M");
@@ -187,11 +185,11 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         jackLastCaseOid = assertInProgress(result);
 
@@ -233,9 +231,8 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     @Test
     public void test712CloseCaseAndRecomputeJack() throws Exception {
         final String TEST_NAME = "test712CloseCaseAndRecomputeJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreDeleteJack();
@@ -245,12 +242,12 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         accountJackCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -291,20 +288,19 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     @Test
     public void test717RecomputeJackAfter130min() throws Exception {
         final String TEST_NAME = "test717RecomputeJackAfter130min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clock.overrideDuration("PT130M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -321,9 +317,8 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     @Test
     public void test719CleanUp() throws Exception {
         final String TEST_NAME = "test719CleanUp";
-        displayTestTitle(TEST_NAME);
 
-        cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
+        cleanupUser(USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
     }
 
     @Override

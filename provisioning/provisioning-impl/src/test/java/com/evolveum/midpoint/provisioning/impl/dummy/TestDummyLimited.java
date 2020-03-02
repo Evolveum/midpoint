@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 
@@ -97,11 +95,9 @@ public class TestDummyLimited extends TestDummy {
     @Test
     @Override
     public void test150DisableAccount() throws Exception {
-        final String TEST_NAME = "test150DisableAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -138,17 +134,15 @@ public class TestDummyLimited extends TestDummy {
     }
 
     @Override
-    public void test151SearchDisabledAccounts() throws Exception {
+    public void test151SearchDisabledAccounts() {
         // N/A
     }
 
     @Override
     public void test152ActivationStatusUndefinedAccount() throws Exception {
-        final String TEST_NAME = "test152ActivationStatusUndefinedAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -188,11 +182,9 @@ public class TestDummyLimited extends TestDummy {
     @Test
     @Override
     public void test154EnableAccount() throws Exception {
-        final String TEST_NAME = "test154EnableAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -230,22 +222,18 @@ public class TestDummyLimited extends TestDummy {
     }
 
     @Override
-    public void test155SearchDisabledAccounts() throws Exception {
+    public void test155SearchDisabledAccounts() {
         // N/A
     }
 
     @Test
     @Override
     public void test156SetValidFrom() throws Exception {
-        final String TEST_NAME = "test156SetValidFrom";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
-
-        long millis = VALID_FROM_MILLIS;
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
@@ -283,15 +271,11 @@ public class TestDummyLimited extends TestDummy {
     @Test
     @Override
     public void test157SetValidTo() throws Exception {
-        final String TEST_NAME = "test157SetValidTo";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
-
-        long millis = VALID_TO_MILLIS;
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
@@ -328,11 +312,9 @@ public class TestDummyLimited extends TestDummy {
 
     @Override
     public void test158DeleteValidToValidFrom() throws Exception {
-        final String TEST_NAME = "test158DeleteValidToValidFrom";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -379,23 +361,21 @@ public class TestDummyLimited extends TestDummy {
 
     @Test
     @Override
-    public void test159GetLockedoutAccount() throws Exception {
+    public void test159GetLockedoutAccount() {
         // Not relevant
     }
 
     @Override
-    public void test160SearchLockedAccounts() throws Exception {
+    public void test160SearchLockedAccounts() {
         // N/A
     }
 
     @Test
     @Override
     public void test162UnlockAccount() throws Exception {
-        final String TEST_NAME = "test162UnlockAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -418,7 +398,7 @@ public class TestDummyLimited extends TestDummy {
 
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertFailure(result);
@@ -446,13 +426,13 @@ public class TestDummyLimited extends TestDummy {
 
     @Test
     @Override
-    public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
+    public void test181SearchNullPagingOffset0Size3Desc() {
         // Nothing to do. No sorting support. So desc sorting won't work at all.
     }
 
     @Test
     @Override
-    public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
+    public void test183SearchNullPagingOffset2Size3Desc() {
         // Nothing to do. No sorting support. So desc sorting won't work at all.
     }
 

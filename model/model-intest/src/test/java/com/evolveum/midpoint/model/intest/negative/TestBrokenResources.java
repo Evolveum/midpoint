@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
+import static com.evolveum.midpoint.test.asserter.predicate.TimeAssertionPredicates.approximatelyCurrent;
+import static com.evolveum.midpoint.test.asserter.predicate.StringAssertionPredicates.startsWith;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -13,6 +16,8 @@ import java.io.File;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,14 +53,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests the model service contract by using a broken CSV resource. Tests for negative test cases, mostly
@@ -166,10 +163,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test010TestResourceBroken() throws Exception {
         final String TEST_NAME = "test010TestResourceBroken";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -183,10 +179,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test020GetResourceBroken() throws Exception {
         final String TEST_NAME = "test020GetResourceBroken";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -214,10 +209,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test100GetAccountMurray() throws Exception {
         final String TEST_NAME = "test100GetAccountMurray";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -241,10 +235,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test101GetAccountMurrayNoFetch() throws Exception {
         final String TEST_NAME = "test101GetAccountMurrayNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -263,7 +256,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test102GetAccountMurrayRaw() throws Exception {
-        TestUtil.displayTestTitle(this, "test102GetAccountMurrayRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test102GetAccountMurrayRaw");
@@ -286,7 +278,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test120SearchAccountByUsernameJack() throws Exception {
-        TestUtil.displayTestTitle(this, "test120SearchAccountByUsernameJack");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test120SearchAccountByUsernameJack");
@@ -311,7 +302,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test210TestResourceNotFound() throws Exception {
-        TestUtil.displayTestTitle(this, "test210TestResourceNotFound");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test210TestResourceNotFound");
@@ -329,7 +319,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test220GetResourceNotFound() throws Exception {
         final String TEST_NAME = "test220GetResourceNotFound";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "."+TEST_NAME);
@@ -339,14 +328,31 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, null, task, result);
 
         // THEN
-        display("getObject resource", resource);
+        String localNodeId = taskManager.getNodeId();
+        assertResource(resource, "resource after")
+                .display()
+                .operationalState()
+                    .assertAny()
+                    .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
+                    .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"))
+                .end()
+                .operationalStateHistory()
+                    .assertSize(1)
+                    .value(0)
+                        .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
+                        .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                        .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"));
+
         result.computeStatus();
         display("getObject result", result);
-        assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+        assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 
         OperationResultType fetchResult = resource.asObjectable().getFetchResult();
         display("resource.fetchResult", fetchResult);
-        assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+        assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
 
         // TODO: better asserts
         assertNotNull("Null resource", resource);
@@ -355,7 +361,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test221GetResourceNotFoundResolveConnector() throws Exception {
         final String TEST_NAME = "test221GetResourceNotFoundResolveConnector";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "."+TEST_NAME);
@@ -387,7 +392,6 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     @Test
     public void test310TestResourceNoJars() throws Exception {
-        TestUtil.displayTestTitle(this, "test310TestResourceNoJars");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test310TestResourceNoJars");
@@ -403,10 +407,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test320GetResourceNoJars() throws Exception {
         final String TEST_NAME = "test320GetResourceNoJars";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -429,10 +432,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test350AddResourceWrongConnectorOid() throws Exception {
         final String TEST_NAME = "test350AddResourceWrongConnectorOid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -461,10 +463,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test352AddResourceWrongConnectorOidRaw() throws Exception {
         final String TEST_NAME = "test352AddResourceWrongConnectorOidRaw";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -494,10 +495,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test355AddResourceWrongConnectorOidRepo() throws Exception {
         final String TEST_NAME = "test355AddResourceWrongConnectorOidRepo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -513,10 +513,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test358GetResourceWrongConnectorOid() throws Exception {
         final String TEST_NAME = "test358GetResourceWrongConnectorOid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -539,10 +538,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test359DeleteResourceWrongConnectorOid() throws Exception {
         final String TEST_NAME = "test359DeleteResourceWrongConnectorOid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> delta = prismContext.deltaFactory().object()
@@ -564,10 +562,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test360AddResourceNoConfiguration() throws Exception {
         final String TEST_NAME = "test360AddResourceNoConfiguration";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_NO_CONFIGURATION_FILE);
@@ -588,10 +585,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test362GetResourceNoConfiguration() throws Exception {
         final String TEST_NAME = "test362GetResourceNoConfiguration";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -620,10 +616,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test369DeleteResourceNoConfiguration() throws Exception {
         final String TEST_NAME = "test369DeleteResourceNoConfiguration";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> delta = prismContext.deltaFactory().object()
@@ -650,10 +645,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test371ImportUnaccessibleResource() throws Exception {
         final String TEST_NAME = "test371ImportUnaccessibleResource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -671,10 +665,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test372GetUnaccessibleResourceNoFetch() throws Exception {
         final String TEST_NAME = "test372GetUnaccessibleResourceNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -730,10 +723,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     }
 
     public void testListResources(final String TEST_NAME, int expectedNumber, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN (1)
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN (1)
@@ -754,7 +746,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         // GIVEN (2)
         resources.clear();
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
         ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
@@ -786,10 +778,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test377GetResourceNoConfiguration() throws Exception {
         final String TEST_NAME = "test377GetResourceNoConfiguration";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -819,21 +810,20 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test400AssignTwoResouresNotFound() throws Exception {
         final String TEST_NAME = "test400AssignTwoResoures";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         ObjectDelta<UserType> userDelta = createAssignTwoResourcesDelta(RESOURCE_CSVFILE_NOTFOUND_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("executeChanges result", result);
         assertPartialError(result);
@@ -851,10 +841,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test401AssignTwoResouresBroken() throws Exception {
         final String TEST_NAME = "test401AssignTwoResouresBroken";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -862,13 +851,13 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             executeChanges(userDelta, null, task, result);
 
             assertNotReached();
         } catch (GenericConnectorException e) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
 
@@ -895,10 +884,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test500AssignResourceBlack() throws Exception {
         final String TEST_NAME = "test500AssignResourceBlack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -908,11 +896,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -933,19 +921,18 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test502ModifyUserEmployeeNumberNone() throws Exception {
         final String TEST_NAME = "test502ModifyUserEmployeeNumberNone";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, "none");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -966,19 +953,18 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test509UnassignResourceBlack() throws Exception {
         final String TEST_NAME = "test509UnassignResourceBlack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -999,10 +985,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test510AssignResourceBlackError() throws Exception {
         final String TEST_NAME = "test510AssignResourceBlackError";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1014,14 +999,14 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
             assertNotReached();
 
         } catch (GenericConnectorException e) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
 
@@ -1046,19 +1031,18 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test512ReconcileUser() throws Exception {
         final String TEST_NAME = "test512ReconcileUser";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         // Errors deep inside the results are expected
         assertSuccess(result, 2);
 
@@ -1078,23 +1062,22 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test514ModifyUserEmployeeNumberRuntime() throws Exception {
         final String TEST_NAME = "test514ModifyUserEmployeeNumberRuntime";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 
             assertNotReached();
 
         } catch (RuntimeException e) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected exception", e);
             assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
         }
@@ -1119,23 +1102,22 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test518UnassignResourceBlack() throws Exception {
         final String TEST_NAME = "test518UnassignResourceBlack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
             assertNotReached();
 
         } catch (RuntimeException e) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected exception", e);
             assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
         }
@@ -1161,19 +1143,18 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test519ReconcileUser() throws Exception {
         final String TEST_NAME = "test519ReconcileUser";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1192,10 +1173,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test520AssignResourceEbonyError() throws Exception {
         final String TEST_NAME = "test520AssignResourceEbonyError";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1206,11 +1186,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertNoDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1233,19 +1213,18 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test524ModifyUserEmployeeNumberRuntime() throws Exception {
         final String TEST_NAME = "test524ModifyUserEmployeeNumberRuntime";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1266,10 +1245,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test528UnassignResourceEbony() throws Exception {
         final String TEST_NAME = "test528UnassignResourceEbony";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1279,11 +1257,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
             .assertLinks(1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Result", result);
         assertPartialError(result);
 
@@ -1319,16 +1297,15 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     @Test
     public void test600GuybrushAssignAccountDummyViolet() throws Exception {
         final String TEST_NAME = "test600GuybrushAssignAccountDummyViolet";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BROKEN_VIOLET_OID, null, task, result);
 
             assertNotReached();
@@ -1337,7 +1314,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertFailure(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);

@@ -19,6 +19,34 @@
                 <color>green</color>
             </icon>
         </display>
+        <itemConstraint>
+            <path>extension</path>
+            <visibility>vacant</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectType</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectQuery</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:searchOptions</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:useRepositoryDirectly</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/scext:executeScript</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:workerThreads</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>

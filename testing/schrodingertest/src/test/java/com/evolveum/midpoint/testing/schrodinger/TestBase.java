@@ -7,67 +7,104 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.util.Properties;
+
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.testng.BrowserPerClass;
-import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
-import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
-import com.evolveum.midpoint.schrodinger.page.BasicPage;
-import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
-import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
-import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
-import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import javax.naming.ConfigurationException;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
+import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.WebDriver;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
+import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
+import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
+import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
+import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Listeners({BrowserPerClass.class})
+@Listeners({ BrowserPerClass.class })
 public abstract class TestBase {
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
     public static final String PROPERTY_NAME_USER_HOME = "user.home";
     public static final String PROPERTY_NAME_FILE_SEPARATOR = "file.separator";
 
-    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "Unique attribute name";
+    protected static final String CSV_RESOURCE_ATTR_UNIQUE = "Unique attribute name";
+
+    private static final String SCHRODINGER_PROPERTIES = "./src/test/resources/configuration/schrodinger.properties";
 
     private static final Logger LOG = LoggerFactory.getLogger(TestBase.class);
+
     protected static File csvTargetDir;
 
+    private EnvironmentConfiguration configuration;
+
+    private String username;
+
+    private String password;
+
     protected MidPoint midPoint;
+
     protected BasicPage basicPage;
 
+    public EnvironmentConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
 
     @BeforeClass
     public void beforeClass() throws IOException {
         LOG.info("Starting tests in class {}", getClass().getName());
 
+        if (midPoint == null) {
+            Properties props = new Properties();
+            try (InputStream is = new FileInputStream(new File(SCHRODINGER_PROPERTIES))) {
+                props.load(is);
+            }
 
-        if (midPoint !=null){
+            configuration = buildEnvironmentConfiguration(props);
+            midPoint = new MidPoint(configuration);
 
-        }else{
-
-        EnvironmentConfiguration config = new EnvironmentConfiguration();
-        midPoint = new MidPoint(config);
-
+            username = props.getProperty("username");
+            password = props.getProperty("password");
         }
 
         FormLoginPage login = midPoint.formLogin();
 
+        basicPage = login.loginWithReloadLoginPage(username, password);
+    }
 
-        basicPage = login.loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
+    private EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) {
+        EnvironmentConfiguration config = new EnvironmentConfiguration();
+        config.driver(WebDriver.valueOf(props.getProperty("webdriver")));
+        config.driverLocation(props.getProperty("webdriverLocation"));
 
+        config.headless(Boolean.parseBoolean(props.getProperty("headlessStart")));
 
+        config.baseUrl(props.getProperty("base_url"));
+
+        return config;
     }
 
     @AfterClass
@@ -78,13 +115,14 @@ public abstract class TestBase {
         Selenide.clearBrowserLocalStorage();
         Selenide.close();
 
-        midPoint.formLogin()
-                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
-    System.out.println("After: Login name "+ midPoint.getUsername()+ " pass " +midPoint.getPassword());
+        midPoint.formLogin().loginWithReloadLoginPage(username, password);
+
+        LOG.info("After: Login name " + username + " pass " + password);
+
         AboutPage aboutPage = basicPage.aboutPage();
-                aboutPage
-                        .clickSwitchToFactoryDefaults()
-                        .clickYes();
+        aboutPage
+                .clickSwitchToFactoryDefaults()
+                .clickYes();
     }
 
     @BeforeMethod
@@ -98,7 +136,6 @@ public abstract class TestBase {
     }
 
     protected void importObject(File source, Boolean overrideExistingObject) {
-
         ImportObjectPage importPage = basicPage.importObject();
 
         if (overrideExistingObject) {
@@ -119,9 +156,7 @@ public abstract class TestBase {
         importObject(source, false);
     }
 
-
-    protected String fetchMidpointHome() throws ConfigurationException {
-
+    protected String fetchMidpointHome() {
         AboutPage aboutPage = basicPage.aboutPage();
         String mpHomeDir = aboutPage.getJVMproperty(PROPERTY_NAME_MIDPOINT_HOME);
 
@@ -130,18 +165,17 @@ public abstract class TestBase {
             return mpHomeDir;
         } else {
 
-            mpHomeDir = new StringBuilder(aboutPage.getSystemProperty(PROPERTY_NAME_USER_HOME))
-                    .append(aboutPage.getSystemProperty(PROPERTY_NAME_FILE_SEPARATOR)).append("midpoint").toString();
+            mpHomeDir = aboutPage.getSystemProperty(PROPERTY_NAME_USER_HOME)
+                    + aboutPage.getSystemProperty(PROPERTY_NAME_FILE_SEPARATOR)
+                    + "midpoint";
 
-            LOG.info("Midpoint home parameter is empty! Using defaults: "+ mpHomeDir);
-
-
+            LOG.info("Midpoint home parameter is empty! Using defaults: " + mpHomeDir);
 
         }
         return mpHomeDir;
     }
 
-    protected File initTestDirectory(String dir) throws ConfigurationException, IOException {
+    protected File initTestDirectory(String dir) throws IOException {
 
         String home = fetchMidpointHome();
         File parentDir = new File(home, "schrodinger");
@@ -164,28 +198,28 @@ public abstract class TestBase {
     }
 
     // TODO workaround -> factory reset during clean up seems to leave some old cached information breaking the resource until version change
-    public ViewResourcePage refreshResourceSchema(String resourceName){
+    public ViewResourcePage refreshResourceSchema(String resourceName) {
 
         ListResourcesPage listResourcesPage = basicPage.listResources();
-        ViewResourcePage resourcePage= listResourcesPage
-                                            .table()
-                                                .clickByName(resourceName)
-                                                .refreshSchema();
+        ViewResourcePage resourcePage = listResourcesPage
+                .table()
+                .clickByName(resourceName)
+                .refreshSchema();
         return resourcePage;
     }
 
-    public void changeResourceAttribute(String resourceName,String attributeName, String newValue){
-        changeResourceAttribute(resourceName ,attributeName ,null ,newValue ,true);
+    public void changeResourceAttribute(String resourceName, String attributeName, String newValue) {
+        changeResourceAttribute(resourceName, attributeName, null, newValue, true);
     }
 
-    public void changeResourceAttribute(String resourceName,String attributeName, String newValue, Boolean shouldBeSuccess){
-        changeResourceAttribute(resourceName ,attributeName ,null ,newValue ,shouldBeSuccess);
+    public void changeResourceAttribute(String resourceName, String attributeName, String newValue, Boolean shouldBeSuccess) {
+        changeResourceAttribute(resourceName, attributeName, null, newValue, shouldBeSuccess);
     }
 
-    public void changeResourceAttribute(String resourceName,String attributeName,String oldValue, String newValue, Boolean shouldBeSuccess){
+    public void changeResourceAttribute(String resourceName, String attributeName, String oldValue, String newValue, Boolean shouldBeSuccess) {
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
-        if(shouldBeSuccess){
+        if (shouldBeSuccess) {
             ViewResourcePage viewResourcePage = listResourcesPage
                     .table()
                     .search()
@@ -202,30 +236,30 @@ public abstract class TestBase {
             Selenide.screenshot("afterMinuteSleep");
 
             Assert.assertTrue(resourceConfigurationTab
-                                    .form()
-                                    .changeAttributeValue(attributeName,oldValue, newValue)
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                .isTestSuccess()
+                    .form()
+                    .changeAttributeValue(attributeName, oldValue, newValue)
+                    .and()
+                    .and()
+                    .clickSaveAndTestConnection()
+                    .isTestSuccess()
             );
-          }else{
+        } else {
             Assert.assertTrue(
                     listResourcesPage
-                        .table()
+                            .table()
                             .search()
-                                .byName()
-                                .inputValue(resourceName)
-                                .updateSearch()
+                            .byName()
+                            .inputValue(resourceName)
+                            .updateSearch()
                             .and()
                             .clickByName(resourceName)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue(attributeName,oldValue, newValue)
-                                .and()
+                            .clickEditResourceConfiguration()
+                            .form()
+                            .changeAttributeValue(attributeName, oldValue, newValue)
                             .and()
-                                .clickSaveAndTestConnection()
-                                .isTestFailure()
+                            .and()
+                            .clickSaveAndTestConnection()
+                            .isTestFailure()
             );
         }
 

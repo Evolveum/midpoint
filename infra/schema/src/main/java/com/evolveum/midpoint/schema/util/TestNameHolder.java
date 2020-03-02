@@ -9,7 +9,11 @@ package com.evolveum.midpoint.schema.util;
 
 /**
  *  Very ugly hack. Assumes single-threaded tests.
+ *  TODO notes:
+ *  - implement TestTracerImpl where this usage is pulled out of production (main) code
+ *  - and (perhaps in a single step) replace it with MidpointTestMethodContext usage
  */
+@Deprecated
 public class TestNameHolder {
 
     private static String currentTestName;

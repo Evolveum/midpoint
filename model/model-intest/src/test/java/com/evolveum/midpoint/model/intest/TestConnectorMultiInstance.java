@@ -82,10 +82,9 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_YELLOW_OID, task);
@@ -100,10 +99,9 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     @Test
     public void test100JackAssignDummyYellow() throws Exception {
         final String TEST_NAME = "test100JackAssignDummyYellow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -132,7 +130,6 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     @Test
     public void test102ReadJackDummyYellowAgain() throws Exception {
         final String TEST_NAME = "test102ReadJackDummyYellowAgain";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         PrismObject<ShadowType> shadowYellow = getShadowModel(accountJackYellowOid);
@@ -155,7 +152,6 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     @Test
     public void test110ReadJackDummyYellowBlocking() throws Exception {
         final String TEST_NAME = "test110ReadJackDummyYellowBlocking";
-        displayTestTitle(TEST_NAME);
 
         dummyResourceYellow.setBlockOperations(true);
         final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
@@ -200,7 +196,6 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     @Test
    public void test120ReadJackDummyYellowTwoOperationsOneBlocking() throws Exception {
         final String TEST_NAME = "test120ReadJackDummyYellowTwoOperationsOneBlocking";
-        displayTestTitle(TEST_NAME);
 
         dummyResourceYellow.setBlockOperations(true);
         final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>();
@@ -267,7 +262,6 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     @Test
    public void test125ReadJackDummyYellowTwoBlocking() throws Exception {
         final String TEST_NAME = "test125ReadJackDummyYellowTwoBlocking";
-        displayTestTitle(TEST_NAME);
 
         dummyResourceYellow.setBlockOperations(true);
         final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>();
@@ -325,10 +319,9 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     @Test
     public void test200GuybrushAssignDummyBlack() throws Exception {
         final String TEST_NAME = "test200GuybrushAssignDummyBlack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

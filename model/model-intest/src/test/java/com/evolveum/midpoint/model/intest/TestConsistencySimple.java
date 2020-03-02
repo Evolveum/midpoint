@@ -146,10 +146,9 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private void executeTest(final String TEST_NAME, FocusOperation focusOperation, ShadowOperation shadowOperation,
             ResourceObjectOperation resourceObjectOperation) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME + ".given");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         cleanUpBeforeTest(task, result);
@@ -195,11 +194,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
             assertDummyAccount(null, "jack");
         }
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         switch (focusOperation) {
             case RECOMPUTE:
                 recomputeUser(USER_JACK_OID, task, result);
@@ -214,7 +213,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("Result", result);
         if (ASSERT_SUCCESS) {

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -19,6 +18,8 @@ import java.util.List;
 public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, MutableTypeDefinition {
 
     void add(ItemDefinition<?> definition);
+
+    void delete(QName itemName);
 
     MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName);
 

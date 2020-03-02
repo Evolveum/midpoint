@@ -10,7 +10,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,7 +33,7 @@ import static org.testng.AssertJUnit.*;
 /**
  * @author semancik
  */
-public class TestStaticValues {
+public class TestStaticValues extends AbstractUnitTest {
 
     private static final QName PROP_NAME = new QName("http://whatever.com/", "foo");
 
@@ -45,10 +45,6 @@ public class TestStaticValues {
 
     @Test
     public void testValueElementsRoundtripString() throws Exception {
-        final String TEST_NAME = "testValueElementsRoundtripString";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         MutablePrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(PROP_NAME, DOMUtil.XSD_STRING);
         propDef.setMaxOccurs(-1);
@@ -61,10 +57,6 @@ public class TestStaticValues {
 
     @Test
     public void testValueElementsRoundtripInt() throws Exception {
-        final String TEST_NAME = "testValueElementsRoundtripInt";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         MutablePrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(PROP_NAME, DOMUtil.XSD_INT);
         propDef.setMaxOccurs(-1);

@@ -6,31 +6,24 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
-import java.util.Map;
-
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 import com.evolveum.midpoint.prism.foo.AccountType;
-import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
@@ -42,9 +35,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
- *
  */
-public class TestPrismContext {
+public class TestPrismContext extends AbstractPrismTest {
 
     private static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 
@@ -55,8 +47,6 @@ public class TestPrismContext {
 
     @Test
     public void testPrefixMapper() throws SchemaException, SAXException, IOException {
-        System.out.println("===[ testPrefixMapper ]===");
-
         // WHEN
         PrismContextImpl prismContext = constructInitializedPrismContext();
 
@@ -75,14 +65,8 @@ public class TestPrismContext {
 
     }
 
-    private void assertMapping(Map<QName, Class<?>> map, Class<?> clazz, QName typeName) {
-        assertEquals("Wrong xsdType->class mapping for "+typeName, clazz, map.get(typeName));
-    }
-
     @Test
     public void testBasicSchemas() throws SchemaException, SAXException, IOException {
-        System.out.println("===[ testBasicSchemas ]===");
-
         // WHEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -100,7 +84,7 @@ public class TestPrismContext {
         System.out.println(fooSchema.debugDump());
 
         // Assert USER definition
-        PrismObjectDefinition<UserType> userDefinition = fooSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+        PrismObjectDefinition<UserType> userDefinition = fooSchema.findObjectDefinitionByElementName(new QName(NS_FOO, "user"));
         assertNotNull("No user definition", userDefinition);
         System.out.println("User definition:");
         System.out.println(userDefinition.debugDump());
@@ -111,7 +95,7 @@ public class TestPrismContext {
         assertUserDefinition(userDefinition);
 
         // Assert ACCOUNT definition
-        PrismObjectDefinition<AccountType> accountDefinition = fooSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
+        PrismObjectDefinition<AccountType> accountDefinition = fooSchema.findObjectDefinitionByElementName(new QName(NS_FOO, "account"));
         assertNotNull("No account definition", accountDefinition);
         System.out.println("Account definition:");
         System.out.println(accountDefinition.debugDump());
@@ -186,8 +170,6 @@ public class TestPrismContext {
 
     @Test
     public void testExtensionSchema() throws SchemaException, SAXException, IOException {
-        System.out.println("===[ testExtensionSchema ]===");
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
         assertNotNull("No prism context", prismContext);
@@ -196,19 +178,19 @@ public class TestPrismContext {
 
         PrismPropertyDefinition ignoredTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_IGNORED_TYPE_ELEMENT);
         PrismAsserts.assertDefinition(ignoredTypeDef, EXTENSION_IGNORED_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
-        assertTrue("Element "+EXTENSION_IGNORED_TYPE_ELEMENT+" is NOT ignored", ignoredTypeDef.isIgnored());
+        assertTrue("Element " + EXTENSION_IGNORED_TYPE_ELEMENT + " is NOT ignored", ignoredTypeDef.isIgnored());
 
         PrismPropertyDefinition stringTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_STRING_TYPE_ELEMENT);
         PrismAsserts.assertDefinition(stringTypeDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
-        assertFalse("Element "+EXTENSION_STRING_TYPE_ELEMENT+" is ignored", stringTypeDef.isIgnored());
+        assertFalse("Element " + EXTENSION_STRING_TYPE_ELEMENT + " is ignored", stringTypeDef.isIgnored());
 
         PrismPropertyDefinition singleStringTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_SINGLE_STRING_TYPE_ELEMENT);
         PrismAsserts.assertDefinition(singleStringTypeDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, 1);
-        assertFalse("Element "+EXTENSION_SINGLE_STRING_TYPE_ELEMENT+" is ignored", singleStringTypeDef.isIgnored());
+        assertFalse("Element " + EXTENSION_SINGLE_STRING_TYPE_ELEMENT + " is ignored", singleStringTypeDef.isIgnored());
 
         PrismPropertyDefinition intTypeDef = schemaRegistry.findPropertyDefinitionByElementName(EXTENSION_INT_TYPE_ELEMENT);
         PrismAsserts.assertDefinition(intTypeDef, EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
-        assertFalse("Element "+EXTENSION_INT_TYPE_ELEMENT+" is ignored", intTypeDef.isIgnored());
+        assertFalse("Element " + EXTENSION_INT_TYPE_ELEMENT + " is ignored", intTypeDef.isIgnored());
 
         PrismContainerDefinition meleeContextDefinition = schemaRegistry.findContainerDefinitionByElementName(EXTENSION_MELEE_CONTEXT_ELEMENT);
         PrismAsserts.assertDefinition(meleeContextDefinition, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_TYPE_QNAME, 0, 1);
@@ -219,8 +201,6 @@ public class TestPrismContext {
 
     @Test
     public void testSchemaToDom() throws SchemaException, SAXException, IOException {
-        System.out.println("===[ testSchemaToDom ]===");
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
         PrismSchema fooSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(NS_FOO);
@@ -231,48 +211,4 @@ public class TestPrismContext {
         // THEN
         assertNotNull("No foo XSD DOM", fooXsd);
     }
-
-    // This is not supposed to work with foo schema. It container ObjectReferenceType which does
-    // not survive roundtrip
-//    @Test
-//    public void testSchemaParsingRoundTrip() throws SchemaException, SAXException, IOException {
-//        System.out.println("===[ testSchemaParsingRoundTrip ]===");
-//
-//        // GIVEN
-//        PrismContext prismContext = constructInitializedPrismContext();
-//        PrismSchema fooSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(NS_FOO);
-//
-//        // WHEN
-//        Document fooXsd = fooSchema.serializeToXsd();
-//
-//        // THEN
-//        assertNotNull("No foo XSD DOM", fooXsd);
-//        System.out.println("Serialized schema");
-//        System.out.println(DOMUtil.serializeDOMToString(fooXsd));
-//
-//        // WHEN
-//        PrismSchema parsedSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(fooXsd), prismContext);
-//
-//        // THEN
-//        assertNotNull("No parsed schema", parsedSchema);
-//        System.out.println("Parsed schema");
-//        System.out.println(parsedSchema.dump());
-//
-//        // Assert USER definition
-//        PrismObjectDefinition<UserType> userDefinition = parsedSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
-//        assertNotNull("No user definition", userDefinition);
-//        System.out.println("User definition:");
-//        System.out.println(userDefinition.dump());
-//
-//        assertUserDefinition(userDefinition);
-//
-//        // Assert ACCOUNT definition
-//        PrismObjectDefinition<AccountType> accountDefinition = parsedSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
-//        assertNotNull("No account definition", accountDefinition);
-//        System.out.println("Account definition:");
-//        System.out.println(accountDefinition.dump());
-//
-//        assertAccountDefinition(accountDefinition);
-//    }
-
 }

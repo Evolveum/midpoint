@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,20 +6,15 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -31,6 +26,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -49,23 +45,14 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
- *
  */
-@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "edir");
@@ -165,9 +152,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     }
 
     protected String getOrgGroupsLdapSuffix() {
-        return "ou=orggroups,"+getLdapSuffix();
+        return "ou=orggroups," + getLdapSuffix();
     }
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -187,9 +173,6 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
         assertEDirGroupMember(ACCOUNT_JACK_UID, GROUP_PIRATES_NAME);
         cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME));
@@ -200,10 +183,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     }
 
     @Test
-    public void test050Capabilities() throws Exception {
-        final String TEST_NAME = "test050Capabilities";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
+    public void test050Capabilities() {
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
         display("Native capabilities", nativeCapabilitiesCollection);
 
@@ -215,11 +195,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test100SeachJackByLdapUid() throws Exception {
-        final String TEST_NAME = "test100SeachJackByLdapUid";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
@@ -228,21 +205,21 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertShadowLockout(shadow, LockoutStatusType.NORMAL);
         jackAccountOid = shadow.getOid();
-        assertNotNull("Null OID in "+shadow, jackAccountOid);
+        assertNotNull("Null OID in " + shadow, jackAccountOid);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -255,11 +232,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test105SeachPiratesByCn() throws Exception {
-        final String TEST_NAME = "test105SeachPiratesByCn";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
@@ -269,14 +243,14 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
@@ -293,11 +267,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test110GetJack() throws Exception {
-        final String TEST_NAME = "test110GetJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
@@ -306,7 +277,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, jackAccountOid, null, task, result);
 
         // THEN
@@ -326,11 +297,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test120JackLockout() throws Exception {
-        final String TEST_NAME = "test120JackLockout";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         makeBadLoginAttempt(ACCOUNT_JACK_UID);
@@ -346,15 +314,15 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
@@ -375,16 +343,13 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
      */
     @Test
     public void test150SeachAllAccounts() throws Exception {
-        final String TEST_NAME = "test150SeachAllAccounts";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, NUMBER_OF_ACCOUNTS, task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, NUMBER_OF_ACCOUNTS, task, result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -397,18 +362,15 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test190SeachLockedAccounts() throws Exception {
-        final String TEST_NAME = "test190SeachLockedAccounts";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass(), prismContext)
                 .and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
                 .build();
 
-        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 1, task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 1, task, result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -426,20 +388,17 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test200AssignAccountBarbossa() throws Exception {
-        final String TEST_NAME = "test200AssignAccountBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -455,7 +414,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         accountBarbossaOid = shadow.getOid();
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
-        assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
+        assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
         assertEquals("Wrong ICFS UID", MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes()), accountBarbossaIcfUid);
 
@@ -463,19 +422,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertPasswordAllowChange(shadow, null);
 
         ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
-        assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
+        assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-1000, roundTsUp(tsEnd)+1000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in " + shadow, roundTsDown(tsStart) - 1000, roundTsUp(tsEnd) + 1000, createTimestamp);
     }
 
     @Test
     public void test210ModifyAccountBarbossaTitle() throws Exception {
-        final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
@@ -487,11 +443,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         delta.addModification(attrDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -505,22 +461,19 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test220ModifyUserBarbossaPassword() throws Exception {
-        final String TEST_NAME = "test220ModifyUserBarbossaPassword";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue("hereThereBeMonsters");
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -535,19 +488,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test230DisableBarbossa() throws Exception {
-        final String TEST_NAME = "test230DisableBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -564,19 +514,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test239EnableBarbossa() throws Exception {
-        final String TEST_NAME = "test239EnableBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -596,11 +543,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
      */
     @Test
     public void test240ModifyAccountBarbossaPasswordAllowChangeFalse() throws Exception {
-        final String TEST_NAME = "test240ModifyAccountBarbossaPasswordAllowChangeFalse";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
@@ -612,11 +556,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         delta.addModification(attrDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -638,21 +582,18 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
      */
     @Test
     public void test250AssignGuybrushPirates() throws Exception {
-        final String TEST_NAME = "test250AssignGuybrushPirates";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -673,19 +614,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test260EnableGyubrush() throws Exception {
-        final String TEST_NAME = "test260EnableGyubrush";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -704,19 +642,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test300AssignBarbossaPirates() throws Exception {
-        final String TEST_NAME = "test300AssignBarbossaPirates";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -737,19 +672,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test390ModifyUserBarbossaRename() throws Exception {
-        final String TEST_NAME = "test390ModifyUserBarbossaRename";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         renameObject(UserType.class, USER_BARBOSSA_OID, USER_CPTBARBOSSA_USERNAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -772,11 +704,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test500AddOrgMeleeIsland() throws Exception {
-        final String TEST_NAME = "test500AddOrgMeleeIsland";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
@@ -790,11 +719,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         orgType.getAssignment().add(metaroleAssignment);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         addObject(org, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -809,19 +738,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test510AssignGuybrushMeleeIsland() throws Exception {
-        final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -839,19 +765,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test520RenameOrgMeleeIsland() throws Exception {
-        final String TEST_NAME = "test520RenameOrgMeleeIsland";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         renameObject(OrgType.class, orgMeleeIslandOid, GROUP_MELA_NOVA_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -866,21 +789,18 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     // Wait until the lockout of Jack expires, check status
     @Test
     public void test800JackLockoutExpires() throws Exception {
-        final String TEST_NAME = "test800JackLockoutExpires";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         long now = System.currentTimeMillis();
-        long lockoutExpires = jackLockoutTimestamp + LOCKOUT_EXPIRATION_SECONDS*1000;
+        long lockoutExpires = jackLockoutTimestamp + LOCKOUT_EXPIRATION_SECONDS * 1000;
         if (now < lockoutExpires) {
-            display("Sleeping for "+(lockoutExpires-now)+"ms (waiting for lockout expiration)");
-            Thread.sleep(lockoutExpires-now);
+            display("Sleeping for " + (lockoutExpires - now) + "ms (waiting for lockout expiration)");
+            Thread.sleep(lockoutExpires - now);
         }
         now = System.currentTimeMillis();
-        display("Time is now "+now);
+        display("Time is now " + now);
 
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
 
@@ -888,15 +808,15 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
@@ -914,17 +834,14 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test810SeachLockedAccounts() throws Exception {
-        final String TEST_NAME = "test810SeachLockedAccounts";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass(), prismContext)
                 .and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
                 .build();
-        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 0, task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 0, task, result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -932,11 +849,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test820JackLockoutAndUnlock() throws Exception {
-        final String TEST_NAME = "test820JackLockoutAndUnlock";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         makeBadLoginAttempt(ACCOUNT_JACK_UID);
@@ -952,7 +866,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
         PrismObject<ShadowType> shadowLocked = shadows.get(0);
         display("Locked shadow", shadowLocked);
         assertAccountShadow(shadowLocked, toAccountDn(ACCOUNT_JACK_UID));
@@ -962,12 +876,12 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(ShadowType.class, shadowLocked.getOid(), PATH_ACTIVATION_LOCKOUT_STATUS, task, result,
                 LockoutStatusType.NORMAL);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -994,21 +908,18 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test890UnAssignBarbossaPirates() throws Exception {
-        final String TEST_NAME = "test890UnAssignBarbossaPirates";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // TODO: do this on another account. There is a bad interference with rename.
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1029,19 +940,16 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test899UnAssignAccountBarbossa() throws Exception {
-        final String TEST_NAME = "test899UnAssignAccountBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1058,21 +966,21 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
         super.assertAccountShadow(shadow, dn);
         ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
-        assertNotNull("No primary identifier ("+getPrimaryIdentifierAttributeQName()+" in "+shadow, primaryIdAttr);
+        assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);
         String primaryId = primaryIdAttr.getRealValue();
-        assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9]+"));
+        assertTrue("Unexpected chars in primary ID: '" + primaryId + "'", primaryId.matches("[a-z0-9]+"));
     }
 
     protected void assertPasswordAllowChange(PrismObject<ShadowType> shadow, Boolean expected) throws SchemaException {
         Boolean passwordAllowChange = ShadowUtil.getAttributeValue(shadow, new QName(MidPointConstants.NS_RI, "passwordAllowChange"));
-        assertEquals("Wrong passwordAllowChange in "+shadow, expected, passwordAllowChange);
+        assertEquals("Wrong passwordAllowChange in " + shadow, expected, passwordAllowChange);
     }
 
     private void makeBadLoginAttempt(String uid) throws LdapException, IOException {
         try {
             LdapNetworkConnection conn = ldapConnect(toAccountDn(uid), "thisIsAwRoNgPASSW0RD");
             if (conn.isAuthenticated()) {
-                AssertJUnit.fail("Bad authentication went good for "+uid);
+                AssertJUnit.fail("Bad authentication went good for " + uid);
             }
         } catch (SecurityException e) {
             // this is expected
@@ -1102,6 +1010,6 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     }
 
     protected String toOrgGroupDn(String cn) {
-        return "cn="+cn+","+getOrgGroupsLdapSuffix();
+        return "cn=" + cn + "," + getOrgGroupsLdapSuffix();
     }
 }

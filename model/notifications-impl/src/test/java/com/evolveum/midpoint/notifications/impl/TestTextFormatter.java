@@ -6,6 +6,22 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import javax.xml.bind.JAXBException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -15,30 +31,13 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.bind.JAXBException;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author mederly
@@ -57,7 +56,7 @@ import static org.testng.AssertJUnit.assertTrue;
         "classpath:ctx-model-common.xml",
         "classpath:ctx-notifications-test.xml",
         "classpath*:ctx-notifications.xml"})
-public class TestTextFormatter extends AbstractTestNGSpringContextTests {
+public class TestTextFormatter extends AbstractSpringTest {
 
     public static final String OBJECTS_DIR_NAME = "src/test/resources/objects";
     public static final String USER_JACK_FILE = OBJECTS_DIR_NAME + "/user-jack.xml";
@@ -258,27 +257,6 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         assertTrue("account password is not shown", jackFormattedHideAux.contains(PASSWORD));
         assertTrue("administrative status is not shown", jackFormattedHideAux.contains(ADMINISTRATIVE_STATUS));
         assertTrue("effective status is shown although it should be hidden", !jackFormattedHideAux.contains(EFFECTIVE_STATUS));
-
-//        AssertJUnit.assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", jackFormattedHideNone.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("ship: Black Pearl"));
-//
-//        AssertJUnit.assertTrue("shown operational attribute when it should be hidden ('hide oper')", !jackFormattedHideOper.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide oper')", jackFormattedHideOper.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("ship: Black Pearl"));
-//
-//        AssertJUnit.assertTrue("shown auxiliary attribute (metadata) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide aux')", jackFormattedHideAux.contains("ship: Black Pearl"));
-//
-//        AssertJUnit.assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", jackFormattedHideAuxAndOper.contains("ship: Black Pearl"));
-
     }
 
 

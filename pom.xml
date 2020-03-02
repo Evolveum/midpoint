@@ -30,11 +30,14 @@
     "Quick" build with unit tests only and checkstyle (~30m):
     mvn clean install -P -dist -DskipITs -Dmaven.javadoc.skip
 
-    "Quick" build with smaller integration test set and output to stdout (~?):
-    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip -DredirectTestOutputToFile=false
+    "Quick" build with smaller integration test (~1h20m):
+    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip
+
+    Running tests of a selected module (-pl) with output to stdout (don't use stdout for complete build, it's too much):
+    mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
 
     Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?),
-    runs just under 900 tests (~?):
+    runs just under 900 tests (~1h50m):
     mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
 
     Comprehensive quick build/dist with normally excluded modules including checkstyle, but no tests/javadoc (~13m):
@@ -571,11 +574,6 @@
                 <groupId>javax.annotation</groupId>
                 <artifactId>jsr250-api</artifactId>
                 <version>1.0</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.annotation</groupId>
-                <artifactId>javax.annotation-api</artifactId>
-                <version>1.2</version>
             </dependency>
             <dependency>
                 <groupId>javax.jws</groupId>
@@ -1526,6 +1524,11 @@
                 <artifactId>test-ng</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.evolveum.midpoint.infra</groupId>
+                <artifactId>test-util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -1734,6 +1737,7 @@
 
                                 <!-- Falsely reported, not used explicitly, only transient dependency. -->
                                 <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                         </configuration>

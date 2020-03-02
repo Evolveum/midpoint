@@ -112,7 +112,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test003GetProgress() throws Exception {
         String TEST_NAME = "test003GetProgress";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -126,7 +126,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test(enabled=false)          // this is probably OK to fail, so do not enable it (at least for now)
     public void test004aTaskBigProperty() throws Exception {
         String TEST_NAME = "test004aTaskBigProperty";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
 
         String string300 = "123456789-123456789-123456789-123456789-123456789-"
                 + "123456789-123456789-123456789-123456789-123456789-"
@@ -190,7 +190,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test004bTaskBigProperty() throws Exception {
         String TEST_NAME = "test004aTaskBigProperty";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
 
         String string300 = "123456789-123456789-123456789-123456789-123456789-"
                 + "123456789-123456789-123456789-123456789-123456789-"
@@ -248,7 +248,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test(enabled = false)
     public void test004cReferenceInExtension() throws Exception {               // ok to fail
         String TEST_NAME = "test004cReferenceInExtension";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
@@ -270,7 +270,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test(enabled = false)
     public void test004TaskProperties() throws Exception {
         String TEST_NAME = "test004TaskProperties";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -435,7 +435,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test005Single() throws Exception {
         final String TEST_NAME = "test005Single";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         // reset 'has run' flag on the handler
         singleHandler1.resetHasRun();
@@ -512,7 +512,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test006Cycle() throws Exception {
         final String TEST_NAME = "test006Cycle";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         // But before that check sanity ... a known problem with xsi:type
         PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(TEST_NAME));
@@ -593,7 +593,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test008MoreHandlers() throws Exception {
         final String TEST_NAME = "test008MoreHandlers";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         // reset 'has run' flag on handlers
         singleHandler1.resetHasRun();
@@ -649,7 +649,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test009CycleLoose() throws Exception {
         final String TEST_NAME = "test009CycleLoose";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -694,7 +694,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test010CycleCronLoose() throws Exception {
         final String TEST_NAME = "test010CycleCronLoose";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -732,7 +732,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test011MoreHandlersAndSchedules() throws Exception {
         final String TEST_NAME = "test011MoreHandlersAndSchedules";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         // reset 'has run' flag on handlers
         l1Handler.resetHasRun();
@@ -800,7 +800,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test012Suspend() throws Exception {
         final String TEST_NAME = "test012Suspend";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
           addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -846,7 +846,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test013ReleaseAndSuspendLooselyBound() throws Exception {
         final String TEST_NAME = "test013ReleaseAndSuspendLooselyBound";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -903,7 +903,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test014SuspendLongRunning() throws Exception {
         final String TEST_NAME = "test014SuspendLongRunning";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -962,7 +962,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test015DeleteTaskFromRepo() throws Exception {
         final String TEST_NAME = "test015DeleteTaskFromRepo";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
         String oid = taskOid(TEST_NAME);
@@ -998,7 +998,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test016WaitForSubtasks() throws Exception {
         final String TEST_NAME = "test016WaitForSubtasks";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         //taskManager.getClusterManager().startClusterManagerThread();
 
@@ -1080,7 +1080,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test017WaitForSubtasksEmpty() throws Exception {
         final String TEST_NAME = "test017WaitForSubtasksEmpty";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         taskManager.getClusterManager().startClusterManagerThread();
 
@@ -1096,7 +1096,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test018TaskResult() throws Exception {
         final String TEST_NAME = "test018RefreshingResult";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         Task task = taskManager.createTaskInstance();
         task.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
@@ -1123,7 +1123,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test019FinishedHandler() throws Exception {
         final String TEST_NAME = "test019FinishedHandler";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         // reset 'has run' flag on handlers
         singleHandler1.resetHasRun();
@@ -1172,7 +1172,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test020QueryByExecutionStatus() throws Exception {
         final String TEST_NAME = "test020QueryByExecutionStatus";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME)), result);
 
@@ -1192,7 +1192,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test021DeleteTaskTree() throws Exception {
         final String TEST_NAME = "test021DeleteTaskTree";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         PrismObject<TaskType> parentTaskPrism = addObjectFromFile(taskFilename(TEST_NAME));
         PrismObject<TaskType> childTask1Prism = addObjectFromFile(taskFilename(TEST_NAME+"-child1"));
@@ -1247,7 +1247,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test022ExecuteRecurringOnDemand() throws Exception {
         final String TEST_NAME = "test022ExecuteRecurringOnDemand";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -1292,7 +1292,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test100LightweightSubtasks() throws Exception {
         final String TEST_NAME = "test100LightweightSubtasks";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -1340,7 +1340,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test105LightweightSubtasksSuspension() throws Exception {
         final String TEST_NAME = "test105LightweightSubtasksSuspension";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -1389,7 +1389,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test108SecondaryGroupLimit() throws Exception {
         final String TEST_NAME = "test108SecondaryGroupLimit";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
         waitForTaskStart(task1.getOid(), result, 10000, 500);
@@ -1448,7 +1448,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test110GroupLimit() throws Exception {
         final String TEST_NAME = "test110GroupLimit";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         taskManager.getExecutionManager().setLocalExecutionLimitations((TaskExecutionLimitationsType) null);
 
@@ -1487,7 +1487,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test120NodeAllowed() throws Exception {
         final String TEST_NAME = "test120NodeAllowed";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         taskManager.getExecutionManager().setLocalExecutionLimitations(
                 new TaskExecutionLimitationsType()
@@ -1504,7 +1504,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test130NodeNotAllowed() throws Exception {
         final String TEST_NAME = "test130NodeNotAllowed";
-        final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final OperationResult result = createResult(TEST_NAME);
 
         TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
         Thread.sleep(10000);
@@ -1516,7 +1516,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     @Test
     public void test999CheckingLeftovers() throws Exception {
         String TEST_NAME = "test999CheckingLeftovers";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
 
         ArrayList<String> leftovers = new ArrayList<>();
         checkLeftover(leftovers, "test005", result);

@@ -87,17 +87,13 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         addObject(ARCHETYPE_TASK_RECOMPUTATION, initTask, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-
-        setAutoTaskManagementEnabled(true);
-
-//        DebugUtil.setDetailedDebugDump(true);
     }
 
     @Test
     public void test100RecomputeAll() throws Exception {
         // GIVEN
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // Preconditions
         assertUsers(6);
@@ -175,7 +171,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         // WHEN
-        displayWhen();
+        when();
         addTask(TASK_USER_RECOMPUTE_FILE);
 
         dummyAuditService.clear();
@@ -183,12 +179,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskStart(TASK_USER_RECOMPUTE_OID, false);
 
         // WHEN
-        displayWhen();
+        when();
 
         waitForTaskFinish(TASK_USER_RECOMPUTE_OID, true, 40000);
 
         // THEN
-        displayThen();
+        then();
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recompute", users);
@@ -257,8 +253,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110RecomputeSome() throws Exception {
         // GIVEN
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // Preconditions
         assertUsers(7);
@@ -269,12 +265,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         // Now do something evil, remove "red" construction from judge role
-        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, false, null, null);
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, false, null, getTestTask());
 
         displayRoles(task, result);
 
         // WHEN
-        displayWhen();
+        when();
         addTask(TASK_USER_RECOMPUTE_CAPTAIN_FILE);
 
         dummyAuditService.clear();
@@ -282,12 +278,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskStart(TASK_USER_RECOMPUTE_CAPTAIN_OID, false);
 
         // WHEN
-        displayWhen();
+        when();
 
         waitForTaskFinish(TASK_USER_RECOMPUTE_CAPTAIN_OID, true, 40000);
 
         // THEN
-        displayThen();
+        then();
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recompute", users);
@@ -313,8 +309,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120RecomputeByExpression() throws Exception {
         // GIVEN
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
         prepareNotifications();
 
         // Preconditions
@@ -326,7 +322,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         // WHEN
-        displayWhen();
+        when();
         addTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE);
 
         dummyAuditService.clear();
@@ -334,12 +330,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, false);
 
         // WHEN
-        displayWhen();
+        when();
 
         waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, true, 40000);
 
         // THEN
-        displayThen();
+        then();
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recompute", users);
@@ -372,8 +368,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test130RecomputeLight() throws Exception {
         // GIVEN
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // Preconditions
         assertUsers(7);
@@ -405,7 +401,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
         // WHEN
-        displayWhen();
+        when();
         addTask(TASK_USER_RECOMPUTE_LIGHT_FILE);
 
         dummyAuditService.clear();
@@ -413,12 +409,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID, false);
 
         // WHEN
-        displayWhen();
+        when();
 
         waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, true, 40000);
 
         // THEN
-        displayThen();
+        then();
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recompute", users);

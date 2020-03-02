@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -10,7 +10,6 @@ import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 
 /**
  * @author semancik
- *
  */
 public class UserLdapConnectionConfig extends LdapConnectionConfig {
 

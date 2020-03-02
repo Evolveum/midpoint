@@ -6,6 +6,15 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
+
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -13,36 +22,12 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
-import java.io.IOException;
-
-import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-
-/**
- * @author mederly
- *
- */
-public class TestExport {
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
+public class TestExport extends AbstractSchemaTest {
 
     @Test
     public void testExportShadow() throws Exception {
-        System.out.println("===[ testExportShadow ]===");
-
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("shadow1")

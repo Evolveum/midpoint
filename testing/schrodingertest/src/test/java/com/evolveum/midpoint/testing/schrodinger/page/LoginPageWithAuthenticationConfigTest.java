@@ -61,7 +61,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         SystemPage systemPage = new SystemPage();
         PrismForm<InfrastructureTab> infrastructureForm = systemPage.infrastructureTab().form();
         infrastructureForm.showEmptyAttributes("Infrastructure");
-        infrastructureForm.addAttributeValue("defaultHostname", midPoint.getBaseUrl());
+        infrastructureForm.addAttributeValue("publicHttpUrlPattern", getConfiguration().getBaseUrl());
         File notificationFile = NOTIFICATION_FILE;
         notificationFile.createNewFile();
         NotificationsTab notificationTab = systemPage.notificationsTab();
@@ -88,7 +88,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void loginAndLogoutForAdministrators() {
+    public void test020loginAndLogoutForAdministrators() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         open("/auth/emergency/internalLoginForm");
         FormLoginPage login = midPoint.formLogin();
@@ -98,14 +98,14 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void negativeLoginForAdministrators() {
+    public void test021negativeLoginForAdministrators() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         open("/auth/emergency/internalLoginForm");
         unsuccessfulLogin("user_without_superuser", "5ecr3t");
     }
 
     @Test
-    public void changePassowordMailNonce() throws IOException, InterruptedException {
+    public void test030changePassowordMailNonce() throws IOException, InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         MailNoncePage mailNonce = (MailNoncePage) login.forgotPassword();
@@ -120,7 +120,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void changePassowordSecurityQuestion() {
+    public void test031changePassowordSecurityQuestion() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         open("/login");
@@ -137,9 +137,12 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void selfRegistration() throws IOException, InterruptedException {
+    public void test040selfRegistration() throws IOException, InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
+        open("/login");
+        open("/");
+        TimeUnit.SECONDS.sleep(2);
         SelfRegistrationPage registrationPage = login.register();
         registrationPage.setGivenName("Test").setFamilyName("User").setEmail("test.user@evolveum.com").setPassword("5ecr3t").submit();
         TimeUnit.SECONDS.sleep(4);

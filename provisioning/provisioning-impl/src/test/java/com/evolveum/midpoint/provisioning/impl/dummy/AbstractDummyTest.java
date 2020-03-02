@@ -427,7 +427,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected void assertDummyConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask(AbstractDummyTest.class.getName() + ".assertDummyConnectorInstances");
+        AbstractDummyTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
         display("Resource connector stats", stats);

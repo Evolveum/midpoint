@@ -13,7 +13,6 @@ import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 
 /**
  * @author semancik
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
         "classpath:ctx-repo-cache.xml",
         "classpath:ctx-repository-test.xml",
         "classpath:ctx-configuration-test.xml"})
-public class TestAuditServiceImpl extends AbstractTestNGSpringContextTests {
+public class TestAuditServiceImpl extends AbstractSpringTest {
 
     private static final String LOG_FILENAME = "target/test.log";
 
@@ -45,7 +45,7 @@ public class TestAuditServiceImpl extends AbstractTestNGSpringContextTests {
     TaskManager taskManager;
 
     @Test
-    public void testAuditSimple() throws FileNotFoundException, InterruptedException {
+    public void testAuditSimple() throws FileNotFoundException {
         // GIVEN
         AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT);
         Task task = taskManager.createTaskInstance();

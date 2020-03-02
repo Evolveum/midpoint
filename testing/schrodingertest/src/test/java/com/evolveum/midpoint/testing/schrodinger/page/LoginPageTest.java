@@ -28,7 +28,7 @@ import static com.codeborne.selenide.Selenide.*;
 public class LoginPageTest extends AbstractLoginPageTest {
 
     @Test
-    public void changeLanguageFormPage() {
+    public void test020changeLanguageFormPage() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
 
@@ -38,7 +38,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
     }
 
     @Test
-    public void changeLanguageSamlSelectPage() {
+    public void test021changeLanguageSamlSelectPage() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         SamlSelectPage login = midPoint.samlSelect();
         login.goToUrl();

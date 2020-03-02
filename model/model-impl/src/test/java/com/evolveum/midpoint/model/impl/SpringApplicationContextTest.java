@@ -8,24 +8,23 @@
 package com.evolveum.midpoint.model.impl;
 
 import static org.testng.AssertJUnit.assertNotNull;
-import org.testng.annotations.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 
 /**
- *
  * Test of spring application context initialization
  *
  * @author Igor Farinic
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
-public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
+public class SpringApplicationContextTest extends AbstractSpringTest {
 
-    @Autowired(required = true)
+    @Autowired
     RepositoryService repositoryService;
 
     @Test

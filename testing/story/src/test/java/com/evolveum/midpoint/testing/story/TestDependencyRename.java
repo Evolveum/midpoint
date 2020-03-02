@@ -103,7 +103,6 @@ public class TestDependencyRename extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_PHONEBOOK_OID, task);
@@ -118,7 +117,6 @@ public class TestDependencyRename extends AbstractStoryTest {
     @Test
     public void test100AddUserHerman() throws Exception {
         final String TEST_NAME = "test100AddUserHerman";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -149,7 +147,6 @@ public class TestDependencyRename extends AbstractStoryTest {
     @Test
     public void test110HermanAssignRoleBasic() throws Exception {
         final String TEST_NAME = "test110HermanAssignRoleBasic";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -184,7 +181,6 @@ public class TestDependencyRename extends AbstractStoryTest {
     @Test
     public void test112HermanRename() throws Exception {
         final String TEST_NAME = "test112HermanRename";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -219,7 +215,6 @@ public class TestDependencyRename extends AbstractStoryTest {
     @Test
     public void test120AddUserCapsizeWithBasicRole() throws Exception {
         final String TEST_NAME = "test120AddUserCapsizeWithBasicRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 

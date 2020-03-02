@@ -190,14 +190,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                         ProvisioningUtil.recordFatalError(LOGGER, result, "Schema violation", ex);
                         exceptionRecorded = true;
                         throw ex;
-                    } catch (CommunicationException ex) {
-                        ProvisioningUtil.recordFatalError(LOGGER, result, "Error communicating with resource", ex);
-                        exceptionRecorded = true;
-                        throw ex;
-                    } catch (ConfigurationException ex) {
-                        ProvisioningUtil.recordFatalError(LOGGER, result, "Bad resource configuration", ex);
-                        exceptionRecorded = true;
-                        throw ex;
                     } catch (ExpressionEvaluationException ex) {
                         ProvisioningUtil.recordFatalError(LOGGER, result, "Expression error", ex);
                         exceptionRecorded = true;
@@ -753,7 +745,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script,
             Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Validate.notNull(resourceOid, "Oid of object for script execution must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -767,7 +759,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             scriptResult = resourceManager.executeScript(resourceOid, script, task, result);
 
-        } catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error  e) {
+        } catch (CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error  e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             throw e;
         }
@@ -811,7 +803,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Deprecated
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
                                                                        QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
@@ -857,7 +848,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException {
+            ExpressionEvaluationException {
         Validate.notNull(shadow, "Shadow for refresh must not be null.");
         OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_SHADOW);
 
@@ -1062,7 +1053,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         return stats;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

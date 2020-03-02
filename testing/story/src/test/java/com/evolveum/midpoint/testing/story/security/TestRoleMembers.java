@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -87,10 +86,9 @@ public class TestRoleMembers extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertUserBefore(USER_GUYBRUSH_OID)
             .assertName(USER_GUYBRUSH_USERNAME)
@@ -126,7 +124,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         assertFalse("Preview evaluated assignment triple is empty", evaluatedAssignmentTriple.isEmpty());
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 
@@ -136,12 +134,11 @@ public class TestRoleMembers extends AbstractStoryTest {
     @Test
     public void test100AutzGuybrushNoMembers() throws Exception {
         final String TEST_NAME = "test100AutzGuybrushNoMembers";
-        displayTestTitle(TEST_NAME);
 
         login(USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
@@ -173,12 +170,12 @@ public class TestRoleMembers extends AbstractStoryTest {
         assertNull("Preview evaluated assignment triple sneaked in", evaluatedAssignmentTriple);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 
     private ModelContext<UserType> previewUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createTask("previewUser");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);
         ModelContext<UserType> previewContext = modelInteractionService.previewChanges(Collections.singleton(emptyMancombDelta), null, task, result);
@@ -197,12 +194,11 @@ public class TestRoleMembers extends AbstractStoryTest {
     @Test
     public void test105AutzElaineMembers() throws Exception {
         final String TEST_NAME = "test105AutzElaineMembers";
-        displayTestTitle(TEST_NAME);
 
         login(USER_ELAINE_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
@@ -222,7 +218,7 @@ public class TestRoleMembers extends AbstractStoryTest {
                 .assertRoleMemberhipRefs(1);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 

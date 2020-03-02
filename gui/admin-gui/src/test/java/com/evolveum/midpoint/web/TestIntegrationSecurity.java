@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,16 +53,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTest {
 
-    public static final File TEST_DIR = new File("src/test/resources/security");
+    private static final File TEST_DIR = new File("src/test/resources/security");
 
-    protected static final File ROLE_UI_ALLOW_ALL_FILE = new File(TEST_DIR, "role-ui-allow-all.xml");
-    protected static final String ROLE_UI_ALLOW_ALL_OID = "d8f78cfe-d05d-11e7-8ee6-038ce21862f3";
+    private static final File ROLE_UI_ALLOW_ALL_FILE = new File(TEST_DIR, "role-ui-allow-all.xml");
+    private static final String ROLE_UI_ALLOW_ALL_OID = "d8f78cfe-d05d-11e7-8ee6-038ce21862f3";
 
-    protected static final File ROLE_UI_DENY_ALL_FILE = new File(TEST_DIR, "role-ui-deny-all.xml");
-    protected static final String ROLE_UI_DENY_ALL_OID = "c4a5923c-d02b-11e7-9ac5-13b0d906fa81";
+    private static final File ROLE_UI_DENY_ALL_FILE = new File(TEST_DIR, "role-ui-deny-all.xml");
+    private static final String ROLE_UI_DENY_ALL_OID = "c4a5923c-d02b-11e7-9ac5-13b0d906fa81";
 
-    protected static final File ROLE_UI_DENY_ALLOW_FILE = new File(TEST_DIR, "role-ui-deny-allow.xml");
-    protected static final String ROLE_UI_DENY_ALLOW_OID = "da47fcf6-d02b-11e7-9e78-f31ae9aa0674";
+    private static final File ROLE_UI_DENY_ALLOW_FILE = new File(TEST_DIR, "role-ui-deny-allow.xml");
+    private static final String ROLE_UI_DENY_ALLOW_OID = "da47fcf6-d02b-11e7-9e78-f31ae9aa0674";
+
+    private static final TestResource ROLE_AUTHORIZATION_1 = new TestResource(TEST_DIR, "role-authorization-1.xml", "97984277-e809-4a86-ae9b-d5c40e09df0b");
+    private static final TestResource ROLE_AUTHORIZATION_2 = new TestResource(TEST_DIR, "role-authorization-2.xml", "96b02d58-5147-4f5a-852c-0f415230ce2c");
 
     private static final Trace LOGGER = TraceManager.getTrace(TestIntegrationSecurity.class);
 
@@ -78,12 +82,8 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         repoAddObjectFromFile(ROLE_UI_ALLOW_ALL_FILE, initResult);
         repoAddObjectFromFile(ROLE_UI_DENY_ALL_FILE, initResult);
         repoAddObjectFromFile(ROLE_UI_DENY_ALLOW_FILE, initResult);
-
-        // Temporary ... until initial object load is fixed
-//        ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.web");
-//        l.setLevel(ch.qos.logback.classic.Level.TRACE);
-//        l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.test");
-//        l.setLevel(ch.qos.logback.classic.Level.TRACE);
+        repoAdd(ROLE_AUTHORIZATION_1, initResult);
+        repoAdd(ROLE_AUTHORIZATION_2, initResult);
     }
 
 
@@ -92,7 +92,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test100DecideNoRole() throws Exception {
         final String TEST_NAME = "test100DecideNoRole";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -102,7 +101,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -113,13 +112,12 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
     }
 
     @Test
     public void test110DecideRoleUiAllowAll() throws Exception {
         final String TEST_NAME = "test110DecideRoleUiAllowAll";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_ALLOW_ALL_OID);
@@ -130,7 +128,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -141,13 +139,12 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertAllow(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
     }
 
     @Test
     public void test120DecideRoleUiDenyAll() throws Exception {
         final String TEST_NAME = "test120DecideRoleUiDenyAll";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALL_OID);
@@ -158,7 +155,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -169,7 +166,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 
@@ -179,7 +176,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test200DecideRoleUiDenyAllow() throws Exception {
         final String TEST_NAME = "test200DecideRoleUiDenyAllow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALLOW_OID);
@@ -190,7 +186,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -201,8 +197,31 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
+    }
+
+    /**
+     * MID-5002
+     */
+    @Test
+    public void test300ConflictingAuthorizationIds() throws Exception {
+        final String TEST_NAME = "test300ConflictingAuthorizationIds";
+
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_AUTHORIZATION_1.oid);
+        assignRole(USER_JACK_OID, ROLE_AUTHORIZATION_2.oid);
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("user before", user);
+
+        // WHEN
+        when("Jack logs in");
+        login(USER_JACK_USERNAME);
+
+        // THEN
+        then();
+        assertLoggedInUsername(USER_JACK_USERNAME);
     }
 
     private void assertAllow(Authentication authentication, String path) {

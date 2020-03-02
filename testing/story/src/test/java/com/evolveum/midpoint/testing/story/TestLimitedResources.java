@@ -28,7 +28,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 
 /**
@@ -69,18 +68,17 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         PrismObject<ResourceType> resourceNoAAD = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         List<Object> configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured().getAny();
@@ -93,17 +91,16 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test100AssignJackAccountNoAttributeAddDelete() throws Exception {
         final String TEST_NAME = "test100AssignJackAccountNoAttributeAddDelete";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -116,18 +113,17 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test102AddJackOrganizationalUnitTreasureHunt() throws Exception {
         final String TEST_NAME = "test102AddJackOrganizationalUnitTreasureHunt";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_TREASURE_HUNT));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -140,18 +136,17 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test104AddJackOrganizationalUnitLootingSailing() throws Exception {
         final String TEST_NAME = "test104AddJackOrganizationalUnitLootingSailing";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_LOOTING), createPolyString(OU_SAILING));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -164,18 +159,17 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test106DeleteJackOrganizationalUnitLooting() throws Exception {
         final String TEST_NAME = "test106DeleteJackOrganizationalUnitLooting";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_LOOTING));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -191,18 +185,17 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test108DeleteJackOrganizationalUnitTreasureHuntSailing() throws Exception {
         final String TEST_NAME = "test108DeleteJackOrganizationalUnitTreasureHuntSailing";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 createPolyString(OU_TREASURE_HUNT), createPolyString(OU_SAILING));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -215,17 +208,16 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test109UnassignJackAccountNoAttributeAddDelete() throws Exception {
         final String TEST_NAME = "test109UnassignJackAccountNoAttributeAddDelete";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -242,17 +234,16 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test110AssignJackAccountNoCreate() throws Exception {
         final String TEST_NAME = "test110AssignJackAccountNoCreate";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NO_CREATE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Result", result);
         assertSuccess(result, 2);
 
@@ -266,17 +257,16 @@ public class TestLimitedResources extends AbstractStoryTest {
     @Test
     public void test119UnassignJackAccountNoCreate() throws Exception {
         final String TEST_NAME = "test119UnassignJackAccountNoCreate";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NO_CREATE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)

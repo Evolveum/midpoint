@@ -12,41 +12,20 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.util.List;
-
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
-
-import com.evolveum.midpoint.prism.PrismContext;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Test with a resource that has unique primary identifier (ConnId UID), but non-unique secondary
@@ -88,17 +67,16 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
     @Test
     public void test010TestResourceConnection() throws Exception {
         final String TEST_NAME = "test010TestResourceConnection";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult result = modelService.testResource(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
@@ -109,18 +87,17 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
     @Test
     public void test020RefinedSchema() throws Exception {
         final String TEST_NAME = "test020RefinedSchema";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
@@ -144,18 +121,17 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
     @Test
     public void test100AssignAccountToJackSparrow() throws Exception {
         final String TEST_NAME = "test100AssignAccountToJackSparrow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackSparrowUid = assertUserAfter(USER_JACK_OID)
@@ -177,10 +153,9 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
     @Test
     public void test102GetAccountJackSparrow() throws Exception {
         final String TEST_NAME = "test102GetAccountJackSparrow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackSparrowOid = assertUserBefore(USER_JACK_OID)
@@ -188,11 +163,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
                     .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountJackSparrowOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertShadow(shadow, "getObject")
@@ -210,20 +185,19 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
     @Test
     public void test110AssignAccountToJackSkellington() throws Exception {
         final String TEST_NAME = "test110AssignAccountToJackSkellington";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertEquals(USER_SKELLINGTON_GIVEN_NAME, USER_JACK_GIVEN_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_SKELLINGTON_OID, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackSkellingtonUid = assertUserAfter(USER_SKELLINGTON_OID)

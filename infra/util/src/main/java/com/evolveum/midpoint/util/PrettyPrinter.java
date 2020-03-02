@@ -9,14 +9,8 @@ package com.evolveum.midpoint.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -28,7 +22,6 @@ import org.w3c.dom.Text;
 
 /**
  * @author semancik
- *
  */
 public class PrettyPrinter {
 
@@ -53,7 +46,7 @@ public class PrettyPrinter {
         sb.append(prettyPrint(elementName));
         sb.append(">");
         if (element instanceof Element) {
-            Element domElement = (Element)element;
+            Element domElement = (Element) element;
             // TODO: this is too simplistic, expand later
             sb.append(domElement.getTextContent());
         } else {
@@ -94,9 +87,9 @@ public class PrettyPrinter {
         }
         if (qname.getNamespaceURI() != null) {
             if (qname.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
-                return "{"+DOMUtil.NS_W3C_XML_SCHEMA_PREFIX+":}"+qname.getLocalPart();
+                return "{" + DOMUtil.NS_W3C_XML_SCHEMA_PREFIX + ":}" + qname.getLocalPart();
             } else if (defaultNamespacePrefix != null && qname.getNamespaceURI().startsWith(defaultNamespacePrefix)) {
-                return "{..."+qname.getNamespaceURI().substring(defaultNamespacePrefix.length())+"}"+qname.getLocalPart();
+                return "{..." + qname.getNamespaceURI().substring(defaultNamespacePrefix.length()) + "}" + qname.getLocalPart();
             }
         }
         return qnameToString(qname);    // avoiding qname.toString because recursive call to prettyPrint from ItemName.toString
@@ -216,7 +209,6 @@ public class PrettyPrinter {
         return sb.toString();
     }
 
-
     public static String prettyPrint(Date date) {
         if (date == null) {
             return "null";
@@ -235,7 +227,7 @@ public class PrettyPrinter {
         if (printlen > BYTE_ARRAY_MAX_LEN) {
             printlen = BYTE_ARRAY_MAX_LEN;
         }
-        for(int i=0; i < printlen; i++) {
+        for (int i = 0; i < printlen; i++) {
             sb.append(String.format("%02x", value[i] & 0xff));
         }
         if (value.length > BYTE_ARRAY_MAX_LEN) {
@@ -252,10 +244,10 @@ public class PrettyPrinter {
             return "null";
         }
         if (value instanceof JAXBElement) {
-            Object elementValue = ((JAXBElement)value).getValue();
+            Object elementValue = ((JAXBElement) value).getValue();
             String attempt = tryPrettyPrint(elementValue);
             if (attempt != null) {
-                return ("JAXBElement("+((JAXBElement)value).getName()+","+attempt+")");
+                return ("JAXBElement(" + ((JAXBElement) value).getName() + "," + attempt + ")");
             }
         }
         String attempt = tryPrettyPrint(value);
@@ -268,32 +260,32 @@ public class PrettyPrinter {
 
     private static String tryPrettyPrint(Object value) {
         if (value instanceof Class) {
-            Class<?> c = (Class<?>)value;
+            Class<?> c = (Class<?>) value;
             if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_3")) {
                 return c.getSimpleName();
             }
             return c.getName();
         }
         if (value instanceof Collection) {
-            return PrettyPrinter.prettyPrint((Collection<?>)value);
+            return PrettyPrinter.prettyPrint((Collection<?>) value);
         }
         if (value.getClass().isArray()) {
             Class<?> cclass = value.getClass().getComponentType();
             if (cclass.isPrimitive()) {
                 if (cclass == byte.class) {
-                    return PrettyPrinter.prettyPrint((byte[])value);
+                    return PrettyPrinter.prettyPrint((byte[]) value);
                 } else {
                     // TODO: something better
                 }
             } else {
-                return PrettyPrinter.prettyPrint((Object[])value);
+                return PrettyPrinter.prettyPrint((Object[]) value);
             }
         }
         if (value instanceof Node) {
             // This is interface, won't catch it using reflection
-            return PrettyPrinter.prettyPrint((Node)value);
+            return PrettyPrinter.prettyPrint((Node) value);
         }
-        for (Class<?> prettyPrinterClass: prettyPrinters) {
+        for (Class<?> prettyPrinterClass : prettyPrinters) {
             String printerValue = tryPrettyPrint(value, prettyPrinterClass);
             if (printerValue != null) {
                 return printerValue;
@@ -309,15 +301,15 @@ public class PrettyPrinter {
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
                     try {
-                        return (String)method.invoke(null, value);
+                        return (String) method.invoke(null, value);
                     } catch (IllegalArgumentException e) {
-                        return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; prettyPrint method for value "+value;
+                        return "###INTERNAL#ERROR### Illegal argument: " + e.getMessage() + "; prettyPrint method for value " + value;
                     } catch (IllegalAccessException e) {
-                        return "###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; prettyPrint method for value "+value;
+                        return "###INTERNAL#ERROR### Illegal access: " + e.getMessage() + "; prettyPrint method for value " + value;
                     } catch (InvocationTargetException e) {
-                        return "###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; prettyPrint method for value "+value;
+                        return "###INTERNAL#ERROR### Illegal target: " + e.getMessage() + "; prettyPrint method for value " + value;
                     } catch (Throwable e) {
-                        return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; prettyPrint method for value "+value;
+                        return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; prettyPrint method for value " + value;
                     }
                 }
             }
@@ -331,10 +323,10 @@ public class PrettyPrinter {
         }
         String out = null;
         if (value instanceof DebugDumpable) {
-            return ((DebugDumpable)value).debugDump(indent);
+            return ((DebugDumpable) value).debugDump(indent);
         }
         if (value instanceof Collection) {
-            return DebugUtil.debugDump((Collection)value, indent);
+            return DebugUtil.debugDump((Collection) value, indent);
         }
         out = tryDebugDumpMethod(value, indent);
         if (out != null) {
@@ -346,7 +338,7 @@ public class PrettyPrinter {
     }
 
     private static String tryDebugDumpMethod(Object value, int indent) {
-        for (Class<?> prettyPrinterClass: prettyPrinters) {
+        for (Class<?> prettyPrinterClass : prettyPrinters) {
             String printerValue = tryDebugDumpMethod(value, indent, prettyPrinterClass);
             if (printerValue != null) {
                 return printerValue;
@@ -362,15 +354,15 @@ public class PrettyPrinter {
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length == 2 && parameterTypes[0].equals(value.getClass())) {
                     try {
-                        return (String)method.invoke(null, value, indent);
+                        return (String) method.invoke(null, value, indent);
                     } catch (IllegalArgumentException e) {
-                        return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; debugDump method for value "+value;
+                        return "###INTERNAL#ERROR### Illegal argument: " + e.getMessage() + "; debugDump method for value " + value;
                     } catch (IllegalAccessException e) {
-                        return "###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; debugDump method for value "+value;
+                        return "###INTERNAL#ERROR### Illegal access: " + e.getMessage() + "; debugDump method for value " + value;
                     } catch (InvocationTargetException e) {
-                        return "###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; debugDump method for value "+value;
+                        return "###INTERNAL#ERROR### Illegal target: " + e.getMessage() + "; debugDump method for value " + value;
                     } catch (Throwable e) {
-                        return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; debugDump method for value "+value;
+                        return "###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; debugDump method for value " + value;
                     }
                 }
             }
@@ -384,11 +376,11 @@ public class PrettyPrinter {
             return;
         }
         if (value instanceof ShortDumpable) {
-            ((ShortDumpable)value).shortDump(sb);
+            ((ShortDumpable) value).shortDump(sb);
             return;
         }
         if (value instanceof Collection) {
-            DebugUtil.shortDump(sb, (Collection)value);
+            DebugUtil.shortDump(sb, (Collection) value);
             return;
         }
         if (tryShortDumpMethod(sb, value)) {
@@ -398,7 +390,7 @@ public class PrettyPrinter {
     }
 
     private static boolean tryShortDumpMethod(StringBuilder sb, Object value) {
-        for (Class<?> prettyPrinterClass: prettyPrinters) {
+        for (Class<?> prettyPrinterClass : prettyPrinters) {
             if (tryShortDumpMethod(sb, value, prettyPrinterClass)) {
                 return true;
             }
@@ -416,13 +408,13 @@ public class PrettyPrinter {
                         method.invoke(null, sb, value);
                         return true;
                     } catch (IllegalArgumentException e) {
-                        sb.append("###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; shortDump method for value "+value);
+                        sb.append("###INTERNAL#ERROR### Illegal argument: " + e.getMessage() + "; shortDump method for value " + value);
                     } catch (IllegalAccessException e) {
-                        sb.append("###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; shortDump method for value "+value);
+                        sb.append("###INTERNAL#ERROR### Illegal access: " + e.getMessage() + "; shortDump method for value " + value);
                     } catch (InvocationTargetException e) {
-                        sb.append("###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; shortDump method for value "+value);
+                        sb.append("###INTERNAL#ERROR### Illegal target: " + e.getMessage() + "; shortDump method for value " + value);
                     } catch (Throwable e) {
-                        sb.append("###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; shortDump method for value "+value);
+                        sb.append("###INTERNAL#ERROR### " + e.getClass().getName() + ": " + e.getMessage() + "; shortDump method for value " + value);
                     }
                 }
             }

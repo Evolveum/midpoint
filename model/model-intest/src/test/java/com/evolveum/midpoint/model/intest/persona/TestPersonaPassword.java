@@ -70,10 +70,9 @@ public class TestPersonaPassword extends AbstractPersonaTest {
     @Override
     public void test145ModifyPersonaPasswordBack() throws Exception {
         final String TEST_NAME = "test145ModifyPersonaPasswordBack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -83,7 +82,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
 
             modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_2_CLEAR, task, result);
 
@@ -94,7 +93,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertFailure(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();

@@ -34,8 +34,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -49,18 +47,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestDummySecurity extends AbstractDummyTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummySecurity.class);
     private String willIcfUid;
 
     @Test
     public void test100AddAccountDrink() throws Exception {
-        final String TEST_NAME = "test100AddAccountDrink";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task syncTask = taskManager.createTaskInstance(TestDummySecurity.class.getName()
-                + "." + TEST_NAME);
-        OperationResult result = new OperationResult(TestDummySecurity.class.getName()
-                + "." + TEST_NAME);
+        Task syncTask = getTestTask();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
@@ -75,12 +68,10 @@ public class TestDummySecurity extends AbstractDummyTest {
             provisioningService.addObject(account, null, null, syncTask, result);
 
             AssertJUnit.fail("Unexpected success");
-
         } catch (SecurityViolationException e) {
             // This is expected
             display("Expected exception", e);
         }
-
     }
 
     private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
@@ -93,13 +84,9 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     @Test
     public void test199AddAccount() throws Exception {
-        final String TEST_NAME = "test199AddAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task syncTask = taskManager.createTaskInstance(TestDummySecurity.class.getName()
-                + "." + TEST_NAME);
-        OperationResult result = new OperationResult(TestDummySecurity.class.getName()
-                + "." + TEST_NAME);
+        Task syncTask = getTestTask();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
@@ -123,11 +110,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     @Test
     public void test200ModifyAccountDrink() throws Exception {
-        final String TEST_NAME = "test200ModifyAccountDrink";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -157,11 +140,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     @Test
     public void test201ModifyAccountGossip() throws Exception {
-        final String TEST_NAME = "test201ModifyAccountGossip";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -191,11 +170,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     @Test
     public void test210ModifyAccountQuote() throws Exception {
-        final String TEST_NAME = "test210ModifyAccountQuote";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -222,11 +197,8 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     @Test
     public void test300GetAccount() throws Exception {
-        final String TEST_NAME = "test300GetAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationalResult();
 
         // WHEN
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
@@ -240,18 +212,15 @@ public class TestDummySecurity extends AbstractDummyTest {
 
         assertNotNull("No dummy account", shadow);
 
-        checkAccountWill(shadow, result);
+        checkAccountWill(shadow);
 
         checkUniqueness(shadow);
     }
 
     @Test
     public void test310SearchAllShadows() throws Exception {
-        final String TEST_NAME = "test310SearchAllShadows";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationalResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);
@@ -281,7 +250,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     // TODO: search
 
-    private void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result) {
+    private void checkAccountWill(PrismObject<ShadowType> shadow) {
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");

@@ -105,15 +105,14 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test010GenerateUsers() throws Exception {
         final String TEST_NAME = "test010GenerateUsers";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // Add objects using model, we also want to create LDAP accounts
          generateObjects(UserType.class, NUMBER_OF_GENERATED_USERS, GENERATED_USER_NAME_FORMAT, GENERATED_USER_OID_FORMAT,
                      (user,i) -> {
@@ -129,7 +128,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
                      result);
 
          // THEN
-         displayThen(TEST_NAME);
+         then();
 
          long endMillis = System.currentTimeMillis();
          recordDuration(TEST_NAME, (endMillis - startMillis));
@@ -148,21 +147,20 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test100Reconcile1ThreadLdap0() throws Exception {
         final String TEST_NAME = "test100Reconcile1ThreadLdap0";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addTask(TASK_RECON_1_OPENDJ_FILE);
         waitForTaskFinish(TASK_RECON_1_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
 
          // THEN
-         displayThen(TEST_NAME);
+         then();
 
          recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECON_1_OPENDJ_OID));
 
@@ -192,21 +190,20 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test200ReconcileLdap0() throws Exception {
         final String TEST_NAME = "test200ReconcileLdap0";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addTask(TASK_RECON_4_OPENDJ_FILE);
         waitForTaskFinish(TASK_RECON_4_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
 
          // THEN
-         displayThen(TEST_NAME);
+         then();
 
          recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECON_4_OPENDJ_OID));
 
@@ -236,7 +233,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test310ReconcileLdapX1() throws Exception {
         final String TEST_NAME = "test310ReconcileLdapX1";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestLdapReconPerformance.class.getName() + "." + TEST_NAME);
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -257,7 +253,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     private long testReconcileLdapRestart1Thread(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         long duration = testReconcileLdapRestartWhen(TEST_NAME, TASK_RECON_1_OPENDJ_OID);
 
@@ -267,7 +262,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     private long testReconcileLdapRestart(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         long duration =  testReconcileLdapRestartWhen(TEST_NAME, TASK_RECON_4_OPENDJ_OID);
 
@@ -277,20 +271,20 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     private long testReconcileLdapRestartWhen(final String TEST_NAME, String taskOid) throws Exception {
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ruinLdapAccounts();
         rememberConnectorResourceCounters();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         restartTask(taskOid);
         waitForTaskFinish(taskOid, true, RECON_TASK_WAIT_TIMEOUT);
 
          // THEN
-         displayThen(TEST_NAME);
+         then();
 
          long duration = recordDuration(TEST_NAME, getRunDurationMillis(taskOid));
 
@@ -307,9 +301,8 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test900Summarize() throws Exception {
         final String TEST_NAME = "test900Summarize";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         StringBuilder sb = new StringBuilder();
@@ -319,7 +312,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         display("Summary ("+NUMBER_OF_GENERATED_USERS+" users)", sb.toString());
 
          // THEN
-         displayThen(TEST_NAME);
+         then();
 
          if (reconDuration1ThreadBaseline < reconDuration4ThreadBaseline) {
              fail("Multi-thread recon SLOWER than single-thread! singlethread="+reconDuration1ThreadBaseline+"ms, multithread="+reconDuration4ThreadBaseline+"ms");

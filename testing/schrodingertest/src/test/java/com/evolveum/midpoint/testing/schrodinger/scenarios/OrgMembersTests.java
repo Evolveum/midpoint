@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;

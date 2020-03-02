@@ -22,7 +22,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -59,10 +58,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     private static final Trace LOGGER = TraceManager.getTrace(TestUcfDummyMulti.class);
 
     @Test
-    public void test000PrismContextSanity() throws Exception {
-        final String TEST_NAME = "test000PrismContextSanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
+    public void test000PrismContextSanity() {
         SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
         PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
         assertNotNull("ICFC schema not found in the context ("+SchemaConstants.NS_ICF_CONFIGURATION+")", schemaIcfc);
@@ -76,15 +72,12 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     @Test
     public void test020CreateConfiguredConnector() throws Exception {
-        final String TEST_NAME = "test020CreateConfiguredConnector";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         cc = connectorFactory.createConnectorInstance(connectorType,
                 ResourceTypeUtil.getResourceNamespace(resourceType),
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
-        OperationResult result = new OperationResult(TestUcfDummyMulti.class.getName() + "." + TEST_NAME);
+        OperationResult result = createResult();
         PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
         display("Configuration container", configContainer);
 
@@ -102,7 +95,6 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     @Test
     public void test100AddAccount() throws Exception {
         final String TEST_NAME = "test100AddAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
@@ -131,8 +123,6 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     @Test
     public void test110SearchNonBlocking() throws Exception {
-        final String TEST_NAME = "test100SearchNonBlocking";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -151,7 +141,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             }
         };
 
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         // WHEN
         cc.search(accountDefinition, null, handler, null, null, null, null, result);
@@ -167,11 +157,9 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     @Test
     public void test200BlockingSearch() throws Exception {
-        final String TEST_NAME = "test200BlockingSearch";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        final OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createResult();
 
         final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         // Determine object class from the schema
@@ -236,15 +224,13 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     @Test
     public void test210TwoBlockingSearches() throws Exception {
-        final String TEST_NAME = "test210TwoBlockingSearches";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
 
         final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         // Determine object class from the schema
 
-        final OperationResult result1 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result1 = createResult();
         final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
         final ShadowResultHandler handler1 = new ShadowResultHandler() {
             @Override
@@ -255,7 +241,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             }
         };
 
-        final OperationResult result2 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result2 = createResult();
         final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
         final ShadowResultHandler handler2 = new ShadowResultHandler() {
             @Override

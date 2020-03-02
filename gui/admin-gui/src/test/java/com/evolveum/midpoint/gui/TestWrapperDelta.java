@@ -79,7 +79,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test100modifyUserFullname() throws Exception {
         final String TEST_NAME = "test100CreateWrapperUserJack";
-        TestUtil.displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TEST_NAME);
 
         OperationResult result = task.getResult();
@@ -110,7 +109,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test101modifyUserWeapon() throws Exception {
         final String TEST_NAME = "test101modifyUserWeapon";
-        TestUtil.displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TEST_NAME);
 
         OperationResult result = task.getResult();
@@ -146,7 +144,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test110modifyUserAddAssignment() throws Exception {
         final String TEST_NAME = "test110modifyUserAddAssignment";
-        TestUtil.displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TEST_NAME);
 
         OperationResult result = task.getResult();
@@ -181,7 +178,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test111modifyUserAssignemnt() throws Exception {
         final String TEST_NAME = "test110modifyUserAddAssignment";
-        TestUtil.displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TEST_NAME);
 
         OperationResult result = task.getResult();
@@ -265,7 +261,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test200createUser() throws Exception {
         String TEST_NAME = "test200createUser";
-        displayTestTitle(TEST_NAME);
 
         Task task = createSimpleTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -321,7 +316,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test300SaveSystemConfigWithoutChanges() throws Exception {
         final String TEST_NAME = "test300SaveSystemConfigWithoutChanges";
-        TestUtil.displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TEST_NAME);
 
         OperationResult result = task.getResult();
@@ -339,7 +333,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test301ModifyProfilingClassLoggerOfSystemConfig() throws Exception {
         final String TEST_NAME = "test301ModifyProfilingClassLoggerOfSystemConfig";
-        TestUtil.displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TEST_NAME);
 
         OperationResult result = task.getResult();

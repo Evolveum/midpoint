@@ -89,8 +89,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test100CreateE1ApprovalCase() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userJackOid, ROLE_E1_OID, task, result);                // should start approval process
         assertNotAssignedRole(userJackOid, ROLE_E1_OID, task, result);
@@ -117,8 +117,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test110NotifyAfter5Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         clock.overrideDuration("P5DT1H");            // at P5D there's a notify action
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
@@ -139,8 +139,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test120EscalateAfter12Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         clock.resetOverride();
         clock.overrideDuration("P12DT1H");        // at -P2D (i.e. P12D) there is a delegate action
@@ -161,8 +161,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test130CompleteAfter14Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         clock.resetOverride();
         clock.overrideDuration("P14DT1H");        // at 0 (i.e. P14D) there is a delegate action
@@ -176,15 +176,15 @@ public class TestEscalation extends AbstractWfTestPolicy {
         display("rootTask", rootCase);
         waitForCaseClose(rootCase, 60000);
 
-        assertAssignedRole(userJackOid, ROLE_E1_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_E1_OID, result);
     }
 
     @Test
     public void test200CreateE2ApprovalCase() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         clock.resetOverride();
         resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
@@ -212,8 +212,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test210EscalateAfter3Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -245,8 +245,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test220Reject() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();

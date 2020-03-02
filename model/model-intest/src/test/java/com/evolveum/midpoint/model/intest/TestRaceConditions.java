@@ -51,14 +51,13 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100AssignRoles() throws Exception {
         final String TEST_NAME="test100AssignRoles";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         @SuppressWarnings({"raw"})
         ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
@@ -68,7 +67,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         executeChangesAssertSuccess(objectDelta, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
@@ -93,7 +92,6 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test110UnassignRoles() throws Exception {
         final String TEST_NAME = "test110UnassignRoles";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRaceConditions.class.getName() + "." + TEST_NAME);

@@ -7,79 +7,61 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_FOO;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
+
+import java.lang.reflect.Method;
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.query.*;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.lang.reflect.Method;
-
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_FOO;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
 
 /**
  * Here are the most simple tests for Query Builder.
  * More advanced tests are part of QueryInterpreterTest in repo-sql-impl-test.
- *
+ * <p>
  * These tests are strict in the sense they check the exact structure of created queries.
  * Repo tests check just the HQL outcome.
  */
-public class TestQueryBuilder {
+public class TestQueryBuilder extends AbstractPrismTest {
 
     public static final QName USER_TYPE_QNAME = new QName(NS_FOO, "UserType");
     public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO, "AssignmentType");
-    private static MatchingRuleRegistry matchingRuleRegistry;
-
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-
-        matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
-    }
 
     @BeforeMethod
-    public void beforeMethod(Method method) throws Exception {
+    public void beforeMethod(Method method) {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
     }
 
     @Test
-    public void test100EmptyFilter() throws Exception{
+    public void test100EmptyFilter() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class).build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery((ObjectFilter) null);
         compare(actual, expected);
     }
 
     @Test
-    public void test110EmptyBlock() throws Exception{
+    public void test110EmptyBlock() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class).block().endBlock().build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery((ObjectFilter) null);
         compare(actual, expected);
     }
 
     @Test
-    public void test112EmptyBlocks() throws Exception{
+    public void test112EmptyBlocks() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .block()
-                    .block()
-                        .block()
-                        .endBlock()
-                    .endBlock()
+                .block()
+                .block()
+                .endBlock()
+                .endBlock()
                 .endBlock()
                 .build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery((ObjectFilter) null);
@@ -87,7 +69,7 @@ public class TestQueryBuilder {
     }
 
     @Test(expectedExceptions = IllegalStateException.class)
-    public void test113BlocksLeftOpen() throws Exception{
+    public void test113BlocksLeftOpen() {
         getPrismContext().queryFor(UserType.class)
                 .block()
                 .block()
@@ -98,7 +80,7 @@ public class TestQueryBuilder {
     }
 
     @Test(expectedExceptions = IllegalStateException.class)
-    public void test114NoOpenBlocks() throws Exception{
+    public void test114NoOpenBlocks() {
         getPrismContext().queryFor(UserType.class)
                 .block()
                 .block()
@@ -109,28 +91,28 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test120All() throws Exception{
+    public void test120All() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class).all().build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(AllFilterImpl.createAll());
         compare(actual, expected);
     }
 
     @Test
-    public void test122AllInBlock() throws Exception{
+    public void test122AllInBlock() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class).block().all().endBlock().build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(AllFilterImpl.createAll());
         compare(actual, expected);
     }
 
     @Test
-    public void test130SingleEquals() throws Exception{
+    public void test130SingleEquals() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class).item(UserType.F_LOCALITY).eq("Caribbean").build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(createEqual(UserType.F_LOCALITY, UserType.class, null, "Caribbean"));
         compare(actual, expected);
     }
 
     @Test
-    public void test132SingleAnd() throws Exception{
+    public void test132SingleAnd() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY).eq("Caribbean")
                 .and().item(UserType.F_DESCRIPTION).eq("desc")
@@ -145,7 +127,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test134SingleOrWithNot() throws Exception{
+    public void test134SingleOrWithNot() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY).eq("Caribbean")
                 .or().not().item(UserType.F_DESCRIPTION).eq("desc")
@@ -162,16 +144,16 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test136AndOrNotSequence() throws Exception{
+    public void test136AndOrNotSequence() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY).eq("Caribbean")
                 .or()
-                        .not().item(UserType.F_DESCRIPTION).eq("desc")
-                        .and().all()
-                        .and().none()
+                .not().item(UserType.F_DESCRIPTION).eq("desc")
+                .and().all()
+                .and().none()
                 .or()
-                        .undefined()
-                        .and().not().none()
+                .undefined()
+                .and().not().none()
                 .build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 OrFilterImpl.createOr(
@@ -195,7 +177,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test140TypeWithEquals() throws Exception{
+    public void test140TypeWithEquals() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .type(UserType.class)
                 .item(UserType.F_LOCALITY).eq("Caribbean")
@@ -210,7 +192,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test142TypeWithEqualsInBlock() throws Exception{
+    public void test142TypeWithEqualsInBlock() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .type(UserType.class)
                 .block()
@@ -227,7 +209,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test144TypeWithEqualsAndAllInBlock() throws Exception{
+    public void test144TypeWithEqualsAndAllInBlock() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .type(UserType.class)
                 .block()
@@ -248,7 +230,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test144TypeInTypeInType() throws Exception{
+    public void test144TypeInTypeInType() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .type(UserType.class)
                 .type(AssignmentType.class)
@@ -271,7 +253,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test146TypeAndSomething() throws Exception{
+    public void test146TypeAndSomething() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .type(UserType.class)
                 .none()
@@ -290,7 +272,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test148TypeEmpty() throws Exception{
+    public void test148TypeEmpty() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .type(UserType.class)
                 .block().endBlock()
@@ -305,7 +287,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test149TypeEmptyAndAll() throws Exception{
+    public void test149TypeEmptyAndAll() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .type(UserType.class)
                 .block().endBlock()
@@ -324,7 +306,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test150ExistsWithEquals() throws Exception{
+    public void test150ExistsWithEquals() throws Exception {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .exists(UserType.F_ASSIGNMENT)
                 .item(AssignmentType.F_DESCRIPTION).startsWith("desc1")
@@ -341,12 +323,12 @@ public class TestQueryBuilder {
                                 getPrismContext(),
                                 null, "desc1", true, false)
                 )
-                );
+        );
         compare(actual, expected);
     }
 
     @Test
-    public void test151ExistsWithEquals2() throws Exception{
+    public void test151ExistsWithEquals2() throws Exception {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .exists(UserType.F_ASSIGNMENT)
                 .item(AssignmentType.F_NOTE).endsWith("DONE.")
@@ -368,11 +350,11 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test152ExistsWithEqualsInBlock() throws Exception{
+    public void test152ExistsWithEqualsInBlock() throws Exception {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .exists(UserType.F_ASSIGNMENT)
                 .block()
-                    .item(AssignmentType.F_NOTE).endsWith("DONE.")
+                .item(AssignmentType.F_NOTE).endsWith("DONE.")
                 .endBlock()
                 .build();
         ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
@@ -392,12 +374,12 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test154ExistsWithEqualsAndAllInBlock() throws Exception{
+    public void test154ExistsWithEqualsAndAllInBlock() throws Exception {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .exists(UserType.F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_NOTE).endsWith("DONE.")
-                    .and().all()
+                .and().all()
                 .endBlock()
                 .build();
         ComplexTypeDefinition assCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(AssignmentType.class);
@@ -421,10 +403,10 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test156ExistsAndSomething() throws Exception{
+    public void test156ExistsAndSomething() throws Exception {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .exists(UserType.F_ASSIGNMENT)
-                    .none()
+                .none()
                 .and().all()
                 .build();
 
@@ -444,7 +426,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test200OrderByName() throws Exception{
+    public void test200OrderByName() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .asc(UserType.F_NAME)
                 .build();
@@ -471,7 +453,7 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test300EqualItem() throws Exception {
+    public void test300EqualItem() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY).eq().item(UserType.F_NAME)
                 .build();
@@ -489,14 +471,14 @@ public class TestQueryBuilder {
     }
 
     @Test
-    public void test310LessThanItem() throws Exception {
+    public void test310LessThanItem() {
         PrismObjectDefinition userDef = getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition nameDef = userDef.findPropertyDefinition(UserType.F_NAME);
         PrismPropertyDefinition localityDef = userDef.findPropertyDefinition(UserType.F_LOCALITY);
         ObjectQuery actual = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY, localityDef)
-                    .le()
-                        .item(UserType.F_NAME, nameDef)
+                .le()
+                .item(UserType.F_NAME, nameDef)
                 .build();
         ObjectQuery expected = ObjectQueryImpl.createObjectQuery(
                 LessFilterImpl.createLess(UserType.F_LOCALITY, localityDef, null,

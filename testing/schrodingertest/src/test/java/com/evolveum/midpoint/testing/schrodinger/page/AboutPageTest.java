@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -39,18 +39,14 @@ public class AboutPageTest extends TestBase {
 
     @Test
     public void checkGitDescribeValue() {
-        Assert.assertTrue(!aboutPage
-                .gitDescribe()
-                .isEmpty()
-        );
+        Assert.assertFalse(
+                aboutPage.gitDescribe().isEmpty());
     }
 
     @Test
     public void checkBuildAt() {
-        Assert.assertTrue(!aboutPage
-                .buildAt()
-                .isEmpty()
-        );
+        Assert.assertFalse(
+                aboutPage.buildAt().isEmpty());
     }
 
     @Test // TODO fix select the right element
@@ -96,6 +92,7 @@ public class AboutPageTest extends TestBase {
 
     @Test
     public void checkReindexRepositoryObjectsDisplayName() {
+        // @formatter:off
         Assert.assertEquals(aboutPage
                         .reindexRepositoryObjects()
                             .feedback()
@@ -104,29 +101,23 @@ public class AboutPageTest extends TestBase {
                                         .summary()
                                         .fetchDisplayName()
                 , REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED);
+        // @formatter:on
     }
 
     @Test
     public void checkJVMPropertiesMidpointHome(){
-
-        Assert.assertTrue(
-        !aboutPage.getJVMproperty(TestBase.PROPERTY_NAME_MIDPOINT_HOME).isEmpty()
-    );
-
+        Assert.assertFalse(
+                aboutPage.getJVMproperty(TestBase.PROPERTY_NAME_MIDPOINT_HOME).isEmpty());
     }
 
     @Test
     public void checkJVMPropertiesXmx(){
-
-        Assert.assertTrue(
-                !aboutPage.getJVMproperty(PROPERTY_JVM_NAME_XMX).isEmpty()
-        );
-
+        Assert.assertFalse(
+                aboutPage.getJVMproperty(PROPERTY_JVM_NAME_XMX).isEmpty());
     }
     @Test
     public void checkSystemProperty(){
-        Assert.assertTrue(
-                !aboutPage.getSystemProperty(TestBase.PROPERTY_NAME_USER_HOME).isEmpty()
-        );
+        Assert.assertFalse(
+                aboutPage.getSystemProperty(TestBase.PROPERTY_NAME_USER_HOME).isEmpty());
     }
 }

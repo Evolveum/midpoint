@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -79,10 +79,9 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test001assigneJackEmployeeRole() throws Exception {
         final String TEST_NAME = "test001assigneJackEmployeeRole";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_OID);
 
         //THEN
@@ -95,13 +94,12 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test100createServiceJira() throws Exception {
         final String TEST_NAME = "test100createServiceJira";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         addObject(SERVICE_JIRA_FILE);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_JIRA_OID);
         display("Service magazine after", service);
         assertNotNull("No magazine service", service);
@@ -112,18 +110,17 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test101jiraAssignResourceNoneEnforcement() throws Exception {
         final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //GIVEN
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccount(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, "service");
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_JIRA_OID);
         display("Service magazine after", service);
         assertNotNull("No magazine service", service);
@@ -135,18 +132,17 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test150StartReconTask() throws Exception {
         final String TEST_NAME = "test150StartReconTask";
-        displayTestTitle(TEST_NAME);
 
         assertUsers(getNumberOfUsers());
         assertServices(1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_CLASSIFIER_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         waitForTaskStart(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
 
@@ -157,7 +153,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test151LinkServiceAccountRecon() throws Exception {
         final String TEST_NAME = "test151LinkServiceAccountRecon";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(1);
@@ -166,14 +161,14 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         account.setEnabled(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource().addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertServices(1);
         PrismObject<ServiceType> serviceJirafter = getObject(ServiceType.class, SERVICE_JIRA_OID);
@@ -187,7 +182,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test152InactivateUnmatchedAccountRecon() throws Exception {
         final String TEST_NAME = "test152InactivateUnmatchedAccountRecon";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(1);
@@ -196,14 +190,14 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         account.setEnabled(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource().addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertServices(1);
 
@@ -214,13 +208,12 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test200createServiceGithub() throws Exception {
         final String TEST_NAME = "test200createServiceGithub";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         addObject(SERVICE_GITHUB_FILE);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_GITHUB_OID);
         display("Service github after", service);
         assertNotNull("No github service", service);
@@ -231,14 +224,13 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test210createAccountGithub() throws Exception {
         final String TEST_NAME = "test210createAccountGithub";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(SHADOW_GITHUB_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<ShadowType> shadowGithub = getShadowModel(SHADOW_GITHUB_OID);
 
         display("Shadow github after", shadowGithub);
@@ -251,18 +243,17 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test215githubAssignResourceNoneEnforcement() throws Exception {
         final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //GIVEN
 
         //WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccount(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, "service");
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_GITHUB_OID);
         display("Service github after", service);
         assertNotNull("No github service", service);
@@ -274,8 +265,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test220linkAccountGithubAndFixIntent() throws Exception {
         final String TEST_NAME = "test220linkAccountGithubAndFixIntent";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -285,11 +275,11 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         assertNoLinkedAccount(serviceGithubBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertServices(2);
         PrismObject<ServiceType> serviceGithubAfter = getObject(ServiceType.class, SERVICE_GITHUB_OID);

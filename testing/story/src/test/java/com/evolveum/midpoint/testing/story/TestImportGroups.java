@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,16 +6,13 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
@@ -49,7 +46,7 @@ public class TestImportGroups extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -73,14 +70,10 @@ public class TestImportGroups extends AbstractStoryTest {
 
     @Test
     public void test001importGroups() throws Exception {
-        String TEST_NAME = "test001importGroups";
-        displayTestTitle(TEST_NAME);
-
         addObject(TASK_IMPORT_GROUPS);
 
         waitForTaskFinish(TASK_IMPORT_GROUPS_OID, true);
 
         assertObjects(OrgType.class, DEFAULT_GROUPS + GROUPS);
-
     }
 }

@@ -20,6 +20,8 @@ import java.util.Map;
  */
 public interface UniformItemPath extends Serializable, Cloneable, ShortDumpable, ItemPath {
 
+    UniformItemPath EMPTY_PATH = UniformItemPathImpl.EMPTY_PATH;
+
     @NotNull
     List<ItemPathSegment> getSegments();
 

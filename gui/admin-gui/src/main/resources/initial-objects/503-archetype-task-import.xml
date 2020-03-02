@@ -18,6 +18,34 @@
                 <color>green</color>
             </icon>
         </display>
+        <itemConstraint>
+            <path>extension</path>
+            <visibility>vacant</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectclass</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:kind</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:intent</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectQuery</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:workerThreads</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:dryRun</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>

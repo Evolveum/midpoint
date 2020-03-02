@@ -11,11 +11,19 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
- *  Thread-local context for midPoint test method.
+ * Value object carrying test context information like task, result and method name.
+ * <p>
+ * Static methods are used for creating the context and working with it via {@link ThreadLocal}.
+ * <b>It is important to to call {@link #destroy()} at the end (in some after-method).</b>
  */
 public final class MidpointTestMethodContext {
 
     private static final ThreadLocal<MidpointTestMethodContext> TEST_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
+
+    /**
+     * Actual test class - not abstract (where method may be implemented) but executed test class.
+     */
+    private final Class<?> testClass;
 
     /**
      * Test method name.
@@ -32,13 +40,26 @@ public final class MidpointTestMethodContext {
      */
     private final OperationResult result;
 
-    private MidpointTestMethodContext(String methodName, Task task, OperationResult result) {
+    private MidpointTestMethodContext(
+            Class<?> testClass, String methodName, Task task, OperationResult result) {
+
+        this.testClass = testClass;
         this.methodName = methodName;
         this.task = task;
         this.result = result;
     }
 
-    public String getMethodName() {
+    /**
+     * Returns name of the test - which is "class-simple-name.method".
+     */
+    public String getTestName() {
+        return testClass.getSimpleName() + "." + methodName;
+    }
+
+    /**
+     * Returns short name of the test - which is method name.
+     */
+    public String getTestNameShort() {
         return methodName;
     }
 
@@ -50,14 +71,17 @@ public final class MidpointTestMethodContext {
         return result;
     }
 
-    public static MidpointTestMethodContext get() {
-        return TEST_CONTEXT_THREAD_LOCAL.get();
-    }
+    public static MidpointTestMethodContext create(
+            Class<?> testClass, String methodName, Task task, OperationResult result) {
 
-    public static MidpointTestMethodContext setup(String methodName, Task task, OperationResult result) {
-        MidpointTestMethodContext ctx = new MidpointTestMethodContext(methodName, task, result);
+        MidpointTestMethodContext ctx =
+                new MidpointTestMethodContext(testClass, methodName, task, result);
         TEST_CONTEXT_THREAD_LOCAL.set(ctx);
         return ctx;
+    }
+
+    public static MidpointTestMethodContext get() {
+        return TEST_CONTEXT_THREAD_LOCAL.get();
     }
 
     public static void destroy() {

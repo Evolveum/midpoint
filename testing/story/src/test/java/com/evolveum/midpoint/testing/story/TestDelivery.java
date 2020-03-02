@@ -160,12 +160,7 @@ public class TestDelivery extends AbstractStoryTest {
 //        setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
     }
 
-    @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
-//    @Override
+    //    @Override
 //    protected TracingProfileType getTestMethodTracingProfile() {
 //        return createModelAndWorkflowLoggingTracingProfile()
 //                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
@@ -178,8 +173,8 @@ public class TestDelivery extends AbstractStoryTest {
 
     @Test
     public void test100Assign_IT_2_failure() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         try {
             assignRole(userBobOid, roleIt2Oid, task, result);         // hard constraint
@@ -191,20 +186,20 @@ public class TestDelivery extends AbstractStoryTest {
 
     @Test
     public void test110Assign_IT_2_success() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userBarkeeperOid, roleIt2Oid, task, result);         // hard constraint
         result.computeStatus();
         assertSuccess(result);
 
-        assertAssignedRole(userBarkeeperOid, roleIt2Oid, task, result);
+        assertAssignedRole(userBarkeeperOid, roleIt2Oid, result);
     }
 
     @Test
     public void test120Assign_IT_1() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userBobOid, roleIt1Oid, task, result);         // approval constraint
 
@@ -221,7 +216,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userBobOid, roleIt1Oid, task, result);
+        assertAssignedRole(userBobOid, roleIt1Oid, result);
     }
 
     /**
@@ -229,8 +224,8 @@ public class TestDelivery extends AbstractStoryTest {
      */
     @Test
     public void test130Assign_IT_3() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userCarlaOid, roleIt3Oid, task, result);         // two approval constraints
 
@@ -256,7 +251,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userCarlaOid, roleIt3Oid, task, result);
+        assertAssignedRole(userCarlaOid, roleIt3Oid, result);
     }
 
     /**
@@ -264,8 +259,8 @@ public class TestDelivery extends AbstractStoryTest {
      */
     @Test
     public void test140Assign_IT_4() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userBarkeeperOid, roleIt4Oid, task, result);         // approval constraint
 
@@ -282,7 +277,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userBarkeeperOid, roleIt4Oid, task, result);
+        assertAssignedRole(userBarkeeperOid, roleIt4Oid, result);
     }
 
     /**
@@ -290,8 +285,8 @@ public class TestDelivery extends AbstractStoryTest {
      */
     @Test
     public void test150Assign_IT_5() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userBarkeeperOid, roleIt5Oid, task, result);         // approval constraint
 
@@ -308,7 +303,7 @@ public class TestDelivery extends AbstractStoryTest {
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
-        assertAssignedRole(userBarkeeperOid, roleIt5Oid, task, result);
+        assertAssignedRole(userBarkeeperOid, roleIt5Oid, result);
     }
 
     @NotNull

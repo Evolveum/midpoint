@@ -124,7 +124,6 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestNullAttribute.class.getName() + "." + TEST_NAME);
 
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
@@ -146,10 +145,9 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test
     public void test010UserSmackAssignAccountOnlyRole() throws Exception {
         final String TEST_NAME = "test010UserSmackAssignAccountOnlyRole";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -190,10 +188,9 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test
     public void test020UserSmackSetAttribute() throws Exception {
         final String TEST_NAME = "test020UserSmackSetAttribute";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -244,10 +241,9 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test // MID-3325
     public void test030UserSmackRemoveAttribute() throws Exception {
         final String TEST_NAME = "test030UserSmackRemoveAttribute";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -267,12 +263,12 @@ public class TestNullAttribute extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_SMACK_OID);
