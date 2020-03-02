@@ -6,26 +6,24 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static org.testng.AssertJUnit.*;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.constructInitializedPrismContext;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -34,9 +32,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
-public class TestPrismSchemaConstruction {
+public class TestPrismSchemaConstruction extends AbstractPrismTest {
 
     private static final String NS_MY_SCHEMA = "http://midpoint.evolveum.com/xml/ns/test/my-1";
     private static final String WEAPON_TYPE_LOCAL_NAME = "WeaponType";
@@ -49,7 +46,6 @@ public class TestPrismSchemaConstruction {
     private static final String WEAPON_PASSWORD_LOCAL_NAME = "password";
     private static final String WEAPON_BLADE_LOCAL_NAME = "blade";
 
-
     @BeforeSuite
     public void setupDebug() {
         PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
@@ -57,8 +53,6 @@ public class TestPrismSchemaConstruction {
 
     @Test
     public void testConstructSchema() throws SchemaException, SAXException, IOException {
-        System.out.println("===[ testConstructSchema ]===");
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
 
@@ -73,8 +67,6 @@ public class TestPrismSchemaConstruction {
 
     @Test
     public void testSchemaRoundtrip() throws Exception {
-        System.out.println("===[ testSchemaRoundtrip ]===");
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
 
@@ -83,29 +75,23 @@ public class TestPrismSchemaConstruction {
 
     @Test
     public void testSchemaRoundtripLoopShareContext() throws Exception {
-        System.out.println("===[ testSchemaRoundtripLoopShareContext ]===");
-
         PrismContext ctx = constructInitializedPrismContext();
-        for(int i=0; i < SCHEMA_ROUNDTRIP_LOOP_ATTEMPTS; i++) {
-            System.out.println("\n--- attempt "+i+"---");
+        for (int i = 0; i < SCHEMA_ROUNDTRIP_LOOP_ATTEMPTS; i++) {
+            System.out.println("\n--- attempt " + i + "---");
             schemaRoundtrip(ctx);
         }
     }
 
     @Test
     public void testSchemaRoundtripLoopNewContext() throws Exception {
-        System.out.println("===[ testSchemaRoundtripLoopNewContext ]===");
-
-        for(int i=0; i < SCHEMA_ROUNDTRIP_LOOP_ATTEMPTS; i++) {
-            System.out.println("\n--- attempt "+i+"---");
+        for (int i = 0; i < SCHEMA_ROUNDTRIP_LOOP_ATTEMPTS; i++) {
+            System.out.println("\n--- attempt " + i + "---");
             PrismContext ctx = constructInitializedPrismContext();
             schemaRoundtrip(ctx);
         }
     }
 
-
-    private void schemaRoundtrip(PrismContext ctx) throws SchemaException, SAXException, IOException {
-
+    private void schemaRoundtrip(PrismContext ctx) throws SchemaException {
         PrismSchema schema = constructSchema(ctx);
         assertSchema(schema);
 
@@ -155,7 +141,7 @@ public class TestPrismSchemaConstruction {
         assertEquals("Unexpected number of definitions in schema", 2, definitions.size());
 
         Iterator<Definition> schemaDefIter = definitions.iterator();
-        ComplexTypeDefinition weaponTypeDef = (ComplexTypeDefinition)schemaDefIter.next();
+        ComplexTypeDefinition weaponTypeDef = (ComplexTypeDefinition) schemaDefIter.next();
         assertEquals("Unexpected number of definitions in weaponTypeDef", 5, weaponTypeDef.getDefinitions().size());
         Iterator<? extends ItemDefinition> weaponTypeDefIter = weaponTypeDef.getDefinitions().iterator();
         PrismPropertyDefinition kindPropertyDef = (PrismPropertyDefinition) weaponTypeDefIter.next();
@@ -180,12 +166,12 @@ public class TestPrismSchemaConstruction {
         assertEquals("Wrong createTimestampPropertyDef displayName", "Create timestamp", createTimestampPropertyDef.getDisplayName());
         assertTrue("createTimestampPropertyDef not operational", createTimestampPropertyDef.isOperational());
 
-        PrismContainerDefinition<?> weaponContDef = (PrismContainerDefinition<?>)schemaDefIter.next();
+        PrismContainerDefinition<?> weaponContDef = (PrismContainerDefinition<?>) schemaDefIter.next();
         assertEquals("Wrong complex type def in weaponContDef", weaponTypeDef, weaponContDef.getComplexTypeDefinition());
     }
 
     private void assertPrefix(String expectedPrefix, Element element) {
-        assertEquals("Wrong prefix on element "+DOMUtil.getQName(element), expectedPrefix, element.getPrefix());
+        assertEquals("Wrong prefix on element " + DOMUtil.getQName(element), expectedPrefix, element.getPrefix());
     }
 
 }

@@ -6,24 +6,21 @@
  */
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.impl.xjc.PropertyArrayList;
-import com.evolveum.midpoint.util.DOMUtil;
-import org.testng.AssertJUnit;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+
+import java.io.File;
+
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
+import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.impl.xjc.PropertyArrayList;
+import com.evolveum.midpoint.util.DOMUtil;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.*;
-
-public class TestPropertyArrayList {
-
-    public static final String USER_JACK_XXE_BASENAME = "user-jack-xxe";
+public class TestPropertyArrayList extends AbstractPrismTest {
 
     private String getSubdirName() {
         return "xml";
@@ -38,7 +35,7 @@ public class TestPropertyArrayList {
     }
 
     private File getFile(String baseName) {
-        return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
+        return new File(getCommonSubdir(), baseName + "." + getFilenameSuffix());
     }
 
     @Test
@@ -51,16 +48,16 @@ public class TestPropertyArrayList {
 
         PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
         PrismProperty<String> property = user.findProperty(UserType.F_ADDITIONAL_NAMES);
-        PropertyArrayList<String> propertyArrayList = new PropertyArrayList<String>(property, user.getValue());
+        PropertyArrayList<String> propertyArrayList = new PropertyArrayList<>(property, user.getValue());
 
         // WHEN
-        System.out.println("Additional names before test: " );
+        System.out.println("Additional names before test: ");
         System.out.println(property.debugDump());
         String testName = "test-name";
         propertyArrayList.set(1, "test-name");
 
         // THEN
-        System.out.println("Additional names after test: " );
+        System.out.println("Additional names after test: ");
         System.out.println(property.debugDump());
         assertEquals(testName, propertyArrayList.get(1));
     }

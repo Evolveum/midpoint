@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
+import com.evolveum.midpoint.prism.AbstractPrismTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
@@ -28,15 +29,8 @@ import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author mederly
- *
  */
-public class TestProtectedString {
-
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-    }
+public class TestProtectedString extends AbstractPrismTest {
 
     @Test
     public void testParseProtectedStringEncrypted() throws Exception {

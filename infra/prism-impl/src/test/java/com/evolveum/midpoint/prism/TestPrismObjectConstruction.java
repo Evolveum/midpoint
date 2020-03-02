@@ -6,23 +6,18 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
-import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
-import com.evolveum.midpoint.prism.impl.PrismObjectImpl;
-import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -30,26 +25,20 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
-public class TestPrismObjectConstruction {
+public class TestPrismObjectConstruction extends AbstractPrismTest {
 
     private static final String USER_OID = "1234567890";
     private static final String ACCOUNT1_OID = "11100000111";
     private static final String ACCOUNT2_OID = "11100000222";
-
-
-    @BeforeSuite
-    public void setupDebug() {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-    }
 
     /**
      * Construct object with schema. Starts by instantiating a definition and working downwards.
@@ -58,8 +47,8 @@ public class TestPrismObjectConstruction {
     @Test
     public void testConstructionWithSchema() throws Exception {
         // GIVEN
-        PrismContext ctx = constructInitializedPrismContext();
-        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+        PrismContext ctx = getPrismContext();
+        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO, "user"));
 
         // WHEN
         PrismObject<UserType> user = userDefinition.instantiate();
@@ -73,64 +62,11 @@ public class TestPrismObjectConstruction {
         assertUserDrake(user, true, ctx);
     }
 
-    /**
-     * Construct object without schema. Starts by creating object "out of the blue" and
-     * the working downwards.
-     */
-    @Test(enabled = false)            // definition-less containers are no longer supported
-    public void testDefinitionlessConstruction() throws Exception {
-        // GIVEN
-        // No context needed
-
-        // WHEN
-        PrismObject<UserType> user = new PrismObjectImpl<>(USER_QNAME, UserType.class);
-        // Fill-in object values, no schema checking
-        fillInUserDrake(user, false);
-
-        // THEN
-        System.out.println("User:");
-        System.out.println(user.debugDump());
-        // Check if the values are correct, no schema checking
-        PrismContext ctx = constructInitializedPrismContext();
-        assertUserDrake(user, false, ctx);
-    }
-
-    /**
-     * Construct object without schema. Starts by creating object "out of the blue" and
-     * the working downwards. Then apply the schema. Check definitions.
-     */
-//    @Test
-    public void testDefinitionlessConstructionAndSchemaApplication() throws Exception {
-        // GIVEN
-        // No context needed (yet)
-        PrismObject<UserType> user = new PrismObjectImpl<>(USER_QNAME, UserType.class);
-        // Fill-in object values, no schema checking
-        fillInUserDrake(user, false);
-        // Make sure the object is OK
-        PrismContext ctx = constructInitializedPrismContext();
-        assertUserDrake(user, false, ctx);
-
-
-        PrismObjectDefinition<UserType> userDefinition =
-                getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
-
-        // WHEN
-        user.applyDefinition(userDefinition);
-
-        // THEN
-        System.out.println("User:");
-        System.out.println(user.debugDump());
-
-        // Check schema now
-        assertUserDrake(user, true, ctx);
-
-    }
-
     @Test
     public void testClone() throws Exception {
         // GIVEN
-        PrismContext ctx = constructInitializedPrismContext();
-        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+        PrismContext ctx = getPrismContext();
+        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO, "user"));
         PrismObject<UserType> user = userDefinition.instantiate();
         fillInUserDrake(user, true);
         // precondition
@@ -149,8 +85,8 @@ public class TestPrismObjectConstruction {
     @Test
     public void testCloneEquals() throws Exception {
         // GIVEN
-        PrismContext ctx = constructInitializedPrismContext();
-        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+        PrismContext ctx = getPrismContext();
+        PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO, "user"));
         PrismObject<UserType> user = userDefinition.instantiate();
         fillInUserDrake(user, true);
         PrismObject<UserType> clone = user.clone();
@@ -160,7 +96,6 @@ public class TestPrismObjectConstruction {
         assertTrue("Clone not equivalent", clone.equivalent(user));
     }
 
-
     private void fillInUserDrake(PrismObject<UserType> user, boolean assertDefinitions) throws SchemaException {
         user.setOid(USER_OID);
 
@@ -168,7 +103,7 @@ public class TestPrismObjectConstruction {
         PrismProperty<String> fullNameProperty = user.findOrCreateProperty(USER_FULLNAME_QNAME);
         assertEquals(USER_FULLNAME_QNAME, fullNameProperty.getElementName());
         PrismAsserts.assertParentConsistency(user);
-        if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1); }
         fullNameProperty.setRealValue("Sir Fancis Drake");
         PrismProperty<String> fullNamePropertyAgain = user.findOrCreateProperty(USER_FULLNAME_QNAME);
         // The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -178,7 +113,7 @@ public class TestPrismObjectConstruction {
         PrismContainer<ActivationType> activationContainer = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
         assertEquals(USER_ACTIVATION_QNAME, activationContainer.getElementName());
         PrismAsserts.assertParentConsistency(user);
-        if (assertDefinitions) PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1); }
         PrismContainer<ActivationType> activationContainerAgain = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
         // The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
         assertTrue("Property not the same", activationContainer == activationContainerAgain);
@@ -187,7 +122,7 @@ public class TestPrismObjectConstruction {
         PrismProperty<Boolean> enabledProperty = user.findOrCreateProperty(USER_ENABLED_PATH);
         assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
         PrismAsserts.assertParentConsistency(user);
-        if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1); }
         enabledProperty.setRealValue(true);
         PrismProperty<Boolean> enabledPropertyAgain = activationContainer.findOrCreateProperty(USER_ENABLED_QNAME);
         // The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -198,7 +133,7 @@ public class TestPrismObjectConstruction {
         PrismContainer<AssignmentType> assignmentContainer = user.getValue().findOrCreateContainer(USER_ASSIGNMENT_QNAME);
         assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getElementName());
         PrismAsserts.assertParentConsistency(user);
-        if (assertDefinitions) PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1); }
         PrismContainer<AssignmentType> assignmentContainerAgain = user.findOrCreateContainer(USER_ASSIGNMENT_QNAME);
         // The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
         assertTrue("Property not the same", assignmentContainer == assignmentContainerAgain);
@@ -231,7 +166,7 @@ public class TestPrismObjectConstruction {
         // accountRef
         PrismReference accountRef = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
         assertEquals(USER_ACCOUNTREF_QNAME, accountRef.getElementName());
-        if (assertDefinitions) PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1); }
         accountRef.add(new PrismReferenceValueImpl(ACCOUNT1_OID));
         accountRef.add(new PrismReferenceValueImpl(ACCOUNT2_OID));
         PrismReference accountRefAgain = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
@@ -244,7 +179,7 @@ public class TestPrismObjectConstruction {
         PrismContainer<?> extensionContainer = user.findOrCreateContainer(USER_EXTENSION_QNAME);
         assertEquals(USER_EXTENSION_QNAME, extensionContainer.getElementName());
         PrismAsserts.assertParentConsistency(user);
-        if (assertDefinitions) PrismAsserts.assertDefinition(extensionContainer, DOMUtil.XSD_ANY, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(extensionContainer, DOMUtil.XSD_ANY, 0, 1); }
         PrismContainer<AssignmentType> extensionContainerAgain = user.findOrCreateContainer(USER_EXTENSION_QNAME);
         // The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
         assertTrue("Extension not the same", extensionContainer == extensionContainerAgain);
@@ -254,7 +189,7 @@ public class TestPrismObjectConstruction {
         PrismProperty<String> stringTypeProperty = extensionContainer.findOrCreateProperty(EXTENSION_STRING_TYPE_ELEMENT);
         assertEquals(EXTENSION_STRING_TYPE_ELEMENT, stringTypeProperty.getElementName());
         PrismAsserts.assertParentConsistency(user);
-        if (assertDefinitions) PrismAsserts.assertDefinition(stringTypeProperty, DOMUtil.XSD_STRING, 0, -1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(stringTypeProperty, DOMUtil.XSD_STRING, 0, -1); }
 
         // TODO
 
@@ -274,42 +209,42 @@ public class TestPrismObjectConstruction {
     private void assertUserDrakeContent(PrismObject<UserType> user, boolean assertDefinitions) {
         // fullName
         PrismProperty<?> fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
-        if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1); }
         assertEquals("Wrong fullname", "Sir Fancis Drake", fullNameProperty.getValue().getValue());
         // activation
         PrismContainer activationContainer = user.findContainer(USER_ACTIVATION_QNAME);
         assertEquals(USER_ACTIVATION_QNAME, activationContainer.getElementName());
-        if (assertDefinitions) PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1); }
         // activation/enabled
         PrismProperty<?> enabledProperty = user.findProperty(USER_ENABLED_PATH);
         assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
-        if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1); }
         assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
         // assignment
         PrismContainer assignmentContainer = user.findContainer(USER_ASSIGNMENT_QNAME);
         assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getElementName());
-        if (assertDefinitions) PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1); }
         // assignment values
         List<PrismContainerValue> assValues = assignmentContainer.getValues();
         assertEquals("Wrong number of assignment values", 3, assValues.size());
         // assignment values: blue
         PrismContainerValue assBlueValue = assValues.get(0);
         PrismProperty<?> assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
-        if (assertDefinitions) PrismAsserts.assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1); }
         assertEquals("Wrong blue assignment description", "Assignment created out of the blue", assBlueDescriptionProperty.getValue().getValue());
         // assignment values: cyan
         PrismContainerValue assCyanValue = assValues.get(1);
         PrismProperty<?> assCyanDescriptionProperty = assCyanValue.findProperty(USER_DESCRIPTION_QNAME);
-        if (assertDefinitions) PrismAsserts.assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1); }
         assertEquals("Wrong cyan assignment description", "Assignment created out of the cyan", assCyanDescriptionProperty.getValue().getValue());
         // assignment values: red
         PrismContainerValue assRedValue = assValues.get(2);
         PrismProperty<?> assRedDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
-        if (assertDefinitions) PrismAsserts.assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1); }
         assertEquals("Wrong red assignment description", "Assignment created out of the red", assRedDescriptionProperty.getValue().getValue());
         // accountRef
         PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
-        if (assertDefinitions) PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
+        if (assertDefinitions) { PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1); }
         PrismAsserts.assertReferenceValue(accountRef, ACCOUNT1_OID);
         PrismAsserts.assertReferenceValue(accountRef, ACCOUNT2_OID);
         assertEquals("accountRef size", 2, accountRef.getValues().size());

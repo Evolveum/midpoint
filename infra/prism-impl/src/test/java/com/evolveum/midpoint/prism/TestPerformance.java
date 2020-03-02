@@ -22,14 +22,14 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 /**
  * @author semancik
  */
-public class TestPerformance {
+public class TestPerformance extends AbstractPrismTest {
 
     private static final int ITERATIONS = 10_000;
 
     private static final double NANOS_TO_MILLIS_DOUBLE = 1_000_000d;
 
     @BeforeSuite
-    public void setupDebug() {
+    public void initPrismContext() {
         PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
     }
 

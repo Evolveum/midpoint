@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,33 +18,29 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.foo.AccountType;
-import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.foo.AccountType;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
-public abstract class TestPrismParsing {
+public abstract class TestPrismParsing extends AbstractPrismTest {
 
     protected abstract String getSubdirName();
 
@@ -57,12 +51,7 @@ public abstract class TestPrismParsing {
     }
 
     protected File getFile(String baseName) {
-        return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
-    }
-
-    @BeforeSuite
-    public void setupDebug() {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+        return new File(getCommonSubdir(), baseName + "." + getFilenameSuffix());
     }
 
     protected abstract String getOutputFormat();
@@ -70,7 +59,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test100PrismParseFile() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
@@ -86,7 +75,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test110PrismParseFileNoNs() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_NO_NS_BASENAME));
@@ -102,7 +91,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test120PrismParseFileObject() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_OBJECT_BASENAME));
@@ -118,7 +107,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test130PrismParseFileAdhoc() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
@@ -149,7 +138,7 @@ public abstract class TestPrismParsing {
     private void roundTrip(File file, boolean expectFullPolyName, boolean withIncomplete) throws SchemaException, SAXException, IOException {
 
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
         PrismObject<UserType> originalUser = prismContext.parseObject(file);
 
         System.out.println("Input parsed user:");
@@ -168,8 +157,6 @@ public abstract class TestPrismParsing {
         System.out.println(userXml);
         assertNotNull(userXml);
 
-        validateXml(userXml, prismContext);
-
         // WHEN
         PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
         System.out.println("Re-parsed user:");
@@ -182,20 +169,19 @@ public abstract class TestPrismParsing {
         System.out.println("Diff:");
         System.out.println(diff.debugDump());
 
-        assertTrue("Diff: "+diff, diff.isEmpty());
+        assertTrue("Diff: " + diff, diff.isEmpty());
 
-        assertTrue("Users not equal", originalUser.equals(parsedUser));
+        assertEquals("Users not equal", parsedUser, originalUser);
     }
-
 
     @Test
     public void test230RoundTripAdhoc() throws Exception {
         roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
     }
 
-    private void roundTripAdhoc(File file) throws SchemaException, SAXException, IOException {
+    private void roundTripAdhoc(File file) throws SchemaException, IOException {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
         PrismObject<UserType> originalUser = prismContext.parseObject(file);
 
         System.out.println("Input parsed user:");
@@ -214,8 +200,6 @@ public abstract class TestPrismParsing {
         System.out.println(userXml);
         assertNotNull(userXml);
 
-        validateXml(userXml, prismContext);
-
         // WHEN
         PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
         System.out.println("Re-parsed user:");
@@ -227,11 +211,10 @@ public abstract class TestPrismParsing {
         assertTrue("Users not equal", originalUser.equals(parsedUser));
     }
 
-
     @Test
     public void test300MeleeContext() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         PrismObject<UserType> userJack = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
         PrismContainer<Containerable> meleeContextContainer = userJack.findOrCreateContainer(ItemPath.create(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT));
@@ -274,7 +257,7 @@ public abstract class TestPrismParsing {
         // Make the original user jack suitable for comparison.
         // Some of the accountRef information is (intentionally) lost in re-parsing therefore erase it before comparing
         PrismReference jackAccountRef = userJack.findReference(UserType.F_ACCOUNT_REF);
-        for (PrismReferenceValue accRefVal: jackAccountRef.getValues()) {
+        for (PrismReferenceValue accRefVal : jackAccountRef.getValues()) {
             String oid = accRefVal.getOid();
             QName targetType = accRefVal.getTargetType();
             accRefVal.setObject(null);
@@ -289,7 +272,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test400UserWill() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
@@ -305,7 +288,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test410UserWillRoundTrip() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
@@ -340,7 +323,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test500UserElisabethRoundTrip() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<UserType> user = prismContext.parseObject(getFile(USER_ELISABETH_FILE_BASENAME));
@@ -376,7 +359,7 @@ public abstract class TestPrismParsing {
     @Test
     public void test600AccountBarbossa() throws Exception {
         // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContext prismContext = getPrismContext();
 
         // WHEN
         PrismObject<AccountType> account = prismContext.parseObject(getFile(ACCOUNT_BARBOSSA_FILE_BASENAME));
@@ -399,14 +382,12 @@ public abstract class TestPrismParsing {
         )), names);
     }
 
-
     protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions, boolean withIncomplete) throws SchemaException {
         user.checkConsistence();
         assertUserJackContent(user, expectRawInConstructions, true, withIncomplete);
         assertUserExtensionAdhoc(user);
         assertVisitor(user, 58);
     }
-
 
     private void assertUserExtensionAdhoc(PrismObject<UserType> user) {
 
@@ -417,9 +398,9 @@ public abstract class TestPrismParsing {
         assertNull("Extension ID", extensionValue.getId());
         PrismAsserts.assertPropertyValue(extension, USER_ADHOC_BOTTLES_ELEMENT, 20);
 
-        ItemPath bottlesPath = ItemPath.create(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
+        ItemPath bottlesPath = ItemPath.create(new QName(NS_FOO, "extension"), USER_ADHOC_BOTTLES_ELEMENT);
         PrismProperty<Integer> bottlesProperty = user.findProperty(bottlesPath);
-        assertNotNull("Property "+bottlesPath+" not found", bottlesProperty);
+        assertNotNull("Property " + bottlesPath + " not found", bottlesProperty);
         PrismAsserts.assertPropertyValue(bottlesProperty, 20);
         PrismPropertyDefinition bottlesPropertyDef = bottlesProperty.getDefinition();
         assertNotNull("No definition for bottles", bottlesPropertyDef);
@@ -511,9 +492,9 @@ public abstract class TestPrismParsing {
         PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
 
-        ItemPath barPath = ItemPath.create(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
+        ItemPath barPath = ItemPath.create(new QName(NS_FOO, "extension"), EXTENSION_BAR_ELEMENT);
         PrismProperty<String> barProperty = user.findProperty(barPath);
-        assertNotNull("Property "+barPath+" not found", barProperty);
+        assertNotNull("Property " + barPath + " not found", barProperty);
         PrismAsserts.assertPropertyValue(barProperty, "BAR");
         PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
         assertNotNull("No definition for bar", barPropertyDef);
@@ -525,11 +506,10 @@ public abstract class TestPrismParsing {
         PrismAsserts.assertDefinition(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
         assertNull("'Indexed' attribute on 'multi' property is not null", multiPropertyDef.isIndexed());
 
-
         PrismAsserts.assertPropertyValue(extension, EXTENSION_BAR_ELEMENT, "BAR");
         PrismAsserts.assertPropertyValue(extension, EXTENSION_NUM_ELEMENT, 42);
         Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(EXTENSION_MULTI_ELEMENT).getValues();
-        assertEquals("Multi",3,multiPVals.size());
+        assertEquals("Multi", 3, multiPVals.size());
 
     }
 
@@ -537,7 +517,6 @@ public abstract class TestPrismParsing {
         user.checkConsistence();
         user.assertDefinitions("test");
         assertUserElisabethExtension(user);
-        //assertVisitor(user,55);
     }
 
     private void assertUserElisabethExtension(PrismObject<UserType> user) {
@@ -548,23 +527,10 @@ public abstract class TestPrismParsing {
         assertTrue("Extension parent", extensionValue.getParent() == extension);
         assertNull("Extension ID", extensionValue.getId());
 
-//        PrismProperty<String> stringType = extension.findProperty(EXTENSION_STRING_TYPE_ELEMENT);
-//        PrismAsserts.assertPropertyValue(stringType, "BARbar", "FOObar");
-//        PrismPropertyDefinition stringTypePropertyDef = stringType.getDefinition();
-//        PrismAsserts.assertDefinition(stringTypePropertyDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
-//        assertNull("'Indexed' attribute on 'stringType' property is not null", stringTypePropertyDef.isIndexed());
-
         PrismProperty<String> secondaryStringType = extension.findProperty(EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT);
         PrismAsserts.assertPropertyValue(secondaryStringType, "string1");
         PrismPropertyDefinition secondaryStringTypePropertyDef = secondaryStringType.getDefinition();
         PrismAsserts.assertDefinition(secondaryStringTypePropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertNull("'Indexed' attribute on 'secondaryStringType' property is not null", secondaryStringTypePropertyDef.isIndexed());
-    }
-
-    protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
-    }
-
-    protected void displayTestTitle(final String TEST_NAME) {
-        getSubdirName();
     }
 }

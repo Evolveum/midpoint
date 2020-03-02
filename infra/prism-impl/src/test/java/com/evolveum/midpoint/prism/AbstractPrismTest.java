@@ -45,7 +45,7 @@ public class AbstractPrismTest extends AbstractUnitTest {
     protected static final long ASSIGNMENT_ABRAKADABRA_ID = 222L;
 
     @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
+    public void initPrismContext() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
         PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
     }
@@ -70,7 +70,7 @@ public class AbstractPrismTest extends AbstractUnitTest {
         return PrismTestUtil.createPolyString(orig);
     }
 
-    protected PrismContext getPrismContext() {
+    protected static PrismContext getPrismContext() {
         return PrismTestUtil.getPrismContext();
     }
 

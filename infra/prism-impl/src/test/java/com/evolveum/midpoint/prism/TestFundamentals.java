@@ -6,41 +6,26 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import javax.xml.namespace.QName;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author Radovan Semancik
- *
  */
-public class TestFundamentals {
-
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-    }
+public class TestFundamentals extends AbstractPrismTest {
 
     @Test
-    public void testPrismValueContainsRealValue() throws Exception {
-        System.out.println("\n\n===[ testPrismValueContainsRealValue ]===\n");
+    public void testPrismValueContainsRealValue() {
         // GIVEN
         PrismPropertyValue<String> valFoo1 = new PrismPropertyValueImpl<>("foo");
         PrismPropertyValue<String> valBar1 = new PrismPropertyValueImpl<>("bar");
@@ -70,8 +55,7 @@ public class TestFundamentals {
     }
 
     @Test
-    public void testRawTypeClone() throws Exception {
-        System.out.println("\n\n===[ testRawTypeClone ]===\n");
+    public void testRawTypeClone() {
         // GIVEN
         QName typeQName = new QName("abcdef");
         MapXNodeImpl mapXNode = new MapXNodeImpl();
@@ -84,5 +68,4 @@ public class TestFundamentals {
         // THEN
         assertEquals("Wrong or missing type QName", typeQName, rawTypeClone.getXnode().getTypeQName());
     }
-
 }

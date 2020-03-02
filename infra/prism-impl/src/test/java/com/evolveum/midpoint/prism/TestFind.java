@@ -13,9 +13,7 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import java.io.IOException;
 
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
@@ -23,23 +21,15 @@ import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
  */
-public class TestFind extends AbstractUnitTest {
-
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-    }
+public class TestFind extends AbstractPrismTest {
 
     @Test
-    public void testFindString() throws SchemaException, SAXException, IOException {
+    public void testFindString() throws SchemaException, IOException {
         // GIVEN
         PrismObject<UserType> user = createUser();
         ItemPath path = UserType.F_DESCRIPTION;
@@ -53,7 +43,7 @@ public class TestFind extends AbstractUnitTest {
     }
 
     @Test
-    public void testFindPolyString() throws SchemaException, SAXException, IOException {
+    public void testFindPolyString() throws SchemaException, IOException {
         // GIVEN
         PrismObject<UserType> user = createUser();
         ItemPath path = UserType.F_POLY_NAME;
@@ -67,7 +57,7 @@ public class TestFind extends AbstractUnitTest {
     }
 
     @Test
-    public void testFindPolyStringOrig() throws SchemaException, SAXException, IOException {
+    public void testFindPolyStringOrig() throws SchemaException, IOException {
         // GIVEN
         ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_ORIG);
 
@@ -79,7 +69,7 @@ public class TestFind extends AbstractUnitTest {
     }
 
     @Test
-    public void testFindPolyStringNorm() throws SchemaException, SAXException, IOException {
+    public void testFindPolyStringNorm() throws SchemaException, IOException {
         // GIVEN
         ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_NORM);
 
@@ -91,7 +81,7 @@ public class TestFind extends AbstractUnitTest {
     }
 
     @Test
-    public void testFindExtensionBar() throws SchemaException, SAXException, IOException {
+    public void testFindExtensionBar() throws SchemaException, IOException {
         // GIVEN
         ItemPath path = ItemPath.create(UserType.F_EXTENSION, EXTENSION_BAR_ELEMENT);
 
@@ -103,7 +93,7 @@ public class TestFind extends AbstractUnitTest {
     }
 
     @Test
-    public void testFindAssignment1Description() throws SchemaException, SAXException, IOException {
+    public void testFindAssignment1Description() throws SchemaException, IOException {
         // GIVEN
         ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_DESCRIPTION);
 
@@ -115,7 +105,7 @@ public class TestFind extends AbstractUnitTest {
     }
 
     @Test
-    public void testFindAssignment2Construction() throws SchemaException, SAXException, IOException {
+    public void testFindAssignment2Construction() throws SchemaException, IOException {
         // GIVEN
         ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_2_ID, AssignmentType.F_ACCOUNT_CONSTRUCTION);
 
@@ -127,7 +117,7 @@ public class TestFind extends AbstractUnitTest {
     }
 
     @Test
-    public void testFindAssignment() throws SchemaException, SAXException, IOException {
+    public void testFindAssignment() throws SchemaException, IOException {
         // GIVEN
         ItemPath path = UserType.F_ASSIGNMENT;
 
@@ -139,7 +129,7 @@ public class TestFind extends AbstractUnitTest {
         assertEquals("Wrong value2 description (path=" + path + ")", "Assignment 2", value2.findProperty(AssignmentType.F_DESCRIPTION).getRealValue());
     }
 
-    private <T> T findUser(ItemPath path) throws SchemaException, SAXException, IOException {
+    private <T> T findUser(ItemPath path) throws SchemaException, IOException {
         PrismObject<UserType> user = createUser();
         return find(user, path);
     }
@@ -157,7 +147,7 @@ public class TestFind extends AbstractUnitTest {
         return (T) found;
     }
 
-    private <T> PrismProperty<T> findUserProperty(ItemPath path) throws SchemaException, SAXException, IOException {
+    private <T> PrismProperty<T> findUserProperty(ItemPath path) throws SchemaException, IOException {
         PrismObject<UserType> user = createUser();
         return findProperty(user, path);
     }
@@ -175,7 +165,7 @@ public class TestFind extends AbstractUnitTest {
         return property;
     }
 
-    private <T extends Containerable> PrismContainer<T> findUserContainer(ItemPath path) throws SchemaException, SAXException, IOException {
+    private <T extends Containerable> PrismContainer<T> findUserContainer(ItemPath path) throws SchemaException, IOException {
         PrismObject<UserType> user = createUser();
         return findContainer(user, path);
     }
@@ -193,7 +183,7 @@ public class TestFind extends AbstractUnitTest {
         return container;
     }
 
-    public PrismObject<UserType> createUser() throws SchemaException, SAXException, IOException {
+    public PrismObject<UserType> createUser() throws SchemaException, IOException {
         return PrismTestUtil.parseObject(USER_JACK_FILE_XML);
     }
 

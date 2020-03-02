@@ -95,7 +95,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
     }
 
     @Test
-    public void testPrismParseDomXxe() throws Exception {
+    public void testPrismParseDomXxe() {
         try {
             // WHEN
             DOMUtil.parseFile(getFile(USER_JACK_XXE_BASENAME));
@@ -107,14 +107,5 @@ public class TestPrismParsingXml extends TestPrismParsing {
             assertTrue("Unexpected exception message: "+e.getMessage(), e.getMessage().contains("DOCTYPE"));
         }
 
-    }
-
-    @Override
-    protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
-//        Document xmlDocument = DOMUtil.parseDocument(xmlString);
-//        Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-//        Validator validator = javaxSchema.newValidator();
-//        validator.setResourceResolver(prismContext.getEntityResolver());
-//        validator.validate(new DOMSource(xmlDocument));
     }
 }
