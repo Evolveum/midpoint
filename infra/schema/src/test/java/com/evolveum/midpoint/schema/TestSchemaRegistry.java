@@ -6,47 +6,33 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import static org.testng.AssertJUnit.*;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
+import java.io.IOException;
+import java.util.List;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
-import java.io.IOException;
-import java.util.List;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author Radovan Semancik
- */
-public class TestSchemaRegistry {
+public class TestSchemaRegistry extends AbstractUnitTest {
 
     @SuppressWarnings("unused") // for the future
     private static final String FOO_NAMESPACE = "http://example.com/xml/ns/foo";
@@ -77,7 +63,6 @@ public class TestSchemaRegistry {
 //        System.out.println("Validation result:");
 //        System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
     }
-
 
     @Test
     public void testCommonSchema() throws SchemaException, SAXException, IOException {
@@ -118,8 +103,6 @@ public class TestSchemaRegistry {
 
     @Test
     public void testUserType() throws Exception {
-        System.out.println("===[ testUserType ]===");
-
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
@@ -159,8 +142,6 @@ public class TestSchemaRegistry {
 
     @Test
     public void testRoleType() throws Exception {
-        System.out.println("\n\n===[ testRoleType ]===");
-
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
@@ -195,8 +176,6 @@ public class TestSchemaRegistry {
 
     @Test
     public void testAbstractRoleType() throws Exception {
-        System.out.println("\n\n===[ testAbstractRoleType ]===");
-
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
@@ -233,8 +212,6 @@ public class TestSchemaRegistry {
 
     @Test
     public void testCommonSchemaShadowType() throws SchemaException, SAXException, IOException {
-        System.out.println("\n\n===[ testCommonSchemaShadowType ]===");
-
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
@@ -257,21 +234,19 @@ public class TestSchemaRegistry {
         assertTrue("'attributes' definition is not marked as runtime", attributesDef.isRuntimeSchema());
 
         List<SchemaMigration> schemaMigrations = shadowDef.getSchemaMigrations();
-        System.out.println("\nshadow schema migrations ("+schemaMigrations.size()+"):");
+        System.out.println("\nshadow schema migrations (" + schemaMigrations.size() + "):");
         System.out.println(DebugUtil.debugDump(schemaMigrations));
         assertEquals("Wrong number of schema migrations in shadow definition", 1, schemaMigrations.size());
 
         ComplexTypeDefinition shadowTypeDef = shadowDef.getComplexTypeDefinition();
         List<SchemaMigration> shadowTypeSchemaMigrations = shadowTypeDef.getSchemaMigrations();
-        System.out.println("\nShadowType schema migrations ("+shadowTypeSchemaMigrations.size()+"):");
+        System.out.println("\nShadowType schema migrations (" + shadowTypeSchemaMigrations.size() + "):");
         System.out.println(DebugUtil.debugDump(shadowTypeSchemaMigrations));
         assertEquals("Wrong number of schema migrations in ShadowType definition", 4, shadowTypeSchemaMigrations.size());
     }
 
     @Test
     public void testCommonSchemaLegacyAccount() throws SchemaException, SAXException, IOException {
-        System.out.println("\n\n===[ testCommonSchemaLegacyAccount ]===");
-
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
@@ -280,15 +255,13 @@ public class TestSchemaRegistry {
         assertNotNull("No definition for legacy account", accountDef);
         System.out.println("\naccount definition:");
         System.out.println(accountDef.debugDump(1));
-        assertTrue("Expected object definition for legacy account, but got "+accountDef, accountDef instanceof  PrismObjectDefinition);
+        assertTrue("Expected object definition for legacy account, but got " + accountDef, accountDef instanceof PrismObjectDefinition);
 
         assertEquals("Unexpected element name in legacy account definition", SchemaConstants.C_SHADOW, accountDef.getItemName());
     }
 
     @Test
     public void testAuditTimestampDocumentation() throws SchemaException, SAXException, IOException {
-        System.out.println("\n\n===[ testAuditTimestampDocumentation ]===");
-
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();

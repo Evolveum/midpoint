@@ -181,8 +181,6 @@ public class TestQueryConverter extends AbstractUnitTest {
 
     @Test
     public void testAccountQueryCompositeOr() throws Exception {
-        displayTestTitle("testAccountQueryCompositeOr");
-
         SearchFilterType filterType = unmarshalFilter(FILTER_OR_COMPOSITE);
         ObjectQuery query = toObjectQuery(ShadowType.class, filterType);
         displayQuery(query);
@@ -217,7 +215,6 @@ public class TestQueryConverter extends AbstractUnitTest {
 
     @Test
     public void testConnectorQuery() throws Exception {
-        displayTestTitle("testConnectorQuery");
         SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_CONNECTOR_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
         ObjectQuery query;
         try {

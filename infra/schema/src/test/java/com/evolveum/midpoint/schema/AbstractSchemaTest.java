@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -16,17 +18,15 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-
 /**
  * @author semancik
- *
  */
-public abstract class AbstractSchemaTest {
+public abstract class AbstractSchemaTest extends AbstractUnitTest {
 
     protected static final File COMMON_DIR = new File("src/test/resources/common");
 
@@ -52,12 +52,4 @@ public abstract class AbstractSchemaTest {
     protected PrismObjectDefinition<UserType> getUserDefinition() {
         return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
     }
-
-    protected void displayTestTile(String TEST_NAME) {
-        System.out.println("===[ "+TEST_NAME+" ]====");
-    }
-
-//    protected UniformItemPath path(Object... components) {
-//        return getPrismContext().path(components);
-//    }
 }

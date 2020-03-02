@@ -42,7 +42,6 @@ public class TestObjectValidator extends AbstractSchemaTest {
     @Test
     public void testValidateRoleOneDefault() throws Exception {
         final String TEST_NAME = "testValidateRoleOneDefault";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -65,7 +64,6 @@ public class TestObjectValidator extends AbstractSchemaTest {
     @Test
     public void testValidateRoleOneDeprecated() throws Exception {
         final String TEST_NAME = "testValidateRoleOneDeprecated";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -93,7 +91,6 @@ public class TestObjectValidator extends AbstractSchemaTest {
     @Test
     public void testValidateRoleOneLegacyCompat() throws Exception {
         final String TEST_NAME = "testValidateRoleOneLegacyCompat";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -124,7 +121,6 @@ public class TestObjectValidator extends AbstractSchemaTest {
     @Test
     public void testValidateRoleOneLegacyStrict() throws Exception {
         final String TEST_NAME = "testValidateRoleOneLegacyStrict";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
 

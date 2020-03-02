@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -15,43 +22,19 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author semancik
  * @author mederly
- *
  */
-public class TestParsePasswordPolicy {
+public class TestParsePasswordPolicy extends AbstractSchemaTest {
 
     public static final File FILE = new File("src/test/resources/common/password-policy.xml");
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
-
     @Test
     public void testParsePasswordPolicyFile() throws Exception {
-        System.out.println("===[ testParsePasswordPolicyFile ]===");
-
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -67,8 +50,6 @@ public class TestParsePasswordPolicy {
 
     @Test
     public void testParsePolicyRoundtrip() throws Exception {
-        System.out.println("===[ testParsePolicyRoundtrip ]===");
-
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -105,7 +86,6 @@ public class TestParsePasswordPolicy {
     }
 
     private void assertPolicy(PrismObject<ValuePolicyType> policy) {
-
         policy.checkConsistence();
 
         assertEquals("Wrong oid", "00000000-0000-0000-0000-000000000003", policy.getOid());
@@ -123,8 +103,8 @@ public class TestParsePasswordPolicy {
         // TODO...
     }
 
-    private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-            int maxOccurs) {
+    private void assertPropertyDefinition(PrismContainer<?> container,
+            String propName, QName xsdType, int minOccurs, int maxOccurs) {
         ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
         PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
     }
@@ -133,5 +113,4 @@ public class TestParsePasswordPolicy {
         ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
         PrismAsserts.assertPropertyValue(container, propQName, propValue);
     }
-
 }
