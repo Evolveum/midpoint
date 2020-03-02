@@ -6,12 +6,31 @@
  */
 package com.evolveum.midpoint.common;
 
+import static java.util.Collections.singleton;
+import static org.testng.Assert.fail;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -23,28 +42,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
-import static java.util.Collections.singleton;
-import static org.testng.Assert.fail;
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author mederly
- */
-@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestCryptoUtil extends AbstractUnitTest {
 
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "crypto");
@@ -255,5 +254,4 @@ public class TestCryptoUtil extends AbstractUnitTest {
                 .encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
                 .initialize();
     }
-
 }

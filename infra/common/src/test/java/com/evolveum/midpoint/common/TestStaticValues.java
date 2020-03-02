@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.common;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.IOException;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -14,21 +26,7 @@ import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -52,7 +50,7 @@ public class TestStaticValues extends AbstractUnitTest {
         origProperty.addRealValue("FOO");
         origProperty.addRealValue("BAR");
 
-        doRoundtrip(origProperty, propDef, prismContext);
+        doRoundtrip(origProperty, propDef);
     }
 
     @Test
@@ -65,22 +63,22 @@ public class TestStaticValues extends AbstractUnitTest {
         origProperty.addRealValue(123);
         origProperty.addRealValue(321);
 
-        doRoundtrip(origProperty, propDef, prismContext);
+        doRoundtrip(origProperty, propDef);
     }
 
-    private void doRoundtrip(PrismProperty<?> origProperty, ItemDefinition propDef, PrismContext prismContext) throws SchemaException, JAXBException {
+    private void doRoundtrip(PrismProperty<?> origProperty, ItemDefinition propDef) throws SchemaException {
         // WHEN
         List<JAXBElement<RawType>> valueElements = StaticExpressionUtil.serializeValueElements(origProperty, "here somewhere");
 
-        for (Object element: valueElements) {
+        for (Object element : valueElements) {
             if (element instanceof JAXBElement) {
                 System.out.println(PrismTestUtil.serializeJaxbElementToString((JAXBElement) element));
             } else {
-                AssertJUnit.fail("Unexpected element type "+element.getClass());
+                AssertJUnit.fail("Unexpected element type " + element.getClass());
             }
         }
 
-        PrismProperty<String> parsedProperty = (PrismProperty<String>)(Item) StaticExpressionUtil.parseValueElements(valueElements, propDef, "here again");
+        PrismProperty<String> parsedProperty = (PrismProperty<String>) (Item) StaticExpressionUtil.parseValueElements(valueElements, propDef, "here again");
 
         // THEN
         assertEquals("Roundtrip failed", origProperty, parsedProperty);

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,7 +49,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  * @author Radovan Semancik
  */
-public class BasicValidatorTest {
+public class BasicValidatorTest extends AbstractUnitTest {
 
     public static final String BASE_PATH = "src/test/resources/validator/";
     private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
@@ -64,10 +65,7 @@ public class BasicValidatorTest {
 
     @Test
     public void resource1Valid() throws Exception {
-        System.out.println("\n===[ resource1Valid ]=====");
-
         OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
-
         EventHandler handler = new EventHandler() {
 
             @Override
@@ -106,8 +104,6 @@ public class BasicValidatorTest {
 
     @Test
     public void handlerTest() throws Exception {
-        System.out.println("\n===[ handlerTest ]=====");
-
         OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
 
         final List<String> postMarshallHandledOids = new ArrayList<>();
@@ -151,8 +147,6 @@ public class BasicValidatorTest {
 
     @Test
     public void notWellFormed() throws Exception {
-        System.out.println("\n===[ notWellFormed ]=====");
-
         OperationResult result = new OperationResult(this.getClass().getName()+".notWellFormed");
 
         validateFile("not-well-formed.xml",result);
@@ -168,8 +162,6 @@ public class BasicValidatorTest {
 
     @Test
     public void undeclaredPrefix() throws Exception {
-        System.out.println("\n===[ undeclaredPrefix ]=====");
-
         OperationResult result = new OperationResult(this.getClass().getName()+".undeclaredPrefix");
 
         validateFile("undeclared-prefix.xml",result);
@@ -185,8 +177,6 @@ public class BasicValidatorTest {
 
     @Test
     public void schemaViolation() throws Exception {
-        System.out.println("\n===[ schemaViolation ]=====");
-
         OperationResult result = new OperationResult(this.getClass().getName()+".schemaViolation");
 
         validateFile("three-users-schema-violation.xml",result);
@@ -206,8 +196,6 @@ public class BasicValidatorTest {
      */
     @Test
     public void testStopOnErrors() throws Exception {
-        System.out.println("\n===[ testStopOnErrors ]=====");
-
         OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
 
         LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
@@ -223,8 +211,6 @@ public class BasicValidatorTest {
 
     @Test
     public void noName() throws Exception {
-        System.out.println("\n===[ noName ]=====");
-
         OperationResult result = new OperationResult(this.getClass().getName()+".noName");
 
         validateFile("no-name.xml",result);
@@ -250,15 +236,12 @@ public class BasicValidatorTest {
     }
 
     private void validateFile(String filename, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
-
         String filepath = BASE_PATH + filename;
 
         System.out.println("Validating " + filename);
 
-        FileInputStream fis = null;
-
         File file = new File(filepath);
-        fis = new FileInputStream(file);
+        FileInputStream fis = new FileInputStream(file);
 
         validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
 
@@ -269,7 +252,5 @@ public class BasicValidatorTest {
             System.out.println("No errors");
             System.out.println(result.debugDump());
         }
-
     }
-
 }
