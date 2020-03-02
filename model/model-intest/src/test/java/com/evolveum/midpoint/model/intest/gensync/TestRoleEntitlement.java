@@ -437,11 +437,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(groupDelta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -493,11 +493,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         roleDelta.addModification(linkDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(roleDelta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
@@ -635,11 +635,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(assignmentDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess("executeChanges result", result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
@@ -1153,11 +1153,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(roleDelta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -1217,11 +1217,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 .assertItems(PIRACY_COST_CENTER);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(RoleType.class, ROLE_SWASHBUCKLER_OID, RoleType.F_RISK_LEVEL, task, result, "99");
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRoleAfter(ROLE_SWASHBUCKLER_OID)

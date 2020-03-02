@@ -134,11 +134,11 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result, 2);
         assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
@@ -185,11 +185,11 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         jackLastCaseOid = assertInProgress(result);
 
@@ -242,12 +242,12 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         accountJackCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -295,12 +295,12 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         clock.overrideDuration("PT130M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 

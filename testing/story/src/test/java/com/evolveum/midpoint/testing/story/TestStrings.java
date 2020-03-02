@@ -213,11 +213,11 @@ public class TestStrings extends AbstractStoryTest {
         dummyTransport.clearMessages();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBobOid, roleATest1Oid, task, task.getResult());
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertNotAssignedRole(getUser(userBobOid), roleATest1Oid);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
@@ -282,7 +282,7 @@ public class TestStrings extends AbstractStoryTest {
         CaseWorkItemType workItem = getWorkItem(task, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
         login(lechuck);
         workflowService.completeWorkItem(WorkItemId.of(workItem),
@@ -290,7 +290,7 @@ public class TestStrings extends AbstractStoryTest {
                 task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         login(userAdministrator);
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);

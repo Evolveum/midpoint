@@ -368,12 +368,12 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertStaticSchemaSanity(resourceSchemaBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID,
                 null, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -445,11 +445,11 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         fillInConnectorRef(resourceNew, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.addObject(resourceNew, null, ProvisioningOperationOptions.createOverwrite(true), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
@@ -677,12 +677,12 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result)
                 .asObjectable();
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Check native capabilities

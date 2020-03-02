@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.AdminGuiTestConstants;
@@ -123,7 +122,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
-//        LOGGER.info("adding system config page");
         addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
 
     }
@@ -136,7 +134,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assertLoggedInUserOid(USER_ADMINISTRATOR_OID);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -147,7 +145,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         IntegrationTestTools.display("Wrapper after", objectWrapper);
 
@@ -220,7 +218,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<UserType> user = getUserDefinition().instantiate();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -233,7 +231,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.ADDED, context);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         IntegrationTestTools.display("Wrapper after", objectWrapper);
 
@@ -290,7 +288,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<UserType> user = getUserDefinition().instantiate();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -310,7 +308,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         IntegrationTestTools.display("Wrapper after", objectWrapper);
 
@@ -368,7 +366,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<UserType> userOld = user.clone();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -380,7 +378,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         IntegrationTestTools.display("Wrapper after", objectWrapper);
 
@@ -430,7 +428,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<ShadowType> shadowOld = shadow.clone();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -445,7 +443,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Wrapper after", objectWrapper);
 
         WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), "shadow description", shadow, shadowOld, ItemStatus.NOT_CHANGED);
@@ -596,14 +594,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         PrismObjectWrapper<ShadowType> objectWrapper = createObjectWrapper(task, shadow, ItemStatus.NOT_CHANGED);
         assertTrue("Wrong wrapper created. Expected ShadowWrapper but was " + objectWrapper.getClass().getSimpleName(), objectWrapper instanceof ShadowWrapper);
         ShadowWrapper shadowWrapper = (ShadowWrapper) objectWrapper;
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         display("Wrapper after", shadowWrapper);
 
@@ -705,11 +703,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         IntegrationTestTools.display("Wrapper after", objectWrapper);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Delta", objectDelta);
         ItemPath ahoyPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM, valueWrapperA.getNewValue().getId(), PIRACY_REPLACEMENT);
         PrismAsserts.assertPropertyReplace(objectDelta, ahoyPath, "Ahoy");
@@ -752,11 +750,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         IntegrationTestTools.display("Wrapper after", objectWrapper);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Delta", objectDelta);
         ItemPath transformPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM);
         PrismAsserts.assertModifications(objectDelta, 1);
@@ -804,11 +802,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         IntegrationTestTools.display("Wrapper after", objectWrapper);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Delta", objectDelta);
         PrismAsserts.assertModifications(objectDelta, 1);
 
@@ -882,12 +880,12 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         display("user before", user);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(getTestTask(), user, ItemStatus.NOT_CHANGED);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         IntegrationTestTools.display("Wrapper after", objectWrapper);
         assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadOnly());
@@ -954,12 +952,12 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         display("user before", user);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(task, user, ItemStatus.NOT_CHANGED);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         IntegrationTestTools.display("Wrapper after", objectWrapper);
         assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadOnly());

@@ -89,11 +89,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -119,11 +119,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 .build();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -145,11 +145,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
@@ -167,7 +167,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
@@ -178,7 +178,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[] { "sk_SK", "sk", "Slovak" });
@@ -193,7 +193,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
@@ -204,7 +204,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
@@ -220,7 +220,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
@@ -231,7 +231,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[]{"tr_TR", "tr", "Turkish"});
@@ -246,7 +246,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
@@ -260,7 +260,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[] { "sk_SK", "sk", "Slovak" });
@@ -275,7 +275,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
@@ -286,7 +286,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         IntegrationTestTools.display("Languages", lookup);
@@ -308,7 +308,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
@@ -319,7 +319,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[] { "sk_SK", "sk", "Slovak" });
@@ -338,7 +338,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         String fragment = "Eng";
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
@@ -350,7 +350,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
@@ -366,7 +366,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
@@ -380,7 +380,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" });
@@ -398,7 +398,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                 prismContext.path(LookupTableType.F_ROW, 1L),
@@ -406,7 +406,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" });
@@ -445,11 +445,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -491,11 +491,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -538,11 +538,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -587,7 +587,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         boolean exception = false;
         try {
             modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
@@ -597,7 +597,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         AssertJUnit.assertFalse(exception);     // as per description in https://wiki.evolveum.com/display/midPoint/Development+with+LookupTable
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -647,11 +647,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -695,11 +695,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
@@ -737,11 +737,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
@@ -778,11 +778,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
@@ -831,11 +831,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, row1, row2, row3);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -871,13 +871,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         ObjectDelta<LookupTableType> delta = DeltaFactory.Object.createAddDelta(replacement);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
         options.setRaw(true);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -911,11 +911,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         options.setKeepOid(true);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.importObjectsFromFile(LOOKUP_LANGUAGES_FILE, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -972,11 +972,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<UserType> user = userDef.instantiate();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObjectDefinition<UserType> editDef = getEditObjectDefinition(user);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
 
         PrismAsserts.assertEmphasized(editDef, UserType.F_NAME, true);
@@ -1046,11 +1046,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1116,11 +1116,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_PREFERRED_LANGUAGE, task, result, "en_PR");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertPropertyValues(user, UserType.F_ADDITIONAL_NAME, (propDef, name) -> {
@@ -1206,11 +1206,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<RoleType> role = roleDef.instantiate();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObjectDefinition<RoleType> editDef = getEditObjectDefinition(role);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         // TODO
         PrismPropertyDefinition requestableDef = editDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
@@ -1231,11 +1231,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
@@ -1273,11 +1273,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         IntegrationTestTools.display("Discr", discr);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
@@ -1305,11 +1305,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         IntegrationTestTools.display("Discr", discr);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
@@ -1332,11 +1332,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(null, AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
@@ -1361,11 +1361,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions();
 
         // THEN
-         then(TEST_NAME);
+         then();
          display("Relations", relations);
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "Master");
@@ -1391,12 +1391,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<UserType> user = userDef.instantiate();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObjectDefinition<UserType> editDef = getEditObjectDefinition(user);
         display("Otis edit schema", editDef);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(UserType.F_NAME);
         assertNotNull("No definition for name in user", nameDef);
@@ -1457,11 +1457,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1540,11 +1540,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

@@ -157,12 +157,12 @@ public  class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_IT_NAME, ORG_TOP_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -184,12 +184,12 @@ public  class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("orgBefore: ", orgBefore);
         assignRoleToOrg(orgItOid, ROLE_META_ORG_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -213,12 +213,12 @@ public  class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("unassigning vip role org", orgBefore);
         unassignRoleFromOrg(orgItOid, ROLE_META_ORG_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -243,12 +243,12 @@ public  class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_HR_NAME, ORG_TOP_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -270,13 +270,13 @@ public  class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("orgBefore: ", orgBefore);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_OID, task, result);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -302,12 +302,12 @@ public  class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("unassigning vip role org", orgBefore);
         unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -334,13 +334,13 @@ public  class TestLdapDependency extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("orgBefore: ", orgBefore);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_SUPERVIP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -370,7 +370,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
 
             assertNotReached();
@@ -380,7 +380,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         dumpOrgTree();

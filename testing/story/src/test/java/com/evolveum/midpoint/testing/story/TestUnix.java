@@ -345,11 +345,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = createUser(USER_HERMAN_USERNAME, USER_HERMAN_FIST_NAME, USER_HERMAN_LAST_NAME, ROLE_BASIC_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(user, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
@@ -372,11 +372,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = createUser(USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME, ROLE_UNIX_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(user, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_USERNAME);
@@ -400,11 +400,11 @@ public class TestUnix extends AbstractStoryTest {
         display("shadow", shadow);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         RefinedObjectClassDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         display("OC def", editObjectClassDefinition);
@@ -428,11 +428,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_MANCOMB_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         deleteObject(UserType.class, userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_USERNAME);
@@ -453,11 +453,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = createUser(USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, (String)null);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(user, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -476,11 +476,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -506,11 +506,11 @@ public class TestUnix extends AbstractStoryTest {
         long startTs = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         long endTs = System.currentTimeMillis();
@@ -538,11 +538,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -566,11 +566,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -594,11 +594,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -622,11 +622,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -649,11 +649,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -676,11 +676,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -706,11 +706,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -764,11 +764,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -815,11 +815,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -850,11 +850,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -886,11 +886,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -950,11 +950,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -993,11 +993,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -1034,11 +1034,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -1063,11 +1063,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> role = createLdapGroupRole(ROLE_MONKEY_ISLAND_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
@@ -1091,11 +1091,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), roleMonkeyIslandOid);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
@@ -1119,11 +1119,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> role = createUnixGroupRole(ROLE_VILLAINS_NAME, ROLE_META_UNIXGROUP_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
@@ -1147,11 +1147,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -1175,11 +1175,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), roleVillainsOid);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -1205,11 +1205,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = createUser(USER_RANGER_USERNAME, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME, ROLE_BASIC_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(user, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1232,11 +1232,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1260,11 +1260,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> role = createUnixGroupRole(ROLE_RANGERS_NAME, ROLE_META_UNIXGROUP2_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
@@ -1288,11 +1288,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> role = createUnixGroupRole(ROLE_SEALS_NAME, ROLE_META_UNIXGROUP2_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
@@ -1318,11 +1318,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = findUserByUsername(USER_RANGER_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), roleRangersOid);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1331,7 +1331,7 @@ public class TestUnix extends AbstractStoryTest {
         assertUser(userAfter, USER_RANGER_USERNAME, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME);
         String accountOid = getSingleLinkOid(userAfter);
 
-        then(TEST_NAME);
+        then();
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         String accountRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
@@ -1359,11 +1359,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = findUserByUsername(USER_RANGER_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), roleSealsOid);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1392,11 +1392,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userBefore.getOid(), roleSealsOid);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1430,11 +1430,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(userBefore.getOid(), UserType.F_NAME, task, result, new PolyString("usranger", "usranger"));
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
@@ -1469,11 +1469,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         deleteObject(UserType.class, userBefore.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
@@ -1495,11 +1495,11 @@ public class TestUnix extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         renameObject(RoleType.class, roleSealsOid, ROLE_WALRUSES_NAME, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, roleSealsOid);
@@ -1532,7 +1532,7 @@ public class TestUnix extends AbstractStoryTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             addObject(user, task, result);
 
             AssertJUnit.fail("Unexpected success");
@@ -1542,7 +1542,7 @@ public class TestUnix extends AbstractStoryTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertFailure(result);
 
@@ -1574,11 +1574,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = createUser(USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, ROLE_UNIX_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(user, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
@@ -1624,11 +1624,11 @@ public class TestUnix extends AbstractStoryTest {
         display("Wally LDAP account before", entryWallyBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountWallyOid, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1674,11 +1674,11 @@ public class TestUnix extends AbstractStoryTest {
         display("Wally LDAP account before", entryWallyBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountWallyOid, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1706,11 +1706,11 @@ public class TestUnix extends AbstractStoryTest {
                 OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, prismContext);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1729,11 +1729,11 @@ public class TestUnix extends AbstractStoryTest {
         display("query", query);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1752,11 +1752,11 @@ public class TestUnix extends AbstractStoryTest {
         display("query", query);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1775,11 +1775,11 @@ public class TestUnix extends AbstractStoryTest {
         display("query", query);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("found objects", objects);
@@ -1796,11 +1796,11 @@ public class TestUnix extends AbstractStoryTest {
         addRoleAssignment(user, roleMonkeyIslandOid);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(user, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_STAN_USERNAME);
@@ -1841,11 +1841,11 @@ public class TestUnix extends AbstractStoryTest {
         repositoryService.modifyObject(UserType.class, userStan.getOid(), itemDeltas, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userStan.getOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_STAN_USERNAME);

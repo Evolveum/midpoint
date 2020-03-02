@@ -136,16 +136,16 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importObjectFromFile(TASK_RECONCILE_DUMMY_UUID_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_UUID_OID, false);
 
         // THEN
-        then(TEST_NAME);
+        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 0, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -191,16 +191,16 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -272,16 +272,16 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 1);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -360,16 +360,16 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);

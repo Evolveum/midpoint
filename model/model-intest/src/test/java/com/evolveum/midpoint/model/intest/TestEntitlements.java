@@ -204,11 +204,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, prismContext);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyGroupByName(null, GROUP_DUMMY_SWASHBUCKLERS_NAME)
@@ -224,11 +224,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -254,11 +254,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -321,11 +321,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, USER_WALLY_NAME, getDummyResource());
@@ -360,11 +360,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
@@ -382,11 +382,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(ROLE_WIMP_FILE, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
@@ -414,11 +414,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(ROLE_BRUTE_FILE, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -441,11 +441,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(ROLE_THUG_FILE, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -470,11 +470,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         addObject(USER_LARGO_FILE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -494,11 +494,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_LARGO_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -518,11 +518,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_LARGO_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -552,11 +552,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_LARGO_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -576,11 +576,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_LARGO_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -613,11 +613,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_LARGO_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("newLargo"));
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -644,11 +644,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -682,11 +682,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         addObject(USER_RAPP_FILE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -706,11 +706,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -737,11 +737,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -775,11 +775,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -816,11 +816,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -860,11 +860,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -898,12 +898,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
         assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         DummyAccount accountGuybrush = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -930,11 +930,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_CREW_OF_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -974,11 +974,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_CREW_OF_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -1006,12 +1006,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
         unassignAccountFromUser(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -1028,11 +1028,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1062,11 +1062,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1095,11 +1095,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1142,11 +1142,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         jackSwashbucklerAssignmentActivation.setValidTo(validTo);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, jackSwashbucklerAssignmentActivation, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1276,11 +1276,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, jackSwashbucklerAssignmentActivation.clone(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1315,11 +1315,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1351,11 +1351,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1419,11 +1419,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<ShadowType> delta = ObjectDeltaCollectionsUtil.summarize(delta1, delta2);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertGroupMember(GROUP_THUG_NAME, ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
@@ -1446,11 +1446,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_LANDLUBERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
@@ -1470,11 +1470,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAll(userBefore, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
@@ -1508,11 +1508,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBefore, 0);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1541,11 +1541,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         getDummyResourceController().addGroup(orgGroupName(OU_CLUB_SCI_FI));
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1566,11 +1566,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
@@ -1594,11 +1594,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBefore, 0);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_REPO_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1618,11 +1618,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1650,11 +1650,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_REPO_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
@@ -1674,11 +1674,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1702,11 +1702,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1721,11 +1721,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1743,11 +1743,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         addObject(group, task, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_BLUE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1771,11 +1771,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1790,11 +1790,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_BLUE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1817,11 +1817,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1847,11 +1847,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1875,11 +1875,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1905,11 +1905,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1933,11 +1933,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1961,11 +1961,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1988,11 +1988,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2023,11 +2023,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2053,11 +2053,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2081,11 +2081,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2109,11 +2109,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2136,11 +2136,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2167,11 +2167,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2197,11 +2197,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackJustAccount();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2225,11 +2225,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2255,11 +2255,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackJustAccount();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2283,11 +2283,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2312,11 +2312,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2342,11 +2342,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackJustAccount();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2370,11 +2370,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2397,11 +2397,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

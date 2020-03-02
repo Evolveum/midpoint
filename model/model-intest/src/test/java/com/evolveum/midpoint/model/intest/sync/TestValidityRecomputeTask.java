@@ -1449,12 +1449,12 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyAccountShadowReplace(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH,
                 task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);

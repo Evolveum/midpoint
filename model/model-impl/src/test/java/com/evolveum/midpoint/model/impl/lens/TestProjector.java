@@ -574,11 +574,11 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertPartialError(result);
     }
 
@@ -848,11 +848,11 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         projector.project(context, "test", task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Output context", context);
 
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);

@@ -218,12 +218,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userCharles);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         //we do not expect this to throw an exception. instead the fatal error in the result is excpected
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(userDelta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         // Even though the operation failed the addition of a user should be successful. Let's check if user was really added.
@@ -265,12 +265,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // not expected that it fails, instead the error in the result is expected
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display(result);
         // account cannot be updated due to a network error. The operation was postponed, therefore
         // it is "in progress".
@@ -351,14 +351,14 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             //not expected that it fails, instead the error in the result is expected
             modelService.executeChanges(deltas, null, task, result);
 
             assertNotReached();
         } catch (GenericConnectorException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
         assertFailure(result);
@@ -404,11 +404,11 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userSharptoothOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -477,11 +477,11 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserChangePassword(userSharptoothOid, newPassword, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertStatus(result, expectedResultStatus);
 

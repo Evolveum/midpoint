@@ -210,7 +210,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         waitForTaskStart(TASK_RECON_DUMMY_OID, false);
 
@@ -219,7 +219,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
         ShadowAsserter.forShadow(shadow)

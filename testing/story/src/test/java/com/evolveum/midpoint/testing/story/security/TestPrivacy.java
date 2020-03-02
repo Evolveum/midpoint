@@ -79,7 +79,7 @@ public class TestPrivacy extends AbstractStoryTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_ELAINE_OID);
@@ -89,7 +89,7 @@ public class TestPrivacy extends AbstractStoryTest {
                 USER_ADMINISTRATOR_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_JACK_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
     }
 

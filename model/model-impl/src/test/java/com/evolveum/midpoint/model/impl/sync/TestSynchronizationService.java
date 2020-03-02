@@ -160,11 +160,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -357,11 +357,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setObjectDelta(syncDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         LensContext<UserType> context = cleanDebugListener();
 
@@ -430,11 +430,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -477,11 +477,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         display("Change notification", change);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -527,11 +527,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         LensContext<UserType> context = cleanDebugListener();
 
@@ -590,11 +590,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         repositoryService.deleteObject(ShadowType.class, accountShadowJackDummyOid, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result, 1);
         LensContext<UserType> context = cleanDebugListener();
 
@@ -657,11 +657,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         getDummyResource().resetBreakMode();
         assertPartialError(result);
 
@@ -720,11 +720,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         getDummyResource().resetBreakMode();
         assertPartialError(result);
 
@@ -772,11 +772,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().resetBreakMode();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         LensContext<UserType> context = cleanDebugListener();
@@ -820,11 +820,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().resetBreakMode();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_LIMITED_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         LensContext<UserType> context = cleanDebugListener();
@@ -897,11 +897,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().setBreakMode(BreakMode.ASSERTION_ERROR);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         getDummyResource().resetBreakMode();
@@ -975,11 +975,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        when(TEST_NAME);
+        when();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

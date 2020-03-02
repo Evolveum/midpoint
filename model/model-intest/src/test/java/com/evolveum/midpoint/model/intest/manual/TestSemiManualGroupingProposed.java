@@ -128,11 +128,11 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         display("User before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBigmouthOid, getRoleOneOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         bigmouthLastCaseOid = assertInProgress(result);
 
@@ -182,11 +182,11 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         clockForward("PT20M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PendingOperationExecutionStatusType executionStage = PendingOperationExecutionStatusType.EXECUTING;

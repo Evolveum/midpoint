@@ -170,13 +170,13 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         addObject(ROLE_TEST_FILE, task, result);
         addObject(USER_TEST_FILE, task, result);
 
          // THEN
-         then(TEST_NAME);
+         then();
 
         dumpLdap();
         openDJController.assertUniqueMember("cn=role-test,ou=groups,dc=example,dc=com", "uid=user-test,ou=people,dc=example,dc=com");
@@ -194,7 +194,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         resetPerformanceCollectors();
 
@@ -210,7 +210,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         long endMillis = System.currentTimeMillis();
         recordDuration(TEST_NAME, (endMillis - startMillis));
@@ -242,7 +242,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         resetPerformanceCollectors();
 
@@ -271,7 +271,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         long endMillis = System.currentTimeMillis();
         recordDuration(TEST_NAME, (endMillis - startMillis));
@@ -313,7 +313,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -323,7 +323,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         waitForTaskFinish(TASK_RECOMPUTE_1_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_1_OID));
 
@@ -357,7 +357,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -367,7 +367,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         waitForTaskFinish(TASK_RECOMPUTE_NO_CACHE_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_NO_CACHE_OID));
 
@@ -401,7 +401,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -413,7 +413,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         recordDuration(TEST_NAME, getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_OID));
 
@@ -449,7 +449,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -461,7 +461,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         recordDuration(TEST_NAME, getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID));
 
@@ -498,7 +498,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         PrismObject<SystemConfigurationType> newConfiguration = parseObject(SYSTEM_CONFIGURATION_NO_ROLE_CACHE_FILE);
         repositoryService.addObject(newConfiguration, RepoAddOptions.createOverwrite(), result);
@@ -510,7 +510,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         waitForTaskFinish(TASK_RECOMPUTE_4_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_4_OID));
 
@@ -549,7 +549,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         display("Summary ("+NUMBER_OF_GENERATED_USERS+" users, "+NUMBER_OF_GENERATED_ROLES+" roles)", sb.toString());
 
          // THEN
-         then(TEST_NAME);
+         then();
 
          // TODO: more thresholds
 

@@ -75,11 +75,11 @@ public class TestIterativeTasks extends AbstractInitializedModelIntegrationTest 
         // GIVEN
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addTask(TASK_BUCKETS_MULTITHREADED_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForTaskFinish(TASK_BUCKETS_MULTITHREADED_OID, false);
     }
 

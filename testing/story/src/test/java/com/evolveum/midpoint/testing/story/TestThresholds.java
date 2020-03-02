@@ -170,7 +170,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         assertUsers(getNumberOfUsers());
         //WHEN
-        when(TEST_NAME);
+        when();
         OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
         assertFailure(reconResult);
 
@@ -195,7 +195,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         assertUsers(getNumberOfUsers()+getProcessedUsers());
         //WHEN
-        when(TEST_NAME);
+        when();
         OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
         assertFailure(reconResult);
 
@@ -236,7 +236,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         openDJController.executeLdifChange(LDIF_CHANGE_ACTIVATION_FILE);
 
         //WHEN
-        when(TEST_NAME);
+        when();
         OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 20000);
         assertFailure(reconResult);
 

@@ -89,12 +89,12 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(0);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID, true);
 
@@ -115,14 +115,14 @@ public class TestServiceAccounts extends AbstractStoryTest {
                 ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getDummyResource().addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         assertServices(1);
 
@@ -158,7 +158,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
 
             executeChanges(delta, null, task, result);
 
@@ -166,7 +166,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         } catch (UnsupportedOperationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("expected exception", e);
         }
 
@@ -205,7 +205,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
 
             executeChanges(delta, null, task, result);
 
@@ -213,7 +213,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         } catch (UnsupportedOperationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("expected exception", e);
         }
 
@@ -248,14 +248,14 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getDummyResource().deleteAccountByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         assertNoServiceByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
         assertServices(0);
@@ -269,12 +269,12 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(0);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         suspendTask(TASK_LIVE_SYNC_DUMMY_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
     }
 
@@ -286,12 +286,12 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(0);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskStart(TASK_RECONCILE_DUMMY_OID, true);
 
@@ -312,14 +312,14 @@ public class TestServiceAccounts extends AbstractStoryTest {
                 ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getDummyResource().addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         assertServices(1);
 
@@ -338,14 +338,14 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         getDummyResource().deleteAccountByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
 
         waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         assertNoServiceByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
         assertServices(0);
@@ -358,12 +358,12 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         suspendTask(TASK_RECONCILE_DUMMY_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
     }
 
@@ -393,7 +393,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
 
             executeChanges(delta, null, task, result);
 
@@ -401,7 +401,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         } catch (UnsupportedOperationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("expected exception", e);
         }
 

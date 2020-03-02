@@ -101,7 +101,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -112,7 +112,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        then(TEST_NAME);
+        then();
     }
 
     @Test
@@ -128,7 +128,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -139,7 +139,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertAllow(authentication, "/admin/config/debugs");
 
         // THEN
-        then(TEST_NAME);
+        then();
     }
 
     @Test
@@ -155,7 +155,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -166,7 +166,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        then(TEST_NAME);
+        then();
 
     }
 
@@ -186,7 +186,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -197,7 +197,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        then(TEST_NAME);
+        then();
 
     }
 
@@ -220,7 +220,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         login(USER_JACK_USERNAME);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertLoggedInUsername(USER_JACK_USERNAME);
     }
 

@@ -64,12 +64,12 @@ public class TestExistentialIssues extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -92,12 +92,12 @@ public class TestExistentialIssues extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -120,12 +120,12 @@ public class TestExistentialIssues extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -148,12 +148,12 @@ public class TestExistentialIssues extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -176,12 +176,12 @@ public class TestExistentialIssues extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -204,12 +204,12 @@ public class TestExistentialIssues extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignAccountFromUser(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -232,12 +232,12 @@ public class TestExistentialIssues extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         deleteObject(UserType.class, USER_DESCARTES_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNoObject(UserType.class, USER_DESCARTES_OID);

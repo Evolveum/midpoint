@@ -819,11 +819,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         ObjectDelta<UserType> userDelta = createAssignTwoResourcesDelta(RESOURCE_CSVFILE_NOTFOUND_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("executeChanges result", result);
         assertPartialError(result);
@@ -851,13 +851,13 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             executeChanges(userDelta, null, task, result);
 
             assertNotReached();
         } catch (GenericConnectorException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
 
@@ -896,11 +896,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -928,11 +928,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         prepareTest5xx();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, "none");
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -960,11 +960,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         prepareTest5xx();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -999,14 +999,14 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
             assertNotReached();
 
         } catch (GenericConnectorException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
 
@@ -1038,11 +1038,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         prepareTest5xx();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         // Errors deep inside the results are expected
         assertSuccess(result, 2);
 
@@ -1070,14 +1070,14 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 
             assertNotReached();
 
         } catch (RuntimeException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
             assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
         }
@@ -1110,14 +1110,14 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
             assertNotReached();
 
         } catch (RuntimeException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
             assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
         }
@@ -1150,11 +1150,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         prepareTest5xx();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1186,11 +1186,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertNoDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1220,11 +1220,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         prepareTest5xx();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertPartialError(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -1257,11 +1257,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
             .assertLinks(1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Result", result);
         assertPartialError(result);
 
@@ -1305,7 +1305,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BROKEN_VIOLET_OID, null, task, result);
 
             assertNotReached();
@@ -1314,7 +1314,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);

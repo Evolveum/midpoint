@@ -91,12 +91,12 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         addObject(AbstractStoryTest.USER_JACK_FILE, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(AbstractStoryTest.USER_JACK_OID);
@@ -111,12 +111,12 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         addObject(USER_TELEKE_FILE, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_TELEKE_OID);

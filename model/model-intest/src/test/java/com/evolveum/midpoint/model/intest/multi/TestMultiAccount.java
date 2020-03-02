@@ -101,11 +101,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         // No accounts on multigreen resource yet. No users should be created.
         assertUsers(getNumberOfUsers());
@@ -134,11 +134,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         accountPaulOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()
@@ -178,11 +178,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         accountMuaddibOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()
@@ -226,11 +226,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         userPaulOid = findUserByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME).getOid();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userPaulOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         accountMuaddibOid = assertUserAfter(userPaulOid)
             .displayWithProjections()
@@ -287,11 +287,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         accountDukeOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()
@@ -355,11 +355,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         accountMahdiOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()

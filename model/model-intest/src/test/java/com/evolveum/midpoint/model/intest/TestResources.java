@@ -165,11 +165,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options , task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Resource", resource);
@@ -215,12 +215,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 GetOperationOptions.createNoFetch());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options,
                 task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Resource", resource);
@@ -266,12 +266,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 GetOperationOptions.createNoFetch());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options,
                 task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Resource", resource);
@@ -320,12 +320,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options,
                 task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Resource", resource);
@@ -366,11 +366,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
@@ -416,11 +416,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
@@ -472,11 +472,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.searchObjectsIterative(ResourceType.class, null, handler, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertFalse("Empty search return", resources.isEmpty());
@@ -525,11 +525,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.searchObjectsIterative(ResourceType.class, null, handler, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertFalse("Empty search return", resources.isEmpty());
@@ -561,11 +561,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
@@ -606,12 +606,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 GetOperationOptions.createReadOnly());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
                 options , task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
@@ -645,11 +645,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
@@ -832,11 +832,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_RED_OID, null , task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
@@ -876,11 +876,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options , task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Resource", resource);
@@ -909,11 +909,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
@@ -941,11 +941,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 "whatever wherever");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(resourceDelta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -967,12 +967,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 "whatever raw wherever");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(resourceDelta), ModelExecuteOptions.createRaw(),
                 task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -1050,11 +1050,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         display("Diff delta", diffDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
@@ -1108,11 +1108,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);

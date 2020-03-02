@@ -34,11 +34,12 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class TestExtraSchema {
+public class TestExtraSchema extends AbstractUnitTest {
 
     public static final String NS_USER_2_EXT = "http://example.com/xml/ns/user-2-extension";
 
@@ -53,8 +54,6 @@ public class TestExtraSchema {
      */
     @Test
     public void testExtraSchema() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testExtraSchema ]===");
-
         Document dataDoc = DOMUtil.parseFile(new File(COMMON_DIR_PATH, "root-foo.xml"));
 
         PrismContext context = constructPrismContext();
@@ -68,8 +67,6 @@ public class TestExtraSchema {
         Validator validator = javaxSchema.newValidator();
         DOMResult validationResult = new DOMResult();
         validator.validate(new DOMSource(dataDoc),validationResult);
-//        System.out.println("Validation result:");
-//        System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
     }
 
     /**
@@ -78,8 +75,6 @@ public class TestExtraSchema {
      */
     @Test
     public void testUserExtensionSchemaLoad() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testUserExtensionSchemaLoad ]===");
-
         PrismContext context = constructPrismContext();
         SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
         reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
@@ -105,7 +100,6 @@ public class TestExtraSchema {
 
     @Test
     public void testUserExtensionSchemaParseUser() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testUserExtensionSchemaParseUser ]===");
         Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE_XML);
 
         PrismContext context = constructPrismContext();
@@ -128,15 +122,10 @@ public class TestExtraSchema {
         Validator validator = javaxSchema.newValidator();
         DOMResult validationResult = new DOMResult();
         validator.validate(new DOMSource(dataDoc),validationResult);
-//        System.out.println("Validation result:");
-//        System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
-
     }
 
     @Test
     public void testUserExtensionSchemaSchemaRegistry() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testUserExtensionSchemaAsObjectSchema ]===");
-
         PrismContext context = constructPrismContext();
         SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
         reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
@@ -207,8 +196,6 @@ public class TestExtraSchema {
      */
     @Test
     public void testTypeOverride() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testTypeOverride ]===");
-
         PrismContext context = constructPrismContext();
         SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
         reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);

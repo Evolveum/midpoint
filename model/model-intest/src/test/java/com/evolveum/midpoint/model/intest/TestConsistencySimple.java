@@ -198,7 +198,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         switch (focusOperation) {
             case RECOMPUTE:
                 recomputeUser(USER_JACK_OID, task, result);
@@ -213,7 +213,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("Result", result);
         if (ASSERT_SUCCESS) {

@@ -100,7 +100,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
         accountJack.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "The Seven Seas");
 
         /// WHEN
-        when(TEST_NAME);
+        when();
 
         getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(accountJack);
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
@@ -112,7 +112,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
         rerunTask(TASK_DELETE_NOT_UPDATED_SHADOWS_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         PrismObject<UserType> userCarol = findUserByUsername(ACCOUNT_CAROL_DUMMY_USERNAME);
         display("User carol", userCarol);

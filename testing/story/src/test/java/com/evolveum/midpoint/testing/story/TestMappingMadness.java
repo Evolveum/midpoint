@@ -88,7 +88,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_OID, null, task, result);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_RANGE_OID, null, task, result);
@@ -96,7 +96,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NONTOLERANT_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackPirateAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -119,12 +119,12 @@ public class TestMappingMadness extends AbstractStoryTest {
         setAccountQuotes();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_CAPTAIN));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
@@ -189,12 +189,12 @@ public class TestMappingMadness extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_WHATEVER_UPPER));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Mappings return null, which means no value.
@@ -262,12 +262,12 @@ public class TestMappingMadness extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         reconcileUser(USER_JACK_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
@@ -324,12 +324,12 @@ public class TestMappingMadness extends AbstractStoryTest {
         setAccountMad(getDummyAccount(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME));
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         reconcileUser(USER_JACK_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -355,12 +355,12 @@ public class TestMappingMadness extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_WHATEVER_LOWER));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -385,12 +385,12 @@ public class TestMappingMadness extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result /* no value */);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -420,7 +420,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_OID, null, task, result);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_RANGE_OID, null, task, result);
@@ -428,7 +428,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NONTOLERANT_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME);

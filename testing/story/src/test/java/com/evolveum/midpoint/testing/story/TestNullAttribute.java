@@ -263,12 +263,12 @@ public class TestNullAttribute extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_SMACK_OID);

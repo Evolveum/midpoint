@@ -87,11 +87,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         rememberResourceCacheStats();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Resource", resource);
         assertSuccess(result);
 

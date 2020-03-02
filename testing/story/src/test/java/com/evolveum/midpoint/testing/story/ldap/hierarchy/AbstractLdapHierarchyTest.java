@@ -349,11 +349,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
                 USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(UserType.class, userGorcOid, UserType.F_NAME, task, result, new PolyString(USER_GORC_USERNAME2));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -371,12 +371,12 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -414,13 +414,13 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         delta.addModificationAddContainer(OrgType.F_ASSIGNMENT, newAssignmentType);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         display("Modifying " + orgBefore + "with delta", delta);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();

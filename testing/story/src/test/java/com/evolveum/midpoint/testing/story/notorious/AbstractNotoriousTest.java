@@ -176,11 +176,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -211,11 +211,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -249,11 +249,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -282,11 +282,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -315,11 +315,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignJackARoles(5, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -347,11 +347,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -379,11 +379,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignJackARoles(5, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -412,11 +412,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignJackARoles(NUMBER_OF_LEVEL_A_ROLES, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -444,11 +444,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -482,11 +482,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -515,11 +515,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignJackARoles(NUMBER_OF_LEVEL_A_ROLES, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -549,11 +549,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -591,11 +591,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -626,11 +626,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -661,11 +661,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -697,11 +697,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -732,11 +732,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -767,11 +767,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -802,11 +802,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -838,11 +838,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -879,12 +879,12 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), null, task, null, null, true, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -921,12 +921,12 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, true, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -964,11 +964,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -1010,11 +1010,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -1052,12 +1052,12 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), null, task, null, null, false, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
@@ -1093,12 +1093,12 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, false, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 

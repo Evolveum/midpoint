@@ -151,7 +151,7 @@ public class TestRbac extends AbstractRbacTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -204,7 +204,7 @@ public class TestRbac extends AbstractRbacTest {
                 createPolyString(LOCALITY_TORTUGA));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -237,7 +237,7 @@ public class TestRbac extends AbstractRbacTest {
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -288,11 +288,11 @@ public class TestRbac extends AbstractRbacTest {
                 EXISTING_GOSSIP);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -810,11 +810,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("Result", result);
         TestUtil.assertSuccess(result);
@@ -922,21 +922,21 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // WHEN (1)
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, getDefaultOptions(), task, result);
 
         // THEN (1)
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackAssignRolePirateRelationNoPrivs(relation);
 
         // WHEN (2)
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN (2)
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackAssignRolePirateRelationNoPrivs(relation);
@@ -966,7 +966,7 @@ public class TestRbac extends AbstractRbacTest {
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -1242,11 +1242,11 @@ public class TestRbac extends AbstractRbacTest {
                 EXISTING_GOSSIP);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result, createPolyString("Isla de Muerta"));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1427,11 +1427,11 @@ public class TestRbac extends AbstractRbacTest {
                 UserType.class, USER_JACK_OID, itemPath, "soul");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1461,11 +1461,11 @@ public class TestRbac extends AbstractRbacTest {
                 UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, assignmentType);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(assignmentDelta, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1490,11 +1490,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WANNABE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1519,11 +1519,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1547,11 +1547,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, getDefaultOptions(), task, result, "wannabe");
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1576,11 +1576,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1604,12 +1604,12 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result,
                 PrismTestUtil.createPolyString("PhD."));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1635,12 +1635,12 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result,
                 PrismTestUtil.createPolyString("captain"));
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1665,11 +1665,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_WANNABE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1696,7 +1696,7 @@ public class TestRbac extends AbstractRbacTest {
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1737,7 +1737,7 @@ public class TestRbac extends AbstractRbacTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertFailure(result);
 
@@ -1764,11 +1764,11 @@ public class TestRbac extends AbstractRbacTest {
         userDelta.addModification(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1798,11 +1798,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1826,7 +1826,7 @@ public class TestRbac extends AbstractRbacTest {
         assignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1866,7 +1866,7 @@ public class TestRbac extends AbstractRbacTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         assertNoAssignments(USER_JACK_OID);
@@ -1902,7 +1902,7 @@ public class TestRbac extends AbstractRbacTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         assertNoAssignments(USER_JACK_OID);
@@ -1930,11 +1930,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignees(ROLE_CANNIBAL_OID, 0);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, result);
@@ -1960,11 +1960,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignees(ROLE_CANNIBAL_OID, 1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, result);
@@ -1990,11 +1990,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignees(ROLE_CANNIBAL_OID, 2);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, result);
@@ -2021,7 +2021,7 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 
             AssertJUnit.fail("Unexpected success");
@@ -2032,7 +2032,7 @@ public class TestRbac extends AbstractRbacTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         assertNoAssignments(user.getOid());
@@ -2052,11 +2052,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignees(ROLE_CANNIBAL_OID, 3);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userSharptoothOid, ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNoAssignments(userSharptoothOid);
@@ -2078,7 +2078,7 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             unassignRole(userRedskullOid, ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 
             AssertJUnit.fail("Unexpected success");
@@ -2089,7 +2089,7 @@ public class TestRbac extends AbstractRbacTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         assertAssignedRole(userRedskullOid, ROLE_CANNIBAL_OID, result);
@@ -2119,7 +2119,7 @@ public class TestRbac extends AbstractRbacTest {
         assignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAssignees(ROLE_CANNIBAL_OID, 2);
@@ -2147,7 +2147,7 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             // null namespace to test no-namespace "owner" relation
             unassignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, QNameUtil.nullNamespace(SchemaConstants.ORG_OWNER), getDefaultOptions(), task, result);
 
@@ -2159,7 +2159,7 @@ public class TestRbac extends AbstractRbacTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertFailure(result);
 
         assertAssignees(ROLE_CANNIBAL_OID, 2);
@@ -2189,7 +2189,7 @@ public class TestRbac extends AbstractRbacTest {
         assignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userBignoseOid)
@@ -2224,7 +2224,7 @@ public class TestRbac extends AbstractRbacTest {
         unassignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userBignoseOid)
@@ -2249,11 +2249,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
@@ -2276,11 +2276,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userBignoseOid)
@@ -2298,11 +2298,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_APPROVER, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userBignoseOid)
@@ -2324,11 +2324,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_DEFAULT, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userBignoseOid)
@@ -2348,11 +2348,11 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_DEFAULT, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userBignoseOid)
@@ -2380,7 +2380,7 @@ public class TestRbac extends AbstractRbacTest {
         executeChanges(userDelta, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userBignoseOid)
@@ -2400,11 +2400,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, result);
@@ -2426,11 +2426,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, true, getDefaultOptions(), task);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
@@ -2456,11 +2456,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, true, getDefaultOptions());
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
@@ -2494,11 +2494,11 @@ public class TestRbac extends AbstractRbacTest {
         display("Role judge", roleJudge);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2525,11 +2525,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2550,11 +2550,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_EMPTY_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2575,11 +2575,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, true, getDefaultOptions());
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
@@ -2608,11 +2608,11 @@ public class TestRbac extends AbstractRbacTest {
         modifyRoleDeleteInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, getDefaultOptions());
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2633,11 +2633,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_EMPTY_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2660,11 +2660,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignParametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2691,11 +2691,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignParametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2720,11 +2720,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2755,11 +2755,11 @@ public class TestRbac extends AbstractRbacTest {
         addObject(ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2786,11 +2786,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2823,11 +2823,11 @@ public class TestRbac extends AbstractRbacTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2856,11 +2856,11 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2889,11 +2889,11 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2924,11 +2924,11 @@ public class TestRbac extends AbstractRbacTest {
         );
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ModelContext<ObjectType> context = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Preview context", context);
@@ -2980,11 +2980,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3018,11 +3018,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3056,11 +3056,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3096,11 +3096,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3133,11 +3133,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3170,11 +3170,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3204,11 +3204,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3243,11 +3243,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3283,11 +3283,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3317,11 +3317,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3357,11 +3357,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3402,11 +3402,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3438,11 +3438,11 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3475,11 +3475,11 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3510,11 +3510,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3552,11 +3552,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignedRole(userBefore, ROLE_WEAK_SINGER_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3587,11 +3587,11 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3621,11 +3621,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3661,11 +3661,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3701,11 +3701,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3738,11 +3738,11 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3782,11 +3782,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3817,11 +3817,11 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3866,11 +3866,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3912,11 +3912,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3952,11 +3952,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3998,11 +3998,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4045,11 +4045,11 @@ public class TestRbac extends AbstractRbacTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4071,14 +4071,14 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_OID, RoleType.F_DESCRIPTION,
                     getDefaultOptions(), task, result, "whatever");
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4103,11 +4103,11 @@ public class TestRbac extends AbstractRbacTest {
         display("Role before", role);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4126,14 +4126,14 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_IDENTIFIER,
                     getDefaultOptions(), task, result, "whatever");
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4153,14 +4153,14 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_DESCRIPTION,
                     getDefaultOptions(), task, result, "whatever");
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4186,11 +4186,11 @@ public class TestRbac extends AbstractRbacTest {
         display("Role before", role);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4211,13 +4211,13 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         final String NEW_VALUE = "whatever";
         modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID, RoleType.F_IDENTIFIER,
                 getDefaultOptions(), task, result, NEW_VALUE);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4236,14 +4236,14 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID, RoleType.F_DESCRIPTION,
                     getDefaultOptions(), task, result, "whatever");
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4265,13 +4265,13 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             addObject(role, getDefaultOptions(), task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4291,7 +4291,7 @@ public class TestRbac extends AbstractRbacTest {
         display("Role before", role);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, getDefaultOptions(), task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -4316,13 +4316,13 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             addObject(role, getDefaultOptions(), task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4344,12 +4344,12 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(RoleType.class, ROLE_META_UNTOUCHABLE_OID, RoleType.F_DESCRIPTION,
                 getDefaultOptions(), task, result, "Touche!");
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4366,12 +4366,12 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(RoleType.class, ROLE_JUDGE_OID, RoleType.F_DESCRIPTION,
                 getDefaultOptions(), task, result, "whatever");
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4393,13 +4393,13 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             assignRole(USER_JACK_OID, ROLE_NON_ASSIGNABLE_OID, getDefaultOptions(), task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4422,11 +4422,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_BLOODY_FOOL_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4460,11 +4460,11 @@ public class TestRbac extends AbstractRbacTest {
         assertInducements(roleBefore, 2);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyRoleDeleteInducement(ROLE_META_FOOL_OID, 10002L, false, getDefaultOptions(), task);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4486,11 +4486,11 @@ public class TestRbac extends AbstractRbacTest {
         display("User jack before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -4527,11 +4527,11 @@ public class TestRbac extends AbstractRbacTest {
         display("user jack", userJackBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SCREAMING_OID, getDefaultOptions(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
@@ -4567,7 +4567,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
 
-        when(TEST_NAME);
+        when();
         executeChangesAssertSuccess(delta, getDefaultOptions(), task, result);
     }
 
@@ -4581,12 +4581,12 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             deleteObject(RoleType.class, ROLE_UNDELETABLE_OID, task, result);
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
@@ -4602,12 +4602,12 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             deleteObject(RoleType.class, ROLE_UNDELETABLE_GLOBAL_OID, task, result);
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             System.out.println("Got expected exception: " + e.getMessage());
             result.computeStatus();
             TestUtil.assertFailure(result);
@@ -4627,14 +4627,14 @@ public class TestRbac extends AbstractRbacTest {
         display("Role before", roleBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_NAME).replace(PolyString.fromOrig("modified"))
                 .asObjectDeltaCast(ROLE_DETECTING_MODIFICATIONS_OID);
         executeChanges(delta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

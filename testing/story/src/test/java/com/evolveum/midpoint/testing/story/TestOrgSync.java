@@ -481,12 +481,12 @@ public class TestOrgSync extends AbstractStoryTest {
         DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
         assertNotNull("No redskull user", user);
         display("User", user);
@@ -519,12 +519,12 @@ public class TestOrgSync extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
         display("User", user);
         assertNull("Redskull user not gone", user);
@@ -1012,17 +1012,17 @@ public class TestOrgSync extends AbstractStoryTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importObjectFromFile(TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
@@ -1052,17 +1052,17 @@ public class TestOrgSync extends AbstractStoryTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
@@ -1092,17 +1092,17 @@ public class TestOrgSync extends AbstractStoryTest {
         reconciliationTaskResultListener.clear();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         importObjectFromFile(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 2, 0, 0);
 
@@ -1143,17 +1143,17 @@ public class TestOrgSync extends AbstractStoryTest {
         openDJController.assertNoUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);

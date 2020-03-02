@@ -21,7 +21,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -47,7 +46,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
     public static final File TEST_DIR = new File(LDAP_TEST_DIR, "sync-massive");
 
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final File RESOURCE_OPENDJ_FILE_BAD = new File(TEST_DIR, "resource-opendj-bad.xml");
 
@@ -59,8 +57,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
     private static final String ACCOUNT_WILL_LDAP_CN = "Will Turner";
 
     private static final File ACCOUNT_KRAKEN_LDIF_FILE = new File(TEST_DIR, "kraken.ldif");
-    private static final String ACCOUNT_KRAKEN_LDAP_UID = "kraken";
-    private static final String ACCOUNT_KRAKEN_LDAP_CN = "Kraken Krakenoff";
 
     private static final int THREAD_COUNT_TOLERANCE = 10;
     private static final int THREAD_COUNT_TOLERANCE_BIG = 20;
@@ -80,7 +76,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     private static final int INSTANCES_MAX = 3;
 
-    private PrismObject<ResourceType> resourceOpenDj;
     private Integer lastSyncToken;
     private int threadCountBaseline;
 
@@ -112,7 +107,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
     }
 
@@ -133,12 +128,12 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test080ImportSyncTask";
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         importObjectFromFile(TASK_LIVE_SYNC_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
@@ -166,12 +161,12 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         display("Entry from LDIF", entry);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         assertSyncTokenIncrement(1);
 
@@ -204,14 +199,14 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test112SyncAddGoods";
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         for (int i = 0; i < SYNC_ADD_ATTEMPTS; i++) {
             syncAddAttemptGood("good", i);
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         dumpLdap();
 
@@ -231,7 +226,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test150AddGoblins";
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         for (int i = 0; i < NUMBER_OF_GOBLINS; i++) {
             String username = goblinUsername(i);
@@ -244,7 +239,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         dumpLdap();
         assertLdapConnectorInstances(1, INSTANCES_MAX);
@@ -303,12 +298,12 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         display("Entry from LDIF", entry);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         OperationResult taskResult = waitForTaskNextRun(TASK_LIVE_SYNC_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertPartialError(taskResult);
 
         assertSyncTokenIncrement(0);
@@ -338,14 +333,14 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test212SyncAddBads";
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         for (int i = 0; i < SYNC_ADD_ATTEMPTS; i++) {
             syncAddAttemptBad("bad", i);
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         dumpLdap();
 
@@ -360,12 +355,12 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         final String TEST_NAME = "test219StopSyncTask";
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         suspendTask(TASK_LIVE_SYNC_OID);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         assertSyncTokenIncrement(0);
         assertLdapConnectorInstances(1, INSTANCES_MAX);
@@ -383,14 +378,14 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         for (PrismObject<UserType> user : users) {
             reconcile(user);
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
@@ -406,7 +401,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         int segmentSize = users.size() / NUMBER_OF_TEST_THREADS;
         ParallelTestThread[] threads = multithread(
@@ -419,7 +414,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
                 }, NUMBER_OF_TEST_THREADS, TEST_THREADS_RANDOM_START_RANGE);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, PARALLEL_TEST_TIMEOUT);
 
         // When system is put under load, this means more threads. But not huge number of threads.

@@ -79,12 +79,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -115,12 +115,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -150,12 +150,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -187,12 +187,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -229,12 +229,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -270,12 +270,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertLinks(userGuybrushBefore, 1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputy(USER_BARBOSSA_OID, USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -308,12 +308,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -346,12 +346,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         recomputeUser(USER_BARBOSSA_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -386,12 +386,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -424,12 +424,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         recomputeUser(USER_BARBOSSA_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -456,12 +456,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputy(USER_BARBOSSA_OID, USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -507,12 +507,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
                 null, null, (ActivationType) null, true)));
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -544,14 +544,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_PIRATE_OID),
                 createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -580,14 +580,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_PIRATE_OID),
                 createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -613,7 +613,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_RED_SAILOR_OID),
@@ -621,7 +621,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -653,7 +653,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_RED_SAILOR_OID),
@@ -661,7 +661,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -691,14 +691,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_EMPTY_OID)
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -730,14 +730,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_EMPTY_OID)
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -769,11 +769,11 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("Adding role", role);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(role, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_DRINKER_OID);
@@ -790,11 +790,11 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_DRINKER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
@@ -819,14 +819,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
@@ -865,7 +865,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID,
                 assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
@@ -874,7 +874,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -897,14 +897,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -940,7 +940,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID,
                 assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
@@ -949,7 +949,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -968,12 +968,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
@@ -1004,14 +1004,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, task, result,
                 createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -1031,14 +1031,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, task, result,
                 createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -1067,12 +1067,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputy(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -1092,12 +1092,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputy(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -1115,12 +1115,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
@@ -1138,7 +1138,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_EMPTY_OID),
@@ -1146,7 +1146,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1178,7 +1178,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
                 createRoleReference(ROLE_EMPTY_OID),
@@ -1186,7 +1186,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         );
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -1220,14 +1220,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         /// WHEN
-        when(TEST_NAME);
+        when();
         importObjectFromFile(TASK_VALIDITY_SCANNER_FILENAME);
 
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
         waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
     }
@@ -1255,13 +1255,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         activationType.setValidTo(XmlTypeConverter.addDuration(startTs, "PT2H"));
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, assignment -> assignment.setActivation(activationType),
                 task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -1301,12 +1301,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();

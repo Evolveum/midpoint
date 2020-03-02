@@ -123,8 +123,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     @Test
     public void test120ModifyWillReplaceFullname() throws Exception {
-        final String TEST_NAME = "test120ModifyWillReplaceFullname";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -135,12 +133,12 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
@@ -162,18 +160,16 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     @Test
     public void test190DeleteWill() throws Exception {
-        final String TEST_NAME = "test190DeleteWill";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         syncServiceMock.assertNotifySuccessOnly();
 
@@ -201,7 +197,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
      */
     @Test
     public void test200ParallelCreate() throws Exception {
-        final String TEST_NAME = "test200ParallelCreate";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -210,7 +205,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         rememberDummyResourceWriteOperationCount(null);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         accountMorganOid = null;
 
@@ -240,7 +235,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 }, CONCURRENT_TEST_THREAD_COUNT_HIGH, CONCURRENT_TEST_MAX_START_DELAY_FAST);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         successCounter.assertCount("Wrong number of successful operations", 1);
@@ -265,9 +260,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
      */
     @Test
     public void test202ParallelModifyCaptainMorgan() throws Exception {
-        final String TEST_NAME = "test202ParallelModifyCaptainMorgan";
-
-        PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
+        PrismObject<ShadowType> shadowAfter = parallelModifyTest(
                 () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                         accountMorganOid, dummyResourceCtl.getAttributeFullnamePath(), "Captain Morgan"));
 
@@ -284,9 +277,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
      */
     @Test
     public void test204ParallelModifyDisable() throws Exception {
-        final String TEST_NAME = "test204ParallelModifyDisable";
-
-        PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
+        PrismObject<ShadowType> shadowAfter = parallelModifyTest(
                 () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                         accountMorganOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                         ActivationStatusType.DISABLED));
@@ -294,7 +285,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
     }
 
-    private PrismObject<ShadowType> parallelModifyTest(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
+    private PrismObject<ShadowType> parallelModifyTest(
+            FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -304,7 +296,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         rememberDummyResourceWriteOperationCount(null);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         ParallelTestThread[] threads = multithread(
                 (i) -> {
@@ -337,7 +329,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 }, CONCURRENT_TEST_THREAD_COUNT, CONCURRENT_TEST_MAX_START_DELAY_FAST);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
@@ -354,14 +346,12 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     @Test
     public void test209ParallelDelete() throws Exception {
-        final String TEST_NAME = "test209ParallelDelete";
-
         // GIVEN
         final Counter successCounter = new Counter();
         rememberDummyResourceWriteOperationCount(null);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         Task task = getTestTask();
         ParallelTestThread[] threads = multithread(
@@ -394,7 +384,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 }, CONCURRENT_TEST_THREAD_COUNT, CONCURRENT_TEST_MAX_START_DELAY_FAST);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         successCounter.assertCount("Wrong number of successful operations", 1);
@@ -412,7 +402,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     @Test
     public void test210ParallelCreateSlow() throws Exception {
-        final String TEST_NAME = "test210ParallelCreateSlow";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -421,7 +410,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         rememberDummyResourceWriteOperationCount(null);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         ParallelTestThread[] threads = multithread(
                 (i) -> {
@@ -447,7 +436,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 }, CONCURRENT_TEST_THREAD_COUNT, null);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         successCounter.assertCount("Wrong number of successful operations", 1);
@@ -470,9 +459,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
      */
     @Test
     public void test212ParallelModifyElizabethSlow() throws Exception {
-        final String TEST_NAME = "test212ParallelModifyElizabethSlow";
-
-        PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
+        PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(
                 () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                         accountElizabethOid, dummyResourceCtl.getAttributeFullnamePath(), "Miss Swan"));
 
@@ -489,9 +476,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
      */
     @Test
     public void test214ParallelModifyDisableSlow() throws Exception {
-        final String TEST_NAME = "test214ParallelModifyDisableSlow";
-
-        PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
+        PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(
                 () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                         accountElizabethOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                         ActivationStatusType.DISABLED));
@@ -499,18 +484,17 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
     }
 
-    private PrismObject<ShadowType> parallelModifyTestSlow(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
+    private PrismObject<ShadowType> parallelModifyTestSlow(
+            FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
 
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final Counter successCounter = new Counter();
         rememberDummyResourceWriteOperationCount(null);
 
-        // WHEN
-        when(TEST_NAME);
-
+        when();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
                     OperationResult localResult = task.getResult().createSubresult("thread-" + i);
@@ -542,7 +526,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 }, CONCURRENT_TEST_THREAD_COUNT, null);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountElizabethOid, null, task, result);
@@ -559,14 +543,12 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     @Test
     public void test229ParallelDeleteSlow() throws Exception {
-        final String TEST_NAME = "test229ParallelDeleteSlow";
-
         // GIVEN
         final Counter successCounter = new Counter();
         rememberDummyResourceWriteOperationCount(null);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         Task task = getTestTask();
         ParallelTestThread[] threads = multithread(
@@ -602,7 +584,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 }, CONCURRENT_TEST_THREAD_COUNT, null);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         successCounter.assertCount("Wrong number of successful operations", 1);
@@ -628,7 +610,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
      */
     @Test
     public void test230ParallelGroupSearch() throws Exception {
-        final String TEST_NAME = "test230ParallelGroupSearch";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -669,13 +650,13 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         Thread.sleep(100);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         // Unblock the handlers. And here we go!
         dummyResource.unblockAll();
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         dummyResource.setSyncSearchHandlerStart(false);
@@ -716,8 +697,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
      */
     @Test
     public void test800ParallelReadAndModifyResource() throws Exception {
-        final String TEST_NAME = "test800ParallelReadAndModifyResource";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -739,7 +718,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         }
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         long t0 = System.currentTimeMillis();
         MutableBoolean readFinished = new MutableBoolean();
@@ -814,7 +793,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 }, CONCURRENT_TEST_THREAD_COUNT_HIGH, CONCURRENT_TEST_MAX_START_DELAY_FAST);
 
         // THEN
-        then(TEST_NAME);
+        then();
         waitForThreads(threads, WAIT_TIMEOUT);
 
         PrismObject<ResourceType> resourceAfter = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);

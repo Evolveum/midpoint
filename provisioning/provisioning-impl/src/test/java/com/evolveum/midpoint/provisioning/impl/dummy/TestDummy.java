@@ -223,7 +223,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         try {
 
@@ -232,7 +232,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertNotReached();
         } catch (ConfigurationException e) {
             // Caching is disabled, this is expected.
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
             assertFailure(result);
         }
@@ -276,12 +276,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("getObject result", result);
         TestUtil.assertSuccess(result);
@@ -322,11 +322,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("getObject result", result);
         TestUtil.assertSuccess(result);
@@ -338,7 +338,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertNotNull("No dummy account", shadow);
 
-        checkAccountShadow(shadow, result, true, startTs, endTs);
+        checkAccountShadow(shadow, result, true);
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
@@ -443,7 +443,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
                 assertTrue(object.canRepresent(ShadowType.class));
                 try {
-                    checkAccountShadow(object, parentResult, true, startTs, endTs);
+                    checkAccountShadow(object, parentResult, true);
                 } catch (SchemaException e) {
                     throw new SystemException(e.getMessage(), e);
                 }
@@ -693,11 +693,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("All shadows query", query);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         Integer count = provisioningService.countObjects(ShadowType.class, query, null, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found " + count + " shadows");
@@ -866,12 +866,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -899,12 +899,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -933,12 +933,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -966,12 +966,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -1003,12 +1003,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -1049,12 +1049,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("ObjectDelta", delta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
@@ -1096,12 +1096,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         // WHEN (match)
-        when(TEST_NAME);
+        when();
         ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE,
                 expectedPassword, task, result);
 
         // THEN (match)
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Comparison result (" + tag + ")", comparisonResult);
@@ -1125,11 +1125,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         willDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, null);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> accountWill = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
@@ -1447,12 +1447,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -1609,12 +1609,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(),
                 delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -1664,12 +1664,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(),
                 delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -1699,11 +1699,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("getObject result", result);
         TestUtil.assertSuccess(result);
@@ -1785,12 +1785,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -2202,7 +2202,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 assertTrue(shadow.canRepresent(ShadowType.class));
                 if (!useRepo) {
                     try {
-                        checkAccountShadow(shadow, parentResult, fullShadow, startTs, endTs);
+                        checkAccountShadow(shadow, parentResult, fullShadow);
                     } catch (SchemaException e) {
                         throw new SystemException(e.getMessage(), e);
                     }
@@ -2281,7 +2281,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
                 assertTrue(shadow.canRepresent(ShadowType.class));
                 try {
-                    checkAccountShadow(shadow, parentResult, true, startTs, endTs);
+                    checkAccountShadow(shadow, parentResult, true);
                 } catch (SchemaException e) {
                     throw new SystemException(e.getMessage(), e);
                 }
@@ -2292,11 +2292,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         SearchResultMetadata searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("searchObjectsIterative result", result);
         TestUtil.assertSuccess(result);
@@ -2674,12 +2674,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -3029,12 +3029,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         delta.checkConsistence();
         assertAccountPiratesDetitled();
@@ -3061,12 +3061,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         delta.checkConsistence();
         assertAccountPiratesEntitled();
@@ -3093,12 +3093,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         delta.checkConsistence();
         assertAccountPiratesDetitled();
@@ -3125,12 +3125,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         delta.checkConsistence();
         assertAccountPiratesEntitled();
@@ -3157,12 +3157,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
         delta.checkConsistence();
         assertAccountPiratesDetitled();
@@ -3556,12 +3556,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -3609,12 +3609,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         delta.checkConsistence();
@@ -3647,12 +3647,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createRunAsAccountOid(ACCOUNT_WILL_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Check if the account was created in the dummy resource
@@ -3697,11 +3697,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.ZERO, WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
@@ -3729,11 +3729,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.PLUS, WILL_GOSSIP_EUNUCH);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST, WILL_GOSSIP_EUNUCH);
@@ -3761,11 +3761,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.MINUS, WILL_GOSSIP_AVAST);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_EUNUCH);
@@ -3928,14 +3928,14 @@ public class TestDummy extends AbstractBasicDummyTest {
         try {
 
             // WHEN
-            when(TEST_NAME);
+            when();
 
             provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
 
             AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
         } catch (SecurityViolationException e) {
             // This is expected
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
 
@@ -4044,11 +4044,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         repositoryService.addObject(shadowBefore, null, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(ACCOUNT_RELIC_OID)
@@ -4080,14 +4080,14 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("Adding shadow", account);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         try {
             provisioningService.addObject(account, null, null, task, result);
 
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
             // This is expected
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
         }
 
@@ -4128,7 +4128,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
@@ -4168,7 +4168,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
@@ -4230,7 +4230,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
@@ -4393,11 +4393,11 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("Synchronization result", result);
         TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4464,11 +4464,11 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("Synchronization result", result);
         TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4524,11 +4524,11 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("Synchronization result", result);
         TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4600,11 +4600,11 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("Synchronization result", result);
         TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4666,11 +4666,11 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         display("Synchronization result", result);
         TestUtil.assertSuccess("Synchronization result is not OK", result);
@@ -4721,11 +4721,11 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.synchronize(coords, syncTokenTask, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Synchronization result", result);
         assertSuccess(result);
 
@@ -4767,7 +4767,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     protected void checkCachedAccountShadow(PrismObject<ShadowType> shadowType, OperationResult parentResult, boolean fullShadow, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) throws SchemaException {
-        checkAccountShadow(shadowType, parentResult, fullShadow, startTs, endTs);
+        checkAccountShadow(shadowType, parentResult, fullShadow);
     }
 
     private void checkGroupShadow(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException {

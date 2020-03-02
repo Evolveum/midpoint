@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
@@ -26,15 +25,15 @@ import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
-public class TestDiff {
+public class TestDiff extends AbstractUnitTest {
 
     @BeforeSuite
     public void setupDebug() throws SchemaException, SAXException, IOException {
@@ -44,7 +43,6 @@ public class TestDiff {
 
     @Test
     public void testUserSimplePropertyDiffNoChange() throws Exception {
-        System.out.println("\n\n===[ testUserSimplePropertyDiffNoChange ]===\n");
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -68,7 +66,6 @@ public class TestDiff {
 
     @Test
     public void testPropertySimplePropertyDiffNoChange() throws Exception {
-        System.out.println("\n\n===[ testPropertySimplePropertyDiffNoChange ]===\n");
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -91,7 +88,6 @@ public class TestDiff {
 
     @Test
     public void testPropertySimplePropertyDiffNoChangeStatic() throws Exception {
-        System.out.println("\n\n===[ testPropertySimplePropertyDiffNoChangeStatic ]===\n");
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -114,7 +110,6 @@ public class TestDiff {
 
     @Test
     public void testUserSimplePropertyDiffReplace() throws Exception {
-        System.out.println("\n\n===[ testUserSimplePropertyDiffReplace ]===\n");
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -140,7 +135,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimplePropertyDiffReplace() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimplePropertyDiffReplace ]===\n");
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -166,7 +160,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimplePropertyDiffReplaceStatic() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimplePropertyDiffReplaceStatic ]===\n");
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -192,8 +185,6 @@ public class TestDiff {
 
     @Test
     public void testUserSimpleDiffMultiNoChange() throws Exception {
-        System.out.println("\n\n===[ testUserSimpleDiffMultiNoChange ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -221,8 +212,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimpleDiffMultiNoChange() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiNoChange ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -247,8 +236,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimpleDiffMultiNoChangeStatic() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiNoChangeStatic ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -273,8 +260,6 @@ public class TestDiff {
 
     @Test
     public void testUserSimpleDiffMultiAdd() throws Exception {
-        System.out.println("\n\n===[ testUserSimpleDiffMulti ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -305,8 +290,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimpleDiffMultiAdd() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAdd ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -335,8 +318,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimpleDiffMultiAddStatic() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAddStatic ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -365,8 +346,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimpleDiffMultiAddStaticNull1() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAddStaticNull1 ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -388,8 +367,6 @@ public class TestDiff {
 
     @Test
     public void testPropertyUserSimpleDiffMultiAddStaticNull2() throws Exception {
-        System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAddStaticNull2 ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 
@@ -411,8 +388,6 @@ public class TestDiff {
 
     @Test
     public void testContainerSimpleDiffModificationsNoChange() throws Exception {
-        System.out.println("\n\n===[ testContainerSimpleDiffModificationsNoChange ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
         PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -437,8 +412,6 @@ public class TestDiff {
 
     @Test
     public void testContainerDiffModificationsDesciption() throws Exception {
-        System.out.println("\n\n===[ testContainerDiffModificationsDesciption ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
         PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -469,8 +442,6 @@ public class TestDiff {
 
     @Test
     public void testContainerValueDiffDesciptionNoPath() throws Exception {
-        System.out.println("\n\n===[ testContainerValueDiffDesciptionNoPath ]===\n");
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
         PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -496,42 +467,4 @@ public class TestDiff {
                 "chamalalia patlama paprtala");
         ItemDeltaCollectionsUtil.checkConsistence(modifications);
     }
-
-//    @Test
-//    public void testContainerValueDiffDesciptionPath() throws Exception {
-//        System.out.println("\n\n===[ testContainerValueDiffDesciptionPath ]===\n");
-//
-//        // GIVEN
-//        PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
-//        PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
-//
-//        PrismContainer<AssignmentType> ass1 = assignmentContDef.instantiate();
-//        PrismContainerValue<AssignmentType> ass1cval = ass1.createNewValue();
-//        ass1cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "blah blah");
-//
-//        PrismContainer<AssignmentType> ass2 = assignmentContDef.instantiate();
-//        PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
-//        ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
-//
-//        ItemPath pathPrefix = ItemPath.create(
-//                new NameItemPathSegment(UserType.F_ASSIGNMENT),
-//                new IdItemPathSegment("1"));
-//
-//        // WHEN
-//        Collection<? extends ItemDelta> modifications = ass1cval.diff(ass2cval, pathPrefix, true, false);
-//
-//        // THEN
-//        assertNotNull(modifications);
-//        System.out.println(DebugUtil.debugDump(modifications));
-//        assertEquals("Unexpected number of midifications", 1, modifications.size());
-//        PrismAsserts.assertPropertyReplace(
-//                modifications,
-//                ItemPath.create(
-//                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
-//                        new IdItemPathSegment("1"),
-//                        new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
-//                "chamalalia patlama paprtala");
-//        ItemDelta.checkConsistence(modifications);
-//    }
-
 }

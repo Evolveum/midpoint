@@ -93,7 +93,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_GAMBLER_OID, task, result);
@@ -103,7 +103,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, USER_JACK_TELEPHONE_NUMBER);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -122,11 +122,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // GIVEN
 
         // WHEN
-        when(TEST_NAME);
+        when();
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertNotAuthorized(principal, AUTZ_GAMBLE_URL);
         assertNotAuthorized(principal, AUTZ_APPARATE_URL);
@@ -146,11 +146,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_PROPOSED);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -171,11 +171,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // GIVEN
 
         // WHEN
-        when(TEST_NAME);
+        when();
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         // Although we are in the proposed lifecycle and assignments would not be active by default
         // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
@@ -200,11 +200,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result /* no value */);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -223,11 +223,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // GIVEN
 
         // WHEN
-        when(TEST_NAME);
+        when();
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
@@ -252,12 +252,12 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_CARETAKER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -276,12 +276,12 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -304,12 +304,12 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignRole(USER_JACK_OID, ROLE_CARETAKER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -331,12 +331,12 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

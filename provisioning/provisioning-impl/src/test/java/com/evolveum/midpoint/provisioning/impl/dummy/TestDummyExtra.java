@@ -118,11 +118,11 @@ public class TestDummyExtra extends TestDummy {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
@@ -245,11 +245,11 @@ public class TestDummyExtra extends TestDummy {
         syncServiceMock.reset();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         syncServiceMock.assertNotifySuccessOnly();

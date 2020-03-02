@@ -380,11 +380,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Output context", context.dump(true));
         display("result", result);
         assertSuccess(result);

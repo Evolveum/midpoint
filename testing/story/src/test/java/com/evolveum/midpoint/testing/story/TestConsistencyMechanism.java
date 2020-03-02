@@ -417,11 +417,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult repoResult = new OperationResult("getObject");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, null, repoResult);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(repoResult);
 
         assertUser(uObject,"repo")
@@ -754,7 +754,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         clockForward("PT20M");
 
-        then(TEST_NAME);
+        then();
         provisioningService.refreshShadow(shadowRepo, null, task, parentResult);
 
         try {
@@ -813,7 +813,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 //        requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         PrismObject<ShadowType> shadowAfter = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowAfter)
                 .assertTombstone()
@@ -2160,11 +2160,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                             .assertNoModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_TYPE));
 
         //WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_DONALD_OID, ModelExecuteOptions.createReconcile(), task, parentResult);
 
         //THEN
-        then(TEST_NAME);
+        then();
         assertModelShadow(shadowOid)
                 .attributes()
                     .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "don")
@@ -2196,7 +2196,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String shadowOid = getLinkRefOid(USER_DONALD_OID, RESOURCE_OPENDJ_OID);
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         AssignmentType adminRoleAssignment = new AssignmentType(prismContext);
         adminRoleAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_LDAP_ADMINS_OID, ObjectTypes.ROLE));
@@ -2305,11 +2305,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(USER_MORGAN_FILE, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         display("User morgan after", userMorgan);
@@ -2416,7 +2416,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
         //WHEN
-        when(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_HERMAN_OID, RESOURCE_OPENDJ_OID, "internal", task, result);
 
         // THEN

@@ -148,7 +148,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
 
         /// WHEN
-        when(TEST_NAME);
+        when();
 
         display("Adding dummy account", account.debugDump());
 
@@ -157,7 +157,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         waitForSyncTaskNextRun(resourceDummyByzantine);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyByzantine);
         display("Account mancomb", accountMancomb);

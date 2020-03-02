@@ -72,11 +72,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         Task task = getTestTask();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         OperationResult result = modelService.testResource(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, task);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
@@ -93,11 +93,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
@@ -127,11 +127,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackSparrowUid = assertUserAfter(USER_JACK_OID)
@@ -163,11 +163,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
                     .getOid();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountJackSparrowOid, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertShadow(shadow, "getObject")
@@ -193,11 +193,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         assertEquals(USER_SKELLINGTON_GIVEN_NAME, USER_JACK_GIVEN_NAME);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_SKELLINGTON_OID, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackSkellingtonUid = assertUserAfter(USER_SKELLINGTON_OID)

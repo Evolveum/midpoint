@@ -62,11 +62,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ORANGE_OID, task);
 
         // THEN
-        then(TEST_NAME);
+        then();
         TestUtil.assertSuccess("Test orange resource", testResult);
 
         DummyResource dummyResourceOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME);
@@ -89,11 +89,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                 .createXMLGregorianCalendar(System.currentTimeMillis()));
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         jackEmployeeNumber = assertUserAfter(USER_JACK_OID)
@@ -128,11 +128,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                 USER_JACK_OID, UserType.F_SUBTYPE, "BUCCANEER");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -202,11 +202,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -765,11 +765,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("Account orange before", dummyAccountBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -811,11 +811,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("Account orange before", dummyAccountBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_THIEF_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -849,11 +849,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);

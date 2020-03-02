@@ -773,12 +773,12 @@ public class TestVillage extends AbstractStoryTest {
         ObjectDelta<UserType> addUserMikeDelta = DeltaFactory.Object.createAddDelta(userMikeBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         //The user's password has length 4..if the policy is not chosen correctly, it fails
         modelService.executeChanges(MiscUtil.createCollection(addUserMikeDelta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertPartialError(result);
 
         //TODO: assert added user
@@ -815,11 +815,11 @@ public class TestVillage extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(ORG_PROJECT_JOLLY_ROGER_FILE, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID);

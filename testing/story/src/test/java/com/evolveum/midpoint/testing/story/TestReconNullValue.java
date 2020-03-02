@@ -201,12 +201,12 @@ public class TestReconNullValue extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -258,12 +258,12 @@ public class TestReconNullValue extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -316,14 +316,14 @@ public class TestReconNullValue extends AbstractStoryTest {
         dumpLdap();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
         dumpLdap();
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -375,14 +375,14 @@ public class TestReconNullValue extends AbstractStoryTest {
         dumpLdap();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
         dumpLdap();
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
@@ -427,14 +427,14 @@ public class TestReconNullValue extends AbstractStoryTest {
         dumpLdap();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(userBefore.getOid(), UserType.F_GIVEN_NAME, task, result /* no value */);
 
         display("LDAP after reconcile");
         dumpLdap();
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);

@@ -318,11 +318,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignAllReplace(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -567,11 +567,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRefs23x();
@@ -596,11 +596,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRefs23x();
@@ -638,11 +638,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         options.setReconcileFocus(true);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.recompute(UserType.class, USER_JACK_OID, options, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRefs23x();
@@ -692,11 +692,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
                 .createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
         assertAssignedNoOrg(userJack);
@@ -865,13 +865,13 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         try {
             // WHEN
-            when(TEST_NAME);
+            when();
             addObject(orgBefore, task, result);
 
             assertNotReached();
         } catch (PolicyViolationException e) {
             // THEN
-            then(TEST_NAME);
+            then();
             display("Expected exception", e);
             assertFailure(result);
         }
@@ -1457,11 +1457,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         deleteObject(OrgType.class, ORG_TEMP_OID, task, result);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignOrg(USER_JACK_OID, ORG_TEMP_OID, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         result.computeStatus();
         TestUtil.assertSuccess(result, 1);
@@ -1632,11 +1632,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertNoAssignments(userBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result, "ROLE:Pirate");
 
         // THEN
-        then(TEST_NAME);
+        then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
@@ -1769,11 +1769,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserChangePassword(USER_JACK_OID, "X.marks.the.SPOT", task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

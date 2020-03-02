@@ -214,11 +214,11 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addObject(getSyncTaskFile(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         if (DISTRIBUTION == Distribution.MULTITHREADED) {
             waitForTaskFinish(getSyncTaskOid(), true, 600000);
@@ -227,7 +227,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         }
 
         // THEN
-        then(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

@@ -126,11 +126,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modifyUserReplace(userWillOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -211,11 +211,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -293,12 +293,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -384,11 +384,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Shadow before", shadowBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -468,12 +468,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.DISABLED, USER_WILL_PASSWORD_OLD);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Model shadow", shadowModel);
@@ -528,11 +528,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillSecondCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillSecondCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -633,11 +633,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Shadow before", shadowBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
@@ -728,12 +728,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_NEW);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter.forShadow(shadowModel, "model")
@@ -789,11 +789,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Shadow before", shadowBefore);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
@@ -871,11 +871,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT5M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
@@ -944,11 +944,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT5M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -1008,11 +1008,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userWillOid, getRoleOneOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -1080,11 +1080,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1154,12 +1154,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1217,11 +1217,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT5M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
@@ -1271,14 +1271,14 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         displayBackingStore();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // Reconcile is needed here. Recompute means noFetch which means that we won't
         // discover that an account is missing from backing store which means that the
         // quantum state won't collapse.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
@@ -1333,11 +1333,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT20M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userWillOid)
@@ -1374,11 +1374,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT10M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(accountWillOid);
@@ -1412,11 +1412,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT130M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         UserAsserter<Void> userAfterAsserter = assertUserAfter(userWillOid);
@@ -1475,11 +1475,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         unassignRole(userWillOid, getRoleOneOid(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -1543,11 +1543,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         OperationResult result = task.getResult();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1618,12 +1618,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1715,11 +1715,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT20M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userWillOid)
@@ -1749,11 +1749,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT15M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(accountWillOid);
@@ -1785,11 +1785,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         clockForward("PT130M");
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userWillOid)
@@ -1847,11 +1847,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         activationType.setValidFrom(roleTwoValidFromTimestamp);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignRole(userWillOid, getRoleTwoOid(), activationType, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillOid = assertUserAfter(userWillOid)
@@ -1881,11 +1881,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -1949,12 +1949,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1985,12 +1985,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
 
         unassignAll(userBefore, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -2044,12 +2044,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -2118,11 +2118,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         // GIVEN
 
         // WHEN
-        when(TEST_NAME);
+        when();
         addTask(TASK_SHADOW_REFRESH_FILE);
 
         // THEN
-        then(TEST_NAME);
+        then();
 
         waitForTaskStart(TASK_SHADOW_REFRESH_OID, false);
     }
@@ -2162,11 +2162,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("result", result);
         jackLastCaseOid = assertInProgress(result);
 
@@ -2199,12 +2199,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        when(TEST_NAME);
+        when();
         restartTask(TASK_SHADOW_REFRESH_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -2224,11 +2224,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         backingStoreProvisionWill(INTEREST_ONE);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountWillOid, null, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter.forShadow(shadowModel, "model")

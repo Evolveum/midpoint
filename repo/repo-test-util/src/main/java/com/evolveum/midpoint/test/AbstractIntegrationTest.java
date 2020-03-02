@@ -397,6 +397,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     }
 
     /**
+     * Creates new {@link OperationResult} with name prefixed by {@link #contextName()}.
+     */
+    protected OperationResult createResult(String nameSuffix) {
+        return new OperationResult(contextName() + "." + nameSuffix);
+    }
+
+    /**
      * Returns default {@link OperationResult} for pre-created test-method-scoped {@link Task}.
      * This result can be freely used in test for some "main scope", it is not asserted in any
      * after method, only displayed.

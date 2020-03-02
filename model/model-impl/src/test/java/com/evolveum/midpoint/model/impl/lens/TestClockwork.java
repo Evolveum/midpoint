@@ -100,7 +100,7 @@ public class TestClockwork extends AbstractLensTest {
         fillContextWithAddUserDelta(context, bill);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         clockwork.click(context, task, result);     // one round - compute projections
 
         display("Context before serialization", context);
@@ -116,7 +116,7 @@ public class TestClockwork extends AbstractLensTest {
         display("Context after deserialization", context);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
             assertTrue("Secondary delta #" + i + " is not preserved correctly, "
@@ -146,11 +146,11 @@ public class TestClockwork extends AbstractLensTest {
             rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
             // WHEN
-            when(TEST_NAME);
+            when();
             clockwork.run(context, task, result);
 
             // THEN
-            then(TEST_NAME);
+            then();
             mockClockworkHook.setRecord(false);
             display("Output context", context);
             display("Hook contexts", mockClockworkHook);
@@ -223,11 +223,11 @@ public class TestClockwork extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         clockwork.run(context, task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         display("Output context", context);
 
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);

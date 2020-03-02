@@ -136,11 +136,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Check value in "quote attribute"
@@ -322,11 +322,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
         // WHEN
-        when(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        then(TEST_NAME);
+        then();
         assertPartialError(result);
     }
 
