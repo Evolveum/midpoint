@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.tools.testng;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.ITestResult;
@@ -14,47 +14,34 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 /**
- * Base test class providing basic {@link UnitTestMixin} implementation.
+ * Base test class providing basic {@link MidpointTestMixin} implementation.
  * Can be extended by any unit test class that otherwise doesn't extend anything.
  */
-public abstract class AbstractUnitTest implements UnitTestMixin {
-
-    private static final ThreadLocal<ITestResult> TEST_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
+public abstract class AbstractUnitTest implements MidpointTestMixin {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     @BeforeMethod
     public void startTestContext(ITestResult testResult) {
-        Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
-        String testMethodName = testResult.getMethod().getMethodName();
-        displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
-
-        TEST_CONTEXT_THREAD_LOCAL.set(testResult);
+        SimpleMidpointTestContext context = SimpleMidpointTestContext.create(testResult);
+        displayTestTitle(context.getTestName());
     }
 
     @AfterMethod
     public void finishTestContext(ITestResult testResult) {
-        TEST_CONTEXT_THREAD_LOCAL.remove();
+        SimpleMidpointTestContext context = SimpleMidpointTestContext.get();
+        SimpleMidpointTestContext.destroy();
+        displayDefaultTestFooter(context.getTestName(), testResult);
+    }
 
-        displayDefaultTestFooter(testResult);
+    @Override
+    @Nullable
+    public MidpointTestContext getTestContext() {
+        return SimpleMidpointTestContext.get();
     }
 
     @Override
     public Logger logger() {
         return logger;
-    }
-
-    @Override
-    @NotNull
-    public String contextName() {
-        ITestResult context = TEST_CONTEXT_THREAD_LOCAL.get();
-        return context != null
-                ? getTestName(context)
-                : getClass().getSimpleName();
-    }
-
-    @Override
-    public String getTestNameShort() {
-        return TEST_CONTEXT_THREAD_LOCAL.get().getMethod().getMethodName();
     }
 }

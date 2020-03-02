@@ -6,14 +6,17 @@
  */
 package com.evolveum.midpoint.tools.testng;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.testng.ITestResult;
 
 /**
  * Mixin with various utility methods, mostly related to test header/footer/section output/logging.
  */
-public interface UnitTestMixin {
+public interface MidpointTestMixin {
 
     String TEST_LOG_PREFIX = "=====[ ";
     String TEST_LOG_SUFFIX = " ]======================================";
@@ -27,46 +30,75 @@ public interface UnitTestMixin {
     String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
 
     /**
-     * Context name is "class-simple-name.method" if test method context is available,
-     * otherwise it is just simple name of the test class.
-     * This also works as "getTestName" including (short) class name when
-     * {@link #getTestNameShort()} is too short and/or class name is required.
+     * Context name is {@link #getTestName()} if test method context is available,
+     * otherwise it is just a simple name of the test class.
      * <p>
-     * This is particularly useful for code that may run outside of test method.
-     */
-    @NotNull String contextName();
-
-    /**
-     * Returns test name (as "class-simple-name.method") from {@link ITestResult}.
+     * This is particularly useful for code that may run outside of test method scope
+     * or in another thread where context is not available.
      */
     @NotNull
-    default String getTestName(ITestResult context) {
-        return context.getTestClass().getRealClass().getSimpleName()
-                + "." + context.getMethod().getMethodName();
+    default String contextName() {
+        MidpointTestContext context = getTestContext();
+        return context != null
+                ? context.getTestName()
+                : getClass().getSimpleName();
     }
 
     /**
-     * Returns short test name - typically just a method name (without class).
-     * See also {@link #contextName()} if class name is required.
+     * Returns {@link MidpointTestContext#getTestName()}.
      * This fails if test-method context is not available.
      */
-    String getTestNameShort();
+    default String getTestName() {
+        return testContext().getTestName();
+    }
+
+    /**
+     * Returns {@link MidpointTestContext#getTestNameShort()}.
+     * This fails if test-method context is not available.
+     */
+    default String getTestNameShort() {
+        return testContext().getTestNameShort();
+    }
+
+    /**
+     * Returns {@link MidpointTestContext#getTestNameLong()}.
+     * This fails if test-method context is not available.
+     */
+    default String getTestNameLong() {
+        return testContext().getTestNameLong();
+    }
 
     /**
      * Returns test class logger.
      */
     Logger logger();
 
-    default void displayTestTitle(String testName) {
-        System.out.println(TEST_OUT_PREFIX + testName + TEST_OUT_SUFFIX);
-        logger().info(TEST_LOG_PREFIX + testName + TEST_LOG_SUFFIX);
+    /**
+     * Returns {@link MidpointTestContext} from current test-method context
+     * or {@code null} if context is not available - it should not fail.
+     * <p>
+     * This method should be implemented by supporting classes, but not used in tests in general.
+     * It is used for default implementations of various testName*() methods.
+     */
+    @Nullable MidpointTestContext getTestContext();
+
+    @Deprecated
+    @NotNull
+    // TODO switch to private after ditching JDK 8, DON'T USE/DON'T OVERRIDE!
+    /*private*/ default MidpointTestContext testContext() {
+        return Objects.requireNonNull(getTestContext(),
+                "Current test-method context MUST NOT be null");
     }
 
-    default void displayDefaultTestFooter(ITestResult testResult) {
+    default void displayTestTitle(String testTitle) {
+        System.out.println(TEST_OUT_PREFIX + testTitle + TEST_OUT_SUFFIX);
+        logger().info(TEST_LOG_PREFIX + testTitle + TEST_LOG_SUFFIX);
+    }
+
+    default void displayDefaultTestFooter(String testTitle, ITestResult testResult) {
         long testMsDuration = testResult.getEndMillis() - testResult.getStartMillis();
-        String testName = getTestName(testResult);
-        System.out.println(TEST_OUT_FOOTER_PREFIX + testName + " FINISHED in " + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
-        logger().info(TEST_LOG_PREFIX + testName + " FINISHED in " + testMsDuration + " ms" + TEST_LOG_SUFFIX);
+        System.out.println(TEST_OUT_FOOTER_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
+        logger().info(TEST_LOG_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_LOG_SUFFIX);
     }
 
     /**

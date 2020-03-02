@@ -9,26 +9,26 @@ package com.evolveum.midpoint.test.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
-import com.evolveum.midpoint.tools.testng.UnitTestMixin;
+import com.evolveum.midpoint.tools.testng.MidpointTestContext;
+import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
+import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * Base test class for tests integrated with Spring providing {@link UnitTestMixin} implementation.
+ * Base test class for tests integrated with Spring providing {@link MidpointTestMixin} implementation.
  * Can be extended by any unit test class that would otherwise extend
  * {@link AbstractTestNGSpringContextTests}.
  */
 public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTests
-        implements UnitTestMixin {
-
-    private static final ThreadLocal<ITestResult> TEST_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
+        implements MidpointTestMixin {
 
     /**
      * Hides parent's logger, but that one is from commons-logging and we don't want that.
@@ -37,18 +37,15 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
 
     @BeforeMethod
     public void startTestContext(ITestResult testResult) {
-        Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
-        String testMethodName = testResult.getMethod().getMethodName();
-        displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
-
-        TEST_CONTEXT_THREAD_LOCAL.set(testResult);
+        SimpleMidpointTestContext context = SimpleMidpointTestContext.create(testResult);
+        displayTestTitle(context.getTestName());
     }
 
     @AfterMethod
     public void finishTestContext(ITestResult testResult) {
-        TEST_CONTEXT_THREAD_LOCAL.remove();
-
-        displayDefaultTestFooter(testResult);
+        SimpleMidpointTestContext context = SimpleMidpointTestContext.get();
+        SimpleMidpointTestContext.destroy();
+        displayDefaultTestFooter(context.getTestName(), testResult);
     }
 
     @Override
@@ -56,17 +53,10 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         return logger;
     }
 
-    @NotNull
-    public String contextName() {
-        ITestResult context = TEST_CONTEXT_THREAD_LOCAL.get();
-        return context != null
-                ? getClass().getSimpleName() + "." + context.getMethod().getMethodName()
-                : getClass().getSimpleName();
-    }
-
     @Override
-    public String getTestNameShort() {
-        return TEST_CONTEXT_THREAD_LOCAL.get().getMethod().getMethodName();
+    @Nullable
+    public MidpointTestContext getTestContext() {
+        return SimpleMidpointTestContext.get();
     }
 
     /**
