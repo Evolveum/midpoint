@@ -23,7 +23,7 @@
             <visibility>vacant</visibility>
         </itemConstraint>
         <itemConstraint>
-            <path>extension/mext:executeScript</path>
+            <path>extension/scext:executeScript</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>

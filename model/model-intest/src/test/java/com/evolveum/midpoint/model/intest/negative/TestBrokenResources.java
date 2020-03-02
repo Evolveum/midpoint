@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
+import static com.evolveum.midpoint.test.asserter.predicate.TimeAssertionPredicates.approximatelyCurrent;
+import static com.evolveum.midpoint.test.asserter.predicate.StringAssertionPredicates.startsWith;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -13,6 +16,8 @@ import java.io.File;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,14 +53,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests the model service contract by using a broken CSV resource. Tests for negative test cases, mostly
@@ -331,14 +328,31 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, null, task, result);
 
         // THEN
-        display("getObject resource", resource);
+        String localNodeId = taskManager.getNodeId();
+        assertResource(resource, "resource after")
+                .display()
+                .operationalState()
+                    .assertAny()
+                    .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
+                    .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"))
+                .end()
+                .operationalStateHistory()
+                    .assertSize(1)
+                    .value(0)
+                        .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
+                        .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                        .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN"));
+
         result.computeStatus();
         display("getObject result", result);
-        assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+        assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 
         OperationResultType fetchResult = resource.asObjectable().getFetchResult();
         display("resource.fetchResult", fetchResult);
-        assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+        assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
 
         // TODO: better asserts
         assertNotNull("Null resource", resource);

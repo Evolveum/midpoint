@@ -14,6 +14,11 @@ import java.io.Serializable;
  */
 public interface Containerable extends Serializable {
 
+    static <T extends Containerable> PrismContainerValue<T> asPrismContainerValue(Containerable containerable) {
+        //noinspection unchecked
+        return containerable != null ? containerable.asPrismContainerValue() : null;
+    }
+
     PrismContainerValue asPrismContainerValue();
 
     /**

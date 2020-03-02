@@ -11,6 +11,10 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
+import static com.evolveum.midpoint.test.asserter.predicate.TimeAssertionPredicates.approximatelyCurrent;
+
+import static com.evolveum.midpoint.test.asserter.predicate.StringAssertionPredicates.startsWith;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -27,6 +31,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -92,18 +98,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
@@ -346,7 +340,24 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
                 RESOURCE_DUMMY_OID, null, result);
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
-        display("Resource after test", resourceTypeRepoAfter);
+
+        String localNodeId = taskManager.getNodeId();
+        assertResource(resourceRepoAfter, "Resource after test")
+                .display()
+                .operationalState()
+                    .assertAny()
+                    .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                    .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
+                    .end()
+                .operationalStateHistory()
+                    .assertSize(1)
+                    .value(0)
+                        .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                        .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                        .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
@@ -800,7 +811,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
-        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        // Test connection contains one extra resource read from repository
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 2);
 
         PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
                 RESOURCE_DUMMY_OID, null, task.getResult());

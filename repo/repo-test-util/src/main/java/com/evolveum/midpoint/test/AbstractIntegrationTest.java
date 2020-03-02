@@ -99,7 +99,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.test.asserter.ResourceAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
@@ -874,6 +876,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     @Deprecated
     protected void assertObjectSanity(PrismObject<? extends ObjectType> object) {
         new PrismObjectAsserter<>(object).assertSanity();
+    }
+
+    protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
+        ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
+        initializeAsserter(asserter);
+        asserter.display();
+        return asserter;
     }
 
     protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
