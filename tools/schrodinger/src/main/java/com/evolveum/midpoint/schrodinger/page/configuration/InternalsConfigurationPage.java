@@ -6,9 +6,15 @@
  */
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -16,8 +22,7 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 public class InternalsConfigurationPage extends BasicPage {
 
     public ClockTab clockTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.clock");
         return new ClockTab(this, element);
     }
 
@@ -43,5 +48,11 @@ public class InternalsConfigurationPage extends BasicPage {
         //todo implement
         SelenideElement element = null;
         return new CountersTab(this, element);
+    }
+
+    protected TabPanel findTabPanel() {
+        SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new TabPanel<>(this, tabPanelElement);
     }
 }
