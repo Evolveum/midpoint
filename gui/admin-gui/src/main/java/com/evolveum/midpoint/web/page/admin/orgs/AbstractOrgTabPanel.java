@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -165,9 +166,12 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 
         List<PrismObject<OrgType>> list = new ArrayList<>();
         try {
-            ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPageBase().getPrismContext());
+            ObjectQuery query = getPageBase().getPrismContext().queryFor(OrgType.class)
+                    .isRoot()
+                    .asc(OrgType.F_NAME)
+                    .build();
             ObjectFilter assignableItemsFilter = getAssignableItemsFilter();
-            if (assignableItemsFilter != null){
+            if (assignableItemsFilter != null) {
                 query.addFilter(assignableItemsFilter);
             }
             list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);

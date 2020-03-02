@@ -10,6 +10,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -59,6 +60,11 @@ public class PageOrgSelfProfile extends PageOrgUnit {
     @Override
     protected boolean isSelfProfile(){
         return true;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("PageAdmin.menu.profile");
     }
 
     @Override
