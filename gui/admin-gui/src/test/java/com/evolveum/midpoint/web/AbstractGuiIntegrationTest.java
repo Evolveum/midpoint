@@ -24,6 +24,12 @@ import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -161,10 +167,10 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         LOGGER.info("after super init");
 //        WebComponentUtil.setStaticallyProvidedRelationRegistry(relationRegistry);
 
-          login(USER_ADMINISTRATOR_USERNAME);
-          LOGGER.info("user logged in");
+        login(USER_ADMINISTRATOR_USERNAME);
+        LOGGER.info("user logged in");
 
-          tester = new WicketTester(application, true);
+        tester = new WicketTester(application, true);
     }
 
     @BeforeMethod
@@ -340,5 +346,24 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         Task task = taskManager.createTaskInstance(operation);
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         return task;
+    }
+
+    /**
+     * Emulate closing ModalWindow component.
+     * @param path
+     */
+    protected void executeModalWindowCloseCallback(String path) {
+        Component component = tester.getComponentFromLastRenderedPage(path);
+        if (!(component instanceof ModalWindow)) {
+            fail("path: '" + path + "' is not ModalWindow: " + component.getClass());
+        }
+        for (Behavior behavior : ((ModalWindow)component).getBehaviors()) {
+            if (behavior instanceof AbstractDefaultAjaxBehavior) {
+                String name = behavior.getClass().getSimpleName();
+                if (name.startsWith("WindowClosedBehavior")) {
+                    tester.executeBehavior((AbstractAjaxBehavior) behavior);
+                }
+            }
+        }
     }
 }

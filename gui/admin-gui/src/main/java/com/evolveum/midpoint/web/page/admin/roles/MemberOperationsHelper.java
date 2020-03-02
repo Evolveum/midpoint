@@ -230,19 +230,24 @@ public class MemberOperationsHelper {
             q0 = prismContext.queryFor(FocusType.class)
                     .type(objectType);
         }
-        S_AtomicFilterExit q = q0.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+        // Use exists filter to build a query like this:
+        // $a/targetRef = oid1 and $a/tenantRef = oid2 and $a/orgRef = oid3
+        S_AtomicFilterExit q = q0.exists(FocusType.F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
                 .ref(createReferenceValuesList(targetObject, relations));
+
         if (tenant != null && tenant.getObjectType() != null) {
-            q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType(),
+            q = q.and().item(AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType(),
                     prismContext).asReferenceValue());
         }
 
         if (project != null && project.getObjectType() != null) {
-            q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType(),
+            q = q.and().item(AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType(),
                     prismContext).asReferenceValue());
         }
 
-        ObjectQuery query = q.build();
+        ObjectQuery query = q.endBlock().build();
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Searching members of role {} with query:\n{}", targetObject.getOid(), query.debugDump());
         }
