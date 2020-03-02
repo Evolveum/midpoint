@@ -21,7 +21,6 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -3649,7 +3648,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test485ListResourcesWithBrokenResource() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        final OperationResult result = getTestResult();
+        final OperationResult result = getTestOperationResult();
 
         // WHEN
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
@@ -3745,7 +3744,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test501NotifyChangeModifyAccount() throws Exception{
         final String TEST_NAME = "test501NotifyChangeModifyAccount";
 
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
         PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
         assertNotNull("User with the name angelika must exist.", userAngelika);
 

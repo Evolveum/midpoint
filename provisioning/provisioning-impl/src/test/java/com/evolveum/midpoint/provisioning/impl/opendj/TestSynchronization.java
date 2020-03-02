@@ -102,7 +102,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
     @Test
     public void test010Sanity() throws Exception {
-        final OperationResult result = createResult();
+        final OperationResult result = createOperationalResult();
 
         // WHEN
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceType.getOid(), null, taskManager.createTaskInstance(), result);
@@ -126,7 +126,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
     @Test
     public void test100SyncAddWill() throws Exception {
-        final OperationResult result = createResult();
+        final OperationResult result = createOperationalResult();
 
         Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
@@ -185,7 +185,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
     @Test
     public void test500SyncAddProtected() throws Exception {
-        final OperationResult result = createResult();
+        final OperationResult result = createOperationalResult();
 
         Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);

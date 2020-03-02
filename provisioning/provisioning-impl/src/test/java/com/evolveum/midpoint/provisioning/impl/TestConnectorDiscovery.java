@@ -73,7 +73,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 
     @Test
     public void testListConnectors() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, null, null, result);
         assertNotNull(connectors);
@@ -101,7 +101,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 
     @Test
     public void testSearchConnectorAnd() throws SchemaException {
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         ObjectQuery query = prismContext.queryFor(ConnectorType.class)
                 .item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(SchemaConstants.ICF_FRAMEWORK_URI)

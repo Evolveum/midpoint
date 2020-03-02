@@ -306,7 +306,7 @@ public class TestAddAssociation extends AbstractWfTest {
         final String TEST_NAME = "test100AddJackToGuests";
 
         Task modelTask = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         LensContext<UserType> context = createUserLensContext();

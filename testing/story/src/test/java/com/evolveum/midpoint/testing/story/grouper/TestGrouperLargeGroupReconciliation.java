@@ -54,7 +54,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
     @Test
     public void test100ReconcileGroups() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         task.setOwner(userAdministrator);
 
         addObject(TASK_RECONCILE_GROUPS, task, result);
@@ -68,7 +68,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
     @Test
     public void test110ReconcileGroupsAgain() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         task.setOwner(userAdministrator);
 
         deleteGroupMember(ALUMNI_NAME, 3);

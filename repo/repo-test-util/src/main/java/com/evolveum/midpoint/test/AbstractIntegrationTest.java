@@ -101,7 +101,6 @@ import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ResourceAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
@@ -255,6 +254,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
 
         Task task = createTask(testMethodName);
         // TODO inttest do we need that subresult? :-) (Virgo's brave new world)
+        // If this exist for some "optional richer tracing", why not switch it on with some System property?
         // maybe it doesn't break tests, but changes traceability/maintenance?
 //        OperationResult rootResult = task.getResult();
 //        TracingProfileType tracingProfile = getTestMethodTracingProfile();
@@ -344,24 +344,35 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * {@link #createSubresult(String)} should suffice.
      */
     protected Task createPlainTask(String operationName) {
-        return taskManager.createTaskInstance(contextName() + "." + operationName);
+        String rootOpName = operationName != null
+                ? contextName() + "." + operationName
+                : contextName();
+        return taskManager.createTaskInstance(rootOpName);
     }
 
     /**
      * Creates new {@link Task} with {@link #contextName()} as root operation name.
      */
     protected Task createPlainTask() {
-        return taskManager.createTaskInstance(contextName());
+        return createPlainTask(null);
     }
 
     /**
-     * Just like {@link #createPlainTask} but also calls overridable {@link #customizeTask}.
+     * Just like {@link #createPlainTask(String)} but also calls overridable {@link #customizeTask}.
      */
     protected Task createTask(String operationName) {
         Task task = createPlainTask(operationName);
         customizeTask(task);
         return task;
     }
+
+    /**
+     * Just like {@link #createPlainTask()} but also calls overridable {@link #customizeTask}.
+     */
+    protected Task createTask() {
+        return createPlainTask(null);
+    }
+
 
     /**
      * Subclasses may override this if test task needs additional customization.
@@ -386,20 +397,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * Creates new subresult for default pre-created test-method-scoped {@link Task}.
      */
     protected OperationResult createSubresult(String subresultSuffix) {
-        return getTestResult().createSubresult(getTestNameShort() + "." + subresultSuffix);
+        return getTestOperationResult().createSubresult(getTestNameShort() + "." + subresultSuffix);
     }
 
     /**
      * Creates new {@link OperationResult} with name equal to {@link #contextName()}.
      */
-    protected OperationResult createResult() {
+    protected OperationResult createOperationalResult() {
         return new OperationResult(contextName());
     }
 
     /**
      * Creates new {@link OperationResult} with name prefixed by {@link #contextName()}.
      */
-    protected OperationResult createResult(String nameSuffix) {
+    protected OperationResult createOperationalResult(String nameSuffix) {
         return new OperationResult(contextName() + "." + nameSuffix);
     }
 
@@ -408,7 +419,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * This result can be freely used in test for some "main scope", it is not asserted in any
      * after method, only displayed.
      */
-    protected OperationResult getTestResult() {
+    protected OperationResult getTestOperationResult() {
         return MidpointTestMethodContext.get().getResult();
     }
 

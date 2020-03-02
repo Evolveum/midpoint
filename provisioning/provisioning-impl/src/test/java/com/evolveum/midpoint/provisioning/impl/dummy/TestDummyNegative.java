@@ -65,7 +65,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     public void testGetResourceBrokenSchema(BreakMode breakMode) throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         // precondition
         PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
@@ -150,7 +150,7 @@ public class TestDummyNegative extends AbstractDummyTest {
     public void test201AddAccountEmptyAttributes() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -178,7 +178,7 @@ public class TestDummyNegative extends AbstractDummyTest {
     public void test210AddAccountNoObjectclass() throws Exception {
         // GIVEN
         Task task =getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);

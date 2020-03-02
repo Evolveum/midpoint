@@ -55,8 +55,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
@@ -162,7 +160,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
 
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
@@ -232,7 +230,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     @Test
     public void test004Configuration() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         // WHEN
         resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
@@ -301,7 +299,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     @Test
     public void test006Capabilities() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         // WHEN
         ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();

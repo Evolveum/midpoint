@@ -122,7 +122,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     public void testGetManagersOids() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
         String shortTestName = getTestNameShort();
 
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
@@ -293,7 +293,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
         Task task = createPlainTask("executeScriptExpressionString");
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
         String shortTestName = getTestNameShort();
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");

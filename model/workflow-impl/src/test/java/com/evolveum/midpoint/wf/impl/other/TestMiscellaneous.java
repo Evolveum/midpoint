@@ -103,7 +103,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -168,7 +168,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -235,7 +235,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -273,7 +273,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_OID);
@@ -296,7 +296,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER_OID);
@@ -320,7 +320,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(null);
@@ -342,7 +342,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(null);

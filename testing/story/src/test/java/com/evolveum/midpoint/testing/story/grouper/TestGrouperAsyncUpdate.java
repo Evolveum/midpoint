@@ -78,7 +78,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test010CreateUsers() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         addObject(USER_BANDERSON, task, result);
         addObject(USER_JLEWIS685, task, result);
@@ -96,7 +96,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test110AddAlumni() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -148,7 +148,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test115AddStaff() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -199,7 +199,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test200AddAlumniForAnderson() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -235,7 +235,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test202RecomputeAnderson() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
 
@@ -265,7 +265,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test210AddStaffForAnderson() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -296,7 +296,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test212RecomputeAnderson() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
 
@@ -329,7 +329,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test220AddAlumniForLewis() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -360,7 +360,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test221AddStaffForLewis() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -391,7 +391,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test222RecomputeLewis() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
 
@@ -423,7 +423,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test230AddAlumniForNobody() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -450,7 +450,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test250DeleteAlumniForAnderson() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -480,7 +480,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test252RecomputeAnderson() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
 
@@ -510,7 +510,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test305RenameStaff() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -568,7 +568,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     public void test310DeleteStaff() throws Exception {
         Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -618,7 +618,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test312ScavengeGroups() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 

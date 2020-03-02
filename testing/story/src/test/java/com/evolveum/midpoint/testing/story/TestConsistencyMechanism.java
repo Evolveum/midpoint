@@ -732,7 +732,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test130DeleteObjectNotFound() throws Exception {
         final String TEST_NAME = "test130DeleteObjectNotFound";
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
         repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, parentResult);
@@ -852,7 +852,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         final String TEST_NAME = "test142ModifyObjectNotFoundAssignedAccountq";
 
         // GIVEN
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         repoAddShadowFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE, parentResult);
         repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, parentResult);
@@ -914,7 +914,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         final String TEST_NAME = "test144GetObjectNotFoundAssignedAccount";
 
         // GIVEN
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         repoAddShadowFromFile(ACCOUNT_HECTOR_FILE, parentResult);
         repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, parentResult);
@@ -1225,7 +1225,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         String accountOid = assertUserOneAccountRef(USER_JACK_OID);
 
@@ -1339,7 +1339,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         ShadowType account = modelService.getObject(ShadowType.class, ACCOUNT_DENIELS_OID,
                 null, null, result).asObjectable();
@@ -1374,7 +1374,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_ELAINE_FILE);
         Entry searchResult = openDJController.searchByUid("elaine");
@@ -1447,7 +1447,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         assertUser(USER_JACK_OID, "User before")
                 .assertLinks(1);
@@ -1530,7 +1530,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         assertUser(USER_JACKIE_OID, "User before")
                 .assertLinks(1)
@@ -1646,7 +1646,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // GIVEN
         openDJController.assumeStopped();
         display("OpenDJ stopped");
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         repoAddObjectFromFile(USER_ANGELIKA_FILENAME, parentResult);
 
@@ -1968,7 +1968,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         // WHEN
         repoAddObjectFromFile(USER_BOB_NO_GIVEN_NAME_FILENAME, parentResult);
@@ -2023,7 +2023,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, parentResult);
         assertUser(USER_JOHN_WEAK_OID, "User before")
@@ -2072,7 +2072,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         repoAddObjectFromFile(USER_DONALD_FILENAME, parentResult);
 
@@ -2139,7 +2139,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         assertUser(USER_DONALD_OID, "User before")
                 .assertLinks(1);
@@ -2176,7 +2176,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     public void test284ModifyObjectAssignToGroupCommunicationProblem() throws Exception {
         final String TEST_NAME = "test284ModifyObjectAssignToGroupCommunicationProblem";
         Task task = taskManager.createTaskInstance();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
         // GIVEN
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_ADMINS_GROUP_FILE);
 
@@ -2251,7 +2251,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeStopped();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         repoAddObjectFromFile(USER_DISCOVERY_FILENAME, parentResult);
 
@@ -2625,7 +2625,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String TEST_NAME = "test601GetDiscoveryModifyCommunicationProblemDirectAccount";
 
         openDJController.assumeRunning();
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationalResult();
 
         //prepare user
         repoAddObjectFromFile(USER_ALICE_FILENAME, parentResult);

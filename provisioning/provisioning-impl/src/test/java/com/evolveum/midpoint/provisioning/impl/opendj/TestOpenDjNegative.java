@@ -138,7 +138,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
     @Test
     public void test004ResourceAndConnectorCaching() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
         Task task = createPlainTask();
         // WHEN
         // This should NOT throw an exception. It should just indicate the failure in results

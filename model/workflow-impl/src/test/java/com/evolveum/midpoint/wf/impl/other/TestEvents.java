@@ -58,7 +58,7 @@ public class TestEvents extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userJackOid, roleNoApproversOid, task, result);                // should start approval process
         assertNotAssignedRole(userJackOid, roleNoApproversOid, task, result);

@@ -88,7 +88,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     @Test
     public void test100SmallTaskNoWorkers() throws IOException, TimeoutException, CommonException {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         int usersBefore = getObjectCount(UserType.class);
 
@@ -113,7 +113,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     @Test
     public void test110SmallTaskOneWorker() throws IOException, TimeoutException, CommonException {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         int usersBefore = getObjectCount(UserType.class);
 

@@ -83,7 +83,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
     private void executeReconciliation(TestResource reconciliationTask, String accountPrefix, int workers) throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         for (int i = 0; i < USERS; i++) {
@@ -163,7 +163,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
     private void executeRecomputation(TestResource recomputationTask, String rolePrefix, int workers) throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         System.out.println("Importing roles.");

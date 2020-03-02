@@ -101,7 +101,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
 
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
@@ -231,7 +231,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     @Test
     public void test006Capabilities() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         // WHEN
         ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();

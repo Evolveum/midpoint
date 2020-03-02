@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -99,7 +98,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
     @Test
     public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
         String connectorOid = resource.getConnectorRef().getOid();
@@ -134,7 +133,7 @@ public class TestDBTable extends AbstractIntegrationTest {
     @Test
     public void test002AddAccount() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         ShadowType account = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 
@@ -180,7 +179,7 @@ public class TestDBTable extends AbstractIntegrationTest {
     @Test(enabled=false)
     public void test005GetAccount() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         Task task = taskManager.createTaskInstance();
         // WHEN

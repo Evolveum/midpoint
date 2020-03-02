@@ -750,7 +750,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
         final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
         Task task = getTestTask();
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         //prepare password policies
         addObject(GLOBAL_PASSWORD_POLICY_FILE);

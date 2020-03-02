@@ -128,7 +128,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         when();
@@ -170,7 +170,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test100ModifyUserGivenName() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -212,7 +212,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test101ModifyUserEmployeeTypePirate() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -260,7 +260,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -298,7 +298,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test103ModifyUserEmployeeTypeBartender() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -338,7 +338,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test104ModifyUserCostCenter() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -374,7 +374,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test105ModifyUserTelephoneNumber() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -412,7 +412,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test106ModifyUserRemoveTelephoneNumber() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -450,7 +450,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test107ModifyUserSetTelephoneNumber() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, "1 222 3456789");
@@ -487,7 +487,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test120ReconcileUser() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -527,7 +527,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test121ModifyUserReplaceLocality() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
@@ -563,7 +563,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test140AssignDummy() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -595,7 +595,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test149UnAssignDummy() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -626,7 +626,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test150ModifyJackOrganizationalUnitRum() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
@@ -660,7 +660,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test151ModifyJackOrganizationalUnitOffense() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
@@ -694,7 +694,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test152ModifyJackOrganizationalUnitAddRum() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
@@ -731,7 +731,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test153ModifyJackOrganizationalUnitDeleteOffense() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
@@ -767,7 +767,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test155ModifyJackOrganizationalUnitFD001() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD001"));
@@ -806,7 +806,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test156ReconcileJack() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -844,7 +844,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test157ModifyJackOrganizationalUnitFD0023() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
@@ -884,7 +884,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test159ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
@@ -925,7 +925,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test160ModifyUserGivenNameAgain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         dummyAuditService.clear();
 
@@ -968,7 +968,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test162ModifyUserGivenNameAgainPhantomChange() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         display("User before", userBefore);
@@ -1006,7 +1006,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test165ModifyUserGivenNameAgainAgain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         display("User before", userBefore);
@@ -1053,7 +1053,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test170ModifyUserGuybrushEmployeeTypeThief() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1081,7 +1081,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test172ModifyUserGuybrushHonorificPrefix() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1111,7 +1111,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test174ModifyUserGuybrushHonorificPrefixNone() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1140,7 +1140,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test180ModifyUserGuybrushEmployeeTypeMarooned() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1170,7 +1170,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test184ModifyUserGuybrushEmployeeTypeNone() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1202,7 +1202,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test185ModifyUserGuybrushSubtypeMarooned() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1228,7 +1228,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test189ModifyUserGuybrushSubtypeNone() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1262,7 +1262,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test190ModifyUserGuybrushOrganizationWhateveric() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1293,7 +1293,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test191ModifyUserGuybrushOrganizationAutomatic() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1329,7 +1329,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test192ModifyUserGuybrushOrganizationAddMixed() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1377,7 +1377,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test193ModifyUserGuybrushOrganizationAddOutOfDomain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1425,7 +1425,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test194ModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1469,7 +1469,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test195ModifyUserGuybrushOrganizationDeleteOutOfDomain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1510,7 +1510,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test196GuybrushAssignCaptain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1549,7 +1549,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test197ModifyGuybrushEmployeeTypePirate() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         when();
@@ -1585,7 +1585,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test198AModifyUserGuybrushOrganizationAddInDomain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1632,7 +1632,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test198BModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1675,7 +1675,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test199AGuyBrushModifyEmployeeTypeWannabe() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1714,7 +1714,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test199BGuyBrushUnassignCaptain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1752,7 +1752,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test199CModifyUserGuybrushOrganizationCleanup() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1780,7 +1780,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test200AddUserRapp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_RAPP_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -1814,7 +1814,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test201AddUserLargo() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         // This simulates IMPORT to trigger the channel-limited mapping
         task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
 
@@ -1859,7 +1859,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test202AddUserMonkey() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_THREE_HEADED_MONKEY_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -1897,7 +1897,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test204AddUserHerman() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_HERMAN_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -1930,7 +1930,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test220AssignRoleSailorToUserRapp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         assignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
@@ -1962,7 +1962,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test229UnassignRoleSailorFromUserRapp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         unassignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
@@ -1996,7 +1996,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test230AssignRoleCaptainToUserRapp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
@@ -2028,7 +2028,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test232ModifyUserRappCostCenter() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_RAPP_OID, UserType.F_COST_CENTER, task, result, "CC-RAPP");
@@ -2061,7 +2061,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test239UnassignRoleCaptainFromUserRapp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         unassignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
@@ -2090,7 +2090,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test240ModifyUserRappLocalityScabb() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2135,7 +2135,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test242AssignRoleRastamanToUserRapp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         assignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
@@ -2173,7 +2173,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test244ModifyUserRappLocalityCoffin() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2211,7 +2211,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test245ModifyUserRappLocalityUnderReconcile() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2256,7 +2256,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test246ModifyUserRappTimezoneMonkey() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2296,7 +2296,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test247ModifyUserRappLocaleMI() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2333,7 +2333,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test249UnassignRoleRastamanFromUserRapp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         unassignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
@@ -2370,7 +2370,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test300ImportStanFromEmeraldResource() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         DummyAccount dummyAccountBefore = new DummyAccount(ACCOUNT_STAN_USERNAME);
@@ -2412,7 +2412,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test302ModifyStanAccountAndReimport() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByUsername(ACCOUNT_STAN_USERNAME);
@@ -2475,7 +2475,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test802FuneralTimestamp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         funeralTimestamp = clock.currentTimeXMLGregorianCalendar();
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, funeralTimestamp);
@@ -2652,7 +2652,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test820TalesUnBoom() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_TALES), task, result /* no value */);
 
@@ -2701,7 +2701,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test830PreLootBoom() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_DESCRIPTION, task, result, "Rum is gone");
 
@@ -2796,7 +2796,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test835LootBoom() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
@@ -2830,7 +2830,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test840ResetFuneralTimestamp() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result /* no value */);
 
@@ -2858,7 +2858,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test843UnLoot() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Justjack"));
@@ -2893,7 +2893,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test845ReLoot() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
@@ -2928,7 +2928,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test850AddCannibalLemonhead() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_LEMONHEAD_USERNAME, null, false), task, result);
@@ -2956,7 +2956,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test852AddCanibalRedSkull() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_REDSKULL_USERNAME, "", false), task, result);
@@ -2988,7 +2988,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test854AddCanibalShaprtooth() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", false), task, result);
@@ -3021,7 +3021,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test856AddCanibalOrangeskin() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", false), task, result);
@@ -3052,7 +3052,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test858AddCanibalCherrybrain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_CHERRYBRAIN_USERNAME, "-P1Y1D", false), task, result);
@@ -3085,7 +3085,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test859AddCanibalPineapplenose() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(
@@ -3119,7 +3119,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test860AddCannibalRottenLemonhead() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_LEMONHEAD_USERNAME, null, true), task, result);
@@ -3147,7 +3147,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test862AddCanibalRottenRedSkull() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_REDSKULL_USERNAME, "", true), task, result);
@@ -3179,7 +3179,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test864AddCanibalRottenShaprtooth() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", true), task, result);
@@ -3222,7 +3222,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test866AddCanibalRottenOrangeskin() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", true), task, result);
@@ -3256,7 +3256,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test868AddCanibalRottenCherrybrain() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_CHERRYBRAIN_USERNAME, "-P1Y1D", true), task, result);
@@ -3287,7 +3287,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test869AddCanibalRottenPineapplenose() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(
@@ -3322,7 +3322,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test870AddCanibalRottenPotatoleg() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         String userOid = addObject(
@@ -3374,7 +3374,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test900DeleteUser() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -3406,7 +3406,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         setDefaultUserTemplate(null);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
@@ -3436,7 +3436,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test952ModifyJackOrganizationalUnitFD004() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD004"));
@@ -3467,7 +3467,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
 
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
@@ -3494,7 +3494,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test970ModifyUserGuybrushEmployeeTypeUseless() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -3522,7 +3522,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test980DeleteUserGivenName() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         UserType user = new UserType(prismContext)
                 .name("test980DeleteUserGivenName")

@@ -168,7 +168,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test010AssignR1ToJack() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
@@ -226,7 +226,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test020AssignMR1ToR1() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<RoleType> context = createContextForAssignment(RoleType.class, ROLE_R1_OID, RoleType.class, ROLE_MR1_OID, null, null, result);
 
@@ -272,7 +272,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test030AssignR1ToJackProjectorDisabled() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null,
                 a -> a.setActivation(ActivationUtil.createDisabled()), result);
@@ -301,7 +301,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test040AssignR1ToJackAsApprover() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, SchemaConstants.ORG_APPROVER, null, result);
 
@@ -355,7 +355,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test050JackDeputyOfBarbossa() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         AssignmentType policyRuleAssignment = new AssignmentType(prismContext);
         PolicyRuleType rule = new PolicyRuleType(prismContext);
@@ -434,7 +434,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test060JackDeputyOfGuybrushDeputyOfBarbossa() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         AssignmentType deputyOfBarbossaAssignment = ObjectTypeUtil.createAssignmentTo(USER_BARBOSSA_OID, ObjectTypes.USER, prismContext);
         deputyOfBarbossaAssignment.getTargetRef().setRelation(SchemaConstants.ORG_DEPUTY);
@@ -498,7 +498,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test062JackDeputyOfGuybrushDeputyOfBarbossaInLoginMode() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType jackGuybrushAssignment = new AssignmentType(prismContext)
@@ -585,7 +585,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test070JackDeputyOfBarbossaApproverOfR1() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         unassignAllRoles(USER_JACK_OID);
         unassignAllRoles(USER_GUYBRUSH_OID);
@@ -662,7 +662,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test100DisableSomeRoles() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         createObjectsInFirstPart(true, task, result, () -> disableRoles("MMR1 R2 MR3 R4"));
@@ -676,7 +676,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test110AssignR1ToJack() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
@@ -734,7 +734,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test150DisableSomeAssignments() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         createObjectsInFirstPart(true, task, result, () -> disableAssignments("MR4-R6 MR1-MR3 R1-R2"));
@@ -746,7 +746,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test160AssignR1ToJack() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
@@ -804,7 +804,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test200AddConditions() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         createObjectsInFirstPart(true, task, result, () -> {
@@ -822,7 +822,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test210AssignR1ToJack() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
         context.getFocusContext().swallowToPrimaryDelta(
@@ -885,7 +885,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test300AssignR7ToJack() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         createObjectsInSecondPart(false, task, result, null);
 
@@ -1025,7 +1025,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test400AssignJackPirate() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         createObjectsInThirdPart(false, task, result, () -> {
 
@@ -1488,7 +1488,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test500AssignJackOrg11() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         createObjectsInFourthPart(false, task, result, null);
 
@@ -1546,7 +1546,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test505AssignJackOrg11AsManager() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_MANAGER, null, result);
 
@@ -1601,7 +1601,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test507AssignJackOrg11AsApprover() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_APPROVER, null, result);
 
@@ -1655,7 +1655,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test510AssignJackOrg21() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG21_OID,
                 null, null, result);    // intentionally unqualified
@@ -1708,7 +1708,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test515AssignJackOrg21AsManager() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG21_OID,
                 new QName("manager"), null, result);    // intentionally unqualified
@@ -1775,7 +1775,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test520AssignJackOrg41AsApprover() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG41_OID,
                 new QName("approver"), null, result);    // intentionally unqualified
@@ -1839,7 +1839,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     public void test600AssignA1ToJack() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
 
         createObjectsInFifthPart(false, task, result, null);
 

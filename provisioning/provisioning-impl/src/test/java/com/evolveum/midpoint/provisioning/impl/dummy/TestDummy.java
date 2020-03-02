@@ -2169,7 +2169,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             ObjectFilter attrFilter, GetOperationOptions rootOptions, final boolean fullShadow,
             boolean useObjectClassFilter, final boolean useRepo, String... expectedAccountNames)
             throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         ObjectQuery query;
         if (useObjectClassFilter) {

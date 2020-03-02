@@ -53,7 +53,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     public void test100AddAccountDrink() throws Exception {
         // GIVEN
         Task syncTask = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
@@ -86,7 +86,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     public void test199AddAccount() throws Exception {
         // GIVEN
         Task syncTask = getTestTask();
-        OperationResult result = getTestResult();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
@@ -198,7 +198,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     @Test
     public void test300GetAccount() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
 
         // WHEN
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
@@ -220,7 +220,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     @Test
     public void test310SearchAllShadows() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationalResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);
