@@ -44,6 +44,13 @@ public class PrismContainerAsserter<C extends Containerable, RA> extends PrismIt
         return this;
     }
 
+    public PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> value(int index) {
+        PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> asserter =
+                new PrismContainerValueAsserter<>(getItem().getValues().get(index), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     protected String desc() {
         return getDetails();
     }

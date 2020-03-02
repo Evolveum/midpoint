@@ -2,14 +2,12 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -160,7 +158,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 afterOperation(target, result);
             }
         };
-        suspend.add(new VisibleBehaviour(this::canSuspend));
+        suspend.add(new VisibleBehaviour(() -> WebComponentUtil.canSuspendTask(getTask(), PageTask.this)));
         suspend.add(AttributeAppender.append("class", "btn-danger"));
         repeatingView.add(suspend);
 
@@ -173,7 +171,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             }
         };
         resume.add(AttributeAppender.append("class", "btn-primary"));
-        resume.add(new VisibleBehaviour(this::canResume));
+        resume.add(new VisibleBehaviour(() -> WebComponentUtil.canResumeTask(getTask(), PageTask.this)));
         repeatingView.add(resume);
 
         AjaxButton runNow = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.runNow")) {
@@ -186,7 +184,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             }
         };
         runNow.add(AttributeAppender.append("class", "btn-success"));
-        runNow.add(new VisibleBehaviour(this::canRunNow));
+        runNow.add(new VisibleBehaviour(() -> WebComponentUtil.canRunNowTask(getTask(), PageTask.this)));
         repeatingView.add(runNow);
 
         AjaxIconButton refreshNow = new AjaxIconButton(repeatingView.newChildId(), new Model<>("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
@@ -299,65 +297,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             return "fa fa-pause";
         }
         return "fa fa-play";
-    }
-
-    private boolean canSuspend() {
-        PrismObject<TaskType> task = getObjectWrapper().getObject();
-        TaskType taskType = task.asObjectable();
-        return isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task)
-                && isRunnable(taskType) || isRunning()
-                && !isWorkflow(task.asObjectable());
-    }
-
-    private boolean canResume() {
-        PrismObject<TaskType> task = getObjectWrapper().getObject();
-        TaskType taskType = task.asObjectable();
-        return isAuthorized(ModelAuthorizationAction.RESUME_TASK, task)
-                && (isSuspended(taskType) || (isClosed(taskType) && isRecurring(taskType)))
-                && !isWorkflow(taskType);
-    }
-
-
-    private boolean canRunNow() {
-        PrismObject<TaskType> task = getObjectWrapper().getObject();
-        TaskType taskType = task.asObjectable();
-        return isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, task)
-                && (isRunnable(taskType) || (isClosed(taskType) && !isRecurring(taskType)))
-                && !isWorkflow(taskType);
-    }
-
-    private boolean isRunnable(TaskType task) {
-        return  TaskExecutionStatusType.RUNNABLE == task.getExecutionStatus();
-    }
-
-    private boolean isRunning() {
-        PrismObject<TaskType> task = getObjectWrapper().getObject();
-        TaskType taskType = task.asObjectable();
-        return taskType.getNodeAsObserved() != null;
-    }
-
-    private boolean isNotRunning(){
-        return !isRunning();
-    }
-
-    private boolean isSuspended(TaskType task) {
-        return TaskExecutionStatusType.SUSPENDED == task.getExecutionStatus();
-    }
-
-    private boolean isClosed(TaskType task) {
-        return TaskExecutionStatusType.CLOSED == task.getExecutionStatus();
-    }
-
-    private boolean isRecurring(TaskType task) {
-        return TaskRecurrenceType.RECURRING == task.getRecurrence();
-    }
-
-    private boolean isWorkflow(TaskType task) {
-        return TaskCategory.WORKFLOW.equals(task.getCategory());
-    }
-
-    private TaskType getTask(){
-        return getObjectWrapper().getObject().asObjectable();
     }
 
     private IModel<TaskType> createSummaryPanelModel() {
@@ -533,8 +472,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private ItemEditabilityHandler getTaskEditabilityHandler(){
-        ItemEditabilityHandler editableHandler = wrapper -> !isRunning();
+        ItemEditabilityHandler editableHandler = wrapper -> !WebComponentUtil.isRunningTask(getTask());
         return editableHandler;
+    }
+
+    private TaskType getTask(){
+        return getObjectWrapper().getObject().asObjectable();
     }
 
     @Override
@@ -573,7 +516,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     public int getRefreshInterval() {
-        TaskType task = getObjectWrapper().getObject().asObjectable();
+        TaskType task = getTask();
         TaskDtoExecutionStatus exec = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
         if (exec == null) {
             return REFRESH_INTERVAL_IF_CLOSED;
@@ -613,9 +556,13 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     }
 
+    private boolean isNotRunning(){
+        return !WebComponentUtil.isRunningTask(getTask());
+    }
+
     public boolean isRefreshEnabled() {
         if (refreshEnabled == null) {
-            return isRunning();
+            return WebComponentUtil.isRunningTask(getTask());
         }
 
         return refreshEnabled;
