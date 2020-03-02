@@ -1753,8 +1753,8 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${checkstyle.version}</version>
                 <configuration>
-                    <configLocation>${maven.multiModuleProjectDirectory}/build-system/checkstyle-configs/checkstyle.xml</configLocation>
-                    <suppressionsLocation>${maven.multiModuleProjectDirectory}/build-system/checkstyle-configs/checkstyle-suppressions.xml</suppressionsLocation>
+                    <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle.xml</configLocation>
+                    <suppressionsLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
