@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.mapping;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.testng.annotations.BeforeClass;
@@ -20,7 +21,7 @@ import java.io.IOException;
 /**
  * @author Radovan Semancik
  */
-public class TestMappingStatic {
+public class TestMappingStatic extends AbstractUnitTest {
 
     private MappingTestEvaluator evaluator;
 

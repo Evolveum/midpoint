@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,7 +48,7 @@ import static org.testng.AssertJUnit.*;
 /**
  * @author semancik
  */
-public class TestExpressionFunctions {
+public class TestExpressionFunctions extends AbstractUnitTest {
 
     public static final File TEST_DIR = new File("src/test/resources/expression/functions");
     public static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");

@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
@@ -39,14 +38,13 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -60,13 +58,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 /**
  * @author semancik
  */
-public class TestScriptCaching {
+public class TestScriptCaching extends AbstractUnitTest {
 
     private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
     protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
 
     private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
-    private static final String NS_WHATEVER = "http://whatever/xml/ns";
 
      protected ScriptExpressionFactory scriptExpressionfactory;
      protected ScriptEvaluator evaluator;
@@ -133,13 +130,13 @@ public class TestScriptCaching {
         assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
     }
 
-    private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, IOException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         // GIVEN
         OperationResult result = new OperationResult(desc);
         ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
         ItemDefinition outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
-        ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition, desc);
+        ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
 
         ExpressionVariables variables = ExpressionVariables.create(getPrismContext(),
                 "foo", "FOO", PrimitiveType.STRING,
@@ -161,7 +158,7 @@ public class TestScriptCaching {
         return (endTime - startTime);
     }
 
-    private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
+    private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition) {
         ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
@@ -169,7 +166,7 @@ public class TestScriptCaching {
         return expression;
     }
 
-    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
+    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
         ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
         return expressionType;
