@@ -49,9 +49,6 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
         add(form);
 
         DatePanel offset = new DatePanel(ID_OFFSET, getModel());
-        for (FormComponent<?> formComponent : offset.getFormComponents()) {
-            formComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        }
         form.add(offset);
 
             AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageInternals.button.changeTime")) {
