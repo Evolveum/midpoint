@@ -28,6 +28,7 @@ public class DatePanel extends InputPanel {
         super(id);
 
         DateInput date = new DateInput(ID_INPUT, new XmlGregorianCalendarModel(model));
+        date.setOutputMarkupId(true);
         add(date);
     }
 

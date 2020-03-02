@@ -10,6 +10,7 @@ import com.evolveum.midpoint.web.page.admin.services.PageService;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -61,6 +62,11 @@ public class PageServiceSelfProfile extends PageService {
     @Override
     protected boolean isSelfProfile(){
         return true;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("PageAdmin.menu.profile");
     }
 
     @Override
