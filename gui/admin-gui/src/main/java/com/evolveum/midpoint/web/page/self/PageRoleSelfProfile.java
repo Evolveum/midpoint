@@ -12,6 +12,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -63,6 +64,11 @@ public class PageRoleSelfProfile extends PageRole {
     @Override
     protected boolean isSelfProfile(){
         return true;
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("PageAdmin.menu.profile");
     }
 
     @Override
