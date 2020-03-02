@@ -204,6 +204,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 
+        // Archetypes
+        repoAddObjectFromFile(ARCHETYPE_TASK_RECONCILIATION_FILE, initResult);
+
         // User Templates
         repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, initResult);

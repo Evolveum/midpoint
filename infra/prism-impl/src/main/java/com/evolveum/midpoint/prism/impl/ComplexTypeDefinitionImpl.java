@@ -554,6 +554,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     @Override
+    public void delete(QName itemName) {
+        checkMutable();
+        itemDefinitions.removeIf(def -> def.getItemName().equals(itemName));
+        cachedLocalDefinitionQueries.remove(itemName);
+    }
+
+    @Override
     public MutableComplexTypeDefinition toMutable() {
         checkMutableOnExposing();
         return this;

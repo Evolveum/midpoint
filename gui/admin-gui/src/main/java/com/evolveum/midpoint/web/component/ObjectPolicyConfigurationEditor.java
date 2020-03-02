@@ -34,8 +34,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectPolicyPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConstraintType;
 
 /**
  *  @author shood
@@ -171,8 +170,8 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
         for(ObjectPolicyConfigurationType o: list){
             if(old.equals(o)){
                     o.getPropertyConstraint().clear();
-                    for (PropertyConstraintType constraintType : newC.getPropertyConstraint()) {
-                        PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
+                    for (ItemConstraintType constraintType : newC.getPropertyConstraint()) {
+                        PrismContainerValue<ItemConstraintType> constraint = constraintType.asPrismContainerValue();
                         o.getPropertyConstraint().add(constraint.clone().asContainerable());
                     }
                     o.setObjectTemplateRef(newC.getObjectTemplateRef());

@@ -61,8 +61,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_GET_ERROR);
         result.addParam("exception", cause.getMessage());
 
-        String operationCtx = "getting " + repositoryShadow + " ended with communication problem, " + cause.getMessage();
-        markResourceDown(resource.getOid(), operationCtx, result, task);
+        String stateChangeReason = "getting " + repositoryShadow + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(resource.getOid(), stateChangeReason, result, task);
 
         // nothing to do, just return the shadow from the repo and set fetch
         // result..
@@ -102,8 +102,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
 
-        String operationCtx = "adding " + shadowToAdd + " ended with communication problem, " + cause.getMessage();
-        markResourceDown(ctx.getResourceOid(), operationCtx, result, task);
+        String stateChangeReason = "adding " + shadowToAdd + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
     }
@@ -118,8 +118,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
-        String operationCtx = "modifying " + repoShadow + " ended with communication problem, " + cause.getMessage();
-        markResourceDown(ctx.getResourceOid(), operationCtx, result, task);
+        String stateChangeReason = "modifying " + repoShadow + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
     }
@@ -133,8 +133,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
             ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
-        String operationCtx = "deleting " + repoShadow + " ended with communication problem, " + cause.getMessage();
-        markResourceDown(ctx.getResourceOid(), operationCtx, result, task);
+        String stateChangeReason = "deleting " + repoShadow + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
     }

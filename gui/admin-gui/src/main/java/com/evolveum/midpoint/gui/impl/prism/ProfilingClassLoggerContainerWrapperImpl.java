@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -38,6 +39,7 @@ public class ProfilingClassLoggerContainerWrapperImpl<C extends Containerable> e
         super(parent, item, status);
     }
 
+    @NotNull
     @Override
     public ItemName getItemName() {
         return ItemName.fromQName(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH);

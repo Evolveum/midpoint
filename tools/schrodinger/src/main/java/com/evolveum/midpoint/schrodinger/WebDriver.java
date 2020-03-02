@@ -11,15 +11,26 @@ package com.evolveum.midpoint.schrodinger;
  */
 public enum WebDriver {
 
-    CHROME,
+    CHROME("webdriver.chrome.driver"),
 
-    FIREFOX,
+    // todo
+    FIREFOX(null),
 
-    HTMLUNIT,
+    HTMLUNIT(null),
 
-    IE,
+    IE(null),
 
-    OPERA,
+    OPERA(null),
 
-    PHANTOMJS
+    PHANTOMJS(null);
+
+    private String driver;
+
+    WebDriver(String driver) {
+        this.driver = driver;
+    }
+
+    public String getDriver() {
+        return driver;
+    }
 }

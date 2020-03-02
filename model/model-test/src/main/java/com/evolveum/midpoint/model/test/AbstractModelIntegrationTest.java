@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -6122,16 +6123,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertResource(resource, message);
     }
 
-    protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ResourceAsserter<Void> asserter = ResourceAsserter.forResource(user, message);
-        initializeAsserter(asserter);
-        asserter.display();
-        return asserter;
-    }
-
     protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceAsserter<Void> asserter = assertResource(oid, "after");
         asserter.assertOid(oid);
+        return asserter;
+    }
+
+    // Change to PrismObjectDefinitionAsserter later
+    protected <O extends ObjectType> PrismContainerDefinitionAsserter<O,Void> assertObjectDefinition(PrismObjectDefinition<O> objectDef) {
+        return assertContainerDefinition(objectDef);
+    }
+
+    protected <C extends Containerable> PrismContainerDefinitionAsserter<C,Void> assertContainerDefinition(PrismContainerDefinition<C> containerDef) {
+        PrismContainerDefinitionAsserter<C,Void> asserter = PrismContainerDefinitionAsserter.forContainerDefinition(containerDef);
+        initializeAsserter(asserter);
+        asserter.display();
         return asserter;
     }
 

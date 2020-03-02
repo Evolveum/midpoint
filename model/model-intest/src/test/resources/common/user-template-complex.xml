@@ -464,13 +464,13 @@
                             // it will not be processed.
                             return null
                         }
-                        javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus,'funeralTimestamp')
+                        javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus, 'funeralTimestamp')
                         if (funeralTimestamp == null) {
                             // Always process this mapping immediately
                             return basic.longAgo()
                         }
                         def timestamp = basic.addDuration(funeralTimestamp, "P3M")
-                        timetamp = basic.roundDownToMidnight(timestamp)
+                        timestamp = basic.roundDownToMidnight(timestamp)
                         return timestamp
                     </code>
                 </script>
@@ -507,7 +507,7 @@
                             return basic.longAgo()
                         }
                         def timestamp = basic.addDuration(funeralTimestamp, "P1Y")
-                        timetamp = basic.roundDownToMidnight(timestamp)
+                        timestamp = basic.roundDownToMidnight(timestamp)
                         return timestamp
                     </code>
                 </script>

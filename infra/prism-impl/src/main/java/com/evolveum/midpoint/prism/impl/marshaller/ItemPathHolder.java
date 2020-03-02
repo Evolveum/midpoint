@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.prism.impl.marshaller;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.impl.path.UniformItemPathImpl;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;

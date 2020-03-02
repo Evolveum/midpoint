@@ -109,7 +109,7 @@ public class ObjectListArchetypeTests extends TestBase {
     public void actualizeArchetypeConfiguration() {
         basicPage.loggedUser().logout();
         midPoint.formLogin()
-                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
+                .loginWithReloadLoginPage(getUsername(), getPassword());
 
         //check archetype pluralLabel
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
