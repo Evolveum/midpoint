@@ -138,6 +138,7 @@
             <class name="com.evolveum.midpoint.schema.TestParseMisc"/>
             <class name="com.evolveum.midpoint.schema.validator.TestObjectValidator"/>
             <class name="com.evolveum.midpoint.schema.TestSchemaImmutability"/>
+            <class name="com.evolveum.midpoint.schema.TestFilterSimplifier"/>
         </classes>
     </test>
 </suite>
