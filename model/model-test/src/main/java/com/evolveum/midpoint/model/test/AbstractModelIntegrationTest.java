@@ -1452,11 +1452,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (orgOid != null) {
             PrismReference orgRef = cval.findOrCreateReference(AssignmentType.F_ORG_REF);
             orgRef.getValue().setOid(orgOid);
+            orgRef.getValue().setTargetType(OrgType.COMPLEX_TYPE);
+            orgRef.getValue().setRelation(ORG_DEFAULT);
         }
 
         if (tenantOid != null) {
             PrismReference tenantRef = cval.findOrCreateReference(AssignmentType.F_TENANT_REF);
             tenantRef.getValue().setOid(tenantOid);
+            tenantRef.getValue().setTargetType(OrgType.COMPLEX_TYPE);
+            tenantRef.getValue().setRelation(ORG_DEFAULT);
         }
 
 
