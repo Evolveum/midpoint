@@ -1123,8 +1123,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Consumer<AssignmentType> modificationBlock, boolean add, ModelExecuteOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<F> focusDelta = createAssignmentFocusDelta(focusClass, focusOid, elementName, roleOid, refType, relation, modificationBlock, add);
-        // TODO inttest: seems useless and doesn't change the problem with TestSecurityAdvanced 320
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
         executeChanges(focusDelta, options, task, result);
     }
 
@@ -5603,8 +5601,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return task -> {
             try {
                 if (lastTimeShown.get() + period < System.currentTimeMillis()) {
-                    // TODO inttest: task. (for result) is missing in master, is it good?
-                    dumpTaskTree(task.getOid(), task.getResult());
+                    dumpTaskTree(task.getOid(), createOperationalResult());
                     lastTimeShown.set(System.currentTimeMillis());
                 }
             } catch (CommonException e) {
