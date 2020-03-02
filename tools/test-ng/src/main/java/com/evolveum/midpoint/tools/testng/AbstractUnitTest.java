@@ -49,7 +49,7 @@ public abstract class AbstractUnitTest implements UnitTestMixin {
     public String contextName() {
         ITestResult context = TEST_CONTEXT_THREAD_LOCAL.get();
         return context != null
-                ? getClass().getSimpleName() + "." + context.getMethod().getMethodName()
+                ? getTestName(context)
                 : getClass().getSimpleName();
     }
 

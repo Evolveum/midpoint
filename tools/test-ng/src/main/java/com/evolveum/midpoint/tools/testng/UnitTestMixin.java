@@ -37,6 +37,15 @@ public interface UnitTestMixin {
     @NotNull String contextName();
 
     /**
+     * Returns test name (as "class-simple-name.method") from {@link ITestResult}.
+     */
+    @NotNull
+    default String getTestName(ITestResult context) {
+        return context.getTestClass().getRealClass().getSimpleName()
+                + "." + context.getMethod().getMethodName();
+    }
+
+    /**
      * Returns short test name - typically just a method name (without class).
      * See also {@link #contextName()} if class name is required.
      * This fails if test-method context is not available.
@@ -55,8 +64,9 @@ public interface UnitTestMixin {
 
     default void displayDefaultTestFooter(ITestResult testResult) {
         long testMsDuration = testResult.getEndMillis() - testResult.getStartMillis();
-        System.out.println(TEST_OUT_FOOTER_PREFIX + " FINISHED in " + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
-        logger().info(TEST_LOG_PREFIX + " FINISHED in " + testMsDuration + " ms" + TEST_LOG_SUFFIX);
+        String testName = getTestName(testResult);
+        System.out.println(TEST_OUT_FOOTER_PREFIX + testName + " FINISHED in " + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
+        logger().info(TEST_LOG_PREFIX + testName + " FINISHED in " + testMsDuration + " ms" + TEST_LOG_SUFFIX);
     }
 
     /**
