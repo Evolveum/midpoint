@@ -75,9 +75,8 @@ public class TestAssociationInbound extends AbstractGenericSyncTest {
     @Test
     public void test100AssociationInboundMateForOrangeResource() throws Exception {
         final String TEST_NAME = "test100AssociationInboundMateForOrangeResource";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject resource = getDummyResourceObject(RESOURCE_DUMMY_PURPLE_NAME);

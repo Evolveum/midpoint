@@ -6,50 +6,34 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-
 
 /**
  * @author semancik
- *
  */
-public class TestSerialization {
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
+public class TestSerialization extends AbstractSchemaTest {
 
     @Test
     public void testSerializeTrace() throws Exception {
-        System.out.println("===[ testSerializeTrace ]===");
-
         PrismContext prismContext = getPrismContext();
         ValueTransformationTraceType trace = new ValueTransformationTraceType(prismContext);
         NamedValueType input1 = new NamedValueType();
@@ -63,8 +47,6 @@ public class TestSerialization {
 
     @Test
     public void testSerializeDeltaSetTripleType() throws Exception {
-        System.out.println("===[ testSerializeDeltaSetTripleType ]===");
-
         PrismContext prismContext = getPrismContext();
 
         PrismReferenceValue refValue = new PrismReferenceValueImpl("123456");
@@ -79,8 +61,6 @@ public class TestSerialization {
 
     @Test
     public void testSerializeNamedReference() throws Exception {
-        System.out.println("===[ testSerializeNamedReference ]===");
-
         PrismContext prismContext = getPrismContext();
         ObjectReferenceType reference = new ObjectReferenceType()
                 .oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
@@ -93,8 +73,6 @@ public class TestSerialization {
 
     @Test
     public void testSerializeFullReference() throws Exception {
-        System.out.println("===[ testSerializeFullReference ]===");
-
         PrismContext prismContext = getPrismContext();
 
         QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
@@ -115,8 +93,6 @@ public class TestSerialization {
 
     @Test
     public void testSerializeMessage() throws Exception {
-        System.out.println("===[ testSerializeMessage ]===");
-
         PrismContext prismContext = getPrismContext();
         SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
         LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
@@ -127,8 +103,6 @@ public class TestSerialization {
 
     @Test
     public void testSerializeExecuteCredentialResetResponseType() throws Exception {
-        System.out.println("===[ testSerializeExecuteCredentialResetResponseType ]===");
-
         PrismContext prismContext = getPrismContext();
 
         SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
@@ -145,22 +119,16 @@ public class TestSerialization {
 
     @Test
     public void testSerializeResource() throws Exception {
-        System.out.println("===[ testSerializeResource ]===");
-
         serializationRoundTrip(TestConstants.RESOURCE_FILE);
     }
 
     @Test
     public void testSerializeUser() throws Exception {
-        System.out.println("===[ testSerializeUser ]===");
-
         serializationRoundTrip(TestConstants.USER_FILE);
     }
 
     @Test
     public void testSerializeRole() throws Exception {
-        System.out.println("===[ testSerializeRole ]===");
-
         PrismContext prismContext = getPrismContext();
 
         PrismObject<RoleType> parsedObject = prismContext.parseObject(TestConstants.ROLE_FILE);
@@ -205,7 +173,7 @@ public class TestSerialization {
         deserializedObject.revive(getPrismContext());
 
         ObjectDelta<O> diff = parsedObject.diff(deserializedObject);
-        assertTrue("Something changed in serialization of "+parsedObject+" (PrismObject): "+diff, diff.isEmpty());
+        assertTrue("Something changed in serialization of " + parsedObject + " (PrismObject): " + diff, diff.isEmpty());
 
         ItemDefinition nameDef = deserializedObject.getDefinition().findLocalItemDefinition(ObjectType.F_NAME);
         assertNotNull("No 'name' definition in deserialized object", nameDef);
@@ -225,7 +193,7 @@ public class TestSerialization {
         System.out.println(deserializedObject.asPrismObject().debugDump());
 
         ObjectDelta<O> diff = parsedObject.asPrismObject().diff((PrismObject) deserializedObject.asPrismObject());
-        assertTrue("Something changed in serializetion of "+parsedObject+" (ObjectType): "+diff, diff.isEmpty());
+        assertTrue("Something changed in serializetion of " + parsedObject + " (ObjectType): " + diff, diff.isEmpty());
     }
 
 }

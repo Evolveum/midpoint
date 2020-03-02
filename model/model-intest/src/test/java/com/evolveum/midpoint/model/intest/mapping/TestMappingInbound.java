@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.model.intest.mapping;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,10 +21,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -96,17 +92,16 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test010SanitySchema() throws Exception {
         final String TEST_NAME = "test010SanitySchema";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         TestUtil.assertSuccess(testResult);
 
         ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN_NAME);
@@ -124,18 +119,17 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
         importSyncTask();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         waitForSyncTaskStart();
     }
@@ -143,10 +137,9 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test110AddDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyTeaGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -160,14 +153,14 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
 
         waitForSyncTaskNextRun();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -205,14 +198,13 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test120ModifyMancombPhotoSource() throws Exception {
         final String TEST_NAME = "test120ModifyMancombPhotoSource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME)
                 .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -223,7 +215,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -241,14 +233,13 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test130ModifyMancombPhotoSourceAndReconcile() throws Exception {
         final String TEST_NAME = "test130ModifyMancombPhotoSourceAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // stop the task to avoid interference with the reconciliations
         suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
@@ -265,7 +256,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         reconcileUser(userMancomb.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -281,14 +272,13 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test140ModifyMancombPhotoInRepo() throws Exception {
         final String TEST_NAME = "test140ModifyMancombPhotoInRepo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -299,7 +289,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         executeChanges(delta, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertSuccess(result);
 
@@ -318,10 +308,9 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test150UserReconcile() throws Exception {
         final String TEST_NAME = "test150UserReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -329,7 +318,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         //assertUsers(5);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -337,7 +326,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         reconcileUser(userMancomb.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
@@ -377,14 +366,13 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test300DeleteDummyTeaGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         display("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
@@ -394,7 +382,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -416,18 +404,17 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test399DeleteDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test399DeleteDummyTeaGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
         deleteObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertNoObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
     }
@@ -435,10 +422,9 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test400AddUserLeeloo() throws Exception {
         final String TEST_NAME = "test400AddUserLeeloo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -451,7 +437,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
 
@@ -460,7 +446,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForTaskFinish(task, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         userLeelooOid = assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
@@ -489,20 +475,19 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test402UserLeelooRecompute() throws Exception {
         final String TEST_NAME = "test402UserLeelooRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         recomputeUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
@@ -523,20 +508,19 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test404UserLeelooReconcile() throws Exception {
         final String TEST_NAME = "test404UserLeelooReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
@@ -561,10 +545,9 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test410UserLeeloominaiReconcile() throws Exception {
         final String TEST_NAME = "test410UserLeeloominaiReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
@@ -573,12 +556,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -604,20 +587,19 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test412UserLeeloominaiRecompute() throws Exception {
         final String TEST_NAME = "test412UserLeeloominaiRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         recomputeUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -638,20 +620,19 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test414UserLeeloominaiReconcile() throws Exception {
         final String TEST_NAME = "test414UserLeeloominaiReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -676,10 +657,9 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test420UserLeelooStrangeReconcile() throws Exception {
         final String TEST_NAME = "test420UserLeelooStrangeReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
@@ -688,12 +668,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
@@ -720,20 +700,19 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test424UserLeelooStrangeReconcile() throws Exception {
         final String TEST_NAME = "test424UserLeelooStrangeReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         reconcileUser(userLeelooOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
             .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)

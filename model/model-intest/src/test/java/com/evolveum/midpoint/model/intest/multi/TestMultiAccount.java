@@ -91,21 +91,21 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test010ImportAccountsFromDummyMultiGreen() throws Exception {
         final String TEST_NAME = "test010ImportAccountsFromDummyMultiGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
         assertUsers(getNumberOfUsers());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         // No accounts on multigreen resource yet. No users should be created.
         assertUsers(getNumberOfUsers());
@@ -117,10 +117,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test020ImportPaulAtreides() throws Exception {
         final String TEST_NAME = "test020ImportPaulAtreides";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_PAUL_ATREIDES_USERNAME);
@@ -134,11 +134,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         accountPaulOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()
@@ -162,10 +162,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ImportMuadDib() throws Exception {
         final String TEST_NAME = "test100ImportMuadDib";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_MUAD_DIB_USERNAME);
@@ -178,11 +178,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         accountMuaddibOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()
@@ -217,20 +217,20 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test102ReconcileUserPaul() throws Exception {
         final String TEST_NAME = "test102ReconcileUserPaul";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         userPaulOid = findUserByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME).getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userPaulOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         accountMuaddibOid = assertUserAfter(userPaulOid)
             .displayWithProjections()
@@ -270,10 +270,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ImportDuke() throws Exception {
         final String TEST_NAME = "test200ImportDuke";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_DUKE_USERNAME);
@@ -287,11 +287,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         accountDukeOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()
@@ -338,10 +338,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ImportMahdi() throws Exception {
         final String TEST_NAME = "test210ImportMahdi";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_MAHDI_USERNAME);
@@ -355,11 +355,11 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importMultiGreenAccounts(task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         accountMahdiOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
             .displayWithProjections()

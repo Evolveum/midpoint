@@ -17,7 +17,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -66,11 +65,8 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
      */
     @Test
     public void test202ReconcileUserJack() throws Exception {
-        final String TEST_NAME = "test202ReconcileUserJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -126,7 +122,6 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     protected void assertAccountActivationNotification(String dummyResourceName, String username) {
         checkDummyTransportMessages(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 1);
         String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 0);
-        //String expectedPrefix = getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username);
         if (!body.contains("activat")) {
             fail("Activation not mentioned in "+dummyResourceName+" dummy account activation notification message : "+body);
         }
@@ -145,21 +140,18 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Test
     @Override
     public void test345AssignMonkeyAccountBlue() throws Exception {
-        final String TEST_NAME = "test345AssignMonkeyAccountBlue";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -171,7 +163,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 
         // CLEANUP
-        displayCleanup(TEST_NAME);
+        displayCleanup(contextName());
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
@@ -194,21 +186,18 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Test
     @Override
     public void test347AssignMonkeyAccountYellow() throws Exception {
-        final String TEST_NAME = "test347AssignMonkeyYellow";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
@@ -221,7 +210,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 
         // CLEANUP
-        displayCleanup(TEST_NAME);
+        displayCleanup(contextName());
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
@@ -245,21 +234,18 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Test
     @Override
     public void test966AssignMonkeyAccountYellow() throws Exception {
-        final String TEST_NAME = "test966AssignMonkeyAccountYellow";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);

@@ -135,7 +135,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestMapleLeaf.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -157,15 +156,13 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test001addUser() throws Exception {
         final String TEST_NAME = "test001addUser";
-        displayTestTitle(TEST_NAME);
-
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, "default");
 
         //then
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -190,15 +187,13 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test002assignRoleSquirrel() throws Exception {
         final String TEST_NAME = "test002assignRoleSquirrel";
-        displayTestTitle(TEST_NAME);
-
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SQUIRREL_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -223,14 +218,13 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test003unassignRoleSquirrel() throws Exception {
         final String TEST_NAME = "test003unassignRoleSquirrel";
-        displayTestTitle(TEST_NAME);
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SQUIRREL_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -256,14 +250,13 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test004assignRoleMapleLeafFaculty() throws Exception {
         final String TEST_NAME = "test004assignRoleMapleLeafFaculty";
-        displayTestTitle(TEST_NAME);
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -297,14 +290,13 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test005assignRoleMapleLeafGraduate() throws Exception {
         final String TEST_NAME = "test005assignRoleMapleLeafGraduate";
-        displayTestTitle(TEST_NAME);
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_GRADUATE_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -330,14 +322,13 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test006unassignRoleMapleLeafFaculty() throws Exception {
         final String TEST_NAME = "test006unassignRoleMapleLeafFaculty";
-        displayTestTitle(TEST_NAME);
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
 
         //then
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertNotNull("User is null", user);
 
@@ -363,7 +354,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test100changePasswordForceChange() throws Exception {
         final String TEST_NAME = "test100changePasswordForceChange";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -384,7 +374,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         AssertJUnit.assertNotNull("Unexpected value in car license: " + carLicenseBefore.getRealValue(), carLicenseBefore.getRealValue());
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         passwd = new ProtectedStringType();
         passwd.setClearValue("somenewValue");
         userDelta = createModifyUserReplaceDelta(USER_JACK_OID, SchemaConstants.PATH_PASSWORD_VALUE, passwd);
@@ -394,7 +384,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         //THEN
 
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         UserType userTypeAfter = userAfter.asObjectable();
 
@@ -419,7 +409,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test101resetPassword() throws Exception {
         final String TEST_NAME = "test101resetPassword";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -427,7 +416,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
 
         //when
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         ExecuteCredentialResetRequestType executeCredentialResetRequest = new ExecuteCredentialResetRequestType();
         executeCredentialResetRequest.setResetMethod("passwordReset");
@@ -435,7 +424,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         modelInteractionService.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         UserType userTypeAfter = userAfter.asObjectable();
 
@@ -454,7 +443,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test200setArchivedAdministrativeStatus() throws Exception {
         final String TEST_NAME = "test200setArchivedAdministrativeStatus";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -474,7 +462,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test201SetUndefinedAdministrativeStatus() throws Exception {
         final String TEST_NAME = "test201SetUndefinedAdministrativeStatus";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -489,7 +476,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         assertNotLinked(USER_JACK_OID, accountOid);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         modelService.importFromResource(accountOid, task, result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

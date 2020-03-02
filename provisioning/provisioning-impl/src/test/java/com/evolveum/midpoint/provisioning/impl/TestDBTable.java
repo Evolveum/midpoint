@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -71,17 +70,6 @@ public class TestDBTable extends AbstractIntegrationTest {
     @Autowired
     private ProvisioningService provisioningService;
 
-//    @Autowired
-//    private TaskManager taskManager;
-
-    @Autowired
-    private SynchronizationServiceMock syncServiceMock;
-
-
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
-     */
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // We need to switch off the encryption checks. Some values cannot be encrypted as we do
@@ -110,9 +98,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
     @Test
     public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-        TestUtil.displayTestTitle("test000Integrity");
-
-        OperationResult result = new OperationResult(TestDBTable.class.getName()+".test000Integrity");
+        OperationResult result = createOperationalResult();
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
         String connectorOid = resource.getConnectorRef().getOid();
@@ -123,9 +109,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
     @Test
     public void test001Connection() throws Exception {
-        final String TEST_NAME = "test001Connection";
-        TestUtil.displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -148,11 +132,8 @@ public class TestDBTable extends AbstractIntegrationTest {
 
     @Test
     public void test002AddAccount() throws Exception {
-        final String TEST_NAME = "test002AddAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDBTable.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationalResult();
 
         ShadowType account = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 
@@ -175,7 +156,6 @@ public class TestDBTable extends AbstractIntegrationTest {
 
         ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result).asObjectable();
         PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, provisioningAccountType.getName());
-//        assertEquals("will", provisioningAccountType.getName());
 
         // Check database content
 
@@ -198,11 +178,8 @@ public class TestDBTable extends AbstractIntegrationTest {
     // MID-1234
     @Test(enabled=false)
     public void test005GetAccount() throws Exception {
-        final String TEST_NAME = "test005GetAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDBTable.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationalResult();
 
         Task task = taskManager.createTaskInstance();
         // WHEN

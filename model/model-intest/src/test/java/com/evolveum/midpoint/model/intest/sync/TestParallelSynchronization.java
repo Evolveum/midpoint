@@ -165,7 +165,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test001SanityAzure() throws Exception {
         final String TEST_NAME = "test001SanityAzure";
-        displayTestTitle(TEST_NAME);
 
         display("Dummy resource azure", dummyResourceSteelBlue);
 
@@ -181,7 +180,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test002SanityAzureRefined() throws Exception {
         final String TEST_NAME = "test002SanityAzureRefined";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
@@ -195,10 +193,9 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test100Synchronize() throws Exception {
         final String TEST_NAME = "test100Synchronize";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -217,11 +214,11 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(getSyncTaskFile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         if (DISTRIBUTION == Distribution.MULTITHREADED) {
             waitForTaskFinish(getSyncTaskOid(), true, 600000);
@@ -230,7 +227,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

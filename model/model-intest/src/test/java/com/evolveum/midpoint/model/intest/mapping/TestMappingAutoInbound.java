@@ -64,10 +64,9 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test100ImportFromResource() throws Exception {
         final String TEST_NAME = "test100ImportFromResource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount accountHerman = new DummyAccount(USER_HERMAN_USERNAME);
@@ -79,18 +78,18 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertUsers(getNumberOfUsers());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(task.getResult());
 
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -113,21 +112,20 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test110ModifyAccountTitleCraticAndReconcile() throws Exception {
         final String TEST_NAME = "test110ModifyAccountTitleCraticAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByUsername(USER_HERMAN_USERNAME);
         accountHerman.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "cratic");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userHermanOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -142,21 +140,20 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test112ModifyAccountTitleDidacticGraphicAndReconcile() throws Exception {
         final String TEST_NAME = "test112ModifyAccountTitleDidacticGraphicAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByUsername(USER_HERMAN_USERNAME);
         accountHerman.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "didactic", "graphic");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userHermanOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -173,12 +170,11 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test200ImportFromResourceAssociations() throws Exception {
         final String TEST_NAME = "test200ImportFromResourceAssociations";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup dummyGroup = new DummyGroup(GROUP_DUMMY_TESTERS_NAME);
@@ -191,18 +187,18 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         dummyGroup.addMember(USER_HERMAN_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(task.getResult());
 
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -224,19 +220,18 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test300ModifyAccountDirectAssign() throws Exception {
         final String TEST_NAME = "test300ModifyAccountDirectAssign";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userHermanOid, ROLE_ADMINS_OID);
         reconcileUser(userHermanOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -252,12 +247,11 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test301removeUserFromAutoGroup() throws Exception {
         final String TEST_NAME = "test301removeUserFromAutoGroup";
-        displayTestTitle(TEST_NAME);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
@@ -270,18 +264,18 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 70000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(task.getResult());
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -299,7 +293,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test402assignAutoGroupDirectly() throws Exception {
         final String TEST_NAME = "test402assignAutoGroupDirectly";
-        displayTestTitle(TEST_NAME);
 
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
         craticGroup.removeMember(USER_HERMAN_USERNAME);
@@ -310,15 +303,15 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userHermanOid, ROLE_AUTOCRATIC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
@@ -336,7 +329,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test403removeAllAssignments() throws Exception {
         final String TEST_NAME = "test403removeAllAssignments";
-        displayTestTitle(TEST_NAME);
 
         DummyGroup testersGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_TESTERS_NAME);
         testersGroup.removeMember(USER_HERMAN_USERNAME);
@@ -344,15 +336,15 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         DummyAccount hermanAccount = getDummyAccount(RESOURCE_DUMMY_AUTOGREEN_NAME, USER_HERMAN_USERNAME);
         hermanAccount.removeAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, Arrays.asList("graphic", "cratic"));
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(userHermanOid, ROLE_ADMINS_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -365,7 +357,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test404importAssociationAutotesters() throws Exception {
         final String TEST_NAME = "test404importAssociationAutotesters";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
@@ -376,22 +367,22 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         testersGroup.addMember(USER_HERMAN_USERNAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 40000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(task.getResult());
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -403,19 +394,18 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test405assignRoleAutocraticDirectly() throws Exception {
         final String TEST_NAME = "test405assignRoleAutocraticDirectly";
-        displayTestTitle(TEST_NAME);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userHermanOid, ROLE_AUTOCRATIC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -431,20 +421,19 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test406unassignRoleAutocraticDirectly() throws Exception {
         final String TEST_NAME = "test406unassignRoleAutocraticAutotestersDirectly";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(userHermanOid, ROLE_AUTOCRATIC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
@@ -460,7 +449,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test407addHermanToTestersReconcile() throws Exception {
         final String TEST_NAME = "test407addHermanToTestersReconcile";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
@@ -468,15 +456,15 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         craticGroup.addMember(USER_HERMAN_USERNAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userHermanOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(task.getResult());
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);

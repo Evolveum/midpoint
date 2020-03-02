@@ -6,69 +6,52 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author semancik
- *
- */
-public class TestParseObjectTemplate {
+public class TestParseObjectTemplate extends AbstractSchemaTest {
 
     public static final File TEST_DIR = new File("src/test/resources/object-template");
     private static final File OBJECT_TEMPLATE_FILE = new File(TEST_DIR, "object-template.xml");
     private static final File USER_TEMPLATE_FILE = new File(TEST_DIR, "user-template.xml");
     private static final File WRONG_TEMPLATE_FILE = new File(TEST_DIR, "wrong-template.xml");
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-        SchemaDebugUtil.initialize(); // Make sure the pretty printer is activated
-        System.out.println("Pretty printers:\n"+PrettyPrinter.getPrettyPrinters());
-    }
-
-
     @Test
     public void testParseObjectTemplateFileSingle() throws Exception {
-        single("testParseObjectTemplateFileSingle", OBJECT_TEMPLATE_FILE,
+        single(OBJECT_TEMPLATE_FILE,
                 new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
     }
 
     @Test
     public void testParseUserTemplateFileSingle() throws Exception {
-        single("testParseUserTemplateFileSingle", USER_TEMPLATE_FILE,
+        single(USER_TEMPLATE_FILE,
                 new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
     }
 
     @Test
     public void testParseObjectTemplateFileRoundTrip() throws Exception {
-        roundTrip("testParseObjectTemplateFileRoundTrip", OBJECT_TEMPLATE_FILE,
+        roundTrip(OBJECT_TEMPLATE_FILE,
                 new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
     }
 
@@ -122,16 +105,13 @@ public class TestParseObjectTemplate {
 
     @Test
     public void testParseUserTemplateFileRoundTrip() throws Exception {
-        roundTrip("testParseUserTemplateFileRoundTrip", USER_TEMPLATE_FILE,
+        roundTrip(USER_TEMPLATE_FILE,
                 new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
     }
 
     @Test
     public void testParseWrongTemplateFile() throws Exception {
-        final String TEST_NAME = "testParseWrongTemplateFile";
         File file = WRONG_TEMPLATE_FILE;
-
-        System.out.println("===[ "+TEST_NAME+" ]===");
 
         // GIVEN
         PrismContext prismContext = getPrismContext();
@@ -149,9 +129,7 @@ public class TestParseObjectTemplate {
         }
     }
 
-    private void single(final String TEST_NAME, File file, QName elementName) throws Exception {
-        System.out.println("\n\n===[ "+TEST_NAME+" ]===\n");
-
+    private void single(File file, QName elementName) throws Exception {
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -163,12 +141,10 @@ public class TestParseObjectTemplate {
         System.out.println(object.debugDump());
 
         assertObjectTemplate(object, elementName);
-        assertObjectTemplateInternals(object, elementName);
+        assertObjectTemplateInternals(object);
     }
 
-    private void roundTrip(final String TEST_NAME, File file, QName elementName) throws Exception {
-        System.out.println("\n\n===[ "+TEST_NAME+" ]===\n");
-
+    private void roundTrip(File file, QName elementName) throws Exception {
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -190,7 +166,7 @@ public class TestParseObjectTemplate {
         System.out.println("Serialized object:");
         System.out.println(xml);
 
-        assertSerializedObject(xml, elementName);
+        // TODO
 
         // WHEN
         PrismObject<ObjectTemplateType> reparsedObject = prismContext.parseObject(xml);
@@ -200,7 +176,7 @@ public class TestParseObjectTemplate {
         System.out.println(reparsedObject.debugDump());
 
         assertObjectTemplate(reparsedObject, elementName);
-        assertObjectTemplateInternals(reparsedObject, elementName);
+        assertObjectTemplateInternals(reparsedObject);
     }
 
     private void assertObjectTemplate(PrismObject<ObjectTemplateType> object, QName elementName) {
@@ -227,7 +203,7 @@ public class TestParseObjectTemplate {
 
     // checks raw values of mappings
     // should be called only on reparsed values in order to catch some raw-data-related serialization issues (MID-2196)
-    private void assertObjectTemplateInternals(PrismObject<ObjectTemplateType> object, QName elementName) throws SchemaException {
+    private void assertObjectTemplateInternals(PrismObject<ObjectTemplateType> object) throws SchemaException {
         int assignmentValuesFound = 0;
         for (ObjectTemplateMappingType mappingType : object.asObjectable().getMapping()) {
             if (mappingType.getExpression() != null) {
@@ -253,13 +229,6 @@ public class TestParseObjectTemplate {
         assertEquals("wrong # of assignment values found in mapping", 2, assignmentValuesFound);
     }
 
-
-    private void assertSerializedObject(String xml, QName elementName) {
-        // TODO
-    }
-
-
-
     private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
             int maxOccurs) {
         ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
@@ -269,11 +238,6 @@ public class TestParseObjectTemplate {
     public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
         ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
         PrismAsserts.assertPropertyValue(container, propQName, propValue);
-    }
-
-    public static <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
-        ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
-        PrismAsserts.assertPropertyValue(container, propQName, expectedValues);
     }
 
     // todo deduplicate with TestUtil

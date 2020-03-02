@@ -98,16 +98,15 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test010Sanity() throws Exception {
         final String TEST_NAME = "test010Sanity";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult result = modelService.testResource(RESOURCE_DUMMY_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatusIfUnknown();
         assertSuccess(result);
     }
@@ -115,9 +114,8 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test100ImportAccounts() throws Exception {
         final String TEST_NAME = "test100ImportAccounts";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         for (int i = 0; i < NUMBER_OF_GENERATED_USERS; i++) {
@@ -127,11 +125,11 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         }
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addTask(TASK_IMPORT_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         Task taskAfter = waitForTaskFinish(TASK_IMPORT_OID, true, SYNC_TASK_WAIT_TIMEOUT);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
@@ -147,9 +145,8 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test(enabled = false)
     public void test200DeleteAccountsAndReconcile() throws Exception {
         final String TEST_NAME = "test200DeleteAccountsAndReconcile";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         for (DummyAccount account : new ArrayList<>(dummyResourceCtl.getDummyResource().listAccounts())) {
@@ -158,11 +155,11 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         assertEquals("Wrong # of remaining accounts", 0, dummyResourceCtl.getDummyResource().listAccounts().size());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addTask(TASK_RECONCILIATION_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
@@ -178,9 +175,8 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test210DeleteShadows() throws Exception {
         final String TEST_NAME = "test210DeleteShadows";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         for (DummyAccount account : new ArrayList<>(dummyResourceCtl.getDummyResource().listAccounts())) {
@@ -189,11 +185,11 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         assertEquals("Wrong # of remaining accounts", 0, dummyResourceCtl.getDummyResource().listAccounts().size());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addTask(TASK_BULK_DELETE_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
@@ -209,9 +205,8 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test900Summarize() {
         final String TEST_NAME = "test900Summarize";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         StringBuilder sb = new StringBuilder();
@@ -221,7 +216,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         display("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         // TODO: more thresholds
 

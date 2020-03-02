@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.testing.story;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
@@ -24,7 +23,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.RoleAsserter;
@@ -32,7 +30,6 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -101,18 +98,17 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test100ImportGroupPirates() throws Exception {
         final String TEST_NAME = "test100ImportGroupPirates";
-        displayTestTitle(TEST_NAME);
 
         DummyGroup group = new DummyGroup(GROUP_PIRATES_NAME);
         getDummyResourceDir().addGroup(group);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         liveSyncDir();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         display("dir after", getDummyResourceDir());
 
@@ -136,17 +132,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test110AssignJackDirAccount() throws Exception {
         final String TEST_NAME = "test110AssignJackDirAccount";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -168,14 +163,13 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test115Stability() throws Exception {
         final String TEST_NAME = "test110AssignJackDirAccount";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         liveSyncDir();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         display("dir after", getDummyResourceDir());
 
@@ -193,7 +187,6 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test120AddJackToGroupPirates() throws Exception {
         final String TEST_NAME = "test120AddJackToGroupPirates";
-        displayTestTitle(TEST_NAME);
 
         getDummyResourceDir().getGroupByName(GROUP_PIRATES_NAME)
             .addMember(USER_JACK_USERNAME);
@@ -203,12 +196,12 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
             .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         liveSyncDir();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         display("dir after", getDummyResourceDir());
 
@@ -230,17 +223,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test130JackUnassignRolePirates() throws Exception {
         final String TEST_NAME = "test120AddJackToGroupPirates";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -260,17 +252,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test140JackAssignRolePirates() throws Exception {
         final String TEST_NAME = "test140JackAssignRolePirates";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -298,17 +289,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test142JackUnAssignDirAccount() throws Exception {
         final String TEST_NAME = "test140JackAssignRolePirates";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -334,17 +324,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test149JackUnassignRolePirates() throws Exception {
         final String TEST_NAME = "test149JackUnassignRolePirates";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -362,17 +351,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test150AssignJackDirAccount() throws Exception {
         final String TEST_NAME = "test150AssignJackDirAccount";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -391,17 +379,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test152JackAssignRolePirates() throws Exception {
         final String TEST_NAME = "test152JackAssignRolePirates";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -427,9 +414,8 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test153JackUnassignRolePiratesPreview() throws Exception {
         final String TEST_NAME = "test153JackUnassignRolePiratesPreview";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(
@@ -439,11 +425,11 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 null, (Consumer<AssignmentType>)null, false);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         ModelContext<UserType> previewContext = previewChanges(focusDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertPreviewContext(previewContext)
@@ -476,17 +462,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test154JackUnassignRolePirates() throws Exception {
         final String TEST_NAME = "test154JackUnassignRolePirates";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -509,17 +494,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test159JackUnassignDirAccount() throws Exception {
         final String TEST_NAME = "test159JackUnassignDirAccount";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());
@@ -540,17 +524,16 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     @Test
     public void test200MancombAssignAccount() throws Exception {
         final String TEST_NAME = "test200MancombAssignAccount";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_MANCOMB_OID, RESOURCE_DUMMY_DIR_OID, "default", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("dir after", getDummyResourceDir());

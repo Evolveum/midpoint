@@ -6,42 +6,25 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
-import java.io.IOException;
-
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
-public class TestObjectConstruction {
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
+public class TestObjectConstruction extends AbstractSchemaTest {
 
     @Test
     public void testUserConstruction() throws Exception {
-        System.out.println("\n\n ===[ testUserConstruction ]===\n");
-
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -54,23 +37,18 @@ public class TestObjectConstruction {
     }
 
     @Test
-    public void testObjectTypeConstruction() throws Exception {
-        System.out.println("\n\n ===[ testObjectTypeConstruction ]===\n");
-
+    public void testObjectTypeConstruction() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         try {
             // WHEN
-            PrismObject<ObjectType> object = prismContext.createObject(ObjectType.class);
+            prismContext.createObject(ObjectType.class);
 
             fail("unexpected success");
         } catch (SchemaException e) {
             // This is expected, abstract object types cannot be instantiated
             assertTrue(e.getMessage().contains("abstract"));
         }
-
     }
-
-
 }

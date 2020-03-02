@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -28,10 +27,10 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -45,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * this is a lesser evil for now (MID-392)
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
-public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTests {
+public abstract class AbstractUcfDummyTest extends AbstractSpringTest {
 
     protected static final File RESOURCE_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "resource-dummy.xml");
     protected static final File CONNECTOR_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "connector-dummy.xml");
@@ -60,13 +59,11 @@ public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTe
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 
-    @Autowired(required = true)
+    @Autowired
     protected ConnectorFactory connectorFactoryIcfImpl;
 
-    @Autowired(required = true)
+    @Autowired
     protected PrismContext prismContext;
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractUcfDummyTest.class);
 
     @BeforeClass
     public void setup() throws Exception {
@@ -87,6 +84,9 @@ public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTe
         connectorType = connector.asObjectable();
     }
 
+    protected OperationResult createResult() {
+        return new OperationResult(contextName());
+    }
 
     protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
             int maxOccurs) {

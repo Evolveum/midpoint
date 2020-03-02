@@ -59,10 +59,8 @@ public class TestPhotoAssignment extends AbstractStoryTest {
 
     @Test
     public void test100AssignJoeCard() throws Exception {
-        final String TEST_NAME = "test100AssignJoeCard";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestPhotoAssignment.class.getName() + "." + TEST_NAME);
+        TestPhotoAssignment.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignService(USER_JOE.oid, SERVICE_CARD_10001.oid, task, result);

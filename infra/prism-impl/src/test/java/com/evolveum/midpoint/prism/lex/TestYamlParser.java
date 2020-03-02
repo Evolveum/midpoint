@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -47,10 +46,6 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_8_multiDocument() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_8_multiDocument";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 

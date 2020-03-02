@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -144,7 +143,6 @@ public class TestAddAssociation extends AbstractWfTest {
      */
     @Test
     public void test010AddJackToTesters() throws Exception {
-        TestUtil.displayTestTitle(this, "test010AddJackToTesters");
         executeTest("test010AddJackToTesters", USER_JACK_OID, new TestDetails() {
             @Override
             int subcasesCount() {
@@ -225,7 +223,6 @@ public class TestAddAssociation extends AbstractWfTest {
      */
     @Test
     public void test020AddElisabethToTestersRejected() throws Exception {
-        TestUtil.displayTestTitle(this, "test020AddElisabethToTestersRejected");
         executeTest("test020AddElisabethToTestersRejected", USER_ELISABETH_OID, new TestDetails() {
             @Override
             int subcasesCount() {
@@ -307,10 +304,9 @@ public class TestAddAssociation extends AbstractWfTest {
     @Test
     public void test100AddJackToGuests() throws Exception {
         final String TEST_NAME = "test100AddJackToGuests";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task modelTask = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationalResult();
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         LensContext<UserType> context = createUserLensContext();
@@ -352,12 +348,6 @@ public class TestAddAssociation extends AbstractWfTest {
             }
         }
         AssertJUnit.fail("No association of type " + associationName + " of " + entitlementOid + " in " + ObjectTypeUtil.toShortString(shadow));
-    }
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
     }
 
     abstract static class TestDetails {

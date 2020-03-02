@@ -61,21 +61,19 @@ public class TestManyThreads extends AbstractStoryTest {
         resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY.file, RESOURCE_DUMMY.oid, initTask, initResult);
         dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
         dummyResource = dummyResourceCtl.getDummyResource();
-
-        setAutoTaskManagementEnabled(true);
     }
 
     @Test
     public void test000Sanity() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
 
         assertSuccess(modelService.testResource(RESOURCE_DUMMY.oid, task));
     }
 
     @Test
     public void test100SearchResourceObjects() throws Exception {
-        Task globalTask = getTask();
-        OperationResult globalResult = getResult();
+        Task globalTask = getTestTask();
+        OperationResult globalResult = getTestOperationResult();
 
         dummyResource.addAccount(new DummyAccount("jack"));
 
@@ -93,7 +91,7 @@ public class TestManyThreads extends AbstractStoryTest {
             ThreadTestExecutor executor = new ThreadTestExecutor(20, 60000L);
             executor.execute(() -> {
                 login(userAdministrator.clone());
-                Task localTask = createTask("execute");
+                Task localTask = getTestTask();
                 OperationResult localResult = localTask.getResult();
 
                 ObjectQuery query = prismContext.queryFor(ShadowType.class)

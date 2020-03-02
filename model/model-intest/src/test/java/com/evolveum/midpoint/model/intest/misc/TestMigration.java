@@ -59,14 +59,13 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test050SanityLost1() throws Exception {
         final String TEST_NAME = "test050SanityLost1";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertShadow(shadowLost1Repo, "Repo shadow")
             .assertPrimaryIdentifierValue(null);
@@ -79,17 +78,16 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100RefreshTaskDefault() throws Exception {
         final String TEST_NAME = "test100RefreshTaskDefault";
-        displayTestTitle(TEST_NAME);
 
         addObject(TASK_SHADOW_REFRESH_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         waitForTaskStart(TASK_SHADOW_REFRESH_OID, false);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
         assertShadow(shadowLost1Repo, "Repo shadow")
@@ -104,17 +102,16 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110RefreshTaskExplicitDummy() throws Exception {
         final String TEST_NAME = "test110RefreshTaskExplicitDummy";
-        displayTestTitle(TEST_NAME);
 
         addObject(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         waitForTaskStart(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
         waitForTaskFinish(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
         assertShadow(shadowLost1Repo, "Repo shadow")

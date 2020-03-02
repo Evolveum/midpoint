@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -109,18 +108,18 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
     @Test
     public void test100ImportLiveSyncTaskDummyByzantine() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyByzantine";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractObjTemplateSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importSyncTask(resourceDummyByzantine);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         waitForSyncTaskStart(resourceDummyByzantine);
     }
@@ -129,10 +128,10 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
     @Test
     public void test110AddDummyByzantineAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyByzantineAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractObjTemplateSyncTest.class.getName();
+        Task task = getTestTask();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -149,7 +148,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         display("Adding dummy account", account.debugDump());
 
@@ -158,7 +157,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         waitForSyncTaskNextRun(resourceDummyByzantine);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyByzantine);
         display("Account mancomb", accountMancomb);

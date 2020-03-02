@@ -225,7 +225,7 @@ public class MiscSchemaUtil {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static Collection<? extends ItemDelta<?,?>> createCollection(ItemDelta<?,?>... deltas) {
-        return (Collection)MiscUtil.createCollection(deltas);
+        return MiscUtil.createCollection(deltas);
     }
 
     public static Collection<ObjectDelta<? extends ObjectType>> cloneObjectDeltaCollection(

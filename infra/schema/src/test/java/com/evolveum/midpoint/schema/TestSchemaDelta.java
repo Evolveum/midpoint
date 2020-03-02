@@ -40,7 +40,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testAssignmentNullIdApplyToObject() throws Exception {
         final String TEST_NAME = "testAssignmentNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
@@ -67,7 +66,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testAddInducementNullIdApplyToObject() throws Exception {
         final String TEST_NAME = "testAddInducementNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
@@ -94,7 +92,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testDeleteInducementValidIdSameValueApplyToObject() throws Exception {
         final String TEST_NAME = "testDeleteInducementValidIdSameValueApplyToObject";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
@@ -126,7 +123,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testDeleteInducementValidIdEmptyValueApplyToObject() throws Exception {
         final String TEST_NAME = "testDeleteInducementValidIdEmptyValueApplyToObject";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
@@ -153,7 +149,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testDeleteInducementValidIdEmptyValueApplyToObjectStatic() throws Exception {
         final String TEST_NAME = "testDeleteInducementValidIdEmptyValueApplyToObjectStatic";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
@@ -182,7 +177,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testDeleteInducementConstructionSameNullIdApplyToObject() throws Exception {
         final String TEST_NAME = "testDeleteInducementConstructionSameNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
@@ -221,7 +215,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testDeleteInducementActivationSameNullIdApplyToObject() throws Exception {
         final String TEST_NAME = "testDeleteInducementActivationSameNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
@@ -256,7 +249,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testDeleteUserAssignmentActivationSameNullIdApplyToObject() throws Exception {
         final String TEST_NAME = "testDeleteUserAssignmentActivationSameNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
@@ -295,7 +287,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testAddAssignmentSameOidDifferentTargetType() throws Exception {
         final String TEST_NAME = "testAddAssignmentSameOidDifferentTargetType";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = new UserType(getPrismContext())
@@ -325,7 +316,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testSubtractAssignmentFromAddDelta() throws Exception {
         final String TEST_NAME = "testSubtractAssignmentFromAddDelta";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
@@ -359,7 +349,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testSubtractAssignmentFromModifyDelta() throws Exception {
         final String TEST_NAME = "testSubtractAssignmentFromModifyDelta";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
@@ -400,7 +389,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testFactorAddDeltaForItem() throws Exception {
         final String TEST_NAME = "testFactorAddDeltaForItem";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
@@ -434,7 +422,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testFactorAddDeltaForItems() throws Exception {
         final String TEST_NAME = "testFactorAddDeltaForItems";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
@@ -462,7 +449,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testFactorAddDeltaForItemValues() throws Exception {
         final String TEST_NAME = "testFactorAddDeltaForItemValues";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
@@ -492,7 +478,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testFactorModifyDeltaForItem() throws Exception {
         final String TEST_NAME = "testFactorModifyDeltaForItem";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         String OID = "oid1";
@@ -524,7 +509,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test
     public void testFactorModifyDeltaForItemValues() throws Exception {
         final String TEST_NAME = "testFactorModifyDeltaForItemValues";
-        displayTestTile(TEST_NAME);
 
         // GIVEN
         String OID = "oid1";
@@ -573,7 +557,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     @Test      // MID-4690
     public void testObjectDeltaUnion() throws Exception {
         final String TEST_NAME="testObjectDeltaUnion";
-        displayTestTile(TEST_NAME);
         // GIVEN
 
         ProtectedStringType value = new ProtectedStringType();

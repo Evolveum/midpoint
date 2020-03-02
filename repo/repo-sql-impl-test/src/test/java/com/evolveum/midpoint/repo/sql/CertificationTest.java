@@ -66,7 +66,6 @@ public class CertificationTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
     private static final File TEST_DIR = new File("src/test/resources/cert");
     public static final File CAMPAIGN_1_FILE = new File(TEST_DIR, "cert-campaign-1.xml");
-    public static final String CAMPAIGN_1_OID = "e8c07a7a-1b11-11e8-9b32-1715a2e8273b";
     public static final File CAMPAIGN_2_FILE = new File(TEST_DIR, "cert-campaign-2.xml");
     public static final long CASE_9_ID = 105L;
     public static final long NEW_CASE_ID = 200L;
@@ -208,8 +207,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
     @Test
     public void test250DeleteCase() throws Exception {
-        final String TEST_NAME = "test250DeleteCase";
-        OperationResult result = createResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<AccessCertificationCampaignType> campaign10Before = getFullCampaign(campaign1Oid);
         display("Campaign 10 before", campaign10Before);
@@ -582,7 +580,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         }
     }
 
-    private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
@@ -596,7 +594,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of certification work items", expected, count);
     }
 
-    private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
@@ -611,7 +609,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of certification work items", expected, count);
     }
 
-    private void checkCasesTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkCasesTotal(int expected, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
@@ -628,7 +626,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         }
     }
 
-    private void checkWorkItemsTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsTotal(int expected, OperationResult result) throws SchemaException {
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, null, null, result);
         assertWorkItemsCount(expected, workItems, "");
         int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, null, null, result);

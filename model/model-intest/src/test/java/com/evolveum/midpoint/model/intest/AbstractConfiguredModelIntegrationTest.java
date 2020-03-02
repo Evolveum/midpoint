@@ -31,24 +31,12 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
-import org.testng.IHookCallBack;
-import org.testng.ITestResult;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -58,7 +46,6 @@ import javax.xml.namespace.QName;
 
 /**
  * @author semancik
- *
  */
 public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegrationTest {
 
@@ -561,8 +548,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";
     protected static final String NOTIFIER_ACCOUNT_ACTIVATION_NAME = "accountActivationNotifier";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
-
     protected PrismObject<UserType> userAdministrator;
 
     public AbstractConfiguredModelIntegrationTest() {
@@ -571,7 +556,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     @Override
     public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
 
         // We want logging config from logback-test.xml and not from system config object (unless suppressed)
         InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
@@ -623,96 +608,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     protected PrismObject<UserType> getDefaultActor() {
         return userAdministrator;
-    }
-
-    @Override
-    public void run(@NotNull IHookCallBack callBack, ITestResult testResult) {
-        long time = System.currentTimeMillis();
-        LOGGER.info("###>>> run start");
-        super.run(callBack, testResult);
-        LOGGER.info("###>>> run end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
-    }
-
-    @AfterClass
-    @Override
-    protected void springTestContextAfterTestClass() throws Exception {
-        long time = System.currentTimeMillis();
-        LOGGER.info("###>>> springTestContextAfterTestClass start");
-        super.springTestContextAfterTestClass();
-
-        nullAllFields(this, getClass());
-
-        LOGGER.info("###>>> springTestContextAfterTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
-    }
-
-    /**
-     * This method null all fields which are not static, final or primitive type.
-     *
-     * All this is just to make GC work during DirtiesContext after every test class,
-     * because memory consumption is too big. Test class instances can't be GCed
-     * immediately. If they holds autowired fields like sessionFactory (for example
-     * through SqlRepositoryService impl), their memory footprint is getting big.
-     */
-    public static void nullAllFields(Object object, Class<?> forClass) throws Exception{
-        if (forClass.getSuperclass() != null) {
-            nullAllFields(object, forClass.getSuperclass());
-        }
-
-        for (Field field : forClass.getDeclaredFields()) {
-            if (Modifier.isFinal(field.getModifiers())
-                    || Modifier.isStatic(field.getModifiers())
-                    || field.getType().isPrimitive()) {
-                continue;
-            }
-
-            nullField(object, field);
-        }
-    }
-
-    private static void nullField(Object obj, Field field) throws Exception {
-        LOGGER.info("Setting {} to null on {}.", new Object[]{field.getName(), obj.getClass().getSimpleName()});
-        boolean accessible = field.isAccessible();
-        if (!accessible) {
-            field.setAccessible(true);
-        }
-        field.set(obj, null);
-        field.setAccessible(accessible);
-    }
-
-    @AfterMethod
-    @Override
-    protected void springTestContextAfterTestMethod(@NotNull Method testMethod) throws Exception {
-        long time = System.currentTimeMillis();
-        LOGGER.info("###>>> springTestContextAfterTestMethod start");
-        super.springTestContextAfterTestMethod(testMethod);
-        LOGGER.info("###>>> springTestContextAfterTestMethod end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
-    }
-
-    @BeforeClass
-    @Override
-    protected void springTestContextBeforeTestClass() throws Exception {
-        long time = System.currentTimeMillis();
-        LOGGER.info("###>>> springTestContextBeforeTestClass start");
-        super.springTestContextBeforeTestClass();
-        LOGGER.info("###>>> springTestContextBeforeTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
-    }
-
-    @BeforeMethod
-    @Override
-    protected void springTestContextBeforeTestMethod(@NotNull Method testMethod) throws Exception {
-        long time = System.currentTimeMillis();
-        LOGGER.info("###>>> springTestContextBeforeTestMethod start");
-        super.springTestContextBeforeTestMethod(testMethod);
-        LOGGER.info("###>>> springTestContextBeforeTestMethod end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
-    }
-
-    @BeforeClass
-    @Override
-    protected void springTestContextPrepareTestInstance() throws Exception {
-        long time = System.currentTimeMillis();
-        LOGGER.info("###>>> springTestContextPrepareTestInstance start");
-        super.springTestContextPrepareTestInstance();
-        LOGGER.info("###>>> springTestContextPrepareTestInstance end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
     }
 
     protected PrismSchema getPiracySchema() {

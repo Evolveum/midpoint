@@ -74,8 +74,8 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
     public void test500CreateRoleJudge() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         RoleType judge = new RoleType(prismContext)
                 .name("judge")
@@ -692,10 +692,4 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
     }
 
     // TODO test that contains task0 that adds an object (i.e. rule for 'add' is not applied)
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
-    }
 }

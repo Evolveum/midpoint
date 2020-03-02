@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.prism.lex;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -49,9 +48,6 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
 
     @Test
     public void testParseUserToXNode() throws Exception {
-        final String TEST_NAME = "testParseUserToXNode";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         DomLexicalProcessor parser = createParser();
 

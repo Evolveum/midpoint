@@ -75,11 +75,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test100Connection() throws Exception {
-        final String TEST_NAME = "test100Connection";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(TEST_NAME);
+        given();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -121,11 +118,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test110FixResourceAndTestConnection() throws Exception {
-        final String TEST_NAME = "test110FixResourceAndTestConnection";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(TEST_NAME);
+        given();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setCsvFile(RESOURCE_CSV_BROKEN.oid, CSV_FILE_OK.getPath(), result);
@@ -175,11 +169,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test120BreakResourceAndTestConnection() throws Exception {
-        final String TEST_NAME = "test120BreakResourceAndTestConnection";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setCsvFile(RESOURCE_CSV_BROKEN.oid, CSV_FILE_NON_EXISTING.getPath(), result);
@@ -217,11 +208,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test130FixResourceAndSearchObjects() throws Exception {
-        final String TEST_NAME = "test130FixResourceAndSearchObjects";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(TEST_NAME);
+        given();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setCsvFile(RESOURCE_CSV_BROKEN.oid, CSV_FILE_OK.getPath(), result);
@@ -283,13 +271,9 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test140TwoMoreStatusChanges() throws Exception {
-        final String TEST_NAME = "test140TwoMoreStatusChanges";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(TEST_NAME);
+        given();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
-
 
         // WHEN
         long before = System.currentTimeMillis();

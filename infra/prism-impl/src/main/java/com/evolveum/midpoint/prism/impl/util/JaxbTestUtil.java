@@ -6,48 +6,28 @@
  */
 package com.evolveum.midpoint.prism.impl.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-
-import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,16 +38,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * (The last drop was the inability to hide RawType from externally-visible model service WSDL.
  * The solution devised, based on @Raw type, prevents JAXB from correctly parsing any structures that
  * contain RawType elements.)
- *
+ * <p>
  * So, don't use JaxbTestUtil even for testing purposes. Use PrismTestUtil instead.
- *
- * ===
+ * <p>
  * Original description:
- *
+ * <p>
  * JAXB testing util. Only for use in tests. DO NOT USE IN PRODUCTION CODE.
  * This util is used to test the ablility of prism JAXB representation to be used by
  * native (Sun) JAXB code.
- *
+ * <p>
  * Note: this is what used to be PrismJaxbProcessor. Therefore there may be still a lot of junk to clean up.
  *
  * @author Radovan Semancik
@@ -143,7 +122,7 @@ public final class JaxbTestUtil {
             // not a JAXB class
             return false;
         }
-        for (Package jaxbPackage: getSchemaRegistry().getCompileTimePackages()) {
+        for (Package jaxbPackage : getSchemaRegistry().getCompileTimePackages()) {
             if (jaxbPackage.equals(clazz.getPackage())) {
                 return true;
             }
@@ -246,9 +225,9 @@ public final class JaxbTestUtil {
         if (element instanceof Element) {
             return DOMUtil.serializeDOMToString((Element) element);
         } else if (element instanceof JAXBElement) {
-            return marshalElementToString((JAXBElement<?>)element, properties);
+            return marshalElementToString((JAXBElement<?>) element, properties);
         } else {
-            throw new IllegalArgumentException("Unsupported element type "+element.getClass().getName());
+            throw new IllegalArgumentException("Unsupported element type " + element.getClass().getName());
         }
     }
 
@@ -262,7 +241,7 @@ public final class JaxbTestUtil {
         if (element instanceof Element) {
             return DOMUtil.serializeDOMToString((Element) element);
         } else if (element instanceof JAXBElement) {
-            return marshalElementToString((JAXBElement<?>)element);
+            return marshalElementToString((JAXBElement<?>) element);
         } else {
             JAXBElement<Object> jaxbElement = new JAXBElement<>(elementName, Object.class, element);
             return marshalElementToString(jaxbElement);
@@ -309,7 +288,7 @@ public final class JaxbTestUtil {
         }
 
         JAXBElement<T> jaxbElement = new JAXBElement<>(elementQName, (Class<T>) jaxbObject.getClass(),
-            jaxbObject);
+                jaxbObject);
         Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
         marshalElementToDom(jaxbElement, element);
 
@@ -319,7 +298,7 @@ public final class JaxbTestUtil {
     public <T> void marshalObjectToDom(T jaxbObject, QName elementQName, Element parentElement) throws JAXBException {
 
         JAXBElement<T> jaxbElement = new JAXBElement<>(elementQName, (Class<T>) jaxbObject.getClass(),
-            jaxbObject);
+                jaxbObject);
         marshalElementToDom(jaxbElement, parentElement);
     }
 
@@ -328,7 +307,7 @@ public final class JaxbTestUtil {
     }
 
     public Element toDomElement(Object jaxbElement, Document doc) throws JAXBException {
-        return toDomElement(jaxbElement,doc,false,false,false);
+        return toDomElement(jaxbElement, doc, false, false, false);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -355,7 +334,6 @@ public final class JaxbTestUtil {
                     + jaxbElement.getClass().getName() + ")");
         }
     }
-
 
     public <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException, SchemaException {
         if (xmlString == null) {
@@ -439,12 +417,12 @@ public final class JaxbTestUtil {
         T value = element.getValue();
         // adopt not needed, already adopted in unmarshalElement call above
         if (!type.isAssignableFrom(value.getClass())) {
-            throw new IllegalArgumentException("Unmarshalled "+value.getClass()+" from file "+file+" while "+type+" was expected");
+            throw new IllegalArgumentException("Unmarshalled " + value.getClass() + " from file " + file + " while " + type + " was expected");
         }
         return value;
     }
 
-    public Object unmarshalObjects(File file) throws JAXBException{
+    public Object unmarshalObjects(File file) throws JAXBException {
         return createUnmarshaller().unmarshal(file);
     }
 
@@ -488,19 +466,18 @@ public final class JaxbTestUtil {
         return container;
     }
 
-
     public <T> T unmarshalObject(Object domOrJaxbElement, Class<T> type) throws SchemaException {
         JAXBElement<T> element;
         if (domOrJaxbElement instanceof JAXBElement<?>) {
             element = (JAXBElement<T>) domOrJaxbElement;
         } else if (domOrJaxbElement instanceof Node) {
             try {
-                element = unmarshalElement((Node)domOrJaxbElement, type);
+                element = unmarshalElement((Node) domOrJaxbElement, type);
             } catch (JAXBException e) {
-                throw new SchemaException(e.getMessage(),e);
+                throw new SchemaException(e.getMessage(), e);
             }
         } else {
-            throw new IllegalArgumentException("Unknown element type "+domOrJaxbElement);
+            throw new IllegalArgumentException("Unknown element type " + domOrJaxbElement);
         }
         if (element == null) {
             return null;
@@ -521,7 +498,7 @@ public final class JaxbTestUtil {
             JAXBElement<T> element = (JAXBElement<T>) getUnmarshaller().unmarshal(is);
             adopt(element);
             return element;
-        } catch (RuntimeException ex){
+        } catch (RuntimeException ex) {
             throw new SystemException(ex);
         } finally {
             if (is != null) {
@@ -627,7 +604,6 @@ public final class JaxbTestUtil {
         return DOMUtil.compareElement(ae, be, true);
     }
 
-
     public <T> T fromElement(Object element, Class<T> type) throws SchemaException {
 
         if (element == null) {
@@ -649,14 +625,14 @@ public final class JaxbTestUtil {
 
         if (element instanceof Element) {
             try {
-                JAXBElement<T> unmarshalledElement = unmarshalElement((Element)element, type);
+                JAXBElement<T> unmarshalledElement = unmarshalElement((Element) element, type);
                 return unmarshalledElement.getValue();
             } catch (JAXBException e) {
-                throw new IllegalArgumentException("Unmarshall failed: " + e.getMessage(),e);
+                throw new IllegalArgumentException("Unmarshall failed: " + e.getMessage(), e);
             }
         }
 
-        throw new IllegalArgumentException("Unknown element type "+element.getClass().getName());
+        throw new IllegalArgumentException("Unknown element type " + element.getClass().getName());
     }
 
     private QName determineElementQName(Objectable objectable) {
@@ -670,7 +646,7 @@ public final class JaxbTestUtil {
                 return definition.getItemName();
             }
         }
-        throw new IllegalStateException("Cannot determine element name of "+objectable);
+        throw new IllegalStateException("Cannot determine element name of " + objectable);
     }
 
     private QName determineElementQName(Containerable containerable) {
@@ -690,15 +666,15 @@ public final class JaxbTestUtil {
 
     private <T> void adopt(T object, Class<T> type) throws SchemaException {
         if (object instanceof Objectable) {
-            getPrismContext().adopt(((Objectable)object));
+            getPrismContext().adopt(((Objectable) object));
         }
     }
 
     private void adopt(Object object) throws SchemaException {
         if (object instanceof JAXBElement) {
-            adopt(((JAXBElement)object).getValue());
+            adopt(((JAXBElement) object).getValue());
         } else if (object instanceof Objectable) {
-            getPrismContext().adopt(((Objectable)(object)));
+            getPrismContext().adopt(((Objectable) (object)));
         }
     }
 

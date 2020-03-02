@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -11,7 +11,6 @@ import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.apache.commons.io.FileUtils;
 import org.testng.annotations.Test;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
@@ -25,7 +24,7 @@ public class AdvancedAccountTests extends TestBase {
   private static final String DIRECTORY_CURRENT_TEST = "advancedAccountTests";
 
   @Test
-  public void initializeTestConfiguration() throws IOException, ConfigurationException {
+  public void initializeTestConfiguration() throws IOException {
 
     initTestDirectory(DIRECTORY_CURRENT_TEST);
 

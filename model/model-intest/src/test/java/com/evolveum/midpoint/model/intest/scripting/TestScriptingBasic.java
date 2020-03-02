@@ -147,10 +147,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100EmptySequence() throws Exception {
         final String TEST_NAME = "test100EmptySequence";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ExpressionSequenceType sequence = new ExpressionSequenceType();
 
@@ -167,10 +166,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test110EmptyPipeline() throws Exception {
         final String TEST_NAME = "test110EmptyPipeline";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ExpressionPipelineType pipeline = new ExpressionPipelineType();
 
@@ -187,7 +185,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test112Echo() throws Exception {
         final String TEST_NAME = "test112Echo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -210,10 +207,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test120Log() throws Exception {
         final String TEST_NAME = "test120Log";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> logAction = parseAnyData(LOG_FILE);
 
@@ -244,10 +240,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test200SearchUser() throws Exception {
         final String TEST_NAME = "test200SearchUser";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_FILE);
 
@@ -265,10 +260,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test202SearchUserWithExpressions() throws Exception {
         final String TEST_NAME = "test202SearchUserWithExpressions";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ExecuteScriptType executeScript = prismContext.parserFor(SEARCH_FOR_USERS_WITH_EXPRESSIONS_FILE).parseRealValue();
         VariablesMap variables = new VariablesMap();
@@ -292,10 +286,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test205SearchForResources() throws Exception {
         final String TEST_NAME = "test205SearchForResources";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_RESOURCES_FILE);
 
@@ -312,10 +305,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test206SearchForRoles() throws Exception {
         final String TEST_NAME = "test206SearchForRoles";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_ROLES_FILE);
 
@@ -332,10 +324,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test210SearchForShadows() throws Exception {
         final String TEST_NAME = "test210SearchForShadows";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_SHADOWS_FILE);
 
@@ -353,10 +344,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test215SearchForShadowsNoFetch() throws Exception {
         final String TEST_NAME = "test215SearchForShadowsNoFetch";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_SHADOWS_NOFETCH_FILE);
 
@@ -374,10 +364,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test220SearchForUsersAccounts() throws Exception {
         final String TEST_NAME = "test220SearchForUsersAccounts";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_FILE);
 
@@ -395,10 +384,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test225SearchForUsersAccountsNoFetch() throws Exception {
         final String TEST_NAME = "test225SearchForUsersAccountsNoFetch";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE);
 
@@ -416,10 +404,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test300DisableJack() throws Exception {
         final String TEST_NAME = "test300DisableJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(DISABLE_JACK_FILE);
 
@@ -438,10 +425,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test310EnableJack() throws Exception {
         final String TEST_NAME = "test310EnableJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(ENABLE_JACK_FILE);
 
@@ -460,10 +446,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test320DeleteAndAddJack() throws Exception {
         final String TEST_NAME = "test320DeleteAndAddJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(DELETE_AND_ADD_JACK_FILE);
 
@@ -482,10 +467,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test330ModifyJack() throws Exception {
         final String TEST_NAME = "test330ModifyJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(MODIFY_JACK_FILE);
 
@@ -504,10 +488,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test340ModifyJackBack() throws Exception {
         final String TEST_NAME = "test340ModifyJackBack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(MODIFY_JACK_BACK_FILE);
 
@@ -526,10 +509,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test350RecomputeJack() throws Exception {
         final String TEST_NAME = "test350RecomputeJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(RECOMPUTE_JACK_FILE);
 
@@ -547,10 +529,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test360AssignToJack() throws Exception {
         final String TEST_NAME = "test360AssignToJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_JACK_FILE);
 
@@ -572,7 +553,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test370AssignToJackInBackground() throws Exception {
         final String TEST_NAME = "test370AssignToJackInBackground";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
@@ -597,7 +577,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test380DisableJackInBackgroundSimple() throws Exception {
         final String TEST_NAME = "test380DisableJackInBackgroundSimple";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
@@ -623,10 +602,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test390AssignToWill() throws Exception {
         final String TEST_NAME = "test390AssignToWill";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_FILE);
 
@@ -646,10 +624,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test391UnassignFromWill() throws Exception {
         final String TEST_NAME = "test391UnassignFromJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_FILE);
 
@@ -671,10 +648,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test392UnassignFromWill2() throws Exception {
         final String TEST_NAME = "test392UnassignFromWill2";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_2_FILE);
 
@@ -696,10 +672,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test393UnassignFromWill3() throws Exception {
         final String TEST_NAME = "test393UnassignFromWill3";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_3_FILE);
 
@@ -721,12 +696,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test394AssignToWill2() throws Exception {
         final String TEST_NAME = "test394AssignToWill2";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         QName customRelation = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "piracy:captain");
 
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_2_FILE);
 
@@ -758,10 +732,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test400PurgeSchema() throws Exception {
         final String TEST_NAME = "test400PurgeSchema";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(PURGE_DUMMY_BLACK_SCHEMA_FILE);
 
@@ -793,10 +766,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test410TestResource() throws Exception {
         final String TEST_NAME = "test410TestResource";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(TEST_DUMMY_RESOURCE_FILE);
 
@@ -816,10 +788,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test420NotificationAboutJack() throws Exception {
         final String TEST_NAME = "test420NotificationAboutJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(NOTIFICATION_ABOUT_JACK_FILE);
         prepareNotifications();
@@ -844,10 +815,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test430NotificationAboutJackType2() throws Exception {
         final String TEST_NAME = "test430NotificationAboutJackType2";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(NOTIFICATION_ABOUT_JACK_TYPE2_FILE);
         prepareNotifications();
@@ -877,10 +847,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test500ScriptingUsers() throws Exception {
         final String TEST_NAME = "test500ScriptingUsers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(SCRIPTING_USERS_FILE);
 
@@ -909,10 +878,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test505ScriptingUsersInBackground() throws Exception {
         final String TEST_NAME = "test505ScriptingUsersInBackground";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         ExecuteScriptType exec = prismContext.parserFor(SCRIPTING_USERS_IN_BACKGROUND_FILE).parseRealValue();
@@ -954,10 +922,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test507ScriptingUsersInBackgroundAssign() throws Exception {
         final String TEST_NAME = "test507ScriptingUsersInBackgroundAssign";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         ExecuteScriptType exec = prismContext.parserFor(SCRIPTING_USERS_IN_BACKGROUND_ASSIGN_FILE).parseRealValue();
@@ -993,10 +960,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test510GeneratePasswords() throws Exception {
         final String TEST_NAME = "test510GeneratePasswords";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(GENERATE_PASSWORDS_FILE);
 
@@ -1035,7 +1001,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test520GeneratePasswordsFullInput() throws Exception {
         final String TEST_NAME = "test520GeneratePasswordsFullInput";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -1061,7 +1026,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test530GeneratePasswordsReally() throws Exception {
         final String TEST_NAME = "test530GeneratePasswordsReally";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -1103,10 +1067,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test540SearchUserResolveNamesForRoleMembershipRef() throws Exception {
         final String TEST_NAME = "test540SearchUserResolveNamesForRoleMembershipRef";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_RESOLVE_NAMES_FOR_ROLE_MEMBERSHIP_REF_FILE);
 
@@ -1129,10 +1092,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test545SearchUserResolveRoleMembershipRef() throws Exception {
         final String TEST_NAME = "test545SearchUserResolveRoleMembershipRef";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_RESOLVE_ROLE_MEMBERSHIP_REF_FILE);
 
@@ -1155,7 +1117,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test550UseVariables() throws Exception {
         final String TEST_NAME = "test550UseVariables";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -1186,10 +1147,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test560StartTaskFromTemplate() throws Exception {
         final String TEST_NAME = "test560StartTaskFromTemplate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         repoAddObjectFromFile(SCRIPTING_USERS_IN_BACKGROUND_TASK_FILE, result);
@@ -1235,10 +1195,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test570IterativeScriptingTask() throws Exception {
         final String TEST_NAME = "test570IterativeScriptingTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         String taskOid = repoAddObjectFromFile(SCRIPTING_USERS_IN_BACKGROUND_ITERATIVE_TASK_FILE, result).getOid();
 
@@ -1257,10 +1216,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test(enabled = false)      // probably obsolete
     public void test575ResumeTask() throws Exception {
         final String TEST_NAME = "test570ResumeTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -1291,7 +1249,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test600ModifyJackPasswordInBackground() throws Exception {
         final String TEST_NAME = "test600ModifyJackPasswordInBackground";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
@@ -1326,7 +1283,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test610ModifyJackPasswordImportingTask() throws Exception {
         final String TEST_NAME = "test610ModifyJackPasswordImportingTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task opTask = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -1365,7 +1321,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test620ModifyJackPasswordViaExecuteChangesAsynchronously() throws Exception {
         final String TEST_NAME = "test620ModifyJackPasswordViaExecuteChangesAsynchronously";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task opTask = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);

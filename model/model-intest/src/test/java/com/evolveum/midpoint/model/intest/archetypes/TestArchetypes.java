@@ -126,9 +126,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test020SanityJack() throws Exception {
         final String TEST_NAME = "test020SanityJack";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = assertUserBefore(USER_JACK_OID)
@@ -141,17 +140,16 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test050AddArchetypeTest() throws Exception {
         final String TEST_NAME = "test050AddArchetypeTest";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(ARCHETYPE_TEST_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ArchetypeType> archetypeTest = modelService.getObject(ArchetypeType.class, ARCHETYPE_TEST_OID, null, task, result);
@@ -161,19 +159,18 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test060AddArchetypesAndRoles() throws Exception {
         final String TEST_NAME = "test060AddArchetypesAndRoles";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(ARCHETYPE_BUSINESS_ROLE_FILE, task, result);
         addObject(ROLE_BUSINESS_CAPTAIN_FILE, task, result);
         addObject(ROLE_BUSINESS_BOSUN_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> roleBusinessCaptainAfter = assertRoleAfter(ROLE_BUSINESS_CAPTAIN_OID)
@@ -201,17 +198,16 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test070AssignGuybrushUserAdministrator() throws Exception {
         final String TEST_NAME = "test070AssignGuybrushUserAdministrator";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_USER_ADMINISTRATOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // TODO: assert guybrush
@@ -221,18 +217,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test100AssignJackArchetypeEmployee() throws Exception {
         final String TEST_NAME = "test100AssignJackArchetypeEmployee";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignArchetype(USER_JACK_OID, ARCHETYPE_EMPLOYEE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
@@ -265,9 +260,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test102SearchEmployeeArchetypeRef() throws Exception {
         final String TEST_NAME = "test102SearchEmployeeArchetypeRef";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -275,12 +269,12 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .build();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         SearchResultList<PrismObject<UserType>> searchResults = modelService.searchObjects(UserType.class, query, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         display("Search results", searchResults);
         assertEquals("Wrong number of search results", 1, searchResults.size());
@@ -303,12 +297,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test104GetGuybryshCompiledGuiProfile() throws Exception {
         final String TEST_NAME = "test104GetGuybryshCompiledGuiProfile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -369,20 +362,19 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test109UnassignJackArchetypeEmployee() throws Exception {
         final String TEST_NAME = "test109UnassignJackArchetypeEmployee";
-        displayTestTitle(TEST_NAME);
 
         loginAdministrator();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignArchetype(USER_JACK_OID, ARCHETYPE_EMPLOYEE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
@@ -404,18 +396,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test110AssignJackRoleEmployeeBase() throws Exception {
         final String TEST_NAME = "test110AssignJackRoleEmployeeBase";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_BASE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
@@ -460,18 +451,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test115UnassignJackRoleEmployeeBase() throws Exception {
         final String TEST_NAME = "test115UnassignJackRoleEmployeeBase";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignRole(USER_JACK_OID, ROLE_EMPLOYEE_BASE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
@@ -504,18 +494,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test120AssignJackArchetypeTest() throws Exception {
         final String TEST_NAME = "test120AssignJackArchetypeTest";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignArchetype(USER_JACK_OID, ARCHETYPE_TEST_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -540,18 +529,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test129UnassignJackArchetypeTest() throws Exception {
         final String TEST_NAME = "test129UnassignJackArchetypeTest";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignArchetype(USER_JACK_OID, ARCHETYPE_TEST_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -572,18 +560,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test130AssignJackArchetypeContractor() throws Exception {
         final String TEST_NAME = "test130AssignJackArchetypeContractor";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignArchetype(USER_JACK_OID, ARCHETYPE_CONTRACTOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -605,18 +592,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test132JackContractorRecompute() throws Exception {
         final String TEST_NAME = "test132JackContractorRecompute";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -639,18 +625,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test135UnassignJackArchetypeContractor() throws Exception {
         final String TEST_NAME = "test135UnassignJackArchetypeContractor";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignArchetype(USER_JACK_OID, ARCHETYPE_CONTRACTOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -674,20 +659,19 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test137JackEmpnoAndRecompute() throws Exception {
         final String TEST_NAME = "test137JackEmpnoAndRecompute";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, "Number ONE");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -711,18 +695,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test140AddMeathookContractor() throws Exception {
         final String TEST_NAME = "test140AddMeathookContractor";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(USER_MEATHOOK_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_MEATHOOK_OID)
@@ -746,18 +729,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test150AddWannabe() throws Exception {
         final String TEST_NAME = "test150AddWannabe";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(USER_WANNABE_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_WANNABE_OID)
@@ -782,18 +764,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test160AddSelfMadeMan() throws Exception {
         final String TEST_NAME = "test160AddSelfMadeMan";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(USER_SELF_MADE_MAN_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_SELF_MADE_MAN_OID)
@@ -816,9 +797,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test162AddFraudster() throws Exception {
         final String TEST_NAME = "test162AddFraudster";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // precondition
@@ -826,7 +806,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
 
             addObject(USER_FRAUDSTER_FILE, task, result);
 
@@ -837,7 +817,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertFailure(result);
 
         assertNoObject(UserType.class, USER_FRAUDSTER_OID);
@@ -846,19 +826,18 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test200AssignJackBarbossaArchetypeEmployee() throws Exception {
         final String TEST_NAME = "test200AssignJackBarbossaArchetypeEmployee";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignArchetype(USER_JACK_OID, ARCHETYPE_EMPLOYEE_OID, task, result);
         assignArchetype(USER_BARBOSSA_OID, ARCHETYPE_EMPLOYEE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -872,12 +851,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test202GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
         final String TEST_NAME = "test202GetGuybryshCompiledGuiProfileActiveEmployeesView";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -909,18 +887,17 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test203DisableBarbossa() throws Exception {
         final String TEST_NAME = "test203DisableBarbossa";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_BARBOSSA_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -934,12 +911,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test205GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
         final String TEST_NAME = "test205GetGuybryshCompiledGuiProfileActiveEmployeesView";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -971,13 +947,12 @@ public class TestArchetypes extends AbstractArchetypesTest {
     @Test
     public void test300jackAssignArchetypeRaw() throws Exception {
         final String TEST_NAME = "test300jackAssignArchetypeRaw";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         try {
             assignArchetype(USER_JACK_OID, ARCHETYPE_CONTRACTOR_OID, task, result);

@@ -102,8 +102,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test100RequesterComment() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -155,7 +155,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_SAILOR_OID, task, result);
+        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_SAILOR_OID, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -167,8 +167,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test105RequesterCommentImmediate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -222,7 +222,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -234,8 +234,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test110RequestPrunedRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -272,8 +272,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test200GetRoleByTemplate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_OID);
@@ -288,15 +288,15 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
     public void test210GetRoleByTemplateAfterAssignments() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER_OID);
@@ -312,15 +312,15 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
     public void test220GetRoleByFocusMappings() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(null);
@@ -334,15 +334,15 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
     public void test250SkippingApprovals() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(null);
@@ -363,6 +363,6 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 }

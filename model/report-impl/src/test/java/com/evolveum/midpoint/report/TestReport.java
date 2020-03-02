@@ -68,15 +68,14 @@ public class TestReport extends AbstractReportIntegrationTest {
   @Test
   public void test100ReportUserList() throws Exception {
       final String TEST_NAME = "test100ReportUserList";
-      displayTestTitle(TEST_NAME);
 
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_OID);
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when();
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
@@ -86,7 +85,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       waitForTaskFinish(task.getOid(), true);
 
       // THEN
-      displayThen(TEST_NAME);
+      then();
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task", finishedTask);
 
@@ -128,20 +127,19 @@ public class TestReport extends AbstractReportIntegrationTest {
   @Test
   public void test200ReportUserListScript() throws Exception {
       final String TEST_NAME = "test200ReportUserListScript";
-      displayTestTitle(TEST_NAME);
 
       if (!isOsUnix()) {
             displaySkip(TEST_NAME);
             return;
         }
 
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_SCRIPT_OID);
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when();
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
@@ -151,7 +149,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       waitForTaskFinish(task.getOid(), true);
 
       // THEN
-      displayThen(TEST_NAME);
+      then();
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task", finishedTask);
 
@@ -178,7 +176,6 @@ public class TestReport extends AbstractReportIntegrationTest {
     }
 
   protected void testReportListUsersCsv(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
       PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, false);
@@ -189,7 +186,6 @@ public class TestReport extends AbstractReportIntegrationTest {
   }
 
   protected void testReportListUsersCsvFailure(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
       PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, true);
@@ -200,11 +196,11 @@ public class TestReport extends AbstractReportIntegrationTest {
   }
 
   protected PrismObject<TaskType> runReport(final String TEST_NAME, PrismObject<ReportType> report, boolean errorOk) throws Exception {
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when();
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
@@ -214,7 +210,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       waitForTaskFinish(task.getOid(), true, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
 
       // THEN
-      displayThen(TEST_NAME);
+      then();
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task (finished)", finishedTask);
 
@@ -230,7 +226,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       display("Report content ("+lines.size()+" lines)", String.join("\n", lines));
       outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
 
-      Task task = createTask("checkCsvUserReport");
+      Task task = getTestTask();
       OperationResult result = task.getResult();
       SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
       display("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());
@@ -245,7 +241,6 @@ public class TestReport extends AbstractReportIntegrationTest {
   }
 
   protected void testReportAuditCsvSuccess(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
 
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
@@ -257,7 +252,6 @@ public class TestReport extends AbstractReportIntegrationTest {
   }
 
   protected void testReportAuditCsvFailure(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
       PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, true);

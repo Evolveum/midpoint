@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -83,18 +81,17 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
     @Test
     public void test100ImportAccount() throws Exception {
         final String TEST_NAME = "test100ImportAccount";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modelService.importFromResource(SHADOW_SAMPLE_ACTIVATION_SIMULATED_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
 /*        List<Object> configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured().getAny();
@@ -108,9 +105,8 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
     @Test
     public void test110AssignJackPirate() throws Exception {
         String TEST_NAME = "test110AssignJackPirate";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //GIVEN
@@ -126,7 +122,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
         userAfterAsserter
             .activation()
@@ -169,9 +165,8 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
     @Test
     public void test112ModifyActivationJack() throws Exception {
         String TEST_NAME = "test112ModifyActivationJack";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -181,7 +176,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
 
         UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
         userAfterAsserter

@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.hibernate.Session;
@@ -48,9 +47,7 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test
     public void testReindexExtensionItem() throws Exception {
-        final String TEST_NAME = "testReindexExtensionItem";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("unstable")
@@ -77,12 +74,10 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexIndexOnlyItem() throws Exception {
-        final String TEST_NAME = "testReindexIndexOnlyItem";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
-                .name(TEST_NAME)
+                .name(getTestNameShort())
                 .asPrismObject();
         ItemPath INDEX_ONLY_PATH = ItemPath.create(UserType.F_EXTENSION, "indexOnly");
         PrismPropertyDefinition<String> indexOnlyDef = user.getDefinition().findPropertyDefinition(INDEX_ONLY_PATH);
@@ -113,14 +108,12 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexPhoto() throws Exception {
-        final String TEST_NAME = "testReindex";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         byte[] PHOTO = new byte[] { 1, 2, 3, 4 };
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
-                .name(TEST_NAME)
+                .name(getTestNameShort())
                 .jpegPhoto(PHOTO)
                 .asPrismObject();
 
@@ -137,14 +130,12 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexTaskResult() throws Exception {
-        final String TEST_NAME = "testReindexTaskResult";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         OperationResultType taskOperationResult = new OperationResultType().message("Hello there");
 
         PrismObject<TaskType> task = prismContext.createObjectable(TaskType.class)
-                .name(TEST_NAME)
+                .name(getTestNameShort())
                 .result(taskOperationResult)
                 .asPrismObject();
 
@@ -161,15 +152,13 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexLookupTableRow() throws Exception {
-        final String TEST_NAME = "testReindexLookupTableRow";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         LookupTableRowType row = new LookupTableRowType(prismContext)
                 .key("key")
                 .label("label");
         PrismObject<LookupTableType> table = prismContext.createObjectable(LookupTableType.class)
-                .name(TEST_NAME)
+                .name(getTestNameShort())
                 .row(row)
                 .asPrismObject();
 
@@ -187,14 +176,12 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexCertificationCampaignCase() throws Exception {
-        final String TEST_NAME = "testReindexCertificationCampaignCase";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         AccessCertificationCaseType aCase = new AccessCertificationCaseType(prismContext)
                 .stageNumber(1);
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.createObjectable(AccessCertificationCampaignType.class)
-                .name(TEST_NAME)
+                .name(getTestNameShort())
                 .stageNumber(1)
                 ._case(aCase)
                 .asPrismObject();
@@ -216,9 +203,7 @@ public class ModifyTestReindex extends ModifyTest {
      */
     @Test
     public void testReindexShadow() throws Exception {
-        final String TEST_NAME = "testReindexShadow";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createResult();
 
         String APPROVER_OID = "9123090439201432";
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)

@@ -78,13 +78,13 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
     @Test
     public void test999DeletingNotUpdatedShadowDummyGreen() throws Exception {
         final String TEST_NAME = "test800DeletingNotUpdatedShadowDummyGreen";
-        displayTestTitle(TEST_NAME);
         String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
         String ACCOUNT_CAROL_DUMMY_USERNAME = "carol";
 
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -100,7 +100,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
         accountJack.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "The Seven Seas");
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(accountJack);
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
@@ -112,7 +112,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
         rerunTask(TASK_DELETE_NOT_UPDATED_SHADOWS_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userCarol = findUserByUsername(ACCOUNT_CAROL_DUMMY_USERNAME);
         display("User carol", userCarol);

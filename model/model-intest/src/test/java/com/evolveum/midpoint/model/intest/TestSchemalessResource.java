@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -44,9 +43,8 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
     @Test
     public void test001GetObject() throws Exception {
         final String TEST_NAME = "test001GetObject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -59,9 +57,8 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
     @Test
     public void test002TestConnection() throws Exception {
         final String TEST_NAME = "test002TestConnection";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_SCHEMALESS_OID, task);

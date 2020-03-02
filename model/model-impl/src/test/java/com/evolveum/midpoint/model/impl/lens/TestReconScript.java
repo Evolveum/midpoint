@@ -49,10 +49,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     @Test
     public void text001testReconcileScriptsWhenProvisioning() throws Exception{
         final String TEST_NAME = "text001testReconcileScriptsWhenProvisioning";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createOperationalResult();
 
         ObjectDelta<UserType> delta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -92,7 +91,6 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     @Test
     public void test002testReconcileScriptsWhenReconciling() throws Exception{
         final String TEST_NAME = "test002testReconcileScriptsWhenReconciling";
-        displayTestTitle(TEST_NAME);
 
         getDummyResource().getScriptHistory().clear();
 
@@ -124,10 +122,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     @Test
     public void test003testReconcileScriptsAddUserAction() throws Exception{
         final String TEST_NAME = "test003testReconcileScriptsAddUserAction";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createOperationalResult();
 
         ShadowType shadow = parseObjectType(new File(ACCOUNT_BEFORE_SCRIPT_FILENAME), ShadowType.class);
 
@@ -170,11 +167,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     @Test
     public void test005TestDryRunDelete() throws Exception{
         final String TEST_NAME = "test005TestDryRunDelete";
-        displayTestTitle(TEST_NAME);
-
 
         PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createOperationalResult();
 
         PropertyDelta dryRunDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(PATH_MODEL_EXTENSION_DRY_RUN, task.getDefinition(), true);
         Collection<PropertyDelta> modifications = new ArrayList<>();
@@ -203,10 +198,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     @Test
     public void test006TestReconDelete() throws Exception{
         final String TEST_NAME = "test006TestReconDelete";
-        displayTestTitle(TEST_NAME);
 
         PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
-        OperationResult parentResult = new OperationResult(TEST_NAME);
+        OperationResult parentResult = createOperationalResult();
 
         PropertyDelta<Boolean> dryRunDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 PATH_MODEL_EXTENSION_DRY_RUN, task.getDefinition(), false);
@@ -216,7 +210,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskStart(TASK_RECON_DUMMY_OID, false);
 
@@ -225,7 +219,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
         ShadowAsserter.forShadow(shadow)

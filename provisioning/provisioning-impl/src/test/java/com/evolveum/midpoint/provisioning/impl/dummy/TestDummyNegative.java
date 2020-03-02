@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 
@@ -30,8 +28,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -44,35 +40,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestDummyNegative extends AbstractDummyTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
-
-    private static final File ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILE = new File(TEST_DIR, "account-elaine-resource-not-found.xml");
+    private static final File ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILE =
+            new File(TEST_DIR, "account-elaine-resource-not-found.xml");
 
     @Test
     public void test110GetResourceBrokenSchemaNetwork() throws Exception {
-        testGetResourceBrokenSchema(BreakMode.NETWORK, "test110GetResourceBrokenSchemaNetwork");
+        testGetResourceBrokenSchema(BreakMode.NETWORK);
     }
 
     @Test
     public void test111GetResourceBrokenSchemaGeneric() throws Exception {
-        testGetResourceBrokenSchema(BreakMode.GENERIC, "test111GetResourceBrokenSchemaGeneric");
+        testGetResourceBrokenSchema(BreakMode.GENERIC);
     }
 
     @Test
     public void test112GetResourceBrokenSchemaIo() throws Exception {
-        testGetResourceBrokenSchema(BreakMode.IO, "test112GetResourceBrokenSchemaIO");
+        testGetResourceBrokenSchema(BreakMode.IO);
     }
 
     @Test
     public void test113GetResourceBrokenSchemaRuntime() throws Exception {
-        testGetResourceBrokenSchema(BreakMode.RUNTIME, "test113GetResourceBrokenSchemaRuntime");
+        testGetResourceBrokenSchema(BreakMode.RUNTIME);
     }
 
-    public void testGetResourceBrokenSchema(BreakMode breakMode, String testName) throws Exception {
-        TestUtil.displayTestTitle(testName);
+    public void testGetResourceBrokenSchema(BreakMode breakMode) throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-                + "."+testName);
+        OperationResult result = createOperationalResult();
 
         // precondition
         PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
@@ -106,18 +99,17 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test190GetResource() throws Exception {
         final String TEST_NAME = "test190GetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyResource.setSchemaBreakMode(BreakMode.NONE);
         syncServiceMock.reset();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Resource after", resource);
@@ -128,9 +120,8 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test200AddAccountNullAttributes() throws Exception {
         final String TEST_NAME = "test200AddAccountNullAttributes";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -142,7 +133,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             provisioningService.addObject(account, null, null, task, result);
 
             assertNotReached();
@@ -151,18 +142,15 @@ public class TestDummyNegative extends AbstractDummyTest {
             display("Expected exception", e);
         }
 
-        displayThen(TEST_NAME);
+        then();
         syncServiceMock.assertNotifyFailureOnly();
     }
 
     @Test
     public void test201AddAccountEmptyAttributes() throws Exception {
-        TestUtil.displayTestTitle("test201AddAccountEmptyAttributes");
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-                + ".test201AddAccountEmptyAttributes");
-        OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-                + ".test201AddAccountEmptyAttributes");
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -188,12 +176,9 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     @Test
     public void test210AddAccountNoObjectclass() throws Exception {
-        TestUtil.displayTestTitle("test210AddAccountNoObjectclass");
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-                + ".test210AddAccountNoObjectclass");
-        OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-                + ".test210AddAccountNoObjectclass");
+        Task task =getTestTask();
+        OperationResult result = getTestOperationResult();
         syncServiceMock.reset();
 
         ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -222,7 +207,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test220AddAccountNoResourceRef() throws Exception {
         final String TEST_NAME = "test220AddAccountNoResourceRef";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
                 + "." + TEST_NAME);
@@ -254,7 +238,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test221DeleteAccountResourceNotFound() throws Exception {
         final String TEST_NAME = "test221DeleteAccountResourceNotFound";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
                 + "." + TEST_NAME);
@@ -291,7 +274,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test230GetAccountDeletedShadow() throws Exception {
         final String TEST_NAME = "test230GetAccountDeletedShadow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
                 + "." + TEST_NAME);

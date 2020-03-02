@@ -6,43 +6,29 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.File;
-import java.io.IOException;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Various tests related to schema immutability, definition cloning, etc.
- *
  */
-public class TestSchemaImmutability {
+public class TestSchemaImmutability extends AbstractSchemaTest {
 
     private static final File TEST_DIR = new File("src/test/resources/schema-immutability");
     private static final File RESOURCE_DUMMY_VAULT_FILE = new File(TEST_DIR, "resource-dummy-vault.xml");
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test
     public void testUltraDeepCloning() throws Exception {
-        System.out.println("===[ testUltraDeepCloning ]===");
-
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_DUMMY_VAULT_FILE);
@@ -55,7 +41,7 @@ public class TestSchemaImmutability {
         System.out.println("schemaHandling definition:\n" + schemaHandling.getDefinition().debugDump());
         PrismAsserts.assertImmutable(schemaHandling.getDefinition());
 
-        Item<?,?> testConnection = resource.findItem(ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, "testConnection"));
+        Item<?, ?> testConnection = resource.findItem(ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, "testConnection"));
         assertNotNull("No testConnection capability", testConnection);
         assertNotNull("No testConnection capability definition", testConnection.getDefinition());
         System.out.println("testConnection capability definition:\n" + testConnection.getDefinition().debugDump());
@@ -77,7 +63,7 @@ public class TestSchemaImmutability {
         System.out.println("Updated schemaHandling definition:\n" + updatedSchemaHandling.getDefinition().debugDump());
         PrismAsserts.assertMutable(updatedSchemaHandling.getDefinition());
 
-        Item<?,?> updatedTestConnection = resource.findItem(ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, "testConnection"));
+        Item<?, ?> updatedTestConnection = resource.findItem(ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, "testConnection"));
         assertNotNull("No updated testConnection capability", updatedTestConnection);
         assertNotNull("No updated testConnection capability definition", updatedTestConnection.getDefinition());
         System.out.println("Updated testConnection capability definition:\n" + updatedTestConnection.getDefinition().debugDump());

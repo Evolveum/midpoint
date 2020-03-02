@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -55,15 +55,12 @@ public class TestOpenDjDumber extends TestOpenDj {
      */
     @Test
     @Override
-    public void test350SeachInvisibleAccount() throws Exception {
-        final String TEST_NAME = "test350SeachInvisibleAccount";
-        displayTestTitle(TEST_NAME);
-
+    public void test350SearchInvisibleAccount() throws Exception {
         // GIVEN
         createBilboEntry();
 
-        SearchResultList<PrismObject<ShadowType>> shadows = searchBilbo(TEST_NAME);
+        SearchResultList<PrismObject<ShadowType>> shadows = searchBilbo();
 
-        assertEquals("Unexpected search result: "+shadows, 0, shadows.size());
+        assertEquals("Unexpected search result: " + shadows, 0, shadows.size());
     }
 }

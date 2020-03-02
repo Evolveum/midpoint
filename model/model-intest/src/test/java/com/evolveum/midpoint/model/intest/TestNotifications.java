@@ -49,7 +49,6 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.Executor;
 
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
@@ -124,7 +123,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
         final String TEST_NAME = "test100ModifyUserAddAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
@@ -135,11 +133,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -215,7 +213,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test119ModifyUserDeleteAccount() throws Exception {
         final String TEST_NAME = "test119ModifyUserDeleteAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -233,11 +230,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -289,7 +286,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
         final String TEST_NAME = "test131ModifyUserJackAssignAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -299,11 +295,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -364,7 +360,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test140ModifyUserJackAssignRole() throws Exception {
         final String TEST_NAME = "test135ModifyUserJackAssignRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -372,11 +367,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -417,7 +412,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test150ModifyUserJackModifyAssignment() throws Exception {
         final String TEST_NAME = "test150ModifyUserJackModifyAssignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -425,7 +419,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
         Long id = assignment.getId();
@@ -436,7 +430,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         .asObjectDeltaCast(jack.getOid()), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -479,7 +473,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test160ModifyUserJackDeleteAssignment() throws Exception {
         final String TEST_NAME = "test160ModifyUserJackDeleteAssignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -487,7 +480,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
         Long id = assignment.getId();
@@ -498,7 +491,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         .asObjectDeltaCast(jack.getOid()), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -538,20 +531,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200SendSmsUsingGet() {
         final String TEST_NAME = "test200SendSmsUsingGet";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "get", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -563,20 +555,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210SendSmsUsingPost() {
         final String TEST_NAME = "test210SendSmsUsingPost";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -596,20 +587,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test215SendSmsUsingGeneralPost() {
         final String TEST_NAME = "test215SendSmsUsingGeneralPost";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "general-post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -629,20 +619,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test220SendSmsViaProxy() {
         final String TEST_NAME = "test220SendSmsViaProxy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "get-via-proxy", null,
                 "hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -655,7 +644,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300CheckVariables() {
         final String TEST_NAME = "test300CheckVariables";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -664,13 +652,13 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         prepareNotifications();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Event event = new CustomEvent(lightweightIdentifierGenerator, "check-variables", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -681,7 +669,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400StringAttachment() throws Exception {
         final String TEST_NAME = "test400StringAttachment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -689,14 +676,14 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testStringAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 
@@ -718,7 +705,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410ByteAttachment() throws Exception {
         final String TEST_NAME = "test410ByteAttachment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -726,14 +712,14 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testByteAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 
@@ -769,7 +755,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test420AttachmentFromFile() throws Exception {
         final String TEST_NAME = "test420AttachmentFromFile";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -777,14 +762,14 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testAttachmentFromFileUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 
@@ -805,7 +790,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test430ExpressionAttachment() throws Exception {
         final String TEST_NAME = "test430ExpressionAttachment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -813,14 +797,14 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testExpressionAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 

@@ -7,41 +7,28 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.AbstractPrismTest;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
-import java.io.IOException;
+public class TestObjectQuery extends AbstractPrismTest {
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-
-public class TestObjectQuery {
-
-    private static MatchingRuleRegistry matchingRuleRegistry;
-
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-
-        matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
-    }
+    private static MatchingRuleRegistry matchingRuleRegistry =
+            MatchingRuleRegistryFactory.createRegistry();
 
     @Test
     public void testMatchAndFilter() throws Exception {
@@ -50,11 +37,10 @@ public class TestObjectQuery {
                 getPrismContext().queryFor(UserType.class)
                         .item(UserType.F_GIVEN_NAME).eq("Jack").matchingCaseIgnore()
                         .and().item(UserType.F_FULL_NAME).contains("arr")
-                .buildFilter();
+                        .buildFilter();
         boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
         AssertJUnit.assertTrue("filter does not match object", match);
     }
-
 
     @Test
     public void testMatchOrFilter() throws Exception {
@@ -125,17 +111,17 @@ public class TestObjectQuery {
     public void testComplexMatch() throws Exception {
         PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
 //        System.out.println("user given name" + user.asObjectable().getGivenName());
-        System.out.println("definition: " +user.findItem(UserType.F_FAMILY_NAME).getDefinition().debugDump());
+        System.out.println("definition: " + user.findItem(UserType.F_FAMILY_NAME).getDefinition().debugDump());
         ObjectFilter filter =
                 getPrismContext().queryFor(UserType.class)
                         .item(UserType.F_FAMILY_NAME).eq("Sparrow")
                         .and().item(UserType.F_FULL_NAME).contains("arr")
                         .and()
-                            .block()
-                                .item(UserType.F_GIVEN_NAME).eq("Jack")
-                                .or().item(UserType.F_GIVEN_NAME).eq("Jackie")
-                            .endBlock()
-                .buildFilter();
+                        .block()
+                        .item(UserType.F_GIVEN_NAME).eq("Jack")
+                        .or().item(UserType.F_GIVEN_NAME).eq("Jackie")
+                        .endBlock()
+                        .buildFilter();
         boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
         AssertJUnit.assertTrue("filter does not match object", match);
     }
@@ -167,7 +153,7 @@ public class TestObjectQuery {
         PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .exists(UserType.F_ASSIGNMENT)
-                        .item(AssignmentType.F_DESCRIPTION).eq("Assignment NONE")
+                .item(AssignmentType.F_DESCRIPTION).eq("Assignment NONE")
                 .buildFilter();
         boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
         AssertJUnit.assertFalse("filter matches object, but it should not", match);
@@ -178,7 +164,7 @@ public class TestObjectQuery {
         PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .exists(UserType.F_ASSIGNMENT)
-                        .item(AssignmentType.F_DESCRIPTION).eq("Assignment 2")
+                .item(AssignmentType.F_DESCRIPTION).eq("Assignment 2")
                 .buildFilter();
         boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
         AssertJUnit.assertTrue("filter does not match object, but it should", match);

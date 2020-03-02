@@ -46,13 +46,12 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 public final class QueryBuilder {
 
     final private Class<? extends Containerable> queryClass;
-    final private ComplexTypeDefinition containerCTD;
     final private PrismContext prismContext;
 
     private QueryBuilder(Class<? extends Containerable> queryClass, PrismContext prismContext) {
         this.queryClass = queryClass;
         this.prismContext = prismContext;
-        containerCTD = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(queryClass);
+        ComplexTypeDefinition containerCTD = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(queryClass);
         if (containerCTD == null) {
             throw new IllegalArgumentException("Couldn't find definition for complex type " + queryClass);
         }
@@ -69,13 +68,4 @@ public final class QueryBuilder {
     public static S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass, PrismContext prismContext) {
         return R_Filter.create(new QueryBuilder(queryClass, prismContext));
     }
-
-//    ItemDefinition findItemDefinition(ItemPath itemPath) throws SchemaException {
-//        ItemDefinition itemDefinition = containerCTD.findItemDefinition(itemPath);
-//        if (itemDefinition == null) {
-//            throw new SchemaException("Couldn't find definition for '" + itemPath + "' in " + containerCTD);
-//        }
-//        return itemDefinition;
-//    }
-
 }

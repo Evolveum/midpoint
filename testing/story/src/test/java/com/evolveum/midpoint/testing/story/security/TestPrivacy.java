@@ -73,14 +73,13 @@ public class TestPrivacy extends AbstractStoryTest {
     @Test
     public void test100AutzJackReadSearch() throws Exception {
         final String TEST_NAME = "test100AutzJackReadSearch";
-        displayTestTitle(TEST_NAME);
 
         assignRole(USER_JACK_OID, ROLE_PRIVACY_END_USER_OID);
 
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_ELAINE_OID);
@@ -90,7 +89,7 @@ public class TestPrivacy extends AbstractStoryTest {
                 USER_ADMINISTRATOR_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_JACK_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 

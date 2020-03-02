@@ -10,18 +10,14 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
@@ -85,10 +81,9 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test100ModifyUnitWorker() throws Exception {
         final String TEST_NAME = "test100ModifyUnitWorker";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -119,10 +114,9 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test109ModifyUniNull() throws Exception {
         final String TEST_NAME = "test109ModifyUniNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -148,10 +142,9 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test110ModifyUnitSleepwalker() throws Exception {
         final String TEST_NAME = "test110ModifyUnitSleepwalker";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -189,10 +182,9 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test112ModifyUnitSleeperToWorker() throws Exception {
         final String TEST_NAME = "test112ModifyUnitSleeperToWorker";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = prismContext.deltaFactory().object().createModificationAddProperty(UserType.class,
@@ -226,10 +218,9 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test114ModifyUnitAddSleeper() throws Exception {
         final String TEST_NAME = "test114ModifyUnitAddSleeper";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

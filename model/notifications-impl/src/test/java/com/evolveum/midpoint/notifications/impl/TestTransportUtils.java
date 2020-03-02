@@ -14,7 +14,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTranspor
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -51,7 +50,7 @@ import static org.testng.AssertJUnit.assertTrue;
         "classpath:ctx-model-common.xml",
         "classpath:ctx-notifications-test.xml",
         "classpath*:ctx-notifications.xml"})
-public class TestTransportUtils extends AbstractTestNGSpringContextTests {
+public class TestTransportUtils extends AbstractSpringTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestTransportUtils.class);
 
@@ -68,8 +67,6 @@ public class TestTransportUtils extends AbstractTestNGSpringContextTests {
     public void test010CheckVariablesWhiteList() {
         final String TEST_NAME = "test010CheckVariablesWhiteList";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
@@ -79,10 +76,10 @@ public class TestTransportUtils extends AbstractTestNGSpringContextTests {
         config.getWhiteList().add("majka@evodevel.*");
 
         Task task = taskManager.createTaskInstance();
-        List<String> allowRecipient = new ArrayList<String>();
-        List<String> forbiddenRecipient = new ArrayList<String>();
+        List<String> allowRecipient = new ArrayList<>();
+        List<String> forbiddenRecipient = new ArrayList<>();
 
-        List<String> recipients = new ArrayList<String>();
+        List<String> recipients = new ArrayList<>();
         recipients.add("janko@evodevel.com");
         recipients.add("janko@evolveum.com");
         recipients.add("viliam@evodevel.com");
@@ -94,7 +91,7 @@ public class TestTransportUtils extends AbstractTestNGSpringContextTests {
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         assertTrue("Expected <4> allowed recipient(s), but was <" +allowRecipient.size()+ ">", allowRecipient.size() == 4);
         assertTrue("janko@evodevel.com shoud be allowed, but isn't.", allowRecipient.contains("janko@evodevel.com"));
@@ -111,8 +108,6 @@ public class TestTransportUtils extends AbstractTestNGSpringContextTests {
     public void test020CheckVariablesBlackList() {
         final String TEST_NAME = "test020CheckVariablesBlackList";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
@@ -122,10 +117,10 @@ public class TestTransportUtils extends AbstractTestNGSpringContextTests {
         config.getBlackList().add("majka@evodevel.*");
 
         Task task = taskManager.createTaskInstance();
-        List<String> allowRecipient = new ArrayList<String>();
-        List<String> forbiddenRecipient = new ArrayList<String>();
+        List<String> allowRecipient = new ArrayList<>();
+        List<String> forbiddenRecipient = new ArrayList<>();
 
-        List<String> recipients = new ArrayList<String>();
+        List<String> recipients = new ArrayList<>();
         recipients.add("janko@evodevel.com");
         recipients.add("janko@evolveum.com");
         recipients.add("viliam@evodevel.com");
@@ -137,7 +132,7 @@ public class TestTransportUtils extends AbstractTestNGSpringContextTests {
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         assertTrue("Expected <4> forbidden recipient(s), but was <" +forbiddenRecipient.size()+ ">", forbiddenRecipient.size() == 4);
         assertTrue("janko@evodevel.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evodevel.com"));

@@ -203,10 +203,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
     @Test
     public void test100TreeImport() throws Exception {
-        final String TEST_NAME = "test100TreeImport";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -215,14 +212,14 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + (ldapdUserCount + ldapOrgCount) * 2000);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -230,10 +227,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test200MoveRootChild() throws Exception {
-        final String TEST_NAME = "test200MoveRootChild";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
+    public void test200MoveRootChild() {
         //todo move one child of one root to root position
     }
 }

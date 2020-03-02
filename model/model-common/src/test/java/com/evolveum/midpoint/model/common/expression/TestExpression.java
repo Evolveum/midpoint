@@ -6,15 +6,12 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
@@ -25,27 +22,13 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.model.common.ConstantsManager;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -59,19 +42,10 @@ import com.evolveum.midpoint.test.asserter.prism.PrismValueDeltaSetTripleAsserte
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationExpressionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Radovan Semancik
@@ -109,8 +83,6 @@ public class TestExpression extends AbstractModelCommonTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestExpression.class);
 
-
-
     protected PrismContext prismContext;
     protected ExpressionFactory expressionFactory;
     protected ConstantsManager constantsManager;
@@ -140,27 +112,24 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test100AsIs() throws Exception {
-        final String TEST_NAME = "test100AsIs";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_ASIS_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(INPUT_VALUE);
 
         assertScriptExecutionIncrement(0);
@@ -168,18 +137,15 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test110Path() throws Exception {
-        final String TEST_NAME = "test110Path";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_PATH_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext,
@@ -187,9 +153,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(USER_JACK_NAME);
 
         assertScriptExecutionIncrement(0);
@@ -197,18 +163,15 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test120Value() throws Exception {
-        final String TEST_NAME = "test120Value";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_VALUE_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -216,9 +179,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(EXPRESSION_VALUE_OUTPUT);
 
         assertScriptExecutionIncrement(0);
@@ -226,18 +189,15 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test130Const() throws Exception {
-        final String TEST_NAME = "test130Const";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_CONST_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -245,9 +205,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(ExpressionTestUtil.CONST_FOO_VALUE);
 
         assertScriptExecutionIncrement(0);
@@ -255,18 +215,15 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test150ScriptGroovySimple() throws Exception {
-        final String TEST_NAME = "test150ScriptGroovySimple";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SIMPLE_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -274,9 +231,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(VAR_FOO_VALUE + VAR_BAR_VALUE);
 
         assertScriptExecutionIncrement(1);
@@ -284,18 +241,15 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test152ScriptGroovySystemAllow() throws Exception {
-        final String TEST_NAME = "test152ScriptGroovySystemAllow";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_ALLOW_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -303,9 +257,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(GROOVY_SCRIPT_OUTPUT_SUCCESS);
 
         assertScriptExecutionIncrement(1);
@@ -313,18 +267,15 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test154ScriptGroovySystemDeny() throws Exception {
-        final String TEST_NAME = "test154ScriptGroovySystemDeny";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -332,9 +283,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(GROOVY_SCRIPT_OUTPUT_SUCCESS);
 
         assertScriptExecutionIncrement(1);
@@ -342,18 +293,15 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test160ScriptJavaScript() throws Exception {
-        final String TEST_NAME = "test160ScriptJavaScript";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_JAVASCRIPT_FILE);
-        Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -361,9 +309,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(VAR_FOO_VALUE + VAR_BAR_VALUE);
 
         assertScriptExecutionIncrement(1);
@@ -371,11 +319,8 @@ public class TestExpression extends AbstractModelCommonTest {
 
     @Test
     public void test200IterationCondition() throws Exception {
-        final String TEST_NAME = "test200IterationCondition";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
+        OperationResult result = new OperationResult(contextName());
 
         rememberScriptExecutionCount();
 
@@ -397,7 +342,7 @@ public class TestExpression extends AbstractModelCommonTest {
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001",
                 TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION_TOKEN, PrimitiveType.STRING));
 
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, createTask());
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null, variables, getTestNameShort(), createTask());
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
@@ -405,9 +350,9 @@ public class TestExpression extends AbstractModelCommonTest {
 
         // THEN
         assertOutputTriple(outputTriple)
-            .assertEmptyMinus()
-            .assertEmptyPlus()
-            .zeroSet()
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
                 .assertSinglePropertyValue(Boolean.TRUE);
 
         // Make sure that the script is executed only once. There is no delta in the variables, no need to do it twice.
@@ -418,7 +363,7 @@ public class TestExpression extends AbstractModelCommonTest {
         return PrismTestUtil.parseAtomicValue(file, ExpressionType.COMPLEX_TYPE);
     }
 
-    protected Source<PrismPropertyValue<String>,PrismPropertyDefinition<String>> prepareStringSource(String value) throws SchemaException {
+    protected Source<PrismPropertyValue<String>, PrismPropertyDefinition<String>> prepareStringSource() throws SchemaException {
         PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME, PrimitiveType.STRING.getQname());
         PrismProperty<String> inputProp = prismContext.itemFactory().createProperty(ExpressionConstants.VAR_INPUT_QNAME, propDef);
         PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(INPUT_VALUE);
@@ -426,9 +371,9 @@ public class TestExpression extends AbstractModelCommonTest {
         return new Source<>(inputProp, null, inputProp, ExpressionConstants.VAR_INPUT_QNAME, propDef);
     }
 
-    protected Collection<Source<?, ?>> prepareStringSources(String value) throws SchemaException {
+    protected Collection<Source<?, ?>> prepareStringSources() throws SchemaException {
         Collection<Source<?, ?>> sources = new ArrayList<>();
-        sources.add(prepareStringSource(value));
+        sources.add(prepareStringSource());
         return sources;
     }
 
@@ -444,8 +389,8 @@ public class TestExpression extends AbstractModelCommonTest {
     protected <V extends PrismValue, D extends ItemDefinition> PrismValueDeltaSetTriple<V> evaluateExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Expression<V,D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
                 expressionContext.getContextDescription(), expressionContext.getTask(), result);
         LOGGER.debug("Starting evaluation of expression: {}", expression);
         return expression.evaluate(expressionContext, result);
@@ -453,7 +398,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
     protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
             ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
@@ -462,19 +407,19 @@ public class TestExpression extends AbstractModelCommonTest {
     protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
             ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext,
             OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext, result);
     }
 
     protected <V extends PrismValue, D extends ItemDefinition> void evaluateExpressionRestricted(
-            ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
-            OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Expression<V,D> expression;
+            ExpressionType expressionType, D outputDefinition,
+            ExpressionEvaluationContext expressionContext, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        Expression<V, D> expression;
         try {
 
-            expression = expressionFactory.makeExpression(expressionType, outputDefinition , getExpressionProfile(),
-                expressionContext.getContextDescription(), expressionContext.getTask(), result);
+            expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
+                    expressionContext.getContextDescription(), expressionContext.getTask(), result);
 
         } catch (SecurityViolationException e) {
             // Exception may happen here, or it may happen later.
@@ -496,22 +441,24 @@ public class TestExpression extends AbstractModelCommonTest {
             LOGGER.debug("Expected exception", e);
             assertTrue("Wrong exception message: " + e.getMessage(),
                     e.getMessage().contains("Access to expression evaluator")
-                    || e.getMessage().contains("Access to Groovy method"));
+                            || e.getMessage().contains("Access to Groovy method"));
         }
     }
 
-    protected <T> void evaluatePropertyExpressionRestricted(
-            ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    protected <T> void evaluatePropertyExpressionRestricted(ExpressionType expressionType,
+            QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         evaluateExpressionRestricted(expressionType, outputDefinition, expressionContext, result);
     }
 
     protected <T> void evaluatePropertyExpressionRestricted(
-            ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext,
-            OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionType expressionType, PrimitiveType outputType,
+            ExpressionEvaluationContext expressionContext, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
         evaluatePropertyExpressionRestricted(expressionType, outputType.getQname(), expressionContext, result);
     }
 
@@ -522,7 +469,7 @@ public class TestExpression extends AbstractModelCommonTest {
     protected void assertScriptExecutionIncrement(int expectedIncrement) {
         long currentScriptExecutionCount = InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
         long actualIncrement = currentScriptExecutionCount - lastScriptExecutionCount;
-        assertEquals("Unexpected increment in script execution count", (long)expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in script execution count", (long) expectedIncrement, actualIncrement);
         lastScriptExecutionCount = currentScriptExecutionCount;
     }
 
@@ -548,7 +495,7 @@ public class TestExpression extends AbstractModelCommonTest {
         ExpressionProfiles profiles = compiler.compile(expressions);
         ExpressionProfile profile = profiles.getProfile(profileName);
         if (profile == null) {
-            throw new SchemaException("Profile '"+profile+"' not found in system config");
+            throw new SchemaException("Profile '" + profile + "' not found in system config");
         }
         return profile;
     }
@@ -557,10 +504,10 @@ public class TestExpression extends AbstractModelCommonTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
-    protected <V extends PrismValue> PrismValueDeltaSetTripleAsserter<V,Void> assertOutputTriple(PrismValueDeltaSetTriple<V> triple) {
+    protected <V extends PrismValue> PrismValueDeltaSetTripleAsserter<V, Void> assertOutputTriple(PrismValueDeltaSetTriple<V> triple) {
         assertNotNull(triple);
         triple.checkConsistence();
-        PrismValueDeltaSetTripleAsserter<V,Void> asserter = new PrismValueDeltaSetTripleAsserter<>(triple, "expression output triple");
+        PrismValueDeltaSetTripleAsserter<V, Void> asserter = new PrismValueDeltaSetTripleAsserter<>(triple, "expression output triple");
         asserter.setPrismContext(prismContext);
         asserter.display();
         return asserter;

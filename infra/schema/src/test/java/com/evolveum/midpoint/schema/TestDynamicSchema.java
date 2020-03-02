@@ -6,50 +6,30 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.TestConstants.EXTENSION_STRING_TYPE_ELEMENT;
-import static com.evolveum.midpoint.schema.TestConstants.USER_ASSIGNMENT_1_ID;
-import static com.evolveum.midpoint.schema.TestConstants.USER_FILE;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.schema.TestConstants.*;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
-public class TestDynamicSchema {
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
+public class TestDynamicSchema extends AbstractSchemaTest {
 
     @Test
     public void testAssignmentExtensionContainerProperty() throws Exception {
-        System.out.println("===[ testAssignmentExtensionContainerProperty ]===");
-
         // GIVEN
         PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
 
@@ -64,8 +44,6 @@ public class TestDynamicSchema {
 
     @Test
     public void testAssignmentExtensionContainerItem() throws Exception {
-        System.out.println("===[ testAssignmentExtensionContainerItem ]===");
-
         // GIVEN
         PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
 
@@ -81,8 +59,6 @@ public class TestDynamicSchema {
 
     @Test
     public void testAssignmentExtensionValueProperty() throws Exception {
-        System.out.println("===[ testAssignmentExtensionValueProperty ]===");
-
         // GIVEN
         PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
         PrismContainerValue<AssignmentType> assignmentExtensionContainerValue = assignmentExtensionContainer.getValue();
@@ -98,8 +74,6 @@ public class TestDynamicSchema {
 
     @Test
     public void testAssignmentExtensionValueItem() throws Exception {
-        System.out.println("===[ testAssignmentExtensionValueItem ]===");
-
         // GIVEN
         PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
         PrismContainerValue<AssignmentType> assignmentExtensionContainerValue = assignmentExtensionContainer.getValue();
@@ -114,9 +88,6 @@ public class TestDynamicSchema {
         PrismAsserts.assertDefinition(assignmentExtensionStringProperty.getDefinition(), EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
     }
 
-
-
-
     private PrismContainer<AssignmentType> parseUserAssignmentContainer() throws SchemaException, IOException {
         PrismContext prismContext = getPrismContext();
         PrismObject<UserType> user = prismContext.parseObject(USER_FILE);
@@ -125,5 +96,4 @@ public class TestDynamicSchema {
 
         return user.findContainer(ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_EXTENSION));
     }
-
 }

@@ -113,7 +113,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Test
     public void test100NumericExplicitBuckets() throws Exception {
         final String TEST_NAME = "test100NumericExplicitBuckets";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -194,7 +194,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Test
     public void test110FilterExplicitBuckets() throws Exception {
         final String TEST_NAME = "test110FilterExplicitBuckets";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -282,7 +282,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Test
     public void test120StringPrefixBuckets() throws Exception {
         final String TEST_NAME = "test120StringPrefixBuckets";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -338,7 +338,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Test
     public void test125StringExactValueBuckets() throws Exception {
         final String TEST_NAME = "test125StringExactValueBuckets";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -394,7 +394,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Test
     public void test130StringIntervalBuckets() throws Exception {
         final String TEST_NAME = "test130StringIntervalBuckets";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -444,7 +444,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Test
     public void test140OidBuckets() throws Exception {
         final String TEST_NAME = "test140OidBuckets";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
@@ -463,7 +463,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Test
     public void test150OidBucketsTwice() throws Exception {
         final String TEST_NAME = "test150OidBucketsTwice";
-        OperationResult result = createResult(TEST_NAME, LOGGER);
+        OperationResult result = createResult(TEST_NAME);
         addObjectFromFile(taskFilename(TEST_NAME));
 
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
