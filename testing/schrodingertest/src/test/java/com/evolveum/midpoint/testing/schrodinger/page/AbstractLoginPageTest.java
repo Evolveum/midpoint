@@ -43,7 +43,7 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void loginLockoutUser() {
+    public void test001loginLockoutUser() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         open("/login");
         for (int i = 0; i < 4; i++) {
@@ -53,13 +53,13 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void loginDisabledUser() {
+    public void test002loginDisabledUser() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         unsuccessfulLogin("disabled_user", "5ecr3t");
     }
 
     @Test
-    public void loginEnabledUserWithoutAuthorizationsUser() {
+    public void test003loginEnabledUserWithoutAuthorizationsUser() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         unsuccessfulLogin("enabled_user_without_authorizations", "5ecr3t");
     }
@@ -73,7 +73,7 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void auditingSuccessfulLogin() {
+    public void test010auditingSuccessfulLogin() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
@@ -89,7 +89,7 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void auditingFailLogin() {
+    public void test011auditingFailLogin() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("bad_administrator", "5ecr3t");
@@ -103,7 +103,7 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void auditingSuccessfulLogout() {
+    public void test012auditingSuccessfulLogout() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
