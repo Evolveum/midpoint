@@ -15,11 +15,9 @@ import java.util.List;
 
 import org.testng.annotations.Test;
 
-/**
- * @author semancik
- *
- */
-public class TestReflectionUtil {
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+
+public class TestReflectionUtil extends AbstractUnitTest {
 
     @Test
     public void testFindMethodByArity3() throws Exception {
@@ -87,7 +85,7 @@ public class TestReflectionUtil {
 
         // THEN
         assertNotNull("No method", method);
-        method.invoke(library, new Object[] { new String[] {"foo", "bar", "baz"}});
+        method.invoke(library, new Object[] { new String[] { "foo", "bar", "baz" } });
 
         assertCalled(library, "v:3");
     }
@@ -155,9 +153,7 @@ public class TestReflectionUtil {
         assertCalled(library, "lc");
     }
 
-
     private void assertCalled(ReflectionTestFunctionLibrary library, String methodId) {
-        assertTrue("The method "+methodId+" was not called. Called: "+library.getCalledIds(), library.wasCalled(methodId));
+        assertTrue("The method " + methodId + " was not called. Called: " + library.getCalledIds(), library.wasCalled(methodId));
     }
-
 }
