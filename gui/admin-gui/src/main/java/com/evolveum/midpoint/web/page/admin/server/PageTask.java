@@ -487,7 +487,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
-
+        if (!isKeepDisplayingResults()) {
+            showResult(result);
+            redirectBack();
+        }
     }
 
     @Override
