@@ -161,7 +161,7 @@ public class PageResourceWizard extends PageAdmin {
             @Override
             protected String load() {
                 if (editedResourceOid == null) {
-                    return PageResourceWizard.super.createPageTitleModel().getObject();
+                    return createStringResource("PageResourceWizard.title").getString();
                 }
                 String name = WebComponentUtil.getName(modelRaw.getObject());
                 return createStringResource("PageResourceWizard.title.edit", name).getString();

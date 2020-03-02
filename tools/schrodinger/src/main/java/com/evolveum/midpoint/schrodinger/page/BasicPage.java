@@ -314,7 +314,7 @@ public class BasicPage {
     }
 
     public InternalsConfigurationPage internalsConfiguration() {
-        clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null);
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null, 1);
         return new InternalsConfigurationPage();
     }
 
@@ -341,7 +341,11 @@ public class BasicPage {
     }
 
     private void clickConfigurationMenu(String mainMenuKey, String menuItemKey) {
-        clickMenuItem("PageAdmin.menu.top.configuration", mainMenuKey, menuItemKey);
+        clickConfigurationMenu(mainMenuKey, menuItemKey, 0);
+    }
+
+    private void clickConfigurationMenu(String mainMenuKey, String menuItemKey, int index) {
+        clickMenuItem("PageAdmin.menu.top.configuration", mainMenuKey, menuItemKey, index);
     }
 
     public FeedbackBox<? extends BasicPage> feedback() {
@@ -350,11 +354,19 @@ public class BasicPage {
     }
 
     private void clickMenuItem(String topLevelMenuKey, String mainMenuKey, String menuItemKey) {
-        getMenuItemElement(topLevelMenuKey, mainMenuKey, menuItemKey).click();
+        clickMenuItem(topLevelMenuKey, mainMenuKey, menuItemKey, 0);
     }
 
-    public SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey){
-        SelenideElement mainMenu = getMainMenuItemElement(topLevelMenuKey, mainMenuKey);
+    private void clickMenuItem(String topLevelMenuKey, String mainMenuKey, String menuItemKey, int index) {
+        getMenuItemElement(topLevelMenuKey, mainMenuKey, menuItemKey, index).click();
+    }
+
+    public SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey) {
+        return getMenuItemElement(topLevelMenuKey, mainMenuKey, menuItemKey, 0);
+    }
+
+    public SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey, int index){
+        SelenideElement mainMenu = getMainMenuItemElement(topLevelMenuKey, mainMenuKey, index);
         if (menuItemKey == null){
             return mainMenu;
         }
@@ -375,7 +387,11 @@ public class BasicPage {
         return menuItem;
     }
 
-    private SelenideElement getMainMenuItemElement(String topLevelMenuKey, String mainMenuKey){
+    private SelenideElement getMainMenuItemElement(String topLevelMenuKey, String mainMenuKey) {
+        return getMainMenuItemElement(topLevelMenuKey, mainMenuKey, 0);
+    }
+
+    private SelenideElement getMainMenuItemElement(String topLevelMenuKey, String mainMenuKey, int index){
         SelenideElement topLevelMenu = $(Schrodinger.byDataResourceKey(topLevelMenuKey));
         topLevelMenu.shouldBe(Condition.visible);
 
@@ -385,7 +401,7 @@ public class BasicPage {
             topLevelMenuChevron.shouldHave(Condition.cssClass("fa-chevron-down")).waitUntil(Condition.cssClass("fa-chevron-down"), MidPoint.TIMEOUT_DEFAULT_2_S);
         }
 
-        SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey(mainMenuKey));
+        SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey(mainMenuKey), index);
         mainMenu.shouldBe(Condition.visible);
 
         SelenideElement mainMenuLi = mainMenu.parent().parent();

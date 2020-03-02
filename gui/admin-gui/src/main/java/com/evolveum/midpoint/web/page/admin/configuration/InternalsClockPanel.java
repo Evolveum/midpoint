@@ -8,8 +8,10 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
@@ -47,6 +49,9 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
         add(form);
 
         DatePanel offset = new DatePanel(ID_OFFSET, getModel());
+        for (FormComponent<?> formComponent : offset.getFormComponents()) {
+            formComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        }
         form.add(offset);
 
             AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageInternals.button.changeTime")) {

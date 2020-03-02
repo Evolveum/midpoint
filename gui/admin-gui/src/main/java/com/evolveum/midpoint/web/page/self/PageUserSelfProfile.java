@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -64,6 +65,11 @@ public class PageUserSelfProfile extends PageUser {
         return WebModelServiceUtils.getLoggedInFocusOid();
     }
 
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("PageAdmin.menu.profile");
+    }
 
     @Override
     protected boolean isSelfProfile(){
