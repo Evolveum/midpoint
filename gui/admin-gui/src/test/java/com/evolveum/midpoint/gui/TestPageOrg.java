@@ -41,9 +41,12 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
     private static final Trace LOGGER = TraceManager.getTrace(TestPageOrg.class);
 
     private static final String MAIN_FORM = "mainPanel:mainForm";
-    private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
+//    private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
     private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:originValueContainer:origValueWithButton:origValue:input";
     private static final String FORM_SAVE = "save";
+
+    private static final String NEW_ORG_NAME = "A-newOrg";                  // starts with "A" to be alphabetically first
+    private static final String NEW_ORG_CHILD_NAME = "newOrgChild";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -69,12 +72,12 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
         renderPage(PageOrgUnit.class);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
-        formTester.setValue(PATH_FORM_NAME, "newOrg");
-        formTester = formTester.submit(FORM_SAVE);
+        formTester.setValue(PATH_FORM_NAME, NEW_ORG_NAME);
+        formTester.submit(FORM_SAVE);
 
         Thread.sleep(5000);
 
-        PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, "newOrg");
+        PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, NEW_ORG_NAME);
         assertNotNull(newOrg, "New org not created.");
         LOGGER.info("created org: {}", newOrg.debugDump());
     }
@@ -86,25 +89,22 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
         tester.assertRenderedPage(PageOrgUnit.class);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
-        formTester.setValue(PATH_FORM_NAME, "newOrgChild");
-        formTester = formTester.submit(FORM_SAVE);
+        formTester.setValue(PATH_FORM_NAME, NEW_ORG_CHILD_NAME);
+        formTester.submit(FORM_SAVE);
 
         Thread.sleep(5000);
 
-        PrismObject<OrgType> newOrgChild = findObjectByName(OrgType.class, "newOrgChild");
-        PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, "newOrg");
+        PrismObject<OrgType> newOrgChild = findObjectByName(OrgType.class, NEW_ORG_CHILD_NAME);
+        PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, NEW_ORG_NAME);
         assertNotNull(newOrgChild, "New org not created.");
         assertAssignedOrg(newOrgChild, newOrg.getOid());
     }
 
-    private Page renderPage(Class<? extends Page> expectedRenderedPageClass) {
+    private void renderPage(Class<? extends Page> expectedRenderedPageClass) {
         LOGGER.info("render page system configuration");
         PageParameters params = new PageParameters();
-        Page pageAccount = tester.startPage(expectedRenderedPageClass, params);
+        tester.startPage(expectedRenderedPageClass, params);
 
         tester.assertRenderedPage(expectedRenderedPageClass);
-
-        return pageAccount;
     }
-
 }
