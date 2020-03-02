@@ -59,14 +59,14 @@ public class EmbeddedTomcatAutoConfiguration {
         private int port;
 
         @Value("${server.servlet.context-path}")
-        private String servletPath;
+        private String contextPath;
 
         @Autowired
         private SystemObjectCache systemObjectCache;
 
         @Bean
         public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
-            MidPointTomcatServletWebServerFactory tomcat = new MidPointTomcatServletWebServerFactory(servletPath, systemObjectCache);
+            MidPointTomcatServletWebServerFactory tomcat = new MidPointTomcatServletWebServerFactory(contextPath, systemObjectCache);
 
             if(enableAjp) {
                 Connector ajpConnector = new Connector("AJP/1.3");
