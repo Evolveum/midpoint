@@ -92,7 +92,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private String tenantOid;
 
     private PrismObject<?> target;
-    private boolean virtual;
     private boolean isValid;
     private boolean wasValid;
     private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -192,16 +191,20 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
     }
 
-    void addConstruction(Construction<AH> contruction, PlusMinusZero whichSet) {
+    void addConstruction(Construction<AH> construction, PlusMinusZero whichSet) {
+        addToTriple(construction, constructionTriple, whichSet);
+    }
+
+    private <T> void addToTriple(T construction, @NotNull DeltaSetTriple<T> triple, PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO:
-                constructionTriple.addToZeroSet(contruction);
+                triple.addToZeroSet(construction);
                 break;
             case PLUS:
-                constructionTriple.addToPlusSet(contruction);
+                triple.addToPlusSet(construction);
                 break;
             case MINUS:
-                constructionTriple.addToMinusSet(contruction);
+                triple.addToMinusSet(construction);
                 break;
             default:
                 throw new IllegalArgumentException("whichSet: " + whichSet);
@@ -213,20 +216,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return personaConstructionTriple;
     }
 
-    void addPersonaConstruction(PersonaConstruction<AH> personaContruction, PlusMinusZero whichSet) {
-        switch (whichSet) {
-            case ZERO:
-                personaConstructionTriple.addToZeroSet(personaContruction);
-                break;
-            case PLUS:
-                personaConstructionTriple.addToPlusSet(personaContruction);
-                break;
-            case MINUS:
-                personaConstructionTriple.addToMinusSet(personaContruction);
-                break;
-            default:
-                throw new IllegalArgumentException("whichSet: " + whichSet);
-        }
+    void addPersonaConstruction(PersonaConstruction<AH> personaConstruction, PlusMinusZero whichSet) {
+        addToTriple(personaConstruction, personaConstructionTriple, whichSet);
     }
 
     @NotNull
@@ -317,11 +308,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     public boolean isVirtual() {
-        return virtual;
-    }
-
-    public void setVirtual(boolean virtual) {
-        this.virtual = virtual;
+        return origin.isVirtual();
     }
 
     /* (non-Javadoc)
@@ -467,7 +454,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "isVirtual", virtual, indent + 1);
         if (forceRecon) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
