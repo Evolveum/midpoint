@@ -105,9 +105,8 @@ public class TestDummyExtra extends TestDummy {
     @Test
     public void test400AddAccountElizabeth() throws Exception {
         final String TEST_NAME = "test400AddAccountElizabeth";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -119,11 +118,11 @@ public class TestDummyExtra extends TestDummy {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
@@ -154,10 +153,7 @@ public class TestDummyExtra extends TestDummy {
      */
     @Test
     public void test410AssociateCrewWillElizabeth() throws Exception {
-        final String TEST_NAME = "test410AssociateCrewWillElizabeth";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -168,12 +164,12 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -200,10 +196,7 @@ public class TestDummyExtra extends TestDummy {
      */
     @Test
     public void test419DisassociateCrewWillElizabeth() throws Exception {
-        final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -214,12 +207,12 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -246,18 +239,17 @@ public class TestDummyExtra extends TestDummy {
     @Test
     public void test499DeleteAccountElizabeth() throws Exception {
         final String TEST_NAME = "test499DeleteAccountElizabeth";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         syncServiceMock.assertNotifySuccessOnly();

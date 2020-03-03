@@ -97,7 +97,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     private static final TestResource RESOURCE_DUMMY_PRECREATE = new TestResource(TEST_DIR, "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d");
     private static final String RESOURCE_DUMMY_PRECREATE_NAME = "precreate";
-    
+
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
     private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
@@ -145,7 +145,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyCoral = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CORAL_FILE, RESOURCE_DUMMY_CORAL_OID, initTask, initResult);
         resourceDummyCoralType = resourceDummyCoral.asObjectable();
         dummyResourceCtlCoral.setResource(resourceDummyCoral);
-        
+
         dummyResourceCtlPrecreate = DummyResourceContoller.create(RESOURCE_DUMMY_PRECREATE_NAME, resourceDummyPrecreate);
         dummyResourcePrecreate = dummyResourceCtlPrecreate.getDummyResource();
         resourceDummyPrecreate = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PRECREATE.file, RESOURCE_DUMMY_PRECREATE.oid, initTask, initResult);
@@ -156,7 +156,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test050CheckJackEnabled() throws Exception {
         final String TEST_NAME = "test050CheckJackEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN, WHEN
         // this happens during test initialization when user-jack.xml is added
@@ -173,7 +172,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test051ModifyUserJackDisable() throws Exception {
         final String TEST_NAME = "test051ModifyUserJackDisable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -205,7 +203,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test052ModifyUserJackNull() throws Exception {
         final String TEST_NAME = "test052ModifyUserJackNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -236,7 +233,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test055ModifyUserJackEnable() throws Exception {
         final String TEST_NAME = "test055ModifyUserJackEnable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -268,7 +264,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test056RecomputeUserJackEffectiveEnable() throws Exception {
         final String TEST_NAME = "test056RecomputeUserJackEffectiveEnable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -321,7 +316,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test060ModifyUserJackLifecycleActive() throws Exception {
         final String TEST_NAME = "test060ModifyUserJackLifecycleActive";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -353,7 +347,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test061ModifyUserJackLifecycleDraft() throws Exception {
         final String TEST_NAME = "test061ModifyUserJackLifecycleDraft";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -385,7 +378,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test065ModifyUserJackLifecycleDeprecated() throws Exception {
         final String TEST_NAME = "test065ModifyUserJackLifecycleDeprecated";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -417,7 +409,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test068ModifyUserJackLifecycleArchived() throws Exception {
         final String TEST_NAME = "test068ModifyUserJackLifecycleArchived";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -448,7 +439,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test069ModifyUserJackLifecycleNull() throws Exception {
         final String TEST_NAME = "test069ModifyUserJackLifecycleNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -479,7 +469,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
         final String TEST_NAME = "test100ModifyUserJackAssignAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -554,7 +543,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test101ModifyUserJackDisable() throws Exception {
         final String TEST_NAME = "test101ModifyUserJackDisable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -586,8 +574,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test102ModifyUserJackEnable() throws Exception {
-        TestUtil.displayTestTitle(this, "test102ModifyUserJackEnable");
-
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
         OperationResult result = task.getResult();
@@ -617,7 +603,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test111ModifyAccountJackDisable() throws Exception {
-        TestUtil.displayTestTitle(this, "test111ModifyAccountJackDisable");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test111ModifyAccountJackDisable");
@@ -653,7 +638,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test112UserJackRecompute() throws Exception {
         final String TEST_NAME = "test112UserJackRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -693,7 +677,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test114ModifyUserJackEnable() throws Exception {
         final String TEST_NAME = "test114ModifyUserJackEnable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -731,7 +714,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test115ModifyUserJackAdministrativeStatusNull() throws Exception {
         final String TEST_NAME = "test115ModifyUserJackAdministrativeStatusNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -772,7 +754,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test118ModifyJackActivationUserAndAccount() throws Exception {
         final String TEST_NAME = "test118ModifyJackActivationUserAndAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -788,11 +769,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -819,21 +800,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120ModifyUserJackAssignAccountDummyRed() throws Exception {
         final String TEST_NAME = "test120ModifyUserJackAssignAccountDummyRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -871,7 +851,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test121ModifyJackUserAndAccountRed() throws Exception {
         final String TEST_NAME = "test121ModifyJackUserAndAccountRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -888,11 +867,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -917,7 +896,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test130ModifyAccountDefaultAndRed() throws Exception {
-        TestUtil.displayTestTitle(this, "test130ModifyAccountDefaultAndRed");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");
@@ -952,7 +930,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test138ModifyJackEnabled() throws Exception {
         final String TEST_NAME = "test138ModifyJackEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -960,11 +937,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -983,7 +960,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test139ModifyUserJackUnAssignAccountDummyRed() throws Exception {
         final String TEST_NAME = "test139ModifyUserJackUnAssignAccountDummyRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1021,21 +997,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test140ModifyUserJackAssignAccountDummyRed() throws Exception {
         final String TEST_NAME = "test140ModifyUserJackAssignAccountDummyRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -1071,21 +1046,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test147ModifyUserJackUnassignAccountDummyRedRaw() throws Exception {
         final String TEST_NAME = "test147ModifyUserJackUnassignAccountDummyRedRaw";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1119,21 +1093,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test149RecomputeJack() throws Exception {
         final String TEST_NAME = "test149RecomputeJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -1168,10 +1141,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test150ModifyUserJackAssignYellowAccount() throws Exception {
         final String TEST_NAME = "test150ModifyUserJackAssignYellowAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1182,11 +1154,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         assertSuccess(result);
 
@@ -1219,19 +1191,18 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test151ReconcileJack() throws Exception {
         final String TEST_NAME = "test151ReconcileJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1260,10 +1231,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test152ModifyAccountsJackDisable() throws Exception {
         final String TEST_NAME = "test152ModifyAccountsJackDisable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1271,12 +1241,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<ShadowType> yellowDelta = createModifyAccountShadowReplaceDelta(accountYellowOid, null, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(dummyDelta, yellowDelta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1286,13 +1256,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         checkAdminStatusFor15x(userJack, true, false, false);
 
         // WHEN (2) - now let's do a reconciliation on both resources
-        displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY,
                 userJack.asObjectable().getLocality().toPolyString());
         modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         assertSuccess("executeChanges result (after reconciliation)", result);
 
@@ -1305,7 +1275,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test153ModifyAccountsJackEnable() throws Exception {
         final String TEST_NAME = "test153ModifyAccountsJackEnable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1378,10 +1347,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test160ModifyUserJackAssignAccountKhaki() throws Exception {
         final String TEST_NAME = "test160ModifyUserJackAssignAccountKhaki";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1389,11 +1357,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -1457,7 +1425,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test170GetAccountUnlocked() throws Exception {
         final String TEST_NAME = "test170GetAccountUnlocked";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1481,7 +1448,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test172GetAccountLocked() throws Exception {
         final String TEST_NAME = "test172GetAccountLocked";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1509,7 +1475,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test174ModifyAccountUnlock() throws Exception {
         final String TEST_NAME = "test174ModifyAccountUnlock";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1544,7 +1509,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test176ModifyUserUnlock() throws Exception {
         final String TEST_NAME = "test176ModifyUserUnlock";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1580,7 +1544,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test199DeleteUserJack() throws Exception {
         final String TEST_NAME = "test199DeleteUserJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1614,7 +1577,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200AddUserLargo() throws Exception {
         final String TEST_NAME = "test200AddUserLargo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -1640,7 +1602,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test205ModifyUserLargoAssignAccount() throws Exception {
         final String TEST_NAME = "test205ModifyUserLargoAssignAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1679,7 +1640,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ModifyLargoValidTo10MinsAgo() throws Exception {
         final String TEST_NAME = "test210ModifyLargoValidTo10MinsAgo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -1717,7 +1677,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test211ModifyLargoValidToManana() throws Exception {
         final String TEST_NAME = "test211ModifyLargoValidToManana";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -1759,7 +1718,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test212SeeLargoTomorrow() throws Exception {
         final String TEST_NAME = "test212SeeLargoTomorrow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -1802,7 +1760,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test213HastaLaMananaLargo() throws Exception {
         final String TEST_NAME = "test213HastaLaMananaLargo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         long startMillis = System.currentTimeMillis();
@@ -1842,7 +1799,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test215ModifyLargoRemoveValidTo() throws Exception {
         final String TEST_NAME = "test215ModifyLargoRemoveValidTo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         long startMillis = clock.currentTimeMillis();
@@ -1879,7 +1835,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test217ModifyLargoRemoveValidFrom() throws Exception {
         final String TEST_NAME = "test217ModifyLargoRemoveValidFrom";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         long startMillis = clock.currentTimeMillis();
@@ -1921,7 +1876,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test230JackUnassignRepoRecompute() throws Exception {
         final String TEST_NAME = "test230JackUnassignRepoRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1937,11 +1891,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
@@ -1953,18 +1907,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test231JackRecomputeReconcile() throws Exception {
         final String TEST_NAME = "test231JackRecomputeReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
@@ -1979,9 +1932,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test240AddUserRappDraft() throws Exception {
         final String TEST_NAME = "test240AddUserRappDraft";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_RAPP_FILE);
@@ -2001,11 +1953,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2037,17 +1989,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test241RecomputeRappDraft() throws Exception {
         final String TEST_NAME = "test240AddUserRappDraft";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2080,17 +2031,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test242RappAssignCaptain() throws Exception {
         final String TEST_NAME = "test242RappAssignCaptain";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2118,18 +2068,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test245ActivateRapp() throws Exception {
         final String TEST_NAME = "test245ActivateRapp";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_ACTIVE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2161,18 +2110,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test248DeactivateRapp() throws Exception {
         final String TEST_NAME = "test248DeactivateRapp";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_ARCHIVED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2198,17 +2146,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test249DeleteUserRapp() throws Exception {
         final String TEST_NAME = "test249DeleteUserRapp";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         deleteObject(UserType.class, USER_RAPP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2223,10 +2170,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddDummyGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test300AddDummyGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -2237,12 +2183,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         display("Account shadow after", accountMancomb);
@@ -2264,10 +2210,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310ImportAccountsFromDummyGreen() throws Exception {
         final String TEST_NAME = "test310ImportAccountsFromDummyGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -2276,17 +2222,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected user mancomb before import", userMancomb);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).getNamespace(), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 40000);
 
-        displayThen(TEST_NAME);
+        then();
 
         userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("No user mancomb after import", userMancomb);
@@ -2302,7 +2248,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test350AssignMancombBlueAccount() throws Exception {
         final String TEST_NAME = "test350AssignMancombBlueAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2329,7 +2274,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test352AssignMancombBlackAccount() throws Exception {
         final String TEST_NAME = "test352AssignMancombBlackAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2362,7 +2306,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test355MancombModifyAdministrativeStatusNull() throws Exception {
         final String TEST_NAME = "test355MancombModifyAdministrativeStatusNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2397,7 +2340,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400AddHerman() throws Exception {
         final String TEST_NAME = "test400AddHerman";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         addObject(USER_HERMAN_FILE);
@@ -2414,7 +2356,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410AssignHermanKhakiAccount() throws Exception {
         final String TEST_NAME = "test410AssignHermanKhakiAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2519,7 +2460,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     }
 
     private <F extends FocusType> void test5X0CheckInitial(final String TEST_NAME, Class<F> type, String oid) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN, WHEN
         // this happens during test initialization when the role is added
@@ -2537,7 +2477,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      * MID-2877
      */
     private <F extends FocusType> void test5X1Recompute(final String TEST_NAME, Class<F> type, String oid) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2564,7 +2503,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      * MID-2877
      */
     private <F extends FocusType> void test5X2ModifyDisable(final String TEST_NAME, Class<F> type, String oid) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2596,7 +2534,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      * MID-2877
      */
     private <F extends FocusType> void test5X4ModifyEnable(final String TEST_NAME, Class<F> type, String oid) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2628,7 +2565,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      * Make sure that recompute does not destroy anything.
      */
     public <F extends FocusType> void test5X5Recompute(final String TEST_NAME, Class<F> type, String oid) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2659,10 +2595,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test600AddUser1() throws Exception {
         final String TEST_NAME = "test600AddUser1";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user1 = prismContext.createObject(UserType.class);
@@ -2676,11 +2611,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> addDelta = user1.createAddDelta();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(addDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         user1 = getUser(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedChanges));
         display("User after change execution", user1);
 
@@ -2705,7 +2640,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test610EnableUser1() throws Exception {
         final String TEST_NAME = "test610EnableUser1";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         PrismObject<UserType> user1 = findUserByUsername("user1");
@@ -2742,7 +2676,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test700ModifyJackRemoveAdministrativeStatus() throws Exception {
         final String TEST_NAME = "test700ModifyJackRemoveAdministrativeStatus";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2766,11 +2699,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userBefore, SchemaConstants.PATH_ACTIVATION_VALID_TO);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2794,7 +2727,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test702ModifyJackFuneralTimestampBeforeNow() throws Exception {
         final String TEST_NAME = "test702ModifyJackFuneralTimestampBeforeNow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2813,11 +2745,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar hourAgo = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis() - 60 * 60 * 1000);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, hourAgo);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2840,7 +2772,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test704ModifyJackFuneralTimestampAfterNow() throws Exception {
         final String TEST_NAME = "test704ModifyJackFuneralTimestampAfterNow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2857,11 +2788,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar hourAhead = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis() + 60 * 60 * 1000);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, hourAhead);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2882,7 +2813,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test750AddAndDeleteUserWithPrecreate() throws Exception {
         final String TEST_NAME = "test750AddAndDeleteUserWithPrecreate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -2910,11 +2840,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         deleteObject(UserType.class, oid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         // There's a hidden FATAL_ERROR when unlinking deleted shadow (benign ... but it prevents us from asserting success tree-wide)
         //assertSuccess(result);

@@ -88,11 +88,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test010AddedAccountJack() throws Exception {
-        final String TEST_NAME = "test010AddedAccountJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -147,10 +144,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test020ModifyLootAbsolute() throws Exception {
         final String TEST_NAME = "test020ModifyLootAbsolute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -164,11 +160,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -204,11 +200,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test021ModifyLootAbsoluteEmpty() throws Exception {
-        final String TEST_NAME = "test021ModifyLootAbsoluteEmpty";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -266,11 +259,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test030Reconcile() throws Exception {
-        final String TEST_NAME = "test030Reconcile";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -314,10 +304,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test039DeletedAccountJack() throws Exception {
         final String TEST_NAME = "test039DeletedAccountJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
@@ -341,9 +330,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
             .assertIterationToken("")
             .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
 
-        // In fact, it is responsibility of provisioning to mark shadow dead before invoking
-        // sync service. This is unit test, therefore we have to simulate behavior of provisioning
-        // here.
+        // In fact, it is responsibility of provisioning to mark shadow dead before invoking sync
+        // service. This is unit test, therefore we have to simulate behavior of provisioning here.
         markShadowTombstone(accountShadowJackDummyOid);
 
         shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
@@ -369,11 +357,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setObjectDelta(syncDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         LensContext<UserType> context = cleanDebugListener();
 
@@ -417,10 +405,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test050AddedAccountCalypso() throws Exception {
         final String TEST_NAME = "test050AddedAccountCalypso";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -443,11 +430,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -468,10 +455,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test051CalypsoRecon() throws Exception {
         final String TEST_NAME = "test051CalypsoRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -491,11 +477,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         display("Change notification", change);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -514,10 +500,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test100AddedAccountJack() throws Exception {
         final String TEST_NAME = "test100AddedAccountJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertUserBefore(USER_JACK_OID)
@@ -542,11 +527,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         LensContext<UserType> context = cleanDebugListener();
 
@@ -586,10 +571,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test199DeletedAccountJackTotal() throws Exception {
         final String TEST_NAME = "test199DeletedAccountJackTotal";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -606,11 +590,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         repositoryService.deleteObject(ShadowType.class, accountShadowJackDummyOid, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result, 1);
         LensContext<UserType> context = cleanDebugListener();
 
@@ -644,10 +628,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test200AddedAccountJackSchemaViolation() throws Exception {
         final String TEST_NAME = "test200AddedAccountJackSchemaViolation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -674,11 +657,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         getDummyResource().resetBreakMode();
         assertPartialError(result);
 
@@ -718,10 +701,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test202UpdatedAccountJackSchemaViolation() throws Exception {
         final String TEST_NAME = "test202UpdatedAccountJackSchemaViolation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -738,11 +720,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         getDummyResource().resetBreakMode();
         assertPartialError(result);
 
@@ -781,21 +763,20 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test210AssignJackDummy() throws Exception {
         final String TEST_NAME = "test210AssignJackDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setDebugListener();
         getDummyResource().resetBreakMode();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         LensContext<UserType> context = cleanDebugListener();
@@ -830,21 +811,20 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test212AssignJackDummyLimited() throws Exception {
         final String TEST_NAME = "test212AssignJackDummyLimited";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setDebugListener();
         getDummyResource().resetBreakMode();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_LIMITED_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         LensContext<UserType> context = cleanDebugListener();
@@ -889,10 +869,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test214UpdatedAccountJackLimited() throws Exception {
         final String TEST_NAME = "test214UpdatedAccountJackLimited";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -918,11 +897,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().setBreakMode(BreakMode.ASSERTION_ERROR);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         getDummyResource().resetBreakMode();
@@ -975,10 +954,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test300AddedGroupPirates() throws Exception {
         final String TEST_NAME = "test300AddedGroupPirates";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
         getDummyResource().resetBreakMode();
@@ -997,11 +975,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        displayWhen(TEST_NAME);
+        when();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

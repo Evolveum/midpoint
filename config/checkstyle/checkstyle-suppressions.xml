@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+        "https://checkstyle.org/dtds/suppressions_1_0.dtd">
+<suppressions>
+    <suppress files="[/\\]generated[/\\]" checks=".*"/>
+    <suppress files="[/\\]generated-sources[/\\]" checks=".*"/>
+    <suppress files="[/\\]annotation_3[/\\]" checks="ConstantName"/>
+    <suppress files="[/\\]query_3[/\\]" checks="ConstantName|AvoidNestedBlocks|NeedBraces"/>
+    <suppress files="[/\\]types_3[/\\]" checks="ConstantName|AvoidNestedBlocks|NeedBraces"/>
+    <suppress files="[/\\]public[/\\]query-3\.xsd$" checks="NewlineAtEndOfFile"/>
+    <suppress files="[/\\]public[/\\]types-3\.xsd$" checks="NewlineAtEndOfFile"/>
+    <suppress files="[/\\]public[/\\]annotation-3\.xsd$" checks="NewlineAtEndOfFile"/>
+    <suppress files="[/\\]test[/\\]foo.*-1\.xsd$" checks="NewlineAtEndOfFile"/>
+    <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]prism[/\\]delta[/\\]builder[/\\]" checks="TypeName"/>
+    <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]prism[/\\]query[/\\]builder[/\\]" checks="TypeName"/>
+    <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]prism[/\\]impl[/\\]query[/\\]builder[/\\]" checks="TypeName"/>
+    <suppress files="[/\\]resources[/\\]localization[/\\]Midpoint.*\.properties" checks="NewlineAtEndOfFile"/>
+
+    <!-- TODO: added for tests in 2020, but I hope at least AvoidNestedBlocks could go away (Virgo) -->
+    <!-- For tests we use a lot of _ in various names and for good reason, so we want to ignore Name rules -->
+    <suppress files="[/\\]src[/\\]test[/\\]" checks="MethodName|ConstantName|LocalVariableName|AvoidNestedBlocks"/>
+
+    <!-- This will be gone anyway. Sooner or later. -->
+    <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]model[/\\]api[/\\]ModelPort\.java$" checks="InterfaceIsType"/>
+    <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]report[/\\]api[/\\]ReportPort\.java$" checks="InterfaceIsType"/>
+</suppressions>

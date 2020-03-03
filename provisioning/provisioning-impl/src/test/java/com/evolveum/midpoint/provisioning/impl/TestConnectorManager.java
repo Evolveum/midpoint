@@ -47,16 +47,15 @@ public class TestConnectorManager extends AbstractIntegrationTest {
     @Test
     public void test100ListConnectorFactories() throws Exception {
         final String TEST_NAME = "test100ListConnectorFactories";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         Collection<ConnectorFactory> connectorFactories = connectorManager.getConnectorFactories();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotNull("Null connector factories", connectorFactories);
         assertFalse("No connector factories found", connectorFactories.isEmpty());
         display("Found "+connectorFactories.size()+" connector factories");
@@ -77,24 +76,22 @@ public class TestConnectorManager extends AbstractIntegrationTest {
     @Test
     public void test110SelfTest() throws Exception {
         final String TEST_NAME = "test100ListConnectorFactories";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         connectorManager.connectorFrameworkSelfTest(result, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
     }
 
     @Test
     public void test120FrameworkVersion() throws Exception {
         final String TEST_NAME = "test120FrameworkVersion";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         String frameworkVersion = connectorManager.getFrameworkVersion();

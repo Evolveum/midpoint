@@ -57,4 +57,19 @@
             <class name="com.evolveum.midpoint.testing.schrodinger.page.QueryPlaygroundPageTest"/>
         </classes>
     </test>
+    <test name="Schrodinger.page.InternalsConfigurationPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.InternalsConfigurationPageTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.page.LoginPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.LoginPageTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.page.LoginPageWithAuthenticationConfigTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.LoginPageWithAuthenticationConfigTest"/>
+        </classes>
+    </test>
 </suite>

@@ -6,13 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-
-<q:filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
+<q:filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <q:description>...a filter description...</q:description>
     <q:equal>
         <q:path>connectorType</q:path>
-        <q:value>
-            org.identityconnectors.ldap.LdapConnector
-        </q:value>
+        <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
     </q:equal>
 </q:filter>

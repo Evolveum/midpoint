@@ -117,11 +117,11 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test100ParallelApprovals() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> assignDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
@@ -165,8 +165,8 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test110ParallelApprovalsAdd() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         if (listener != null) {
             taskManager.unregisterTaskListener(listener);
@@ -175,7 +175,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         taskManager.registerTaskListener(listener);
 
         // WHEN
-        displayWhen();
+        when();
         UserType alice = prismContext.createObjectable(UserType.class)
                 .name("alice")
                 .assignment(ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext))
@@ -220,11 +220,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test120ParallelApprovalsInTwoOperations() throws Exception {
         login(userAdministrator);
 
-        String testName = getTestNameShort();
-
-        Task task0 = createTask(testName);
-        Task task1 = createTask(testName);
-        Task task2 = createTask(testName);
+        Task task0 = createPlainTask("task0");
+        Task task1 = createPlainTask("task1");
+        Task task2 = createPlainTask("task2");
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();
@@ -236,7 +234,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         taskManager.registerTaskListener(listener);
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> assignDelta1 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
@@ -286,12 +284,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test130ParallelApprovalsInThreeSummarizingOperations() throws Exception {
         login(userAdministrator);
 
-        String testName = getTestNameShort();
-
-        Task task0 = createTask(testName);
-        Task task1 = createTask(testName);
-        Task task2 = createTask(testName);
-        Task task3 = createTask(testName);
+        Task task0 = createPlainTask("task0");
+        Task task1 = createPlainTask("task1");
+        Task task2 = createPlainTask("task2");
+        Task task3 = createPlainTask("task3");
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();
@@ -304,7 +300,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         taskManager.registerTaskListener(listener);
 
         // WHEN
-        displayWhen();
+        when();
         // three separate approval contexts, "summarizing" as the deltas are executed after all approvals
         assignRole(userChuckOid, roleRole51aOid, task1, result1);
         assignRole(userChuckOid, roleRole52aOid, task2, result2);

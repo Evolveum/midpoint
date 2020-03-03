@@ -278,8 +278,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test300ApprovalAndEnforce() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         try {
             assignRole(userJackOid, roleRole24Oid, task, result);
@@ -326,8 +326,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test500NoApprovers() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userJackOid, roleRole26Oid, task, result);
         String ref = result.findAsynchronousOperationReference();       // TODO use recompute + getAsync... when fixed
@@ -352,15 +352,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test600AssignRole29() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         assignRole(userJackOid, roleRole29Oid, task, result);           // should proceed without approvals
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertAssignedRoles(jack, roleRole29Oid);
@@ -371,7 +371,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
@@ -465,7 +465,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertAssignedRoles(jackAfter, roleRole29Oid);
@@ -487,7 +487,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
@@ -582,7 +582,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, true);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertAssignedRoles(jackAfter, roleRole29Oid);
@@ -592,15 +592,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test630UnassignRole29() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignRoleByAssignmentValue(getUser(userJackOid), roleRole29Oid, task, result);           // should proceed without approvals
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, roleRole29Oid);
@@ -708,7 +708,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertAssignedRoles(jack, roleRole28Oid);
@@ -720,7 +720,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
@@ -816,7 +816,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertAssignedRoles(jackAfter, roleRole28Oid);
@@ -828,7 +828,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
@@ -925,7 +925,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertNotAssignedRole(jackAfter, roleRole28Oid);
@@ -934,11 +934,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test800AssignRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(ObjectTypeUtil.createAssignmentTo(roleRole27Oid, ObjectTypes.ROLE, prismContext)
@@ -947,7 +947,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertAssignedRoles(jack, roleRole27Oid);
@@ -956,11 +956,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test810ModifyAssignmentOfRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignmentBefore = findAssignmentByTargetRequired(jackBefore, roleRole27Oid);
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -971,7 +971,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, roleRole27Oid);
@@ -981,15 +981,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test820UnassignRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignRoleByAssignmentValue(getUser(userJackOid), roleRole27Oid, task, result);           // should proceed without approvals
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, roleRole27Oid);
@@ -998,11 +998,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test      // MID-5827
     public void test900AssignIdempotentRole() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignAllRoles(userJackOid);
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -1017,7 +1017,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, ROLE_IDEMPOTENT.oid);
@@ -1038,11 +1038,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test910AssignRoleWithIdempotentMetarole() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignAllRoles(userJackOid);
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -1057,7 +1057,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, ROLE_WITH_IDEMPOTENT_METAROLE.oid);
@@ -1077,7 +1077,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private void executeAssignRoles123ToJack(boolean immediate,
             boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         String testName = getTestNameShort();
         PrismObject<UserType> jack = getUser(userJackOid);
         ObjectDelta<UserType> addRole1Delta = prismContext
@@ -1174,7 +1174,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                     case 3:
                         String[] oids = { roleRole21Oid, roleRole22Oid, roleRole23Oid };
                     if (yes) {
-                        assertAssignedRole(userJackOid, oids[number-1], opTask, result);
+                        assertAssignedRole(userJackOid, oids[number-1], result);
                     } else {
                         assertNotAssignedRole(userJackOid, oids[number-1], opTask, result);
                     }
@@ -1218,8 +1218,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private void previewAssignRolesToJack(boolean immediate, boolean also24) throws Exception {
         String testName = getTestNameShort();
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
         boolean TRACE = false;
         //noinspection ConstantConditions
         if (TRACE) {
@@ -1445,15 +1445,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                             assertNotAssignedRole(userJackOid, roleRole21Oid, opTask, result);
                             assertNotAssignedRole(userJackOid, roleRole22Oid, opTask, result);
                         } else {
-                            assertAssignedRole(userJackOid, roleRole21Oid, opTask, result);
-                            assertAssignedRole(userJackOid, roleRole22Oid, opTask, result);
+                            assertAssignedRole(userJackOid, roleRole21Oid, result);
+                            assertAssignedRole(userJackOid, roleRole22Oid, result);
                         }
                         break;
                     case 1:
                         if (yes) {
                             assertNotAssignedRole(userJackOid, roleRole23Oid, opTask, result);
                         } else {
-                            assertAssignedRole(userJackOid, roleRole23Oid, opTask, result);
+                            assertAssignedRole(userJackOid, roleRole23Oid, result);
                         }
                         break;
                     default:
@@ -1489,12 +1489,6 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             rv.setId(assignment.getId());
             return rv;
         }
-    }
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
     }
 
     private static class ExpectedStagePreview {

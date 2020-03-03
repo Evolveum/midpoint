@@ -23,7 +23,20 @@
 
     <modules>
         <module>sanity</module>
-        <!-- DO NOT include other testing submodules by default, it runs too long for ordinary build -->
+        <!--
+        The following modules skip tests by default, but we ALWAYS want to build the sources.
+        Tests are run in "long" CI builds, skip=false semantic is used.
+        See each POM for property controlling the tests - typically for "module-name" it's:
+        -Dskip<ModuleName>Tests=false (default value is true)
+        We try to avoid repeating "tests" in the property name, check its exact spelling in POMs.
+        If skip is set to false, values of skipTests/skipITs are not applied for these modules.
+        -->
+        <module>conntest</module>
+        <module>longtest</module>
+        <module>story</module>
+        <module>rest</module>
+        <module>samples-test</module>
+        <module>schrodingertest</module>
     </modules>
 
     <properties>
@@ -32,28 +45,4 @@
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
-
-    <profiles>
-        <profile>
-            <id>extratest</id>
-            <modules>
-                <module>longtest</module>
-                <module>story</module>
-                <module>rest</module>
-                <module>samples-test</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>conntest</id>
-            <modules>
-                <module>conntest</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>schrodinger</id>
-            <modules>
-                <module>schrodingertest</module>
-            </modules>
-        </profile>
-    </profiles>
 </project>

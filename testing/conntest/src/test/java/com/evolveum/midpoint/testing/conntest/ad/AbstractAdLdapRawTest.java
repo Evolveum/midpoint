@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2016 Evolveum and contributors
+/*
+ * Copyright (c) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,7 +18,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -29,10 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public abstract class AbstractAdLdapRawTest extends AbstractAdLdapTest {
 
     @Test
-    public void test050Capabilities() throws Exception {
-        final String TEST_NAME = "test050Capabilities";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
+    public void test050Capabilities() {
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
         display("Native capabilities", nativeCapabilitiesCollection);
 

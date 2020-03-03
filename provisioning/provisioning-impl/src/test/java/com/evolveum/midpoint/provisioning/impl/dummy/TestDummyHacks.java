@@ -11,43 +11,17 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismContext;
-
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy resource for speed and flexibility.

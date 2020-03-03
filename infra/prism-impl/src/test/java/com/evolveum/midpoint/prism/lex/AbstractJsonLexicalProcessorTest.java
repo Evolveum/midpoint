@@ -17,7 +17,6 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.fail;
@@ -35,10 +34,6 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
 
     @Test
     public void testParseObjectsIteratively_2_Wrong() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_2_Wrong";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -78,10 +73,6 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
 
     @Test
     public void testParseObjectsIteratively_2_Wrong_2() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_2_Wrong_2";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 

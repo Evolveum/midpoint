@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
@@ -64,7 +63,6 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
     @Test
     public void test100ModifyAccountExplicitType() throws Exception {
         final String TEST_NAME = "test100ModifyUserAddAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);
@@ -92,7 +90,6 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
     @Test
     public void test110ModifyAccountImplicitType() throws Exception {
         final String TEST_NAME = "test110ModifyAccountImplicitType";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);
@@ -117,7 +114,6 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
     @Test
     public void test200ModifyAccountWrongExplicitType() throws Exception {
         final String TEST_NAME = "test200ModifyAccountWrongExplicitType";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);

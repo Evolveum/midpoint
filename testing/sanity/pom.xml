@@ -193,7 +193,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -247,7 +246,8 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <runOrder>alphabetical</runOrder>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
                 </configuration>
             </plugin>
             <plugin>

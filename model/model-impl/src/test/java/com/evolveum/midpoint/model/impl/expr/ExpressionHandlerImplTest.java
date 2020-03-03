@@ -11,9 +11,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,43 +19,32 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- *
  * @author lazyman
- *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
-public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests {
+public class ExpressionHandlerImplTest extends AbstractSpringTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
     private static final File TEST_FOLDER = new File("./src/test/resources/expr");
@@ -81,8 +68,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
     // This test is wrong. Maybe wrong place.
     // But the problem is, that the account here contains raw values. It does not have
     // the definition applied. Therefore the equals() in groovy won't work.
-    @Test(enabled=false)
-    @SuppressWarnings("unchecked")
+    @Test(enabled = false)
     public void testConfirmUser() throws Exception {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(
                 TEST_FOLDER, "account-xpath-evaluation.xml"));
@@ -109,7 +95,6 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
         assertTrue("Wrong expression result (expected true)", confirmed);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testEvaluateExpression() throws Exception {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "account.xml"));
@@ -121,14 +106,14 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
         accountType.setResourceRef(resourceRef);
 
         ObjectSynchronizationType synchronization = resourceType.getSynchronization().getObjectSynchronization().get(0);
-        for (ConditionalSearchFilterType filter : synchronization.getCorrelation()){
+        for (ConditionalSearchFilterType filter : synchronization.getCorrelation()) {
             MapXNode clauseXNode = filter.getFilterClauseXNode();
             // key = q:equal, value = map (path + expression)
             RootXNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue())
                     .getEntryAsRoot(new QName(SchemaConstants.NS_C, "expression"));
 
             ExpressionType expression = PrismTestUtil.getPrismContext().parserFor(expressionNode).parseRealValue(ExpressionType.class);
-            LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));
+            LOGGER.debug("Expression: {}", SchemaDebugUtil.prettyPrint(expression));
 
             OperationResult result = new OperationResult("testCorrelationRule");
             String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", null, result);
@@ -136,17 +121,5 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
             assertEquals("Wrong expression result", "hbarbossa", name);
         }
-    }
-
-    private Element findChildElement(Element element, String namespace, String name) {
-        NodeList list = element.getChildNodes();
-        for (int i = 0; i < list.getLength(); i++) {
-            Node node = list.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE && namespace.equals(node.getNamespaceURI())
-                    && name.equals(node.getLocalName())) {
-                return (Element) node;
-            }
-        }
-        return null;
     }
 }

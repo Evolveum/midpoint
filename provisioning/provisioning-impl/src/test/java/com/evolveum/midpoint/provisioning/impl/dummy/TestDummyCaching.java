@@ -95,7 +95,6 @@ public class TestDummyCaching extends TestDummy {
     @Override
     public void test107AGetModifiedAccountFromCacheMax() throws Exception {
         final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -111,12 +110,12 @@ public class TestDummyCaching extends TestDummy {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("getObject result", result);
         TestUtil.assertSuccess(result);
@@ -163,7 +162,6 @@ public class TestDummyCaching extends TestDummy {
     @Override
     public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
         final String TEST_NAME = "test107BGetModifiedAccountFromCacheHighStaleness";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -178,12 +176,12 @@ public class TestDummyCaching extends TestDummy {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -225,7 +223,6 @@ public class TestDummyCaching extends TestDummy {
     @Test
     public void test107CSkipCachingForIncompleteAttributes() throws Exception {
         final String TEST_NAME = "test107CSkipCachingForIncompleteAttributes";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -240,13 +237,13 @@ public class TestDummyCaching extends TestDummy {
             XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
 
             PrismObject<ShadowType> shadow = provisioningService
                     .getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
             // THEN
-            displayThen(TEST_NAME);
+            then();
             assertSuccess(result);
 
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
@@ -298,7 +295,6 @@ public class TestDummyCaching extends TestDummy {
     @Override
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
         final String TEST_NAME = "test119SearchAllAccountsMaxStaleness";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -378,18 +374,6 @@ public class TestDummyCaching extends TestDummy {
         assertProtectedString("Wrong password value in repo shadow "+shadowRepo, expectedPassword, protectedStringType, CredentialsStorageTypeType.HASHING);
     }
 
-    /**
-     * We do not know what the timestamp should be. But some timestamp should be there.
-     */
-    @Override
-    protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowFromRepo) {
-        CachingMetadataType cachingMetadata = shadowFromRepo.asObjectable().getCachingMetadata();
-        assertNotNull("No caching metadata in "+shadowFromRepo, cachingMetadata);
-
-        assertNotNull("Missing retrieval timestamp in caching metadata in "+shadowFromRepo,
-                cachingMetadata.getRetrievalTimestamp());
-    }
-
     @Override
     protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowFromRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
         CachingMetadataType cachingMetadata = shadowFromRepo.asObjectable().getCachingMetadata();
@@ -441,7 +425,7 @@ public class TestDummyCaching extends TestDummy {
     @Override
     protected void checkCachedAccountShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) throws SchemaException {
-        super.checkAccountShadow(shadow, parentResult, fullShadow, startTs, endTs);
+        super.checkAccountShadow(shadow, parentResult, fullShadow);
         if (fullShadow) {
             assertCachingMetadata(shadow, true, startTs, endTs);
         }

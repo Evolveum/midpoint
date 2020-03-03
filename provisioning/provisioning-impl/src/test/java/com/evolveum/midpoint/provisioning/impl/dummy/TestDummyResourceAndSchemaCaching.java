@@ -63,7 +63,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test010GetResource() throws Exception {
         final String TEST_NAME = "test010GetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -88,11 +87,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         rememberResourceCacheStats();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Resource", resource);
         assertSuccess(result);
 
@@ -133,7 +132,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test011GetResourceAgain() throws Exception {
         final String TEST_NAME = "test011GetResourceAgain";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -204,7 +202,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test012AddAccountGetResource() throws Exception {
         final String TEST_NAME = "test012AddAccountGetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -247,7 +244,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test013GetResourceNoFetch() throws Exception {
         final String TEST_NAME = "test013GetResourceNoFetch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -321,7 +317,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test020ModifyAndGetResource() throws Exception {
         final String TEST_NAME = "test020ModifyAndGetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -383,7 +378,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test022GetAccountGetResource() throws Exception {
         final String TEST_NAME = "test012AddAccountGetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -434,7 +428,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test023ModifyRepoAndGetResource() throws Exception {
         final String TEST_NAME = "test023ModifyRepoAndGetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -496,7 +489,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test030ModifyConnectorConfigAndGetResource() throws Exception {
         final String TEST_NAME = "test030ModifyConnectorConfigAndGetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -527,7 +519,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test031ModifyConnectorConfigRepoAndGetResource() throws Exception {
         final String TEST_NAME = "test031ModifyConnectorConfigRepoAndGetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);
@@ -552,7 +543,6 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     @Test
     public void test900DeleteResource() throws Exception {
         final String TEST_NAME = "test900DeleteResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + "." + TEST_NAME);

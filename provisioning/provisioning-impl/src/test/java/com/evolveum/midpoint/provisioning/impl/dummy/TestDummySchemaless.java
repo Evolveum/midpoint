@@ -62,8 +62,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
@@ -101,9 +99,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     private static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
     private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
-    private static final String ACCOUNT_WILL_ICF_UID = "will";
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummySchemaless.class);
 
     private PrismObject<ResourceType> resourceSchemaless;
     private ResourceType resourceTypeSchemaless;
@@ -113,7 +108,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     private static DummyResource dummyResourceStaticSchema;
     private static DummyResourceContoller dummyResourceSchemalessCtl;
 
-    @Autowired(required = true)
+    @Autowired
     private ProvisioningService provisioningService;
 
     public TestDummySchemaless() {
@@ -154,9 +149,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     @Test
     public void test000Integrity() throws Exception {
-        final String TEST_NAME = "test000Integrity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         display("Dummy resource instance", dummyResourceSchemaless.toString());
 
         assertNotNull("Resource is null", resourceSchemaless);
@@ -187,10 +179,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test003ConnectionSchemaless() throws Exception {
-        final String TEST_NAME = "test003ConnectionSchemaless";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         // Check that there is no schema before test (pre-condition)
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
@@ -229,10 +219,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test005ParsedSchemaSchemaless() throws Exception {
-        final String TEST_NAME = "test005ParsedSchemaSchemaless";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
         // THEN
         // The returned type should have the schema pre-parsed
@@ -248,11 +235,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     @Test
     public void test006GetObjectSchemaless() throws Exception {
-        final String TEST_NAME = "test006GetObjectSchemaless";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
-
+        OperationResult result = createOperationalResult();
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, null, result);
         assertNotNull("Resource is null", resource);
         ResourceType resourceType = resource.asObjectable();
@@ -262,13 +246,12 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     @Test
     public void test020ResourceStaticSchemaTest() throws Exception {
-        resourceStaticSchemaTest("test020ResourceStaticSchemaTest", 1);
+        resourceStaticSchemaTest(1);
     }
 
-    public void resourceStaticSchemaTest(final String TEST_NAME, int expectedConnectorInitCount) throws Exception {
-        displayTestTitle(TEST_NAME);
+    public void resourceStaticSchemaTest(int expectedConnectorInitCount) throws Exception {
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Some connector initialization and other things might happen in previous tests.
@@ -356,7 +339,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     }
 
     public void resourceStatciSchemaResourceAndConnectorCaching(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
@@ -386,12 +368,12 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertStaticSchemaSanity(resourceSchemaBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID,
                 null, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ResourceType resourceTypeAgain = resourceAgain.asObjectable();
@@ -455,20 +437,19 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test040ReAddResourceStaticSchema() throws Exception {
         final String TEST_NAME = "test040ReAddResourceStaticSchema";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceNew = prismContext.parseObject(RESOURCE_DUMMY_STATIC_SCHEMA_FILE);
         fillInConnectorRef(resourceNew, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.addObject(resourceNew, null, ProvisioningOperationOptions.createOverwrite(true), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
@@ -488,7 +469,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     @Test
     public void test042ResourceStaticSchemaTestAgain() throws Exception {
-        resourceStaticSchemaTest("test042ResourceStaticSchemaTestAgain", 0);
+        resourceStaticSchemaTest(0);
     }
 
     /**
@@ -509,10 +490,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test103ConnectionStaticSchema() throws Exception {
-        final String TEST_NAME = "test103ConnectionStaticSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Check that there a schema before test (pre-condition)
@@ -550,10 +529,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test105ParsedSchemaStaticSchema() throws Exception {
-        final String TEST_NAME = "test105ParsedSchemaStaticSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
         // THEN
         // The returned type should have the schema pre-parsed
@@ -570,10 +546,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     @Test
     public void test106GetObjectStaticSchema() throws Exception {
-        final String TEST_NAME = "test106GetObjectStaticSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationalResult();
 
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result);
         assertNotNull("Resource is null", resource);
@@ -698,18 +672,17 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test107Capabilities() throws Exception {
         final String TEST_NAME = "test107Capabilities";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result)
                 .asObjectable();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Check native capabilities
@@ -760,10 +733,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
      */
     @Test
     public void test200AddAccount() throws Exception {
-        final String TEST_NAME = "test200AddAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationalResult();
 
         ShadowType account = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
         account.asPrismObject().checkConsistence();

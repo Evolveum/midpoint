@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -70,8 +70,6 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
      */
     @Test
     public void test228ModifyUserBarbossaPasswordSelfServiceDesynchronized() throws Exception {
-        final String TEST_NAME = "test228ModifyUserBarbossaPasswordSelfServiceDesynchronized";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // preconditions
@@ -82,7 +80,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 
         login(USER_BARBOSSA_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
@@ -90,11 +88,11 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
                 USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_3);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(objectDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         login(USER_ADMINISTRATOR_USERNAME);
         display(result);
         assertPartialError(result);

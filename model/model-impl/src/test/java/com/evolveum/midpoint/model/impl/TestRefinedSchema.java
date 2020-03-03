@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -61,9 +60,6 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // WHEN
         refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), prismContext);
 
@@ -75,9 +71,6 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test010SanityModel() throws Exception {
-        final String TEST_NAME = "test010SanityModel";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // WHEN
         refinedSchemaModel = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), LayerType.MODEL, prismContext);
 
@@ -91,10 +84,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test100EntitlementRefinedObjectClasses() throws Exception {
-        final String TEST_NAME = "test100EntitlementRefinedObjectClasses";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
+    public void test100EntitlementRefinedObjectClasses() {
         // WHEN
         Collection<? extends RefinedObjectClassDefinition> entitlementROcDefs = refinedSchema.getRefinedDefinitions(ShadowKindType.ENTITLEMENT);
 
@@ -109,10 +99,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test101EntitlementRefinedObjectClassesModel() throws Exception {
-        final String TEST_NAME = "test101EntitlementRefinedObjectClassesModel";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
+    public void test101EntitlementRefinedObjectClassesModel() {
         // WHEN
         Collection<? extends RefinedObjectClassDefinition> entitlementROcDefs = refinedSchemaModel.getRefinedDefinitions(ShadowKindType.ENTITLEMENT);
 
@@ -128,10 +115,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test110DetermineObjectClassObjectClass() throws Exception {
-        final String TEST_NAME = "test110DetermineObjectClassObjectClass";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        OperationResult result = new OperationResult(TestRefinedSchema.class.getName() + "." + TEST_NAME);
+        OperationResult result = new OperationResult(getTestNameShort());
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
 
@@ -151,10 +135,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test112DetermineObjectClassKindIntent() throws Exception {
-        final String TEST_NAME = "test112DetermineObjectClassKindIntent";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        OperationResult result = new OperationResult(TestRefinedSchema.class.getName() + "." + TEST_NAME);
+        OperationResult result = new OperationResult(getTestNameShort());
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
 
@@ -174,10 +155,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test114DetermineObjectClassKindIntentObjectClass() throws Exception {
-        final String TEST_NAME = "test114DetermineObjectClassKindIntentObjectClass";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        OperationResult result = new OperationResult(TestRefinedSchema.class.getName() + "." + TEST_NAME);
+        OperationResult result = new OperationResult(getTestNameShort());
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
 
@@ -197,10 +175,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test120DetermineObjectClassObjectClassModel() throws Exception {
-        final String TEST_NAME = "test120DetermineObjectClassObjectClassModel";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        OperationResult result = new OperationResult(TestRefinedSchema.class.getName() + "." + TEST_NAME);
+        OperationResult result = new OperationResult(getTestNameShort());
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
 
@@ -221,10 +196,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test122DetermineObjectClassKindIntentModel() throws Exception {
-        final String TEST_NAME = "test122DetermineObjectClassKindIntentModel";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        OperationResult result = new OperationResult(TestRefinedSchema.class.getName() + "." + TEST_NAME);
+        OperationResult result = new OperationResult(getTestNameShort());
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
 
@@ -246,10 +218,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test124DetermineObjectClassKindIntentObjectClassModel() throws Exception {
-        final String TEST_NAME = "test124DetermineObjectClassKindIntentObjectClassModel";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        OperationResult result = new OperationResult(TestRefinedSchema.class.getName() + "." + TEST_NAME);
+        OperationResult result = new OperationResult(getTestNameShort());
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
 
@@ -269,8 +238,8 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
                 ShadowKindType.ENTITLEMENT, "privilege", LayerType.MODEL);
     }
 
-    private void assertObjectClass(ObjectClassComplexTypeDefinition objectClass,
-            QName objectClassQName) {
+    private void assertObjectClass(
+            ObjectClassComplexTypeDefinition objectClass, QName objectClassQName) {
         assertNotNull("No object class", objectClass);
         assertEquals("Wrong object class QName in object class " + objectClass, objectClassQName, objectClass.getTypeName());
     }

@@ -71,16 +71,15 @@ public class TestIterativeTasks extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100RunBucketsMultithreaded() throws Exception {
         final String TEST_NAME = "test100RunBucketsMultithreaded";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addTask(TASK_BUCKETS_MULTITHREADED_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         waitForTaskFinish(TASK_BUCKETS_MULTITHREADED_OID, false);
     }
 

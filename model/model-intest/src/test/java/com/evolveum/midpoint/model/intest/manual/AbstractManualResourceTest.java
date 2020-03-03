@@ -69,8 +69,6 @@ import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -106,8 +104,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     protected static final File TEST_DIR = new File("src/test/resources/manual/");
 
     public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
 
     protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
     protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_MANUAL_CONF, "defaultAssignee");
@@ -267,7 +263,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
                 + "." + TEST_NAME);
@@ -299,9 +294,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     public void testConnection(final String TEST_NAME, boolean initialized) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Check that there is a schema, but no capabilities before test (pre-condition)
@@ -324,11 +318,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         }
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult testResult = modelService.testResource(getResourceOid(), task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Test result", testResult);
         TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
@@ -377,7 +371,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test014Configuration() throws Exception {
         final String TEST_NAME = "test014Configuration";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
                 + "." + TEST_NAME);
@@ -393,19 +386,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         PrismProperty<String> propDefaultAssignee = configurationContainer.findProperty(CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME);
         assertNotNull("No defaultAssignee conf prop", propDefaultAssignee);
 
-//        assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-//        PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
-//        assertNotNull("No configuration properties container definition", confPropDef);
-
         assertSteadyResources();
     }
 
     @Test
     public void test016ParsedSchema() throws Exception {
-        final String TEST_NAME = "test016ParsedSchema";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
         // THEN
         // The returned type should have the schema pre-parsed
@@ -455,7 +441,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     public void testCapabilities(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()+"."+TEST_NAME);
@@ -505,9 +490,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     public void testResourceCaching(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceReadonlyBefore = modelService.getObject(
@@ -516,19 +500,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertSteadyResources();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ResourceType> resourceReadOnlyAgain = modelService.getObject(
                 ResourceType.class, getResourceOid(), GetOperationOptions.createReadOnlyCollection(), task, result);
 
         assertSteadyResources();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ResourceType> resourceAgain = modelService.getObject(
                 ResourceType.class, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
 //        assertTrue("Resource instance changed", resourceBefore == resourceReadOnlyAgain);
@@ -539,20 +523,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test020ReimportResource() throws Exception {
         final String TEST_NAME = "test020ReimportResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ImportOptionsType options = new ImportOptionsType();
         options.setOverwrite(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importObjectsFromFile(getResourceFile(), options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
     }
 
@@ -580,20 +563,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test030ReimportResourceAgain() throws Exception {
         final String TEST_NAME = "test030ReimportResourceAgain";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ImportOptionsType options = new ImportOptionsType();
         options.setOverwrite(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importObjectsFromFile(getResourceFile(), options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
     }
 
@@ -601,19 +583,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test032UseResource() throws Exception {
         final String TEST_NAME = "test032UseResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(), ShadowKindType.ACCOUNT, null, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> accounts = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found accounts", accounts);
@@ -694,19 +675,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test101GetAccountWillFuture() throws Exception {
         final String TEST_NAME = "test101GetAccountWillFuture";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountWillOid, options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Model shadow", shadowModel);
@@ -728,17 +708,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test102RecomputeWill() throws Exception {
         final String TEST_NAME = "test102RecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
@@ -752,19 +731,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test103RunPropagation() throws Exception {
         final String TEST_NAME = "test103RunPropagation";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT2M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
@@ -779,18 +757,17 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test104RecomputeWill() throws Exception {
         final String TEST_NAME = "test104RecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
@@ -807,16 +784,15 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     public void test105RunPropagationAgain() throws Exception {
         final String TEST_NAME = "test105RunPropagationAgain";
 
-        displayTestTitle(TEST_NAME);
         // GIVEN
         rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
         assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTING);
@@ -831,20 +807,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test106AddToBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test106AddToBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreProvisionWill(INTEREST_ONE);
         displayBackingStore();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Model shadow", shadowModel);
@@ -876,19 +851,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test108GetAccountWillFuture() throws Exception {
         final String TEST_NAME = "test108GetAccountWillFuture";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountWillOid, options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Model shadow", shadowModel);
@@ -924,9 +898,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test110CloseCaseAndRecomputeWill() throws Exception {
         final String TEST_NAME = "test110CloseCaseAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -934,12 +907,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -957,16 +930,15 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     public void test114RunPropagation() throws Exception {
         final String TEST_NAME = "test114RunPropagation";
 
-        displayTestTitle(TEST_NAME);
         // GIVEN
         rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
 
         assertWillAfterCreateCaseClosed(TEST_NAME, true);
@@ -980,19 +952,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test120RecomputeWillAfter5min() throws Exception {
         final String TEST_NAME = "test120RecomputeWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(accountWillOid)
@@ -1023,19 +994,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test130RecomputeWillAfter25min() throws Exception {
         final String TEST_NAME = "test130RecomputeWillAfter25min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT20M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(accountWillOid)
@@ -1066,19 +1036,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test132RecomputeWillAfter32min() throws Exception {
         final String TEST_NAME = "test132RecomputeWillAfter32min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT7M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(accountWillOid)
@@ -1097,9 +1066,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test200ModifyUserWillFullname() throws Exception {
         final String TEST_NAME = "test200ModifyUserWillFullname";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -1110,11 +1078,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME_PIRATE));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -1128,17 +1096,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test202RecomputeWill() throws Exception {
         final String TEST_NAME = "test202RecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
@@ -1149,17 +1116,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test203RunPropagation() throws Exception {
         final String TEST_NAME = "test203RunPropagation";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         clockForward("PT2M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
 
@@ -1169,17 +1135,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test204RecomputeWill() throws Exception {
         final String TEST_NAME = "test204RecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
@@ -1193,9 +1158,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test206CloseCaseAndRecomputeWill() throws Exception {
         final String TEST_NAME = "test206CloseCaseAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -1203,11 +1167,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1271,19 +1235,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test210RecomputeWillAfter5min() throws Exception {
         final String TEST_NAME = "test210RecomputeWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -1331,20 +1294,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test212UpdateBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test212UpdateBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_OLD);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
@@ -1393,19 +1355,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test400PhantomAccount() throws Exception {
         final String TEST_NAME = "test400PhantomAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        setupPhantom(TEST_NAME);
+        setupPhantom();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_PHANTOM_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         // This should theoretically always return IN_PROGRESS, as there is
         // reconciliation operation going on. But due to various "peculiarities"
@@ -1417,11 +1378,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         }
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_PHANTOM_OID);
         display("User after", userAfter);
@@ -1447,9 +1408,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertSteadyResources();
     }
 
-    protected void setupPhantom(final String TEST_NAME) throws Exception {
+    protected void setupPhantom() throws Exception {
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_PHANTOM_FILE);
@@ -1467,30 +1428,29 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test410AssignPhoenixAccount() throws Exception {
         final String TEST_NAME = "test410AssignPhoenixAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_PHOENIX_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertInProgress(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);
@@ -1514,20 +1474,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test412AddPhoenixToBackingStoreAndCloseTicket() throws Exception {
         final String TEST_NAME = "test412AddPhoenixToBackingStoreAndCloseTicket";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreAddPhoenix();
         closeCase(phoenixLastCaseOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_PHOENIX_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
@@ -1553,19 +1512,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test413PhoenixLetOperationsExpire() throws Exception {
         final String TEST_NAME = "test413PhoenixLetOperationsExpire";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT1H");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_PHOENIX_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
@@ -1591,28 +1549,27 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test414UnassignPhoenixAccount() throws Exception {
         final String TEST_NAME = "test414UnassignPhoenixAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertInProgress(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);
@@ -1635,30 +1592,29 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test416PhoenixAccountUnassignCloseCase() throws Exception {
         final String TEST_NAME = "test416PhoenixAccountUnassignCloseCase";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(phoenixLastCaseOid);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_PHOENIX_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);
@@ -1683,28 +1639,27 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test418AssignPhoenixAccountAgain() throws Exception {
         final String TEST_NAME = "test418AssignPhoenixAccountAgain";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         phoenixLastCaseOid = assertInProgress(result);
 
         // Make sure the operation will be picked up by propagation task
         clockForward("PT3M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
         display("User after", userAfter);
@@ -1768,15 +1723,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test900SetUpRoles() throws Exception {
         final String TEST_NAME = "test900SetUpRoles";
-        displayTestTitle(TEST_NAME);
         if (!are9xxTestsEnabled()) {
             displaySkip(TEST_NAME);
             return;
         }
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTestTask();
 
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         display("System config", systemConfiguration);
@@ -1819,14 +1772,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test910ConcurrentRolesAssign() throws Exception {
         final String TEST_NAME = "test910ConcurrentRolesAssign";
-        displayTestTitle(TEST_NAME);
         if (!are9xxTestsEnabled()) {
             displaySkip(TEST_NAME);
             return;
         }
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         int numberOfCasesBefore = getObjectCount(CaseType.class);
@@ -1837,19 +1789,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         final long TIMEOUT = 60000L;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     login(userAdministrator);
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
 
                     assignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localTask.getResult());
 
                 }, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeAssign());
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         waitForThreads(threads, TIMEOUT);
 
         PrismObject<UserType> userAfter = getUser(USER_DRAKE_OID);
@@ -1862,7 +1814,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("Repo shadow", shadowRepo);
         assertShadowNotDead(shadowRepo);
 
-        assertTest910ShadowRepo(shadowRepo, task, result);
+        assertTest910ShadowRepo(shadowRepo);
 
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountDrakeOid, options, task, result);
@@ -1871,7 +1823,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 //        assertObjects(CaseType.class, numberOfCasesBefore + getConcurrentTestNumberOfThreads());
     }
 
-    protected void assertTest910ShadowRepo(PrismObject<ShadowType> shadowRepo, Task task, OperationResult result) throws Exception {
+    protected void assertTest910ShadowRepo(PrismObject<ShadowType> shadowRepo) throws Exception {
         assertShadowNotDead(shadowRepo);
         ObjectDeltaType addPendingDelta = null;
         for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
@@ -1898,14 +1850,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @Test
     public void test919ConcurrentRoleUnassign() throws Exception {
         final String TEST_NAME = "test919ConcurrentRoleUnassign";
-        displayTestTitle(TEST_NAME);
         if (!are9xxTestsEnabled()) {
             displaySkip(TEST_NAME);
             return;
         }
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         int numberOfCasesBefore = getObjectCount(CaseType.class);
@@ -1916,13 +1867,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         final long TIMEOUT = 60000L;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
-        ParallelTestThread[] threads = multithread(TEST_NAME,
+        ParallelTestThread[] threads = multithread(
                 (i) -> {
                     display("Thread "+Thread.currentThread().getName()+" START");
                     login(userAdministrator);
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     unassignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localResult);
@@ -1934,7 +1885,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 }, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeUnassign());
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         waitForThreads(threads, TIMEOUT);
 
         PrismObject<UserType> userAfter = getUser(USER_DRAKE_OID);
@@ -2003,7 +1954,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     protected void assertAccountWillAfterFullNameModification(final String TEST_NAME, PendingOperationExecutionStatusType executionStage) throws Exception {
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -2100,19 +2051,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     protected void assignWillRoleOne(final String TEST_NAME, String expectedFullName, PendingOperationExecutionStatusType executionStage) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userWillOid, getRoleOneOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -2197,7 +2147,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 
     protected void assertAccountJackAfterAssign(final String TEST_NAME) throws Exception {
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
@@ -2233,7 +2183,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     protected void assertWillAfterCreateCaseClosed(final String TEST_NAME, boolean backingStoreUpdated) throws Exception {
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
@@ -2370,7 +2320,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
     }
 
-    protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
+    protected void cleanupUser(String userOid, String username, String accountOid) throws Exception {
         // nothing to do here
     }
 

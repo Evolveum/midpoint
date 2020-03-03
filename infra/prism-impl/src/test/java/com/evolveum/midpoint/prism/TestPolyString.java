@@ -36,9 +36,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testSimpleAlphaNormalization() {
-        final String TEST_NAME = "testSimpleAlphaNormalization";
-        displayTestTitle(TEST_NAME);
-
         AlphanumericPolyStringNormalizer normalizer = new AlphanumericPolyStringNormalizer();
 
         testNormalization(normalizer,
@@ -60,9 +57,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testAlphaNormalizationNoNfkd() {
-        final String TEST_NAME = "testAlphaNormalizationNoNfkd";
-        displayTestTitle(TEST_NAME);
-
         AlphanumericPolyStringNormalizer normalizer = new AlphanumericPolyStringNormalizer();
         PolyStringNormalizerConfigurationType configuration = new PolyStringNormalizerConfigurationType();
         configuration.setNfkd(false);
@@ -87,9 +81,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testSimpleAsciiNormalization() {
-        final String TEST_NAME = "testSimpleAlphaNormalization";
-        displayTestTitle(TEST_NAME);
-
         Ascii7PolyStringNormalizer normalizer = new Ascii7PolyStringNormalizer();
 
         testNormalization(normalizer,
@@ -111,9 +102,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testAsciiNormalizationNoNfkd() {
-        final String TEST_NAME = "testAsciiNormalizationNoNfkd";
-        displayTestTitle(TEST_NAME);
-
         Ascii7PolyStringNormalizer normalizer = new Ascii7PolyStringNormalizer();
         PolyStringNormalizerConfigurationType configuration = new PolyStringNormalizerConfigurationType();
         configuration.setNfkd(false);
@@ -138,9 +126,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testSimplePassThroughNormalization() {
-        final String TEST_NAME = "testSimplePassThroughNormalization";
-        displayTestTitle(TEST_NAME);
-
         PassThroughPolyStringNormalizer normalizer = new PassThroughPolyStringNormalizer();
 
         testNormalization(normalizer,
@@ -165,9 +150,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testPassThroughNormalizationNoNfkd() {
-        final String TEST_NAME = "testPassThroughNormalizationNoNfkd";
-        displayTestTitle(TEST_NAME);
-
         PassThroughPolyStringNormalizer normalizer = new PassThroughPolyStringNormalizer();
         PolyStringNormalizerConfigurationType configuration = new PolyStringNormalizerConfigurationType();
         configuration.setNfkd(false);
@@ -192,9 +174,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testPassThroughNormalizationAllOff() {
-        final String TEST_NAME = "testPassThroughNormalizationAllOff";
-        displayTestTitle(TEST_NAME);
-
         PassThroughPolyStringNormalizer normalizer = new PassThroughPolyStringNormalizer();
         PolyStringNormalizerConfigurationType configuration = new PolyStringNormalizerConfigurationType();
         configuration.setTrim(false);
@@ -232,9 +211,6 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testRecompute() throws Exception {
-        final String TEST_NAME = "testRecompute";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
@@ -246,28 +222,25 @@ public class TestPolyString extends AbstractPrismTest {
         PrismProperty<Object> polyNameProperty = user.findOrCreateProperty(USER_POLYNAME_QNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         polyNameProperty.setRealValue(polyName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertEquals("Changed orig", orig, polyName.getOrig());
         assertEquals("Wrong norm", "lala ho papluha", polyName.getNorm());
 
     }
 
     @Test
-    public void testCompareTo() throws Exception {
-        final String TEST_NAME = "testCompareTo";
-        displayTestTitle(TEST_NAME);
-
+    public void testCompareTo() {
         // GIVEN
         String orig = "Ľala ho papľuha";
         PolyString polyName = new PolyString(orig);
 
         // WHEN, THEN
-        assertTrue(polyName.compareTo("Ľala ho papľuha") == 0);
-        assertTrue(polyName.compareTo(new PolyString("Ľala ho papľuha")) == 0);
+        assertEquals(polyName.compareTo("Ľala ho papľuha"), 0);
+        assertEquals(polyName.compareTo(new PolyString("Ľala ho papľuha")), 0);
         assertTrue(polyName.compareTo("something different") != 0);
         assertTrue(polyName.compareTo(new PolyString("something different")) != 0);
         assertTrue(polyName.compareTo("") != 0);
@@ -276,38 +249,29 @@ public class TestPolyString extends AbstractPrismTest {
     }
 
     @Test
-    public void testConversion() throws Exception {
-        final String TEST_NAME = "testConversion";
-        displayTestTitle(TEST_NAME);
-
+    public void testConversion() {
         PolyString polyString = new PolyString("Ľala ho papľuha");
-        executeConversionTest(TEST_NAME, polyString);
+        executeConversionTest(polyString);
     }
 
     @Test
-    public void testConversionWithEmptyLang() throws Exception {
-        final String TEST_NAME = "testConversion";
-        displayTestTitle(TEST_NAME);
-
+    public void testConversionWithEmptyLang() {
         PolyString polyString = new PolyString("Ľala ho papľuha");
         polyString.setLang(new HashMap<>());
-        executeConversionTest(TEST_NAME, polyString);
+        executeConversionTest(polyString);
     }
 
     @Test
-    public void testConversionWithOneLang() throws Exception {
-        final String TEST_NAME = "testConversion";
-        displayTestTitle(TEST_NAME);
-
+    public void testConversionWithOneLang() {
         PolyString polyString = new PolyString("Ľala ho papľuha");
         polyString.setLang(new HashMap<>());
         polyString.getLang().put("sk", "Lalala");
-        executeConversionTest(TEST_NAME, polyString);
+        executeConversionTest(polyString);
     }
 
-    private void executeConversionTest(String TEST_NAME, PolyString polyString) {
+    private void executeConversionTest(PolyString polyString) {
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PolyStringType polyStringType = PolyString.toPolyStringType(polyString);
         PolyString polyString2 = PolyString.toPolyString(polyStringType);
         PolyStringType polyStringType2 = PolyString.toPolyStringType(polyString2);
@@ -318,7 +282,7 @@ public class TestPolyString extends AbstractPrismTest {
         System.out.println("polyStringType2 = " + polyStringType2);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertEquals("PolyString differs", polyString, polyString2);
         assertEquals("PolyStringType differs", polyStringType, polyStringType2);
         assertEquals("PolyString.hashCode differs", polyString.hashCode(), polyString2.hashCode());
@@ -327,23 +291,17 @@ public class TestPolyString extends AbstractPrismTest {
 
     @Test
     public void testSerialization() throws Exception {
-        final String TEST_NAME = "testConversion";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
         PrismObject<UserType> user = userDefinition.instantiate();
 
         PolyString polyString = new PolyString("Ľala ho papľuha");
-        executeSerializationTest(TEST_NAME, ctx, user, polyString);
+        executeSerializationTest(ctx, user, polyString);
     }
 
     @Test
     public void testSerializationWithEmptyLang() throws Exception {
-        final String TEST_NAME = "testConversion";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
@@ -351,14 +309,11 @@ public class TestPolyString extends AbstractPrismTest {
 
         PolyString polyString = new PolyString("Ľala ho papľuha");
         polyString.setLang(new HashMap<>());
-        executeSerializationTest(TEST_NAME, ctx, user, polyString);
+        executeSerializationTest(ctx, user, polyString);
     }
 
     @Test
     public void testSerializationWithOneLang() throws Exception {
-        final String TEST_NAME = "testConversion";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
@@ -367,16 +322,16 @@ public class TestPolyString extends AbstractPrismTest {
         PolyString polyString = new PolyString("Ľala ho papľuha");
         polyString.setLang(new HashMap<>());
         polyString.getLang().put("sk", "Lalala");
-        executeSerializationTest(TEST_NAME, ctx, user, polyString);
+        executeSerializationTest(ctx, user, polyString);
     }
 
-    private void executeSerializationTest(String TEST_NAME, PrismContext ctx, PrismObject<UserType> user, PolyString polyString)
+    private void executeSerializationTest(PrismContext ctx, PrismObject<UserType> user, PolyString polyString)
             throws com.evolveum.midpoint.util.exception.SchemaException {
         PrismProperty<Object> polyNameProperty = user.findOrCreateProperty(USER_POLYNAME_QNAME);
         polyNameProperty.setRealValue(polyString);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         String xml = ctx.xmlSerializer().serialize(user);
         System.out.println(xml);
         PrismObject<Objectable> parsed = ctx.parserFor(xml).parse();
@@ -384,7 +339,7 @@ public class TestPolyString extends AbstractPrismTest {
         PrismObject<Objectable> parsed2 = ctx.parserFor(xml2).parse();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertEquals("original and parsed are different", user, parsed);
         assertEquals("parsed and parsed2 are different", parsed, parsed2);
     }

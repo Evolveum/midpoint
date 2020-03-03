@@ -16,10 +16,12 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class UnknownNodeValidationTest {
+// TODO testing: missing from suite, all passing
+public class UnknownNodeValidationTest extends AbstractUnitTest {
 
     public static final String BASE_PATH = "src/test/resources/validator/unknown/";
     private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
@@ -87,7 +89,6 @@ public class UnknownNodeValidationTest {
     }
 
     protected void validateNodeFailure(String name, String file, String expected) throws Exception {
-        System.out.println("\n===[ " + name + " ]=====");
         OperationResult result = new OperationResult(this.getClass().getName()+"." + name);
         validateFile(file,result);
         System.out.println(result.debugDump());

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author Radovan Semancik
  */
-public class TestMappingTime {
+public class TestMappingTime extends AbstractUnitTest {
 
     private static final String MAPPING_TIME_FROM_TO_FILENAME = "mapping-time-from-to.xml";
     private static final String MAPPING_TIME_ACTIVATION = "mapping-time-deferred-delete.xml";
@@ -75,7 +76,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -107,7 +108,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -138,7 +139,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -168,7 +169,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -198,7 +199,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -234,7 +235,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -274,7 +275,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -313,7 +314,7 @@ public class TestMappingTime {
 
         MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = new OperationResult(contextName());
 
         // WHEN
         mapping.evaluate(createTask(), opResult);

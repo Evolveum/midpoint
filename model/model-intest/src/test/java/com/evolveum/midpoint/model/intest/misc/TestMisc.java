@@ -92,18 +92,17 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100GetRepositoryDiag() throws Exception {
         final String TEST_NAME = "test100GetRepositoryDiag";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         RepositoryDiag diag = modelDiagnosticService.getRepositoryDiag(task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Diag", diag);
         assertSuccess(result);
 
@@ -115,17 +114,16 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110RepositorySelfTest() throws Exception {
         final String TEST_NAME = "test110RepositorySelfTest";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult testResult = modelDiagnosticService.repositorySelfTest(task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Repository self-test result", testResult);
         TestUtil.assertSuccess("Repository self-test result", testResult);
 
@@ -135,19 +133,18 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ExportUsers() throws Exception {
         final String TEST_NAME = "test200ExportUsers";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null,
                 SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertEquals("Unexpected number of users", 6, users.size());
@@ -178,10 +175,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210SearchUsersMatchingRulesPolystringNorm() throws Exception {
         final String TEST_NAME = "test210SearchUsersMatchingRulesPolystringNorm";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -191,11 +187,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
                 .build();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertEquals("Unexpected number of users", 1, users.size());
@@ -212,10 +208,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test212SearchUsersMatchingRulesPolystringIgnoreCase() throws Exception {
         final String TEST_NAME = "test212SearchUsersMatchingRulesPolystringIgnoreCase";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -226,7 +221,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 
         } catch (SystemException e) {
@@ -242,10 +237,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test214SearchUsersMatchingRulesStringIgnoreCase() throws Exception {
         final String TEST_NAME = "test214SearchUsersMatchingRulesStringIgnoreCase";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -255,11 +249,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
                 .build();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertEquals("Unexpected number of users", 1, users.size());
@@ -276,10 +270,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test216SearchUsersMatchingRulesStringNorm() throws Exception {
         final String TEST_NAME = "test216SearchUsersMatchingRulesStringNorm";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -289,11 +282,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
                 .build();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertEquals("Unexpected number of users", 0, users.size());
@@ -306,18 +299,17 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300RecomputeJack() throws Exception {
         final String TEST_NAME = "test300RecomputeJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -331,18 +323,17 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test302UpdateKeyJack() throws Exception {
         final String TEST_NAME = "test302UpdateKeyJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_KEY), task, result, KEY);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -353,20 +344,19 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310AddUserClean() throws Exception {
         final String TEST_NAME = "test310AddUserClean";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_CLEAN_NAME, USER_CLEAN_GIVEN_NAME, USER_CLEAN_FAMILY_NAME, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         userCleanOid = userBefore.getOid();
@@ -382,18 +372,17 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test312UpdateBinaryIdClean() throws Exception {
         final String TEST_NAME = "test312UpdateBinaryIdClean";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(userCleanOid, getExtensionPath(PIRACY_BINARY_ID), task, result, KEY);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userCleanOid);
@@ -407,17 +396,16 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test320DefaultRelations() throws Exception {
         final String TEST_NAME="test320DefaultRelations";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions();
 
         // THEN
-         displayThen(TEST_NAME);
+         then();
          display("Relations", relations);
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "RelationTypes.owner");
@@ -430,18 +418,17 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400ImportRoleWithFilters() throws Exception {
         final String TEST_NAME = "test400ImportRoleWithFilters";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.importObjectsFromFile(ROLE_IMPORT_FILTERS_FILE, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getRole(ROLE_IMPORT_FILTERS_OID);
@@ -455,10 +442,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test500AddHocProvisioningScriptAssignJackResourceScripty() throws Exception {
         final String TEST_NAME = "test500AddHocProvisioningScriptAssignJackResourceScripty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -466,11 +452,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -489,10 +475,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test502GetAccountJackResourceScripty() throws Exception {
         final String TEST_NAME = "test502GetAccountJackResourceScripty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -501,11 +486,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleLinkOid(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAttribute(accountShadow.asObjectable(),
@@ -522,10 +507,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test504GetAccountJackResourceScriptyAgain() throws Exception {
         final String TEST_NAME = "test504GetAccountJackResourceScriptyAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -534,11 +518,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleLinkOid(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertAttribute(accountShadow.asObjectable(),
@@ -560,10 +544,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
         final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -574,12 +557,12 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         display("Resource version before", resourceBefore.getVersion());
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(ResourceType.class, RESOURCE_SCRIPTY_OID,
                 ResourceType.F_DESCRIPTION, null, task, result, "Whatever");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
@@ -605,19 +588,18 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test600jackAssignRoleShip() throws Exception {
         final String TEST_NAME = "test600jackAssignRoleShip";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SHIP_OID);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
         assertAssignments(userAfter, 2);
@@ -635,21 +617,20 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test601jackUnassignResourceAccount() throws Exception {
         final String TEST_NAME = "test601jackUnassignResourceAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
@@ -666,19 +647,18 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test602jackUnssigndRoleShip() throws Exception {
         final String TEST_NAME = "test602jackUnssigndRoleShip";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SHIP_OID);
 
         //THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
         assertAssignments(userAfter, 0);

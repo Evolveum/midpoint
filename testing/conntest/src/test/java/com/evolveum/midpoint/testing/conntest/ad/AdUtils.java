@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.namespace.QName;
 
@@ -25,14 +23,12 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author semancik
- *
  */
 public class AdUtils {
 
@@ -54,59 +50,53 @@ public class AdUtils {
 
     /**
      * Returns dashed GUID notation formatted from simple hex-encoded binary.
-     *
+     * <p>
      * E.g. "2f01c06bb1d0414e9a69dd3841a13506" -> "6bc0012f-d0b1-4e41-9a69-dd3841a13506"
      */
     public static String formatGuidToDashedNotation(String hexValue) {
         if (hexValue == null) {
             return null;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(hexValue.substring(6, 8));
-        sb.append(hexValue.substring(4, 6));
-        sb.append(hexValue.substring(2, 4));
-        sb.append(hexValue.substring(0, 2));
-        sb.append('-');
-        sb.append(hexValue.substring(10, 12));
-        sb.append(hexValue.substring(8, 10));
-        sb.append('-');
-        sb.append(hexValue.substring(14, 16));
-        sb.append(hexValue.substring(12, 14));
-        sb.append('-');
-        sb.append(hexValue.substring(16, 20));
-        sb.append('-');
-        sb.append(hexValue.substring(20, 32));
-        return sb.toString();
+        return hexValue.substring(6, 8)
+                + hexValue.substring(4, 6)
+                + hexValue.substring(2, 4)
+                + hexValue.substring(0, 2)
+                + '-'
+                + hexValue.substring(10, 12)
+                + hexValue.substring(8, 10)
+                + '-'
+                + hexValue.substring(14, 16)
+                + hexValue.substring(12, 14)
+                + '-'
+                + hexValue.substring(16, 20)
+                + '-'
+                + hexValue.substring(20, 32);
     }
 
     public static ObjectClassComplexTypeDefinition assertAdResourceSchema(PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
-            ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-            display("Resource schema", resourceSchema);
-            ResourceTypeUtil.validateSchema(resourceSchema, resource);
-            ObjectClassComplexTypeDefinition accountObjectClassDef = assertAdSchema(resourceSchema, resource, accountObjectClass, prismContext);
-            return accountObjectClassDef;
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        display("Resource schema", resourceSchema);
+        ResourceTypeUtil.validateSchema(resourceSchema, resource);
+        return assertAdSchema(resource, accountObjectClass);
     }
 
     public static ObjectClassComplexTypeDefinition assertAdResourceSchemaLongTimestamp(PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         display("Resource schema", resourceSchema);
         ResourceTypeUtil.validateSchema(resourceSchema, resource);
-        ObjectClassComplexTypeDefinition accountObjectClassDef = assertAdSchemaLongTimestamp(resourceSchema, resource, accountObjectClass, prismContext);
-        return accountObjectClassDef;
-}
+        return assertAdSchemaLongTimestamp(resource, accountObjectClass);
+    }
 
-    public static ObjectClassComplexTypeDefinition assertAdRefinedSchema(PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
+    public static ObjectClassComplexTypeDefinition assertAdRefinedSchema(PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
         display("Refined schema", refinedSchema);
         RefinedResourceSchemaImpl.validateRefinedSchema(refinedSchema, resource);
-        ObjectClassComplexTypeDefinition accountObjectClassDef = assertAdSchema(refinedSchema, resource, accountObjectClass, prismContext);
-        return accountObjectClassDef;
+        return assertAdSchema(resource, accountObjectClass);
     }
 
-
     // Assumes string timestamp
-    public static ObjectClassComplexTypeDefinition assertAdSchema(ResourceSchema resourceSchema, PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
-        ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resourceSchema, resource, accountObjectClass, prismContext);
+    public static ObjectClassComplexTypeDefinition assertAdSchema(PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
+        ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resource, accountObjectClass);
 
         ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
@@ -126,8 +116,8 @@ public class AdUtils {
     }
 
     // Assumes string timestamp
-    public static ObjectClassComplexTypeDefinition assertAdSchemaLongTimestamp(ResourceSchema resourceSchema, PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
-        ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resourceSchema, resource, accountObjectClass, prismContext);
+    public static ObjectClassComplexTypeDefinition assertAdSchemaLongTimestamp(PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
+        ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resource, accountObjectClass);
 
         ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
@@ -139,12 +129,12 @@ public class AdUtils {
         return accountObjectClassDefinition;
     }
 
-    private static ObjectClassComplexTypeDefinition assertAdSchemaBase(ResourceSchema resourceSchema, PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
+    private static ObjectClassComplexTypeDefinition assertAdSchemaBase(PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
         display("Refined schema", refinedSchema);
         ObjectClassComplexTypeDefinition accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(accountObjectClass);
-        assertNotNull("No definition for object class "+accountObjectClass, accountObjectClassDefinition);
+        assertNotNull("No definition for object class " + accountObjectClass, accountObjectClassDefinition);
         display("Account object class def", accountObjectClassDefinition);
 
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
@@ -208,16 +198,16 @@ public class AdUtils {
     public static void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName, PrismContext prismContext) throws SchemaException {
 
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        assertExchangeSchema(resourceSchema, resource, accountObjectClassQName, prismContext);
+        assertExchangeSchema(resourceSchema, accountObjectClassQName);
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        assertExchangeSchema(refinedSchema, resource, accountObjectClassQName, prismContext);
+        assertExchangeSchema(refinedSchema, accountObjectClassQName);
     }
 
-    public static void assertExchangeSchema(ResourceSchema resourceSchema, PrismObject<ResourceType> resource, QName accountObjectClassQName, PrismContext prismContext) throws SchemaException {
+    public static void assertExchangeSchema(ResourceSchema resourceSchema, QName accountObjectClassQName) {
         ObjectClassComplexTypeDefinition msExchBaseClassObjectClassDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME);
-        assertNotNull("No definition for object class "+OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME, msExchBaseClassObjectClassDefinition);
-        display("Object class "+OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME+" def", msExchBaseClassObjectClassDefinition);
+        assertNotNull("No definition for object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME, msExchBaseClassObjectClassDefinition);
+        display("Object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME + " def", msExchBaseClassObjectClassDefinition);
 
         ResourceAttributeDefinition<String> msExchHideFromAddressListsDef = msExchBaseClassObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(msExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
@@ -226,8 +216,8 @@ public class AdUtils {
         assertTrue("msExchHideFromAddressLists add", msExchHideFromAddressListsDef.canAdd());
 
         ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(accountObjectClassQName);
-        assertNotNull("No definition for object class "+accountObjectClassQName, accountObjectClassDef);
-        display("Object class "+accountObjectClassQName+" def", accountObjectClassDef);
+        assertNotNull("No definition for object class " + accountObjectClassQName, accountObjectClassDef);
+        display("Object class " + accountObjectClassQName + " def", accountObjectClassDef);
 
         ResourceAttributeDefinition<String> accountMsExchHideFromAddressListsDef = accountObjectClassDef.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(accountMsExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);

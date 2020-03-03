@@ -78,7 +78,6 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         PolyStringNormalizer prismNormalizer = prismContext.getDefaultPolyStringNormalizer();
         assertTrue("Wrong normalizer class, expected Ascii7PolyStringNormalizer, but was "+prismNormalizer.getClass(),
@@ -88,17 +87,16 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test100AddUserJack() throws Exception {
         final String TEST_NAME = "test100AddUserJack";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(AbstractStoryTest.USER_JACK_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(AbstractStoryTest.USER_JACK_OID);
@@ -109,17 +107,16 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test110AddUserTeleke() throws Exception {
         final String TEST_NAME = "test110AddUserTeleke";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(USER_TELEKE_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_TELEKE_OID);

@@ -56,24 +56,23 @@ public class TestCommandLine extends AbstractIntegrationTest {
     @Test
     public void test100PlainExecuteEcho() throws Exception {
         final String TEST_NAME = "test100PlainExecuteEcho";
-        displayTestTitle(TEST_NAME);
 
         if (!isOsUnix()) {
             displaySkip(TEST_NAME);
             return;
         }
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         CommandLineScriptType scriptType = getScript(REPORT_PLAIN_ECHO_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         commandLineScriptExecutor.executeScript(scriptType, null, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
     }
@@ -81,14 +80,13 @@ public class TestCommandLine extends AbstractIntegrationTest {
     @Test
     public void test110RedirExecuteEcho() throws Exception {
         final String TEST_NAME = "test110RedirExecuteEcho";
-        displayTestTitle(TEST_NAME);
 
         if (!isOsUnix()) {
             displaySkip(TEST_NAME);
             return;
         }
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         CommandLineScriptType scriptType = getScript(REPORT_REDIR_ECHO_FILE);
@@ -97,11 +95,11 @@ public class TestCommandLine extends AbstractIntegrationTest {
             VAR_HELLOTEXT, "Hello World", PrimitiveType.STRING);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         commandLineScriptExecutor.executeScript(scriptType, variables, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         File targetFile = new File(MidPointTestConstants.TARGET_DIR_PATH, "echo-out");

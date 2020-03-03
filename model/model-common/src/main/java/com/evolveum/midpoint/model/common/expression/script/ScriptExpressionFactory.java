@@ -7,9 +7,10 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.*;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
@@ -17,9 +18,9 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
@@ -41,12 +42,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
-import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @author Radovan Semancik
- *
  */
 public class ScriptExpressionFactory implements Cacheable {
 
@@ -54,7 +52,7 @@ public class ScriptExpressionFactory implements Cacheable {
 
     public static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
-    private Map<String,ScriptEvaluator> evaluatorMap = new HashMap<>();
+    private Map<String, ScriptEvaluator> evaluatorMap = new HashMap<>();
     private ObjectResolver objectResolver;
     private final PrismContext prismContext;
     private Collection<FunctionLibrary> functions;
@@ -90,7 +88,7 @@ public class ScriptExpressionFactory implements Cacheable {
     }
 
     public void setEvaluators(Collection<ScriptEvaluator> evaluators) {
-        for (ScriptEvaluator evaluator: evaluators) {
+        for (ScriptEvaluator evaluator : evaluators) {
             registerEvaluator(evaluator.getLanguageUrl(), evaluator);
         }
     }
@@ -115,9 +113,11 @@ public class ScriptExpressionFactory implements Cacheable {
         this.cacheRegistry = registry;
     }
 
-    public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
-            ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result)
-                    throws ExpressionSyntaxException, SecurityViolationException {
+    public ScriptExpression createScriptExpression(
+            ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
+            ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String shortDesc, Task task, OperationResult result)
+            throws ExpressionSyntaxException, SecurityViolationException {
 
         initializeCustomFunctionsLibraryCache(expressionFactory, task, result);
         //cache cleanup method
@@ -152,7 +152,7 @@ public class ScriptExpressionFactory implements Cacheable {
                 return null;
             } else {
                 throw new SecurityViolationException("Access to script expression evaluator " +
-                        " not allowed (expression profile: "+expressionProfile.getIdentifier()+") in "+shortDesc);
+                        " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
             }
         }
         ScriptExpressionProfile scriptProfile = evaluatorProfile.getScriptExpressionProfile(language);
@@ -161,7 +161,7 @@ public class ScriptExpressionFactory implements Cacheable {
                 return null;
             } else {
                 throw new SecurityViolationException("Access to script language " + language +
-                        " not allowed (expression profile: "+expressionProfile.getIdentifier()+") in "+shortDesc);
+                        " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
             }
         }
         return scriptProfile;
@@ -205,15 +205,15 @@ public class ScriptExpressionFactory implements Cacheable {
 
     public void registerEvaluator(String language, ScriptEvaluator evaluator) {
         if (evaluatorMap.containsKey(language)) {
-            throw new IllegalArgumentException("Evaluator for language "+language+" already registered");
+            throw new IllegalArgumentException("Evaluator for language " + language + " already registered");
         }
-        evaluatorMap.put(language,evaluator);
+        evaluatorMap.put(language, evaluator);
     }
 
     private ScriptEvaluator getEvaluator(String language, String shortDesc) throws ExpressionSyntaxException {
         ScriptEvaluator evaluator = evaluatorMap.get(language);
         if (evaluator == null) {
-            throw new ExpressionSyntaxException("Unsupported language "+language+" used in script in "+shortDesc);
+            throw new ExpressionSyntaxException("Unsupported language " + language + " used in script in " + shortDesc);
         }
         return evaluator;
     }

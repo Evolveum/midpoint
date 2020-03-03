@@ -7,6 +7,21 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+
+import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.annotations.BeforeSuite;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -21,33 +36,15 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeSuite;
-import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.*;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author mederly
- */
-public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
+public class AbstractTaskManagerTest extends AbstractSpringTest {
 
     protected static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
     protected static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
@@ -62,7 +59,6 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
     protected static final String L1_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l1-task-handler";
     protected static final String L2_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l2-task-handler";
     protected static final String L3_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l3-task-handler";
-    protected static final String WAIT_FOR_SUBTASKS_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/wait-for-subtasks-task-handler";
     protected static final String PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
     protected static final String LONG_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/long-task-handler";
 
@@ -87,8 +83,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
     protected MockParallelTaskHandler parallelTaskHandler;
     protected MockLongTaskHandler longTaskHandler;
 
-    protected static OperationResult createResult(String test, Trace logger) {
-        TestUtil.displayTestTitle(test);
+    protected static OperationResult createResult(String test) {
         return new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".test" + test);
     }
 
@@ -151,7 +146,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
         OperationResult result = new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".addObjectFromFile");
         try {
             add(object, result);
-        } catch(ObjectAlreadyExistsException e) {
+        } catch (ObjectAlreadyExistsException e) {
             delete(object, result);
             add(object, result);
         }
@@ -162,7 +157,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
     protected void add(PrismObject<? extends ObjectType> object, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
         if (object.canRepresent(TaskType.class)) {
-            taskManager.addTask((PrismObject)object, result);
+            taskManager.addTask((PrismObject) object, result);
         } else {
             repositoryService.addObject(object, null, result);
         }
@@ -216,12 +211,12 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
     }
 
     protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
-            waitFor("Waiting for task manager to start the task", () -> {
-                Task task = taskManager.getTaskWithResult(oid, result);
-                IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
-                return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
-            }, timeoutInterval, sleepInterval);
-        }
+        waitFor("Waiting for task manager to start the task", () -> {
+            Task task = taskManager.getTaskWithResult(oid, result);
+            IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
+            return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
+        }, timeoutInterval, sleepInterval);
+    }
 
     protected void waitForTaskProgress(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
             int threshold) throws CommonException {
@@ -231,17 +226,6 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
             return task.getProgress() >= threshold;
         }, timeoutInterval, sleepInterval);
     }
-
-    protected void waitForTaskNextRun(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws Exception {
-        TaskQuartzImpl taskBefore = taskManager.getTaskWithResult(taskOid, result);
-        waitFor("Waiting for task manager to execute the task", () -> {
-            Task task = taskManager.getTaskWithResult(taskOid, result);
-            IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-            return task.getLastRunStartTimestamp() != null &&
-                    (taskBefore.getLastRunStartTimestamp() == null || task.getLastRunStartTimestamp() > taskBefore.getLastRunStartTimestamp());
-        }, timeoutInterval, sleepInterval);
-    }
-
 
     protected void suspendAndDeleteTasks(String... oids) {
         taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));

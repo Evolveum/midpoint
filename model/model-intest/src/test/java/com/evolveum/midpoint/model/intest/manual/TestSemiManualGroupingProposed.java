@@ -76,9 +76,8 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     @Test
     public void test020ResourcesSanity() throws Exception {
         final String TEST_NAME = "test020ResourcesSanity";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         SearchResultList<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, null, null, result);
@@ -120,9 +119,8 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     @Test
     public void test500AssignBigmouthRoleOne() throws Exception {
         final String TEST_NAME = "test500AssignBigmouthRoleOne";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_BIGMOUTH_NAME, USER_BIGMOUTH_FULLNAME, true);
@@ -130,11 +128,11 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userBigmouthOid, getRoleOneOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         bigmouthLastCaseOid = assertInProgress(result);
 
@@ -177,19 +175,18 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     @Test
     public void test502RunPropagation() throws Exception {
         final String TEST_NAME = "test502RunPropagation";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT20M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PendingOperationExecutionStatusType executionStage = PendingOperationExecutionStatusType.EXECUTING;

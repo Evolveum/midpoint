@@ -115,8 +115,4 @@ public class TestCsvGuid extends AbstractCsvTest {
         assertEquals("Wrong uname (repo)", ACCOUNT_JACK_UNAME, getAttributeValue(repoShadowType, ATTR_UNAME_QNAME));
     }
 
-    @Override
-    protected QName getQNameOfUID() {
-        return ATTR_GUID_QNAME;
-    }
 }

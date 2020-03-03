@@ -65,14 +65,11 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test001CreateSystemConfiguration() throws Exception {
-        final String TEST_NAME = "test001CreateSystemConfiguration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
         PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = DeltaFactory.Object.createAddDelta(systemConfiguration);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigurationAddDelta);
@@ -92,13 +89,10 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test002InitialConfiguration() throws Exception {
-        final String TEST_NAME = "test002InitialConfiguration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
@@ -146,13 +140,10 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
      */
     @Test
     public void test004OverwriteInitialConfiguration() throws Exception {
-        final String TEST_NAME = "test004OverwriteInitialConfiguration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         PrismObject<SystemConfigurationType> systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
@@ -191,13 +182,10 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test010AddModelSubsystemLogger() throws Exception {
-        final String TEST_NAME = "test010AddModelSubsystemLogger";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         // Precondition
@@ -253,9 +241,6 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test020JulLoggingDisabled() throws Exception {
-        final String TEST_NAME = "test020JulLoggingDisabled";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
@@ -284,15 +269,12 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test021JulLoggingEnabled() throws Exception {
-        final String TEST_NAME = "test021JulLoggingEnabled";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
         java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         // Setup
@@ -341,15 +323,12 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
      */
     @Test
     public void test030ConnectorLogging() throws Exception {
-        final String TEST_NAME = "test030ConnectorLogging";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
         // ICF logging is prefixing the messages;
         tailer.setAllowPrefix(true);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         importObjectFromFile(RESOURCE_DUMMY_FILE, result);
@@ -361,10 +340,10 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         applyTestLoggingConfig(logging);
 
-        ClassLoggerConfigurationType classLogerCongif = new ClassLoggerConfigurationType();
-        classLogerCongif.setPackage(DummyConnector.class.getPackage().getName());
-        classLogerCongif.setLevel(LoggingLevelType.ALL);
-        logging.getClassLogger().add(classLogerCongif);
+        ClassLoggerConfigurationType classLoggerConfig = new ClassLoggerConfigurationType();
+        classLoggerConfig.setPackage(DummyConnector.class.getPackage().getName());
+        classLoggerConfig.setLevel(LoggingLevelType.ALL);
+        logging.getClassLogger().add(classLoggerConfig);
 
         ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
                 AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
@@ -375,9 +354,10 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         // INFO part
 
-        java.util.logging.Logger dummyConnctorJulLogger = java.util.logging.Logger.getLogger(DummyConnector.class.getName());
+        java.util.logging.Logger dummyConnectorJulLogger =
+                java.util.logging.Logger.getLogger(DummyConnector.class.getName());
         LOGGER.info("Dummy connector JUL logger as seen by the test: {}; classloader {}",
-                dummyConnctorJulLogger, dummyConnctorJulLogger.getClass().getClassLoader());
+                dummyConnectorJulLogger, dummyConnectorJulLogger.getClass().getClassLoader());
 
         // WHEN
         modelService.testResource(RESOURCE_DUMMY_OID, task);
@@ -403,8 +383,6 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test101EnableBasicAudit() throws Exception {
-        TestUtil.displayTestTitle("test101EnableBasicAudit");
-
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
@@ -417,7 +395,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         // Setup
         PrismObject<SystemConfigurationType> systemConfiguration =
-            PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
         LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
         applyTestLoggingConfig(logging);
@@ -468,15 +446,13 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
     // MID-5674
     @Test
     public void test110SetMaxHistory() throws Exception {
-        TestUtil.displayTestTitle("test110SetMaxHistory");
-
         // GIVEN
         Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + ".test101EnableBasicAudit");
         OperationResult result = task.getResult();
 
         // Setup
         PrismObject<SystemConfigurationType> systemConfiguration =
-            PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
         LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
         applyTestLoggingConfig(logging);

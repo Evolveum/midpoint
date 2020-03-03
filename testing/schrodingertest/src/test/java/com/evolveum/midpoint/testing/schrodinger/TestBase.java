@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Properties;
-import javax.naming.ConfigurationException;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.testng.BrowserPerClass;
@@ -96,7 +95,7 @@ public abstract class TestBase {
         basicPage = login.loginWithReloadLoginPage(username, password);
     }
 
-    private EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) throws IOException {
+    private EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) {
         EnvironmentConfiguration config = new EnvironmentConfiguration();
         config.driver(WebDriver.valueOf(props.getProperty("webdriver")));
         config.driverLocation(props.getProperty("webdriverLocation"));
@@ -157,7 +156,7 @@ public abstract class TestBase {
         importObject(source, false);
     }
 
-    protected String fetchMidpointHome() throws ConfigurationException {
+    protected String fetchMidpointHome() {
         AboutPage aboutPage = basicPage.aboutPage();
         String mpHomeDir = aboutPage.getJVMproperty(PROPERTY_NAME_MIDPOINT_HOME);
 
@@ -166,8 +165,9 @@ public abstract class TestBase {
             return mpHomeDir;
         } else {
 
-            mpHomeDir = new StringBuilder(aboutPage.getSystemProperty(PROPERTY_NAME_USER_HOME))
-                    .append(aboutPage.getSystemProperty(PROPERTY_NAME_FILE_SEPARATOR)).append("midpoint").toString();
+            mpHomeDir = aboutPage.getSystemProperty(PROPERTY_NAME_USER_HOME)
+                    + aboutPage.getSystemProperty(PROPERTY_NAME_FILE_SEPARATOR)
+                    + "midpoint";
 
             LOG.info("Midpoint home parameter is empty! Using defaults: " + mpHomeDir);
 
@@ -175,7 +175,7 @@ public abstract class TestBase {
         return mpHomeDir;
     }
 
-    protected File initTestDirectory(String dir) throws ConfigurationException, IOException {
+    protected File initTestDirectory(String dir) throws IOException {
 
         String home = fetchMidpointHome();
         File parentDir = new File(home, "schrodinger");

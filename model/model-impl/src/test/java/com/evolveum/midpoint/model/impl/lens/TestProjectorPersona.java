@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -52,7 +51,6 @@ public class TestProjectorPersona extends AbstractLensTest {
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
         final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorPersona.class.getName() + "." + TEST_NAME);

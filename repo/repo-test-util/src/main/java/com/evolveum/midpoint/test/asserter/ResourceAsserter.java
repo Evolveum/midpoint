@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.prism.Containerable.asPrismContainerValue;
+
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -16,16 +22,11 @@ import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.w3c.dom.Element;
-
-import static com.evolveum.midpoint.prism.Containerable.asPrismContainerValue;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author Radovan Semancik
  */
-public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType,RA> {
+public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> {
 
     public ResourceAsserter(PrismObject<ResourceType> resource) {
         super(resource);
@@ -85,10 +86,9 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType,RA> {
 
     public ResourceAsserter<RA> assertHasSchema() {
         Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(getObject());
-        assertNotNull("No schema in "+desc(), schemaElement);
+        assertNotNull("No schema in " + desc(), schemaElement);
         return this;
     }
-
 
     @Override
     public ResourceAsserter<RA> display() {
@@ -135,7 +135,8 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType,RA> {
     }
 
     public PrismContainerAsserter<OperationalStateType, ResourceAsserter<RA>> operationalStateHistory() {
-        PrismContainer<OperationalStateType> operationalStateHistory = getObject().findContainer(ResourceType.F_OPERATIONAL_STATE_HISTORY);
+        PrismContainer<OperationalStateType> operationalStateHistory =
+                getObject().findContainer(ResourceType.F_OPERATIONAL_STATE_HISTORY);
         PrismContainerAsserter<OperationalStateType, ResourceAsserter<RA>> asserter =
                 new PrismContainerAsserter<>(operationalStateHistory, this, getDetails());
         copySetupTo(asserter);

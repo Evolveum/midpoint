@@ -6,42 +6,25 @@
  */
 package com.evolveum.midpoint.prism.match;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
-import java.io.IOException;
+import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.AbstractPrismTest;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
- *
  */
-public class TestMatchingRule {
+public class TestMatchingRule extends AbstractPrismTest {
 
-    private static MatchingRuleRegistry matchingRuleRegistry;
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-
-        matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
-    }
+    private static MatchingRuleRegistry matchingRuleRegistry =
+            MatchingRuleRegistryFactory.createRegistry();
 
     @Test
     public void testStringDefault() throws Exception {
@@ -149,13 +132,12 @@ public class TestMatchingRule {
         assertNormalized(rule, "<foo>FOO<bar> BAR </foo>", "<foo>FOO<bar> BAR </foo>   ");
     }
 
-
     private <T> void assertMatch(MatchingRule<T> rule, T a, T b) throws SchemaException {
-        assertTrue("Values '"+a+"' and '"+b+"' does not match; rule: "+rule, rule.match(a, b));
+        assertTrue("Values '" + a + "' and '" + b + "' does not match; rule: " + rule, rule.match(a, b));
     }
 
     private <T> void assertNoMatch(MatchingRule<T> rule, T a, T b) throws SchemaException {
-        assertFalse("Values '"+a+"' and '"+b+"' DOES match but they should not; rule: "+rule, rule.match(a, b));
+        assertFalse("Values '" + a + "' and '" + b + "' DOES match but they should not; rule: " + rule, rule.match(a, b));
     }
 
     private void assertNormalized(MatchingRule<String> rule, String expected, String original) throws SchemaException {

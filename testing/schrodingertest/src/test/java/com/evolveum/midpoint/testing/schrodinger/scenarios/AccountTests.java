@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -16,7 +16,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
@@ -53,7 +52,7 @@ public class AccountTests extends TestBase {
 
 
     @Test(priority = 1, groups = TEST_GROUP_BEFORE_USER_DELETION)
-    public void createMidpointUser() throws IOException, ConfigurationException {
+    public void createMidpointUser() throws IOException {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 

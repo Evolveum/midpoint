@@ -154,7 +154,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -167,19 +166,18 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test050AddOrgRetired() throws Exception {
         final String TEST_NAME = "test050AddOrgRetired";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = PrismTestUtil.parseObject(ORG_RETIRED_FILE);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -206,19 +204,18 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
         final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -235,7 +232,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test110AddUserTeleke() throws Exception {
         final String TEST_NAME = "test110AddUserTeleke";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -243,12 +239,12 @@ public class TestRetirement extends AbstractStoryTest {
                 USER_TELEKE_GIVEN_NAME, USER_TELEKE_FAMILY_NAME, orgRolyulaCarpathiaOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -266,19 +262,18 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test200AddOrgCortuvHrad() throws Exception {
         final String TEST_NAME = "test200AddOrgCortuvHrad";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -296,7 +291,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test210AddUserGorc() throws Exception {
         final String TEST_NAME = "test210AddUserGorc";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -304,12 +298,12 @@ public class TestRetirement extends AbstractStoryTest {
                 USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -323,19 +317,18 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
         final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -353,7 +346,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test230AddUserViljaDezi() throws Exception {
         final String TEST_NAME = "test230AddUserViljaDezi";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -361,12 +353,12 @@ public class TestRetirement extends AbstractStoryTest {
                 USER_DEZI_GIVEN_NAME, USER_DEZI_FAMILY_NAME, orgVysneVlkodlakyOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user", userBefore);
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -379,7 +371,6 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test300RetireUserGorc() throws Exception {
         final String TEST_NAME = "test300RetireUserGorc";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -391,11 +382,11 @@ public class TestRetirement extends AbstractStoryTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -409,16 +400,15 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test302ReconcileUserGorc() throws Exception {
         final String TEST_NAME = "test302ReconcileUserGorc";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileUser(userGorcOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -432,16 +422,15 @@ public class TestRetirement extends AbstractStoryTest {
     @Test
     public void test303ReconcileUserGorcAgain() throws Exception {
         final String TEST_NAME = "test303ReconcileUserGorcAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         reconcileUser(userGorcOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -568,7 +557,7 @@ public class TestRetirement extends AbstractStoryTest {
     }
 
     private void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        final Task task = createTask("reconcileAllUsers");
+        final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = new ResultHandler<UserType>() {
             @Override
@@ -589,7 +578,7 @@ public class TestRetirement extends AbstractStoryTest {
     }
 
     private void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        final Task task = createTask("reconcileAllOrgs");
+        final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
             @Override

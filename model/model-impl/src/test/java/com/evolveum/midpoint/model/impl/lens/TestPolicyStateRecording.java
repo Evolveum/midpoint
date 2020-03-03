@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,8 +37,6 @@ import static org.testng.AssertJUnit.assertEquals;
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyStateRecording extends AbstractLensTest {
-
-    private static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
 
     protected static final File TEST_DIR = new File(AbstractLensTest.TEST_DIR, "policy/state");
 
@@ -97,19 +94,18 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test100JackAssignRoleJudge() throws Exception {
-        TestCtx t = createContext(this, "test100JackAssignRoleJudge");
-
         // GIVEN
+        Task task = createPlainTask();
 
         // WHEN
-        t.displayWhen();
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, t.task, t.result);
+        when();
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, task.getResult());
 
         // THEN
-        t.displayThen();
+        then();
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
-        assertSuccess(t.result);
+        assertSuccess(task.getResult());
 
         assertAssignedRole(jack.asPrismObject(), ROLE_JUDGE_OID);
         assertEquals("Wrong # of assignments", 1, jack.getAssignment().size());
@@ -123,17 +119,15 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test110JackAssignRolePirate() throws Exception {
-        TestCtx t = createContext(this, "test110JackAssignRolePirate");
-
         // WHEN
-        t.displayWhen();
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, t.task, t.result);
+        when();
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertAssignedRole(jack.asPrismObject(), ROLE_PIRATE_OID);
         assertEquals("Wrong # of assignments", 2, jack.getAssignment().size());
@@ -148,21 +142,18 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // should keep the situation for both assignments
     @Test
     public void test120RecomputeJack() throws Exception {
-        TestCtx t = createContext(this, "test120RecomputeJack");
-
         // GIVEN
         dummyAuditService.clear();
 
         // WHEN
-        t.displayWhen();
-        executeChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_JACK_OID), createReconcile(), t.task, t.result);
-        //recomputeUser(USER_JACK_OID, t.task, t.result);
+        when();
+        executeChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_JACK_OID), createReconcile(), getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         // TODO test that assignment IDs are filled in correctly (currently they are not)
         assertEquals("Wrong # of assignments", 2, jack.getAssignment().size());
@@ -179,25 +170,23 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test130JackUnassignRolePirate() throws Exception {
-        TestCtx t = createContext(this, "test130JackUnassignRolePirate");
-
         // GIVEN
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         AssignmentType pirateAssignment = findAssignmentByTargetRequired(jack.asPrismObject(), ROLE_PIRATE_OID);
 
         // WHEN
-        t.displayWhen();
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .delete(pirateAssignment.clone())
                 .asObjectDeltaCast(USER_JACK_OID);
-        executeChangesAssertSuccess(delta, null, t.task, t.result);
+        executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         jack = getUser(USER_JACK_OID).asObjectable();
         display("jack", jack);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertNotAssignedRole(jack.asPrismObject(), ROLE_PIRATE_OID);
         assertEquals("Wrong # of assignments", 1, jack.getAssignment().size());
@@ -211,24 +200,22 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test200BobAssign2a3a() throws Exception {
-        TestCtx t = createContext(this, "test200BobAssign2a3a");
-
         // GIVEN
 
         // WHEN
-        t.displayWhen();
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                         .add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext),
                                 createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDeltaCast(userBobOid);
-        executeChangesAssertSuccess(delta, null, t.task, t.result);
+        executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         UserType bob = getUser(userBobOid).asObjectable();
         display("bob", bob);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertAssignedRole(bob.asPrismObject(), roleATest2aOid);
         assertAssignedRole(bob.asPrismObject(), roleATest3aOid);
@@ -246,24 +233,22 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test210BobAssign2b3b() throws Exception {
-        TestCtx t = createContext(this, "test210BobAssign2b3b");
-
         // GIVEN
 
         // WHEN
-        t.displayWhen();
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext),
                         createAssignmentTo(roleATest3bOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDeltaCast(userBobOid);
-        executeChangesAssertSuccess(delta, null, t.task, t.result);
+        executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         UserType bob = getUser(userBobOid).asObjectable();
         display("bob", bob);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertAssignedRole(bob.asPrismObject(), roleATest2aOid);
         assertAssignedRole(bob.asPrismObject(), roleATest2bOid);
@@ -292,8 +277,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // new user, new assignments (no IDs)
     @Test
     public void test220AliceAssign2a2b() throws Exception {
-        TestCtx t = createContext(this, "test220AliceAssign2a2b");
-
         // GIVEN
         UserType alice = prismContext.createObjectable(UserType.class)
                 .name("alice")
@@ -301,14 +284,14 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .assignment(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext));
 
         // WHEN
-        t.displayWhen();
-        addObject(alice.asPrismObject(), t.task, t.result);
+        when();
+        addObject(alice.asPrismObject(), getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         alice = getUser(alice.getOid()).asObjectable();
         display("alice", alice);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertAssignedRole(alice.asPrismObject(), roleATest2aOid);
         assertAssignedRole(alice.asPrismObject(), roleATest2bOid);
@@ -325,8 +308,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // new user, new assignments (explicit IDs)
     @Test
     public void test230ChuckAssign2a2b() throws Exception {
-        TestCtx t = createContext(this, "test230ChuckAssign2a2b");
-
         // GIVEN
         AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext);
         assignment2a.setId(100L);
@@ -338,14 +319,14 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .assignment(assignment2b);
 
         // WHEN
-        t.displayWhen();
-        addObject(chuck.asPrismObject(), t.task, t.result);
+        when();
+        addObject(chuck.asPrismObject(), getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         chuck = getUser(chuck.getOid()).asObjectable();
         display("chuck", chuck);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertAssignedRole(chuck.asPrismObject(), roleATest2aOid);
         assertAssignedRole(chuck.asPrismObject(), roleATest2bOid);
@@ -362,8 +343,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // new user, new assignments (explicit IDs, explicit OID)
     @Test
     public void test240DanAssign2a2b() throws Exception {
-        TestCtx t = createContext(this, "test240DanAssign2a2b");
-
         // GIVEN
         AssignmentType assignment2a = createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext);
         assignment2a.setId(100L);
@@ -376,14 +355,14 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .assignment(assignment2b);
 
         // WHEN
-        t.displayWhen();
-        addObject(dan.asPrismObject(), t.task, t.result);
+        when();
+        addObject(dan.asPrismObject(), getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         dan = getUser(dan.getOid()).asObjectable();
         display("dan", dan);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertAssignedRole(dan.asPrismObject(), roleATest2aOid);
         assertAssignedRole(dan.asPrismObject(), roleATest2bOid);
@@ -400,23 +379,21 @@ public class TestPolicyStateRecording extends AbstractLensTest {
     // modified user, new assignment (with ID)
     @Test
     public void test250EveAssign2b() throws Exception {
-        TestCtx t = createContext(this, "test220AliceAssign2a2b");
-
         // WHEN
-        t.displayWhen();
+        when();
         AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
         assignment2b.setId(200L);
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(assignment2b)
                 .asObjectDeltaCast(userEveOid);
-        executeChangesAssertSuccess(delta, null, t.task, t.result);
+        executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         UserType eve = getUser(userEveOid).asObjectable();
         display("alice", eve);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertAssignedRole(eve.asPrismObject(), roleATest2aOid);
         assertAssignedRole(eve.asPrismObject(), roleATest2bOid);
@@ -432,22 +409,20 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test300MakeRoleWrong() throws Exception {
-        TestCtx t = createContext(this, "test300MakeRoleWrong");
-
         // GIVEN
 
         // WHEN
-        t.displayWhen();
+        when();
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("wrong")
                 .asObjectDeltaCast(roleATestWrongOid);
-        executeChangesAssertSuccess(delta, null, t.task, t.result);
+        executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         RoleType wrong = getRole(roleATestWrongOid).asObjectable();
         display("role 'wrong'", wrong);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong.getPolicySituation());
 
@@ -457,8 +432,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test310CreateWrongRole() throws Exception {
-        TestCtx t = createContext(this, "test310CreateWrongRole");
-
         // GIVEN
         RoleType wrong2 = prismContext.createObjectable(RoleType.class)
                 .name("wrong-2")
@@ -466,14 +439,14 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .assignment(createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE, prismContext));
 
         // WHEN
-        t.displayWhen();
-        addObject(wrong2.asPrismObject(), t.task, t.result);
+        when();
+        addObject(wrong2.asPrismObject(), getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         wrong2 = getRole(wrong2.getOid()).asObjectable();
         display("role 'wrong-2'", wrong2);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong2.getPolicySituation());
 
@@ -483,8 +456,6 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
     @Test
     public void test320CreateWrongRoleKnownOid() throws Exception {
-        TestCtx t = createContext(this, "test320CreateWrongRoleKnownOid");
-
         // GIVEN
         AssignmentType assignmentCommon = createAssignmentTo(metaroleCommonRulesOid, ObjectTypes.ROLE, prismContext);
         assignmentCommon.setId(300L);
@@ -495,14 +466,14 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .assignment(assignmentCommon);
 
         // WHEN
-        t.displayWhen();
-        addObject(wrong3.asPrismObject(), t.task, t.result);
+        when();
+        addObject(wrong3.asPrismObject(), getTestTask(), getTestOperationResult());
 
         // THEN
-        t.displayThen();
+        then();
         wrong3 = getRole(wrong3.getOid()).asObjectable();
         display("role 'wrong-3'", wrong3);
-        assertSuccess(t.result);
+        assertSuccess(getTestOperationResult());
 
         assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong3.getPolicySituation());
 

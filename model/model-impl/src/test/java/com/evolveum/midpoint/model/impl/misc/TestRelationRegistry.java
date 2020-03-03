@@ -12,7 +12,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
@@ -55,7 +54,6 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
     @Test
     public void test100DefaultRelations() {
         final String TEST_NAME = "test100DefaultRelations";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         assertEquals("Wrong # of default relations", RelationTypes.values().length, relationRegistry.getRelationDefinitions().size());
 
@@ -137,7 +135,6 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
     @Test
     public void test110AddedCustomRelations() throws SchemaException, IOException {
         final String TEST_NAME = "test110AddedCustomRelations";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         PrismObject<SystemConfigurationType> sysconfigObject = prismContext.parseObject(SYSCONFIG_ADDED_CUSTOM_RELATIONS_FILE);
         relationRegistry.applyRelationsConfiguration(sysconfigObject.asObjectable());
@@ -259,7 +256,6 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
     @Test
     public void test120ReplacedAllRelations() throws SchemaException, IOException {
         final String TEST_NAME = "test120ReplacedAllRelations";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         PrismObject<SystemConfigurationType> sysconfigObject = prismContext.parseObject(SYSCONFIG_REPLACED_ALL_RELATIONS_FILE);
         relationRegistry.applyRelationsConfiguration(sysconfigObject.asObjectable());

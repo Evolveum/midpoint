@@ -7,14 +7,15 @@
 
 package com.evolveum.midpoint.web;
 
-import com.evolveum.midpoint.init.InitialDataImport;
-import com.evolveum.midpoint.model.api.ModelService;
+import static org.testng.AssertJUnit.assertNotNull;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.init.InitialDataImport;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 
 /**
  * Test of spring application context initialization
@@ -34,8 +35,8 @@ import static org.testng.AssertJUnit.assertNotNull;
         "classpath:ctx-security.xml",
         "classpath:ctx-provisioning.xml",
         "classpath:ctx-model.xml",
-        "classpath*:ctx-workflow.xml"})
-public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
+        "classpath*:ctx-workflow.xml" })
+public class SpringApplicationContextTest extends AbstractSpringTest {
 
     @Autowired
     private ModelService modelService;

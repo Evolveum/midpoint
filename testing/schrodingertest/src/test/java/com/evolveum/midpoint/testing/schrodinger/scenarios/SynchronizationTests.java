@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -10,7 +10,6 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.user.UserProjectionsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
-import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.apache.commons.io.FileUtils;
@@ -20,10 +19,8 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
-
 
 /**
  * Created by matus on 5/21/2018.
@@ -48,7 +45,7 @@ public class SynchronizationTests extends TestBase {
     private static final String DIRECTORY_CURRENT_TEST = "synchronizationTests";
 
     @Test(priority = 0)
-    public void setUpResourceAndSynchronizationTask() throws ConfigurationException, IOException {
+    public void setUpResourceAndSynchronizationTask() throws IOException {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 

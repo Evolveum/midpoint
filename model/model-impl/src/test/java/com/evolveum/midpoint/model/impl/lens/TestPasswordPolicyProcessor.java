@@ -50,8 +50,6 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
-        setAutoTaskManagementEnabled(true);
     }
 
     abstract Class<F> getType();
@@ -69,8 +67,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
 
     @Test
     public void test100CreateFocusWithPassword() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         addObject(getTestResource(), task, result);
@@ -89,8 +87,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
 
     @Test
     public void test110ModifyPassword() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyFocusChangePassword(getType(), getOid(), PASSWORD1, task, result);
@@ -112,8 +110,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
 
     @Test
     public void test120ModifyPasswordSecondTime() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyFocusChangePassword(getType(), getOid(), PASSWORD2, task, result);
@@ -135,8 +133,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
 
     @Test
     public void test130ModifyPasswordThirdTime() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         modifyFocusChangePassword(getType(), getOid(), PASSWORD3, task, result);
@@ -172,8 +170,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
     }
 
     private void doTestModifyPasswordExpectFailure(String password) throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         try {
             // WHEN
@@ -208,8 +206,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
 
     @Test
     public void test210CreateFocusNoPasswordHistory() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         addObject(getTestResource(), task, result);
@@ -239,8 +237,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
     }
 
     private void modifyPasswordNoHistory() throws Exception{
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         ProtectedStringType newValue = new ProtectedStringType();
@@ -270,8 +268,8 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
     }
 
     private void setPasswordHistoryLength(int historyLength) throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
         modifyObjectReplaceProperty(SecurityPolicyType.class, SECURITY_POLICY_OID,
                 SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_LENGTH, task, result, historyLength);
     }

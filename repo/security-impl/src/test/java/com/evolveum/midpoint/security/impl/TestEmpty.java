@@ -75,16 +75,12 @@ public class TestEmpty extends AbstractIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // TODO
     }
 
     @Test
     public void test020GuiProfiledPrincipalManagerMockUsername() throws Exception {
         final String TEST_NAME = "test020GuiProfiledPrincipalManagerMockUsername";
-        displayTestTitle(TEST_NAME);
 
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
         assertPrincipalJack(principal);

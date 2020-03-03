@@ -11,17 +11,17 @@ import static org.testng.AssertJUnit.assertNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 
 /**
  * @author lazyman
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
-public class ActionManagerImplTest extends AbstractTestNGSpringContextTests  {
+public class ActionManagerImplTest extends AbstractSpringTest {
 
-    @Autowired(required = true)
+    @Autowired
     private ActionManager<? extends Action> manager;
 
     @Test(expectedExceptions = IllegalArgumentException.class)

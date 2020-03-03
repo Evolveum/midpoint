@@ -75,7 +75,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
@@ -83,7 +82,8 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     }
 
     private Task createTestTask(String TEST_NAME) {
-        return createTask(TestAsyncUpdateGrouperJson.class.getName() + "." + TEST_NAME);
+        TestAsyncUpdateGrouperJson.class.getName();
+        return getTestTask();
     }
 
     /**
@@ -92,7 +92,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test100AddAnderson() throws Exception {
         final String TEST_NAME = "test100AddAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -139,7 +138,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test110AddAlumniAndStaff() throws Exception {
         final String TEST_NAME = "test110AddAlumniAndStaff";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -186,7 +184,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test200AddAlumniForAnderson() throws Exception {
         final String TEST_NAME = "test200AddAlumniForAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -226,7 +223,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test210AddStaffForAnderson() throws Exception {
         final String TEST_NAME = "test210AddStaffForAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -266,7 +262,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test220AddAlumniForLewis() throws Exception {
         final String TEST_NAME = "test220AddAlumniForLewis";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -306,7 +301,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test230AddLewis() throws Exception {
         final String TEST_NAME = "test230AddLewis";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -346,7 +340,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test240AddStaffForAnderson() throws Exception {
         final String TEST_NAME = "test240AddStaffForAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -386,7 +379,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test250DeleteAlumniForAnderson() throws Exception {
         final String TEST_NAME = "test250DeleteAlumniForAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -426,7 +418,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test310DeleteStaff() throws Exception {
         final String TEST_NAME = "test310DeleteStaff";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
 

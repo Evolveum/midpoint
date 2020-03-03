@@ -20,8 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.testng.annotations.Test;
 
 /**
@@ -36,8 +34,6 @@ import org.testng.annotations.Test;
 public class TestOpenDjDumber extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
 
     @Override
     protected File getResourceOpenDjFile() {
@@ -84,16 +80,15 @@ public class TestOpenDjDumber extends TestOpenDj {
     @Override
     public void test489DeleteOuSuperWithSub() throws Exception {
         final String TEST_NAME = "test489DeleteOuSuperWithSub";
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         createSubOrg();
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             provisioningService.deleteObject(ShadowType.class, OU_SUPER_OID, null, null, task, result);
 
             assertNotReached();
@@ -102,7 +97,7 @@ public class TestOpenDjDumber extends TestOpenDj {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertFailure(result);
     }
 

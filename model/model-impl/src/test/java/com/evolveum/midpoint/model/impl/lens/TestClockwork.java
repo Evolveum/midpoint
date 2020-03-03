@@ -90,10 +90,9 @@ public class TestClockwork extends AbstractLensTest {
     @Test
     public void test010SerializeAddUserBarbossa() throws Exception {
         final String TEST_NAME = "test010SerializeAddUserBarbossa";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -101,7 +100,7 @@ public class TestClockwork extends AbstractLensTest {
         fillContextWithAddUserDelta(context, bill);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         clockwork.click(context, task, result);     // one round - compute projections
 
         display("Context before serialization", context);
@@ -117,7 +116,7 @@ public class TestClockwork extends AbstractLensTest {
         display("Context after deserialization", context);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
             assertTrue("Secondary delta #" + i + " is not preserved correctly, "
@@ -130,12 +129,11 @@ public class TestClockwork extends AbstractLensTest {
     @Test
     public void test020AssignAccountToJackSync() throws Exception {
         final String TEST_NAME = "test020AssignAccountToJackSync";
-        displayTestTitle(TEST_NAME);
 
         try {
 
             // GIVEN
-            Task task = createTask(TEST_NAME);
+            Task task = getTestTask();
             OperationResult result = task.getResult();
 
             LensContext<UserType> context = createJackAssignAccountContext(result);
@@ -148,11 +146,11 @@ public class TestClockwork extends AbstractLensTest {
             rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             clockwork.run(context, task, result);
 
             // THEN
-            displayThen(TEST_NAME);
+            then();
             mockClockworkHook.setRecord(false);
             display("Output context", context);
             display("Hook contexts", mockClockworkHook);
@@ -209,10 +207,9 @@ public class TestClockwork extends AbstractLensTest {
     @Test
     public void test053ModifyUserBarbossaDisable() throws Exception {
         final String TEST_NAME = "test053ModifyUserBarbossaDisable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -226,11 +223,11 @@ public class TestClockwork extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         clockwork.run(context, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Output context", context);
 
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
@@ -266,10 +263,9 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     private void assignAccountToJackAsync(String testName, boolean serialize) throws Exception {
-        displayTestTitle(testName);
 
         // GIVEN
-        Task task = createTask(testName);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -285,7 +281,7 @@ public class TestClockwork extends AbstractLensTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-        displayWhen(testName);
+        when(testName);
         while(context.getState() != ModelState.FINAL) {
 
             display("CLICK START: "+context.getState());
@@ -315,7 +311,7 @@ public class TestClockwork extends AbstractLensTest {
         }
 
         // THEN
-        displayThen(testName);
+        then(testName);
         mockClockworkHook.setRecord(false);
 //        display("Output context", context);
 //        display("Hook contexts", mockClockworkHook);

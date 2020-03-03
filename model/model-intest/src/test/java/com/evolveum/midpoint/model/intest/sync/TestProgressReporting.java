@@ -62,8 +62,6 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        setAutoTaskManagementEnabled(true);
-
         interruptedSyncResource = new DummyInterruptedSyncResource();
         interruptedSyncResource.init(dummyResourceCollection, initTask, initResult);
 
@@ -84,8 +82,8 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     }
 
     private void executeReconciliation(TestResource reconciliationTask, String accountPrefix, int workers) throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         for (int i = 0; i < USERS; i++) {
@@ -164,8 +162,8 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     }
 
     private void executeRecomputation(TestResource recomputationTask, String rolePrefix, int workers) throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         System.out.println("Importing roles.");

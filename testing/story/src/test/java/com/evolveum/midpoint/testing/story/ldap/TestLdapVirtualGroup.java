@@ -192,7 +192,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -207,18 +206,17 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test090AddItRoleHR() throws Exception {
         final String TEST_NAME = "test090AddItRoleHR";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("recompute role "+ROLE_IT_HR_NAME);
 
         modelService.recompute(RoleType.class, ROLE_IT_HR_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -236,19 +234,18 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test100AddItDevRole() throws Exception {
         final String TEST_NAME = "test100AddItDevRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> roleBefore = createLdapRole(ROLE_IT_DEV_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding role", roleBefore);
         addObject(roleBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -265,19 +262,18 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test110AddItOpRole() throws Exception {
         final String TEST_NAME = "test100AddItOpRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> roleBefore = createLdapRole(ROLE_IT_OP_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding role", roleBefore);
         addObject(roleBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -294,7 +290,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     @Test
     public void test200CreateUsers() throws Exception {
         final String TEST_NAME = "test200CreateUsers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -304,7 +299,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user3Before = createUser(USER_3_NAME, "givenName3", "familyName3", true);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("Adding user0", user0Before);
         addObject(user0Before, task, result);
         display("Adding user1", user1Before);
@@ -315,7 +310,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         addObject(user3Before, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -339,19 +334,18 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test210AssignItHrRoleToUser0() throws Exception {
         final String TEST_NAME = "test210AssignItHrRoleToUser0";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user0Before = getObjectByName(UserType.class, USER_0_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user0Before: ", user0Before);
         assignRole(user0Before.getOid(), ROLE_IT_HR_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -371,19 +365,18 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test220AssignItDevRoleToUser1() throws Exception {
         final String TEST_NAME = "test220AssignItDevRoleToUser1";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user1Before = getObjectByName(UserType.class, USER_1_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user1Before: ", user1Before);
         assignRole(user1Before.getOid(), roleItDevOid);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -403,7 +396,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test230AssignJobRoleToUser2() throws Exception {
         final String TEST_NAME = "test230AssignJobRoleToUser2";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -412,12 +404,12 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user2Before = getObjectByName(UserType.class, USER_2_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user2Before: ", user2Before);
         assignRole(user2Before.getOid(), ROLE_JOB_DEVOPS_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -439,7 +431,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test240AssignJobRoleMultiJobToUser3() throws Exception {
         final String TEST_NAME = "test230AssignJobRoleMultiJobToUser3";
 
-        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -448,12 +439,12 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<UserType> user3Before = getObjectByName(UserType.class, USER_3_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         display("user3Before: ", user3Before);
         assignRole(user3Before.getOid(), ROLE_JOB_MULTIJOBS_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

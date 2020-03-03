@@ -22,14 +22,14 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 /**
  * @author semancik
  */
-public class TestPerformance {
+public class TestPerformance extends AbstractPrismTest {
 
     private static final int ITERATIONS = 10_000;
 
     private static final double NANOS_TO_MILLIS_DOUBLE = 1_000_000d;
 
     @BeforeSuite
-    public void setupDebug() {
+    public void initPrismContext() {
         PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
     }
 
@@ -39,9 +39,6 @@ public class TestPerformance {
      */
     @Test
     public void testPerfContainerNewValue() throws Exception {
-        final String TEST_NAME = "testPerfContainerNewValue";
-        PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext ctx = constructInitializedPrismContext();
         PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO, "user"));

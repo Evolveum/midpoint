@@ -55,7 +55,6 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        TestUtil.displayTestTitle(this, "test100ModifyUserAddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test100ModifyUserAddAccount");
@@ -122,10 +121,9 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     @Test
     public void test101ModifyAddAttributesIntolerantPattern() throws Exception {
         final String TEST_NAME = "test101ModifyAddAttributesIntolerantPattern";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -138,11 +136,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Check value in "quote attribute"
@@ -168,9 +166,8 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test102modifyAddAttributeTolerantPattern() throws Exception{
-         TestUtil.displayTestTitle(this, "test102modifyAddAttributeTolerantPattern");
 
-            // GIVEN
+        // GIVEN
             Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test102modifyAddAttributeTolerantPattern");
             OperationResult result = task.getResult();
             assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -215,9 +212,8 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test103modifyReplaceAttributeIntolerant() throws Exception{
-         TestUtil.displayTestTitle(this, "test103modifyReplaceAttributeIntolerant");
 
-            // GIVEN
+        // GIVEN
             Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test103modifyReplaceAttributeIntolerant");
             OperationResult result = task.getResult();
             assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -262,9 +258,8 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test104modifyReplaceAttributeTolerantPattern() throws Exception{
-         TestUtil.displayTestTitle(this, "test104modifyReplaceAttributeTolerantPattern");
 
-            // GIVEN
+        // GIVEN
             Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test104modifyReplaceAttributeTolerantPattern");
             OperationResult result = task.getResult();
             assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -311,7 +306,6 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     @Test
     public void test105ModifyAddNonTolerantAttribute() throws Exception {
         final String TEST_NAME = "test105ModifyAddNonTolerantAttribute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test105modifyAddNonTolerantAttribute");
@@ -328,11 +322,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertPartialError(result);
     }
 

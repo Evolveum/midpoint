@@ -11,12 +11,10 @@ package com.evolveum.midpoint.testing.longtest;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.Entry;
-import org.opends.server.util.LDIFException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -133,30 +131,29 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test
     public void test100BigImport() throws Exception {
         final String TEST_NAME = "test100BigImport";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
         loadLdapEntries("u", NUM_LDAP_ENTRIES);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -175,15 +172,14 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test(enabled = false)
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
@@ -191,7 +187,7 @@ public class TestLdapComplex extends AbstractLongTest {
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         // TODO
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
@@ -199,7 +195,7 @@ public class TestLdapComplex extends AbstractLongTest {
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -214,20 +210,19 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test
     public void test500GuybrushAssignSecurity() throws Exception {
         final String TEST_NAME = "test500GuybrushAssignSecurity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_GUYBRUSH_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, INTENT_SECURITY, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -245,10 +240,9 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test
     public void test502RuinGuybrushAccountAndReconcile() throws Exception {
         final String TEST_NAME = "test502RuinGuybrushAccountAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Entry entryOrig = openDJController.searchByUid(USER_GUYBRUSH_USERNAME);
@@ -258,11 +252,11 @@ public class TestLdapComplex extends AbstractLongTest {
         openDJController.assertHasNoObjectClass(entryBefore, OBJECTCLASS_USER_SECURITY_INFORMATION);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);

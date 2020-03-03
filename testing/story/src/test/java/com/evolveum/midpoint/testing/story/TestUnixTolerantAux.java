@@ -112,18 +112,17 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test140AssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test140AssignUserLargoBasic";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -146,8 +145,7 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test142MeddleWithAccountAndReconcileUserLargo() throws Exception {
         final String TEST_NAME = "test142MeddleWithAccountAndReconcileUserLargo";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -168,11 +166,11 @@ public class TestUnixTolerantAux extends TestUnix {
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -194,18 +192,17 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test144AssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test144AssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -225,18 +222,17 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test146UnassignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test146UnassignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -256,18 +252,17 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test149UnAssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test149UnAssignUserLargoBasic";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);

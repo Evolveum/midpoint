@@ -92,7 +92,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test100DecideNoRole() throws Exception {
         final String TEST_NAME = "test100DecideNoRole";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -102,7 +101,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -113,13 +112,12 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
     }
 
     @Test
     public void test110DecideRoleUiAllowAll() throws Exception {
         final String TEST_NAME = "test110DecideRoleUiAllowAll";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_ALLOW_ALL_OID);
@@ -130,7 +128,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -141,13 +139,12 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertAllow(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
     }
 
     @Test
     public void test120DecideRoleUiDenyAll() throws Exception {
         final String TEST_NAME = "test120DecideRoleUiDenyAll";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALL_OID);
@@ -158,7 +155,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -169,7 +166,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 
@@ -179,7 +176,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test200DecideRoleUiDenyAllow() throws Exception {
         final String TEST_NAME = "test200DecideRoleUiDenyAllow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALLOW_OID);
@@ -190,7 +186,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAllow(authentication, "/login");
         assertAllow(authentication, "/");
@@ -201,7 +197,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/debugs");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 
@@ -211,7 +207,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test300ConflictingAuthorizationIds() throws Exception {
         final String TEST_NAME = "test300ConflictingAuthorizationIds";
-        displayTestTitle(TEST_NAME);
+
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_AUTHORIZATION_1.oid);
@@ -220,11 +216,11 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         display("user before", user);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when("Jack logs in");
         login(USER_JACK_USERNAME);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertLoggedInUsername(USER_JACK_USERNAME);
     }
 

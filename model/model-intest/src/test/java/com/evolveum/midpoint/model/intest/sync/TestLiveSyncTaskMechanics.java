@@ -148,23 +148,23 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test100SuspendWhileIcfSync() throws Exception {
         final String TEST_NAME = "test100SuspendWhileIcfSync";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Resource gives out changes slowly now.
         interruptedSyncResource.getDummyResource().setOperationDelayOffset(2000);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextStart(TASK_SLOW_RESOURCE_OID, false, 2000, true);  // starts the task
         boolean suspended = suspendTask(TASK_SLOW_RESOURCE_OID, 10000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_OID, result);
@@ -179,23 +179,23 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test105SuspendWhileIcfSyncImprecise() throws Exception {
         final String TEST_NAME = "test105SuspendWhileIcfSyncImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Resource gives out changes slowly now.
         interruptedSyncImpreciseResource.getDummyResource().setOperationDelayOffset(500);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextStart(TASK_SLOW_RESOURCE_IMPRECISE_OID, false, 2000, true);  // starts the task
         boolean suspended = suspendTask(TASK_SLOW_RESOURCE_IMPRECISE_OID, 5000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_IMPRECISE_OID, result);
@@ -214,10 +214,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test110SuspendWhileProcessing() throws Exception {
         final String TEST_NAME = "test110SuspendWhileProcessing";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -228,14 +228,14 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncResource.delay = 100;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextStart(TASK_SLOW_MODEL_OID, false, 2000, true);  // starts the task
         Thread.sleep(4000);
         boolean suspended = suspendTask(TASK_SLOW_MODEL_OID, 5000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_OID, result);
@@ -270,10 +270,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test115SuspendWhileProcessingImprecise() throws Exception {
         final String TEST_NAME = "test115SuspendWhileProcessingImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_I);
@@ -284,14 +284,14 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncImpreciseResource.delay = 100;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextStart(TASK_SLOW_MODEL_IMPRECISE_OID, false, 2000, true);  // starts the task
         Thread.sleep(4000);
         boolean suspended = suspendTask(TASK_SLOW_MODEL_IMPRECISE_OID, 5000);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_IMPRECISE_OID, result);
@@ -314,10 +314,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test120Batched() throws Exception {
         final String TEST_NAME = "test120Batched";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -329,12 +329,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncResource.errorOn = getUserName(24, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_BATCHED_OID, false, 10000, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -344,12 +344,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertObjects(UserType.class, query, 10);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_BATCHED_OID, false, 10000, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -359,12 +359,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertObjects(UserType.class, query, 20);
 
         // WHEN 3 (with error)
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_BATCHED_OID, false, 10000, true);
 
         // THEN 3 (with error)
-        displayThen(TEST_NAME);
+        then();
 
         taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -382,10 +382,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test125BatchedImprecise() throws Exception {
         final String TEST_NAME = "test125BatchedImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_I);
@@ -396,7 +396,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncImpreciseResource.delay = 0;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         try {
             waitForTaskNextRun(TASK_BATCHED_IMPRECISE_OID, false, 10000, true);
@@ -406,7 +406,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_IMPRECISE_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -429,10 +429,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test130Error() throws Exception {
         final String TEST_NAME = "test130Error";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -444,12 +444,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncResource.errorOn = getUserName(ERROR_ON, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_ERROR_OID, false, 10000, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -466,12 +466,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // Another run - should fail the same
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_ERROR_OID, false, 10000, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -490,10 +490,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test135ErrorImprecise() throws Exception {
         final String TEST_NAME = "test135ErrorImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_I);
@@ -505,7 +505,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncImpreciseResource.errorOn = getUserName(ERROR_ON, false);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         try {
             waitForTaskNextRun(TASK_ERROR_IMPRECISE_OID, false, 10000, true);
@@ -515,7 +515,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -534,12 +534,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // Another run - should fail the same
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_ERROR_IMPRECISE_OID, false, 10000, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -557,10 +557,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test140DryRun() throws Exception {
         final String TEST_NAME = "test140DryRun";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -572,12 +572,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncResource.errorOn = null;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_DRY_RUN.oid, false, 10000, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_DRY_RUN.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -596,10 +596,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test150DryRunWithUpdate() throws Exception {
         final String TEST_NAME = "test150DryRunWithUpdate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -611,12 +611,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         DummyInterruptedSyncResource.errorOn = null;
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForTaskNextRun(TASK_DRY_RUN_WITH_UPDATE.oid, false, 10000, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_DRY_RUN_WITH_UPDATE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);

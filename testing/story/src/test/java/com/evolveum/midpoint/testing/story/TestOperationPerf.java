@@ -89,7 +89,6 @@ public class TestOperationPerf extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_ORDINARY_ROLES);
 
@@ -110,9 +109,8 @@ public class TestOperationPerf extends AbstractStoryTest {
     }
 
     public void testAddUser(final String TEST_NAME, File userFile, String userOid, int roles) throws Exception {
-        displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = parseObject(userFile);
@@ -129,12 +127,12 @@ public class TestOperationPerf extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 

@@ -110,7 +110,6 @@ public class TestImport extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_SOURCE_OID, task);
@@ -124,16 +123,15 @@ public class TestImport extends AbstractStoryTest {
     @Test
     public void test100RunImport() throws Exception {
         final String TEST_NAME = "test100RunImport";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importObjectFromFile(TASK_IMPORT_FILE, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         long lastProfilingStarted = 0;
         long start = System.currentTimeMillis();
         for (;;) {

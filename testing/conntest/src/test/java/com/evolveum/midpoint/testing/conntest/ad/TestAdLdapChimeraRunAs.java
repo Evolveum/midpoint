@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,7 +12,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -20,9 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-conntest-test-main.xml" })
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {

@@ -92,18 +92,18 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ImportLiveSyncTaskDummyHr() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyHr";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importSyncTask();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         waitForSyncTaskStart();
     }
@@ -111,10 +111,10 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110AddDummyHrAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyHrAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -125,14 +125,14 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         getDummyResource(RESOURCE_DUMMY_HR_NAME).addAccount(account);
 
         waitForSyncTaskNextRun();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
                 getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
@@ -175,14 +175,14 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120UpdateDummyHrAccountMancomb() throws Exception {
         final String TEST_NAME = "test120UpdateDummyHrAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_HR_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         account.replaceAttributeValue(DummyAccount.ATTR_FULLNAME_NAME, "Sir Mancomb Seepgood");
 
@@ -192,7 +192,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
                 getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
@@ -241,16 +241,16 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ModifyGuybrushAssignAccount() throws Exception {
         final String TEST_NAME = "test200ModifyGuybrushAssignAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
         //assertUsers(5);
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_VOLATILE_OID, null, true);
@@ -260,7 +260,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userGuybrush = findUserByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("User guybrush", userGuybrush);
@@ -294,16 +294,16 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddLargo() throws Exception {
         final String TEST_NAME = "test300AddLargo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
         //assertUsers(5);
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_WITH_ASSIGNMENT_FILE);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -312,7 +312,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userLargo = findUserByUsername(ACCOUNT_LARGO_DUMMY_USERNAME);
         display("User largo", userLargo);
@@ -349,10 +349,10 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400AddHerman() throws Exception {
         final String TEST_NAME = "test400AddHerman";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_HERMAN_FILE);
@@ -364,11 +364,11 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         addObject(userBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -391,19 +391,19 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test402ModifyHermanMonster() throws Exception {
         final String TEST_NAME = "test402ModifyHermanMonster";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserAdd(USER_HERMAN_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString(DummyResource.VALUE_MONSTER));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

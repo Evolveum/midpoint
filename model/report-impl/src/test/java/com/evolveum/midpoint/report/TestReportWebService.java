@@ -62,25 +62,23 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
       public void test000Sanity() throws Exception {
           final String TEST_NAME = "test000Sanity";
-          displayTestTitle(TEST_NAME);
 
-          assertNotNull("No web service", reportWebService);
+        assertNotNull("No web service", reportWebService);
     }
 
     @Test
     public void test100ProcessReportUserList() throws Exception {
         final String TEST_NAME = "test100ProcessReportUserList";
-        displayTestTitle(TEST_NAME);
 
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         ObjectListType userList = reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Returned user list ("+userList.getObject().size()+" objects)", userList);
 
         assertUserList(userList);
@@ -89,7 +87,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test110ProcessReportUserListNoReportOid() throws Exception {
         final String TEST_NAME = "test110ProcessReportUserListNoReportOid";
-        displayTestTitle(TEST_NAME);
 
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
@@ -97,14 +94,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             reportWebService.processReport(null, query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected fault", f);
         }
     }
@@ -112,7 +109,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test112ProcessReportUserListInvalidReportOid() throws Exception {
         final String TEST_NAME = "test112ProcessReportUserListInvalidReportOid";
-        displayTestTitle(TEST_NAME);
 
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
@@ -120,14 +116,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             reportWebService.processReport("l00n3y", query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected fault", f);
         }
     }
@@ -138,7 +134,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test115ProcessReportUserListUnauthorizedReader() throws Exception {
         final String TEST_NAME = "test115ProcessReportUserListUnauthorizedReader";
-        displayTestTitle(TEST_NAME);
 
         login(USER_READER_USERNAME);
 
@@ -148,14 +143,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
@@ -168,7 +163,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test116ProcessReportUserListUnauthorizedRunner() throws Exception {
         final String TEST_NAME = "test116ProcessReportUserListUnauthorizedRunner";
-        displayTestTitle(TEST_NAME);
 
         login(USER_RUNNER_USERNAME);
 
@@ -178,14 +172,14 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
             assertNotReached();
 
         } catch (Fault f) {
             // THEN
-            displayThen(TEST_NAME);
+            then();
             display("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
@@ -198,7 +192,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test119ProcessReportUserListReaderRunner() throws Exception {
         final String TEST_NAME = "test119ProcessReportUserListReaderRunner";
-        displayTestTitle(TEST_NAME);
 
         login(USER_READER_RUNNER_USERNAME);
 
@@ -209,7 +202,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         try {
 
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             userList = reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
 
         } finally {
@@ -217,7 +210,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Returned user list ("+userList.getObject().size()+" objects)", userList);
 
         assertUserList(userList);
@@ -235,7 +228,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     }
 
     private void assertUserList(ObjectListType userList) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("assertUserList");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());

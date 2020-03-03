@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public abstract class TestCompare extends AbstractPrismTest {
 
     private static final QName REF_QNAME = new QName(NS_FOO, "ref");
-    private static final QName REF_TYPE_QNAME = new QName(NS_FOO, "RefType");;
+    private static final QName REF_TYPE_QNAME = new QName(NS_FOO, "RefType");
 
     protected abstract String getSubdirName();
 
@@ -56,22 +56,16 @@ public abstract class TestCompare extends AbstractPrismTest {
      */
     @Test
     public void testCompareJack() throws SchemaException, SAXException, IOException {
-        final String TEST_NAME="testCompareJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
-
-//        Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
-//        Element userElement = DOMUtil.getFirstChildElement(document);
 
         PrismObject<UserType> user1 = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
         PrismObject<UserType> user2 = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 
         // WHEN, THEN
 
-        assertTrue("Users not the same (PrismObject)(1)", user1.equals(user2));
-        assertTrue("Users not the same (PrismObject)(2)", user2.equals(user1));
+        assertEquals("Users not the same (PrismObject)(1)", user2, user1);
+        assertEquals("Users not the same (PrismObject)(2)", user1, user2);
 
         // Following line won't work here. We don't have proper generated classes here.
         // It is tested in the "schema" project that has a proper code generation
@@ -87,9 +81,6 @@ public abstract class TestCompare extends AbstractPrismTest {
      */
     @Test
     public void testDiffJack() throws Exception {
-        final String TEST_NAME="testDiffJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -144,9 +135,6 @@ public abstract class TestCompare extends AbstractPrismTest {
      */
     @Test
     public void testDiffJackLiteral() throws Exception {
-        final String TEST_NAME="testDiffJackLiteral";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -194,9 +182,6 @@ public abstract class TestCompare extends AbstractPrismTest {
 
     @Test
     public void testDiffPatchRoundTrip() throws SchemaException, SAXException, IOException {
-        final String TEST_NAME="testDiffPatchRoundTrip";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
 
@@ -206,17 +191,11 @@ public abstract class TestCompare extends AbstractPrismTest {
 
         ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
 
-//        System.out.println("jackOriginal:\n" + prismContext.getXnodeProcessor().serializeObject(jackOriginal).debugDump(1));
-//        System.out.println("jackModified:\n" + prismContext.getXnodeProcessor().serializeObject(jackModified).debugDump(1));
-//        System.out.println("jackDelta:\n" + jackDelta.debugDump());
-
         jackDelta.assertDefinitions();
         jackDelta.checkConsistence(true, true, true);
 
         // WHEN
         jackDelta.applyTo(jackOriginal);
-
-//        System.out.println("jackOriginal after applying delta:\n" + prismContext.getXnodeProcessor().serializeObject(jackOriginal).debugDump(1));
 
         // THEN
         assertTrue("Roundtrip failed", jackOriginal.equivalent(jackModified));
@@ -224,9 +203,6 @@ public abstract class TestCompare extends AbstractPrismTest {
 
     @Test
     public void testEqualsReferenceValues() throws Exception {
-        final String TEST_NAME="testEqualsReferenceValues";
-        displayTestTitle(TEST_NAME);
-
         PrismContext prismContext = constructInitializedPrismContext();
 
         PrismReferenceValue val11 = new PrismReferenceValueImpl("oid1");
@@ -270,7 +246,6 @@ public abstract class TestCompare extends AbstractPrismTest {
         yetAnotherDifferentUser.setPropertyRealValue(UserType.F_FULL_NAME, "John J Random");
         val35.setObject(yetAnotherDifferentUser);
 
-
         assertTrue("val11 - val11", val11.equals(val11));
         assertTrue("val11 - val12", val11.equals(val12));
         assertTrue("val12 - val11", val12.equals(val11));
@@ -299,9 +274,6 @@ public abstract class TestCompare extends AbstractPrismTest {
 
     @Test
     public void testEqualsReferenceValuesSchema() throws Exception {
-        final String TEST_NAME="testEqualsReferenceValuesSchema";
-        displayTestTitle(TEST_NAME);
-
         PrismContext prismContext = constructInitializedPrismContext();
 
         MutablePrismReferenceDefinition ref1Def = prismContext.definitionFactory().createReferenceDefinition(REF_QNAME, REF_TYPE_QNAME);
@@ -389,21 +361,10 @@ public abstract class TestCompare extends AbstractPrismTest {
         assertFalse("val43 - val21", val43.equals(val21));
         assertFalse("val43 - val22", val43.equals(val22));
         assertTrue("val43 - val23", val43.equals(val23));
-
-
-//        assertTrue("val11 - val11", val11.equals(val11));
-//        assertTrue("val11 - val11", val11.equals(val11));
-//        assertTrue("val11 - val11", val11.equals(val11));
-//        assertTrue("val11 - val11", val11.equals(val11));
-
-
     }
 
     @Test
     public void testDiffReferences() throws Exception {
-        final String TEST_NAME="testDiffReferences";
-        displayTestTitle(TEST_NAME);
-
         if (!"xml".equals(getFilenameSuffix())) {
             return;
         }

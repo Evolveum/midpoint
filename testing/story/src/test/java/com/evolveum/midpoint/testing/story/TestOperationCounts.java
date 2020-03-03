@@ -112,7 +112,6 @@ public class TestOperationCounts extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOperationCounts.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOne = modelService.testResource(RESOURCE_DUMMY_ONE_OID, task);
@@ -126,20 +125,19 @@ public class TestOperationCounts extends AbstractStoryTest {
     @Test
     public void test100AddAlice() throws Exception {
         final String TEST_NAME = "test100AddAlice";
-        displayTestTitle(TEST_NAME);
         Task task = createTracedTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         resetThreadLocalPerformanceData();
         addObject(USER_ALICE_FILE, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -174,20 +172,19 @@ public class TestOperationCounts extends AbstractStoryTest {
     @Test
     public void test110AddBob() throws Exception {
         final String TEST_NAME = "test110AddBob";
-        displayTestTitle(TEST_NAME);
         Task task = createTracedTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         resetThreadLocalPerformanceData();
         addObject(USER_BOB_FILE, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -219,7 +216,6 @@ public class TestOperationCounts extends AbstractStoryTest {
     @Test
     public void test120ModifyBob() throws Exception {
         final String TEST_NAME = "test120ModifyBob";
-        displayTestTitle(TEST_NAME);
         Task task = createTracedTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -230,13 +226,13 @@ public class TestOperationCounts extends AbstractStoryTest {
                 .asObjectDeltaCast(USER_BOB_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         resetThreadLocalPerformanceData();
         executeChanges(delta, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

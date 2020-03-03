@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.intest.security;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
 
@@ -526,7 +525,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     @Test
     public void test010SanitySelf() throws Exception {
         final String TEST_NAME = "test010SanitySelf";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
@@ -550,7 +548,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     @Test
     public void test020SanityArchetypedRoles() throws Exception {
         final String TEST_NAME = "test020SanityArchetypedRoles";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN, THEN
@@ -1102,7 +1099,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected <T extends ObjectType, O extends ObjectType> void assertCanSearch(String message, Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = createTask("assertCanSearch");
+        Task task = createPlainTask("assertCanSearch");
         OperationResult result = task.getResult();
         String opName = "canSearch("+message+")";
         logAttempt(opName);
