@@ -154,8 +154,11 @@ public interface MidpointTestMixin {
      */
     default void then(String description) {
         String testName = getTestNameShort();
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": THEN " + description);
-        logger().info(TEST_LOG_SECTION_PREFIX + testName + ": THEN " + description);
+        if (description == null) {
+            description = "";
+        }
+        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": THEN " + description + TEST_OUT_SECTION_SUFFIX);
+        logger().info(TEST_LOG_SECTION_PREFIX + testName + ": THEN " + description + TEST_LOG_SECTION_SUFFIX);
     }
 
     /**

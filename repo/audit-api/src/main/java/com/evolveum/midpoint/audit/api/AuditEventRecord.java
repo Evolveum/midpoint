@@ -109,7 +109,7 @@ public class AuditEventRecord implements DebugDumpable {
      * Task OID. This field is used for records that are executed in the context
      * of a persistent task.
      */
-    private String taskOID;
+    private String taskOid;
 
     private String hostIdentifier;        // local node name as obtained from the networking stack
     private String nodeIdentifier;        // midPoint cluster node identifier (NodeType.nodeIdentifier)
@@ -244,12 +244,12 @@ public class AuditEventRecord implements DebugDumpable {
         this.taskIdentifier = taskIdentifier;
     }
 
-    public String getTaskOID() {
-        return taskOID;
+    public String getTaskOid() {
+        return taskOid;
     }
 
-    public void setTaskOID(String taskOID) {
-        this.taskOID = taskOID;
+    public void setTaskOid(String taskOid) {
+        this.taskOid = taskOid;
     }
 
     public String getHostIdentifier() {
@@ -516,7 +516,7 @@ public class AuditEventRecord implements DebugDumpable {
         auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target, true));
         auditRecordType.setRequestIdentifier(requestIdentifier);
         auditRecordType.setTaskIdentifier(taskIdentifier);
-        auditRecordType.setTaskOID(taskOID);
+        auditRecordType.setTaskOID(taskOid);
         auditRecordType.getResourceOid().addAll(resourceOids);
         auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
         for (ObjectDeltaOperation delta : deltas) {
@@ -573,7 +573,7 @@ public class AuditEventRecord implements DebugDumpable {
         clone.targetOwner = this.targetOwner;
         clone.requestIdentifier = this.requestIdentifier;
         clone.taskIdentifier = this.taskIdentifier;
-        clone.taskOID = this.taskOID;
+        clone.taskOid = this.taskOid;
         clone.timestamp = this.timestamp;
         clone.result = this.result;
         clone.parameter = this.parameter;
@@ -589,7 +589,7 @@ public class AuditEventRecord implements DebugDumpable {
     public String toString() {
         return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
                 + " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
-                + " toid=" + taskOID + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
+                + " toid=" + taskOid + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
                 + ", I=" + formatObject(initiator) + ", A=" + formatObject(attorney)
                 + ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
                 + ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
@@ -657,7 +657,7 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Session Identifier", sessionIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Request Identifier", requestIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Task Identifier", taskIdentifier, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOID, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOid, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Node Identifier", nodeIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Remote Host Address", remoteHostAddress, indent + 1);

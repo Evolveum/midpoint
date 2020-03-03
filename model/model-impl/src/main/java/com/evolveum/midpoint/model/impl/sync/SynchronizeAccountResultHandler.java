@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -111,48 +112,50 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
      * was created and invoke notification interface.
      */
     @Override
-    protected boolean handleObject(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
+    protected boolean handleObject(PrismObject<ShadowType> shadowObject, RunningTask workerTask, OperationResult result) {
         long started = System.currentTimeMillis();
+        ShadowType shadow = shadowObject.asObjectable();
         try {
-            workerTask.recordIterativeOperationStart(accountShadow.asObjectable());
-            boolean rv = handleObjectInternal(accountShadow, workerTask, result);
+            workerTask.recordIterativeOperationStart(shadow);
+            boolean rv = handleObjectInternal(shadowObject, started, workerTask, result);
             result.computeStatusIfUnknown();
             if (result.isError()) {
-                workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, RepoCommonUtils.getResultException(result));
+                workerTask.recordIterativeOperationEnd(shadow, started, RepoCommonUtils.getResultException(result));
             } else {
-                workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, null);
+                workerTask.recordIterativeOperationEnd(shadow, started, null);
             }
             return rv;
         } catch (Throwable t) {
-            workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, t);
+            workerTask.recordIterativeOperationEnd(shadow, started, t);
             throw t;
         }
     }
 
-    private boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
+    private boolean handleObjectInternal(PrismObject<ShadowType> shadowObject, long started, RunningTask workerTask, OperationResult result) {
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));
-        }
+        LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), shadowObject.debugDumpLazily(1));
 
-        ShadowType newShadowType = accountShadow.asObjectable();
-        if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
-            LOGGER.trace("{} skipping {} because it is protected", getProcessShortNameCapitalized(), accountShadow);
+        ShadowType shadow = shadowObject.asObjectable();
+        if (shadow.isProtectedObject() != null && shadow.isProtectedObject()) {
+            LOGGER.trace("{} skipping {} because it is protected", getProcessShortNameCapitalized(), shadowObject);
+            SynchronizationInformation.Record record = SynchronizationInformation.Record.createProtected();
+            workerTask.recordSynchronizationOperationEnd(shadow, started, null, record, record);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
             return workerTask.canRun();
         }
 
         boolean isMatches;
         if (intentIsNull && objectClassDef instanceof RefinedObjectClassDefinition) {
-            isMatches = ((RefinedObjectClassDefinition)objectClassDef).matchesWithoutIntent(newShadowType);
+            isMatches = ((RefinedObjectClassDefinition)objectClassDef).matchesWithoutIntent(shadow);
         } else {
-            isMatches = objectClassDef.matches(newShadowType);
+            isMatches = objectClassDef.matches(shadow);
         }
 
-
-        if (objectClassDef != null && !isShadowUnknown(newShadowType) && !isMatches) {
+        if (objectClassDef != null && !isShadowUnknown(shadow) && !isMatches) {
             LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent specified in {}",
-                    getProcessShortNameCapitalized(), accountShadow, objectClassDef);
+                    getProcessShortNameCapitalized(), shadowObject, objectClassDef);
+            SynchronizationInformation.Record record = SynchronizationInformation.Record.createNotApplicable();
+            workerTask.recordSynchronizationOperationEnd(shadow, started, null, record, record);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
             return workerTask.canRun();
         }
@@ -176,16 +179,16 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
         if (forceAdd) {
             // We should provide shadow in the state before the change. But we are
             // pretending that it has not existed before, so we will not provide it.
-            ObjectDelta<ShadowType> shadowDelta = accountShadow.getPrismContext().deltaFactory().object()
+            ObjectDelta<ShadowType> shadowDelta = shadowObject.getPrismContext().deltaFactory().object()
                     .create(ShadowType.class, ChangeType.ADD);
-            shadowDelta.setObjectToAdd(accountShadow);
-            shadowDelta.setOid(accountShadow.getOid());
+            shadowDelta.setObjectToAdd(shadowObject);
+            shadowDelta.setOid(shadowObject.getOid());
             change.setObjectDelta(shadowDelta);
             // Need to also set current shadow. This will get reflected in "old" object in lens context
         } else {
             // No change, therefore the delta stays null. But we will set the current
         }
-        change.setCurrentShadow(accountShadow);
+        change.setCurrentShadow(shadowObject);
 
         try {
             change.checkConsistence();

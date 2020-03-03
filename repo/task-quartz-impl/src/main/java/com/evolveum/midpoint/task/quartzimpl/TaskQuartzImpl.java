@@ -2480,16 +2480,17 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     @Override
-    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType,
-            String objectOid) {
-        statistics.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
-    }
-
-    @Override
     public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
             long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
             SynchronizationInformation.Record newStateIncrement) {
         statistics.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, originalStateIncrement, newStateIncrement);
+    }
+
+    @Override
+    public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
+            SynchronizationInformation.Record originalStateIncrement,
+            SynchronizationInformation.Record newStateIncrement) {
+        statistics.recordSynchronizationOperationEnd(shadow, started, exception, originalStateIncrement, newStateIncrement);
     }
 
     @Override

@@ -48,7 +48,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
     private PrismObject<ShadowType> applicableShadow;
-    private PrismObject<ShadowType> currentShadow;
+    private final PrismObject<ShadowType> currentShadow;
 
     /**
      * Original delta that triggered this synchronization. (If known.)
@@ -394,9 +394,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     }
     public String getChannel() {
         return channel;
-    }
-    public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
-        this.currentShadow = currentShadow;
     }
     public void setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;

@@ -6,24 +6,15 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,6 +29,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
@@ -46,51 +38,47 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
  *
  */
+@SuppressWarnings("SpellCheckingInspection")
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/sync");
 
-    private static final File USER_IMPORTER_FILE = new File(TEST_DIR, "user-importer.xml");
-    private static final String USER_IMPORTER_OID = "00000000-1111-1111-1111-000000000002";
+    private static final TestResource USER_IMPORTER = new TestResource(TEST_DIR, "user-importer.xml", "00000000-1111-1111-1111-000000000002");
 
     private static final String ACCOUNT_OTIS_NAME = "otis";
     private static final String ACCOUNT_OTIS_FULLNAME = "Otis";
@@ -109,57 +97,33 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final String USER_AUGUSTUS_NAME = "augustus";
 
-    private static final File ACCOUNT_AUGUSTUS_FILE = new File(TEST_DIR, "account-augustus-dummy.xml");
-    private static final String ACCOUNT_AUGUSTUS_OID = "22220000-2200-0000-0000-444400004457";
-    private static final String ACCOUNT_AUGUSTUS_NAME = "augustus";
-    private static final String ACCOUNT_AUGUSTUS_FULLNAME = "Augustus DeWaat";
+    private static class AccountTestResource extends TestResource {
+        private final String name;
+        @SuppressWarnings({ "FieldCanBeLocal", "unused" })
+        private final String fullName;
 
-    private static final File ACCOUNT_TAUGUSTUS_FILE = new File(TEST_DIR, "account-taugustus-dummy.xml");
-    private static final String ACCOUNT_TAUGUSTUS_OID = "22220000-2200-0000-0000-444400004456";
-    private static final String ACCOUNT_TAUGUSTUS_NAME = "Taugustus";
-    private static final String ACCOUNT_TAUGUSTUS_FULLNAME = "Augustus DeWaat";
+        private AccountTestResource(File dir, String fileName, String oid, String name, String fullName) {
+            super(dir, fileName, oid);
+            this.name = name;
+            this.fullName = fullName;
+        }
+    }
 
-    private static final File ACCOUNT_KENNY_FILE = new File(TEST_DIR, "account-kenny-dummy.xml");
-    private static final String ACCOUNT_KENNY_OID = "22220000-2200-0000-0000-444400004461";
-    private static final String ACCOUNT_KENNY_NAME = "kenny";
-    private static final String ACCOUNT_KENNY_FULLNAME = "Kenny Falmouth";
+    private static final AccountTestResource ACCOUNT_AUGUSTUS = new AccountTestResource(TEST_DIR, "account-augustus-dummy.xml", "22220000-2200-0000-0000-444400004457", "augustus", "Augustus DeWaat");
+    private static final AccountTestResource ACCOUNT_TAUGUSTUS = new AccountTestResource(TEST_DIR, "account-taugustus-dummy.xml", "22220000-2200-0000-0000-444400004456", "Taugustus", "Augustus DeWaat");
+    private static final AccountTestResource ACCOUNT_KENNY = new AccountTestResource(TEST_DIR, "account-kenny-dummy.xml", "22220000-2200-0000-0000-444400004461", "kenny", "Kenny Falmouth");
 
     private static final String USER_PALIDO_NAME = "palido";
-    private static final File ACCOUNT_TPALIDO_FILE = new File(TEST_DIR, "account-tpalido-dummy.xml");
-    private static final String ACCOUNT_TPALIDO_OID = "22220000-2200-0000-0000-444400004462";
-    private static final String ACCOUNT_TPALIDO_NAME = "Tpalido";
-    private static final String ACCOUNT_TPALIDO_FULLNAME = "Palido Domingo";
 
-    private static final File ACCOUNT_LECHIMP_FILE = new File(TEST_DIR, "account-lechimp-dummy.xml");
-    private static final String ACCOUNT_LECHIMP_OID = "22220000-2200-0000-0000-444400004463";
-    private static final String ACCOUNT_LECHIMP_NAME = "lechimp";
-    private static final String ACCOUNT_LECHIMP_FULLNAME = "Captain LeChimp";
-
-    private static final File ACCOUNT_TLECHIMP_FILE = new File(TEST_DIR, "account-tlechimp-dummy.xml");
-    private static final String ACCOUNT_TLECHIMP_OID = "22220000-2200-0000-0000-444400004464";
-    private static final String ACCOUNT_TLECHIMP_NAME = "Tlechimp";
-    private static final String ACCOUNT_TLECHIMP_FULLNAME = "Captain LeChimp";
-
-    private static final File ACCOUNT_ANDRE_FILE = new File(TEST_DIR, "account-andre-dummy.xml");
-    private static final String ACCOUNT_ANDRE_OID = "22220000-2200-0000-0000-444400004465";
-    private static final String ACCOUNT_ANDRE_NAME = "andre";
-    private static final String ACCOUNT_ANDRE_FULLNAME = "King Andre";
-
-    private static final File ACCOUNT_TANDRE_FILE = new File(TEST_DIR, "account-tandre-dummy.xml");
-    private static final String ACCOUNT_TANDRE_OID = "22220000-2200-0000-0000-444400004466";
-    private static final String ACCOUNT_TANDRE_NAME = "Tandre";
-    private static final String ACCOUNT_TANDRE_FULLNAME = "King Andre";
+    private static final AccountTestResource ACCOUNT_TPALIDO = new AccountTestResource(TEST_DIR, "account-tpalido-dummy.xml", "22220000-2200-0000-0000-444400004462", "Tpalido", "Palido Domingo");
+    private static final AccountTestResource ACCOUNT_LECHIMP = new AccountTestResource(TEST_DIR, "account-lechimp-dummy.xml", "22220000-2200-0000-0000-444400004463", "lechimp", "Captain LeChimp");
+    private static final AccountTestResource ACCOUNT_TLECHIMP = new AccountTestResource(TEST_DIR, "account-tlechimp-dummy.xml", "22220000-2200-0000-0000-444400004464", "Tlechimp", "Captain LeChimp");
+    private static final AccountTestResource ACCOUNT_ANDRE = new AccountTestResource(TEST_DIR, "account-andre-dummy.xml", "22220000-2200-0000-0000-444400004465", "andre", "King Andre");
+    private static final AccountTestResource ACCOUNT_TANDRE = new AccountTestResource(TEST_DIR, "account-tandre-dummy.xml", "22220000-2200-0000-0000-444400004466", "Tandre", "King Andre");
 
     private static final String USER_LAFOOT_NAME = "lafoot";
-    private static final File ACCOUNT_TLAFOOT_FILE = new File(TEST_DIR, "account-tlafoot-dummy.xml");
-    private static final String ACCOUNT_TLAFOOT_OID = "22220000-2200-0000-0000-444400004467";
-    private static final String ACCOUNT_TLAFOOT_NAME = "Tlafoot";
-    private static final String ACCOUNT_TLAFOOT_FULLNAME = "Effete LaFoot";
-
-    private static final File ACCOUNT_CRUFF_FILE = new File(TEST_DIR, "account-cruff-dummy.xml");
-    private static final String ACCOUNT_CRUFF_OID = "22220000-2200-0000-0000-444400004468";
-    private static final String ACCOUNT_CRUFF_NAME = "cruff";
-    private static final String ACCOUNT_CRUFF_FULLNAME = "Cruff";
+    private static final AccountTestResource ACCOUNT_TLAFOOT = new AccountTestResource(TEST_DIR, "account-tlafoot-dummy.xml", "22220000-2200-0000-0000-444400004467", "Tlafoot", "Effete LaFoot");
+    private static final AccountTestResource ACCOUNT_CRUFF = new AccountTestResource(TEST_DIR, "account-cruff-dummy.xml", "22220000-2200-0000-0000-444400004468", "cruff", "Cruff");
 
     private static final String ACCOUNT_HTM_NAME = "htm";
     private static final String ACCOUNT_HTM_FULL_NAME = "Horatio Torquemada Marley";
@@ -167,49 +131,31 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     // AZURE resource. It disables unmatched accounts.
     // It also has several objectType definitions that are designed to confuse
     // the code that determines refined schema definitions
-    protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
-    protected static final File RESOURCE_DUMMY_AZURE_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-azure-deprecated.xml");
-    protected static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
-    protected static final String RESOURCE_DUMMY_AZURE_NAME = "azure";
-    protected static final String RESOURCE_DUMMY_AZURE_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
+    private static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
+    private static final String RESOURCE_DUMMY_AZURE_NAME = "azure";
+
+    private static final QName DUMMY_ACCOUNT_OBJECT_CLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass");
 
     // LIME dummy resource. This is a pure authoritative resource. It has only inbound mappings.
-    protected static final File RESOURCE_DUMMY_LIME_FILE = new File(TEST_DIR, "resource-dummy-lime.xml");
-    protected static final File RESOURCE_DUMMY_LIME_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-lime-deprecated.xml");
-    protected static final String RESOURCE_DUMMY_LIME_OID = "10000000-0000-0000-0000-000000131404";
-    protected static final String RESOURCE_DUMMY_LIME_NAME = "lime";
-    protected static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_LIME_FILE = new File(TEST_DIR, "resource-dummy-lime.xml");
+    private static final String RESOURCE_DUMMY_LIME_OID = "10000000-0000-0000-0000-000000131404";
+    private static final String RESOURCE_DUMMY_LIME_NAME = "lime";
+    private static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
 
-    protected static final File USER_TEMPLATE_LIME_FILE = new File(TEST_DIR, "user-template-lime.xml");
-    protected static final String USER_TEMPLACE_LIME_OID = "3cf43520-241d-11e6-afa5-a377b674950d";
+    private static final QName DUMMY_LIME_ACCOUNT_OBJECT_CLASS = new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass");
 
-    private static final File ROLE_IMPORTER_FILE = new File(TEST_DIR, "role-importer.xml");
-    private static final String ROLE_IMPORTER_OID = "00000000-1111-1111-1111-000000000004";
+    private static final TestResource USER_TEMPLATE_LIME = new TestResource(TEST_DIR, "user-template-lime.xml", "3cf43520-241d-11e6-afa5-a377b674950d");
+    private static final TestResource ROLE_IMPORTER = new TestResource(TEST_DIR, "role-importer.xml", "00000000-1111-1111-1111-000000000004");
+    private static final TestResource ROLE_CORPSE = new TestResource(TEST_DIR, "role-corpse.xml", "1c64c778-e7ac-11e5-b91a-9f44177e2359");
 
-    private static final File ROLE_CORPSE_FILE = new File(TEST_DIR, "role-corpse.xml");
-    private static final String ROLE_CORPSE_OID = "1c64c778-e7ac-11e5-b91a-9f44177e2359";
-
-    protected static final File PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_FILE = new File(TEST_DIR, "password-policy-azure.xml");
-    protected static final String PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID = "81818181-76e0-59e2-8888-3d4f02d3fffd";
-
-    protected static final File TASK_RECONCILE_DUMMY_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-dummy-single.xml");
-    protected static final String TASK_RECONCILE_DUMMY_SINGLE_OID = "10000000-0000-0000-5656-565600000004";
-
-    protected static final File TASK_RECONCILE_DUMMY_FILTER_FILE = new File(TEST_DIR, "task-reconcile-dummy-filter.xml");
-    protected static final String TASK_RECONCILE_DUMMY_FILTER_OID = "10000000-0000-0000-5656-565600000014";
-
-
-    protected static final File TASK_RECONCILE_DUMMY_AZURE_FILE = new File(TEST_DIR, "task-reconcile-dummy-azure.xml");
-    protected static final String TASK_RECONCILE_DUMMY_AZURE_OID = "10000000-0000-0000-5656-56560000a204";
-
-    protected static final File TASK_RECONCILE_DUMMY_LIME_FILE = new File(TEST_DIR, "task-reconcile-dummy-lime.xml");
-    protected static final String TASK_RECONCILE_DUMMY_LIME_OID = "10000000-0000-0000-5656-565600131204";
-
-    protected static final File TASK_DELETE_DUMMY_SHADOWS_FILE = new File(TEST_DIR, "task-delete-dummy-shadows.xml");
-    protected static final String TASK_DELETE_DUMMY_SHADOWS_OID = "abaab842-18be-11e5-9416-001e8c717e5b";
-
-    protected static final File TASK_DELETE_DUMMY_ACCOUNTS_FILE = new File(TEST_DIR, "task-delete-dummy-accounts.xml");
-    protected static final String TASK_DELETE_DUMMY_ACCOUNTS_OID = "ab28a334-2aca-11e5-afe7-001e8c717e5b";
+    private static final TestResource PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE = new TestResource(TEST_DIR, "password-policy-azure.xml", "81818181-76e0-59e2-8888-3d4f02d3fffd");
+    private static final TestResource TASK_RECONCILE_DUMMY_SINGLE = new TestResource(TEST_DIR, "task-reconcile-dummy-single.xml", "10000000-0000-0000-5656-565600000004");
+    private static final TestResource TASK_RECONCILE_DUMMY_FILTER = new TestResource(TEST_DIR, "task-reconcile-dummy-filter.xml", "10000000-0000-0000-5656-565600000014");
+    private static final TestResource TASK_RECONCILE_DUMMY_AZURE = new TestResource(TEST_DIR, "task-reconcile-dummy-azure.xml", "10000000-0000-0000-5656-56560000a204");
+    private static final TestResource TASK_RECONCILE_DUMMY_LIME = new TestResource(TEST_DIR, "task-reconcile-dummy-lime.xml", "10000000-0000-0000-5656-565600131204");
+    private static final TestResource TASK_DELETE_DUMMY_SHADOWS = new TestResource(TEST_DIR, "task-delete-dummy-shadows.xml", "abaab842-18be-11e5-9416-001e8c717e5b");
+    private static final TestResource TASK_DELETE_DUMMY_ACCOUNTS = new TestResource(TEST_DIR, "task-delete-dummy-accounts.xml", "ab28a334-2aca-11e5-afe7-001e8c717e5b");
 
     private static final String GROUP_CORPSES_NAME = "corpses";
 
@@ -220,22 +166,21 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     @Autowired
     private ValuePolicyProcessor valuePolicyProcessor;
 
-    protected DummyResource dummyResourceAzure;
-    protected DummyResourceContoller dummyResourceCtlAzure;
-    protected ResourceType resourceDummyAzureType;
-    protected PrismObject<ResourceType> resourceDummyAzure;
+    private DummyResource dummyResourceAzure;
+    private DummyResourceContoller dummyResourceCtlAzure;
+    private ResourceType resourceDummyAzureType;
+    private PrismObject<ResourceType> resourceDummyAzure;
 
-    protected DummyResource dummyResourceLime;
-    protected DummyResourceContoller dummyResourceCtlLime;
-    protected ResourceType resourceDummyLimeType;
-    protected PrismObject<ResourceType> resourceDummyLime;
+    private DummyResource dummyResourceLime;
+    private DummyResourceContoller dummyResourceCtlLime;
+    private PrismObject<ResourceType> resourceDummyLime;
 
     @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
 
     private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
 
-    protected PrismObject<UserType> userImporter;
+    PrismObject<UserType> userImporter;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -256,7 +201,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlLime.extendSchemaPirate();
         dummyResourceLime = dummyResourceCtlLime.getDummyResource();
         resourceDummyLime = importAndGetObjectFromFile(ResourceType.class, getDummyResourceLimeFile(), RESOURCE_DUMMY_LIME_OID, initTask, initResult);
-        resourceDummyLimeType = resourceDummyLime.asObjectable();
         dummyResourceCtlLime.setResource(resourceDummyLime);
 
         // Create an account that midPoint does not know about yet
@@ -274,20 +218,20 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlAzure.addGroup(GROUP_CORPSES_NAME);
 
         // Roles
-        repoAddObjectFromFile(ROLE_CORPSE_FILE, initResult);
-        repoAddObjectFromFile(ROLE_IMPORTER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_CORPSE.file, initResult);
+        repoAddObjectFromFile(ROLE_IMPORTER.file, initResult);
 
         // Password policy
         repoAddObjectFromFile(PASSWORD_POLICY_GLOBAL_FILE, initResult);
-        repoAddObjectFromFile(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_FILE, initResult);
+        repoAddObjectFromFile(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE.file, initResult);
 
         applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, SECURITY_POLICY_OID, initTask, initResult);
 
         // Object templates
-        repoAddObjectFromFile(USER_TEMPLATE_LIME_FILE, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_LIME.file, initResult);
 
         // Users
-        userImporter = repoAddObjectFromFile(USER_IMPORTER_FILE, initResult);
+        userImporter = repoAddObjectFromFile(USER_IMPORTER.file, initResult);
         // And a user that will be correlated to that account
         repoAddObjectFromFile(USER_RAPP_FILE, initResult);
 
@@ -307,11 +251,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         return super.getNumberOfUsers() + NUMBER_OF_IMPORTED_USERS;
     }
 
-    protected File getDummyResourceLimeFile() {
+    private File getDummyResourceLimeFile() {
         return RESOURCE_DUMMY_LIME_FILE;
     }
 
-    protected File getDummyResourceAzureFile() {
+    private File getDummyResourceAzureFile() {
         return RESOURCE_DUMMY_AZURE_FILE;
     }
 
@@ -325,8 +269,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test001SanityAzure() throws Exception {
-        final String TEST_NAME = "test001SanityAzure";
-
         display("Dummy resource azure", dummyResourceAzure);
 
         // WHEN
@@ -343,8 +285,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test002SanityAzureRefined() throws Exception {
-        final String TEST_NAME = "test002SanityAzureRefined";
-
         // WHEN
         RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyAzureType, prismContext);
 
@@ -357,10 +297,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No org object class def in azure refined schema", orgOcDef);
     }
 
+    /**
+     * Single-user import.
+     */
     @Test
     public void test100ImportStanFromResourceDummy() throws Exception {
-        final String TEST_NAME = "test100ImportStanFromResourceDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -402,22 +343,22 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         assertImportAuditModifications(1);
-
     }
 
+    /**
+     * Background import.
+     */
     @Test
     public void test150ImportFromResourceDummy() throws Exception {
-        final String TEST_NAME = "test150ImportFromResourceDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Preconditions
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-        display("Users before import", users);
-        assertEquals("Unexpected number of users", getNumberOfUsers() + 1, users.size());
+        List<PrismObject<UserType>> usersBefore = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users before import", usersBefore);
+        assertEquals("Unexpected number of users", getNumberOfUsers() + 1, usersBefore.size());
 
         PrismObject<UserType> rapp = getUser(USER_RAPP_OID);
         assertNotNull("No rapp", rapp);
@@ -431,7 +372,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -446,10 +387,25 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         then();
         TestUtil.assertSuccess(task.getResult());
 
+        dumpStatistics(task);
+        assertTask(task, "task after")
+                .display()
+                .synchronizationInformation()
+                    .assertUnmatched( 1, 0)
+                    .assertUnlinked( 1, 0)
+                    .assertLinked( 3, 5)
+                    .assertProtected( 2, 2)
+                    .assertTotal(7, 7)
+                    .end()
+                .iterativeTaskInformation()
+                    .assertTotalCounts(7, 0)
+                    .end()
+                .assertProgress(7);
+
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        users = modelService.searchObjects(UserType.class, null, null, task, result);
-        display("Users after import", users);
+        List<PrismObject<UserType>> usersAfter = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after import", usersAfter);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -468,16 +424,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
                 createPolyString("The crew of The Elaine"));
 
-        assertEquals("Unexpected number of users", getNumberOfUsers() + 2, users.size());
+        assertEquals("Unexpected number of users", getNumberOfUsers() + 2, usersAfter.size());
 
         // Check audit
         assertImportAuditModifications(4);
     }
 
+    /**
+     * Background import.
+     */
     @Test
     public void test155ImportFromResourceDummyAgain() throws Exception {
-        final String TEST_NAME = "test155ImportFromResourceDummyAgain";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -490,7 +447,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -504,6 +461,19 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
         assertSuccess(task.getResult());
+
+        dumpStatistics(task);
+        assertTask(task, "task after")
+                .display()
+                .synchronizationInformation()
+                    .assertLinked( 5, 5)
+                    .assertProtected( 2, 2)
+                    .assertTotal(7, 7)
+                .end()
+                .iterativeTaskInformation()
+                    .assertTotalCounts(7, 0)
+                    .end()
+                .assertProgress(7);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
 
@@ -533,10 +503,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportAuditModifications(0);
     }
 
+    /**
+     * Background import.
+     */
     @Test
     public void test160ImportFromResourceDummyLime() throws Exception {
-        final String TEST_NAME = "test160ImportFromResourceDummyLime";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -558,7 +529,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, DUMMY_LIME_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -572,6 +543,20 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
         TestUtil.assertSuccess(task.getResult());
+
+        dumpStatistics(task);
+        assertTask(task, "task after")
+                .display()
+                .synchronizationInformation()
+                    .assertUnmatched( 2, 0)
+                    .assertUnlinked( 1, 0)
+                    .assertLinked( 0, 3)
+                    .assertTotal(3, 3)
+                .end()
+                .iterativeTaskInformation()
+                    .assertTotalCounts(3, 0)
+                .end()
+                .assertProgress(3);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
@@ -607,8 +592,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test162ImportFromResourceDummyLimeRappOrganizationScummBar() throws Exception {
-        final String TEST_NAME = "test162ImportFromResourceDummyLimeRappOrganizationScummBar";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -636,7 +619,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, DUMMY_LIME_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -650,6 +633,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
         TestUtil.assertSuccess(task.getResult());
+
+        dumpStatistics(task);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
@@ -690,8 +675,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test164ImportFromResourceDummyLimeRappOrganizationNull() throws Exception {
-        final String TEST_NAME = "test164ImportFromResourceDummyLimeRappOrganizationNull";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -721,7 +704,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, DUMMY_LIME_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -735,6 +718,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
         assertSuccess(task.getResult());
+
+        dumpStatistics(task);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
@@ -770,8 +755,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200ReconcileDummy() throws Exception {
-        final String TEST_NAME = "test200ReconcileDummy";
-
         // GIVEN
         loginAdministrator();
 
@@ -814,12 +797,24 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_RECONCILE_DUMMY_SINGLE_FILE);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_SINGLE.file);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
+        dumpStatistics(taskAfter);
+        assertTask(taskAfter, "task after")
+                .display()
+                .synchronizationInformation()
+                    .assertLinked( 5, 5)
+                    .assertProtected( 2, 2)
+                    .assertTotal(7, 7)
+                .end()
+                .iterativeTaskInformation()
+                    .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
+                .end()
+                .assertProgress(7);         // or should be 9?
 
         // THEN
         then();
@@ -891,8 +886,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test210ReconcileDummyBroken() throws Exception {
-        final String TEST_NAME = "test210ReconcileDummyBroken";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -914,10 +907,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
+
+        dumpStatistics(taskAfter);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource)", users);
@@ -962,8 +957,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test219ReconcileDummyFixed() throws Exception {
-        final String TEST_NAME = "test219ReconcileDummyFixed";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -980,10 +973,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
+
+        dumpStatistics(taskAfter);
+
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
@@ -1041,8 +1037,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test220ReconcileDummyBrokenGuybrush() throws Exception {
-        final String TEST_NAME = "test220ReconcileDummyBrokenGuybrush";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1065,10 +1059,23 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
+
+        dumpStatistics(taskAfter);
+        assertTask(taskAfter, "task after")
+                .display()
+                .synchronizationInformation()
+                    .assertLinked( 5, 5)
+                    .assertProtected( 2, 2)
+                    .assertTotal(7, 7)
+                .end()
+                .iterativeTaskInformation()
+                    .assertTotalCounts(8, 1)
+                .end()
+                .assertProgress(7);         // or should be 9?
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource account)", users);
@@ -1115,8 +1122,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test229ReconcileDummyFixed() throws Exception {
-        final String TEST_NAME = "test229ReconcileDummyFixed";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1134,10 +1139,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
+
+        dumpStatistics(taskAfter);
+
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
@@ -1197,8 +1205,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test230ReconcileDummyRename() throws Exception {
-        final String TEST_NAME = "test230ReconcileDummyRename";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1224,10 +1230,28 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
+
+        dumpStatistics(taskAfter);
+        assertTask(taskAfter, "task after")
+                .display()
+                .synchronizationInformation()
+                    .assertUnmatched(1, 0)
+                    .assertLinked( 4, 5)
+                    .assertDeleted(1, 1)
+                    .assertProtected( 2, 2)
+                    .assertTotal(8, 8)
+                .end()
+                .iterativeTaskInformation()
+                    .assertTotalCounts(10, 0)
+                .end()
+                .assertProgress(8);         // or should be 10?
+
+        dumpShadowSituations(RESOURCE_DUMMY_OID, result);
+
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
@@ -1320,8 +1344,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test300ReconcileDummyAzureAddAccountOtis() throws Exception {
-        final String TEST_NAME = "test300ReconcileDummyAzureAddAccountOtis";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1339,14 +1361,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_RECONCILE_DUMMY_AZURE_FILE);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_AZURE.file);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
 
         then();
+
+        dumpStatistics(taskAfter);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1377,15 +1401,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
 
         assertShadows(17);
     }
 
     @Test
     public void test310ReconcileDummyAzureAgain() throws Exception {
-        final String TEST_NAME = "test310ReconcileDummyAzureAgain";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1393,7 +1415,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
 
-        PrismObject<TaskType> reconTask = getTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+        PrismObject<TaskType> reconTask = getTask(TASK_RECONCILE_DUMMY_AZURE.oid);
         display("Recon task", reconTask);
 
         dummyResourceAzure.purgeScriptHistory();
@@ -1402,12 +1424,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
@@ -1443,15 +1467,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
+        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
 
         assertShadows(17);
     }
 
     @Test
     public void test320ReconcileDummyAzureDeleteOtis() throws Exception {
-        final String TEST_NAME = "test320ReconcileDummyAzureDeleteOtis";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1471,12 +1493,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
 
@@ -1512,7 +1536,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
+        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
     /**
@@ -1545,12 +1569,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
 
@@ -1592,7 +1618,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTrue("Rapp's password is supposed to contain letter a: "+stringPassword, stringPassword.contains("a"));
 
 
-        PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
+        PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE.oid);
 
         boolean isPasswordValid = valuePolicyProcessor.validateValue(stringPassword, passwordPolicy.asObjectable(),
                 createUserOriginResolver(userRapp), TEST_NAME, task, result);
@@ -1609,7 +1635,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
     /**
@@ -1618,8 +1644,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test332ModifyUserRappAndReconcileDummyAzure() throws Exception {
-        final String TEST_NAME = "test332ModifyUserRappAndReconcileDummyAzure";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1652,12 +1676,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
 
@@ -1690,7 +1716,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE_OID);
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
     /**
@@ -1701,8 +1727,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test334AssignRoleCorpseToRappAndReconcileDummyAzure() throws Exception {
-        final String TEST_NAME = "test334AssignRoleCorpseToRappAndReconcileDummyAzure";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1713,7 +1737,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
         assertNoDummyGroupMember(RESOURCE_DUMMY_AZURE_NAME, GROUP_CORPSES_NAME, USER_RAPP_USERNAME);
 
-        ObjectDelta<UserType> userRappDelta = createAssignmentUserDelta(USER_RAPP_OID, ROLE_CORPSE_OID,
+        ObjectDelta<UserType> userRappDelta = createAssignmentUserDelta(USER_RAPP_OID, ROLE_CORPSE.oid,
                 RoleType.COMPLEX_TYPE, null, null, true);
         repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 
@@ -1726,12 +1750,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
 
@@ -1763,14 +1789,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
 
     @Test
     public void test339ReconcileDummyAzureDeleteRapp() throws Exception {
-        final String TEST_NAME = "test339ReconcileDummyAzureDeleteRapp";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1781,7 +1805,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertShadows(19);
 
         // Remove the assignment. It may do bad things later.
-        ObjectDelta<UserType> userRappDelta = createAssignmentUserDelta(USER_RAPP_OID, ROLE_CORPSE_OID,
+        ObjectDelta<UserType> userRappDelta = createAssignmentUserDelta(USER_RAPP_OID, ROLE_CORPSE.oid,
                 RoleType.COMPLEX_TYPE, null, null, false);
         repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 
@@ -1796,12 +1820,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
 
@@ -1839,14 +1865,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         // deleting linkRef
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
 
     @Test
     public void test400ReconcileDummyLimeAddAccount() throws Exception {
-        final String TEST_NAME = "test400ReconcileDummyLimeAddAccount";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1862,12 +1886,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_RECONCILE_DUMMY_LIME_FILE);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_LIME.file);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
 
@@ -1893,13 +1919,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Dummy resource (lime)", dummyResourceLime.debugDump());
 
         // Audit record structure is somehow complex here.
-//        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME_OID);
+//        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME.oid);
     }
 
     @Test
     public void test401ReconcileDummyLimeKateOnlyEmpty() throws Exception {
-        final String TEST_NAME = "test401ReconcileDummyLimeKateOnlyEmpty";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1947,8 +1971,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test402ReconcileDummyLimeKateOnlyGrog() throws Exception {
-        final String TEST_NAME = "test402ReconcileDummyLimeKateOnlyGrog";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1994,8 +2016,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test403ReconcileDummyLimeKateOnlyNoValue() throws Exception {
-        final String TEST_NAME = "test403ReconcileDummyLimeKateOnlyNoValue";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2040,8 +2060,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test404ReconcileDummyLimeKateOnlyRum() throws Exception {
-        final String TEST_NAME = "test404ReconcileDummyLimeKateOnlyRum";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2087,8 +2105,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test405ReconcileDummyLimeKateOnlyEmpty() throws Exception {
-        final String TEST_NAME = "test405ReconcileDummyLimeKateOnlyEmpty";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2134,8 +2150,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test406ReconcileDummyLimeKateOnlyEmptyAgain() throws Exception {
-        final String TEST_NAME = "test406ReconcileDummyLimeKateOnlyEmptyAgain";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2176,8 +2190,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test410ReconcileDummyLimeKatePassword() throws Exception {
-        final String TEST_NAME = "test410ReconcileDummyLimeKatePassword";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2222,8 +2234,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test420ReconcileDummyLimeDeleteLinkedAccount() throws Exception {
-        final String TEST_NAME = "test420ReconcileDummyLimeDeleteLinkedAccount";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2238,12 +2248,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_LIME_OID);
+        restartTask(TASK_RECONCILE_DUMMY_LIME.oid);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME.oid, false);
+
+        dumpStatistics(taskAfter);
 
         then();
 
@@ -2267,7 +2279,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Dummy resource (lime)", dummyResourceLime.debugDump());
 
         // Audit record structure is somehow complex here.
-//        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME_OID);
+//        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME.oid);
     }
 
     /**
@@ -2275,14 +2287,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test500ImportTAugustusFromResourceDummy() throws Exception {
-        final String TEST_NAME = "test500ImportTAugustusFromResourceDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ShadowType> accountTaugustus = PrismTestUtil.parseObject(ACCOUNT_TAUGUSTUS_FILE);
+        PrismObject<ShadowType> accountTaugustus = PrismTestUtil.parseObject(ACCOUNT_TAUGUSTUS.file);
         provisioningService.addObject(accountTaugustus, null, null, task, result);
 
         // Preconditions
@@ -2295,7 +2305,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(ACCOUNT_TAUGUSTUS_OID, task, result);
+        modelService.importFromResource(ACCOUNT_TAUGUSTUS.oid, task, result);
 
         // THEN
         then();
@@ -2323,7 +2333,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+        assertShadowKindIntent(ACCOUNT_TAUGUSTUS.oid, ShadowKindType.ACCOUNT, INTENT_TEST);
 
         display("User augustus after", userAugustusAfter);
         assertLinks(userAugustusAfter, 1);
@@ -2340,8 +2350,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test502ImportAugustusFromResourceDummy() throws Exception {
-        final String TEST_NAME = "test502ImportAugustusFromResourceDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2350,7 +2358,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAugustusBefore = findUserByUsername(USER_AUGUSTUS_NAME);
         display("User augustus before", userAugustusBefore);
 
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_AUGUSTUS_FILE);
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_AUGUSTUS.file);
         provisioningService.addObject(account, null, null, task, result);
         display("Account augustus before", account);
 
@@ -2364,7 +2372,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(ACCOUNT_AUGUSTUS_OID, task, result);
+        modelService.importFromResource(ACCOUNT_AUGUSTUS.oid, task, result);
 
         // THEN
         then();
@@ -2389,8 +2397,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-        assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+        assertShadowKindIntent(ACCOUNT_AUGUSTUS.oid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        assertShadowKindIntent(ACCOUNT_TAUGUSTUS.oid, ShadowKindType.ACCOUNT, INTENT_TEST);
 
         display("User augustus after", userAugustusAfter);
         assertLinks(userAugustusAfter, 2);
@@ -2409,35 +2417,33 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test510ImportFromResourceDummy() throws Exception {
-        final String TEST_NAME = "test510ImportFromResourceDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_KENNY_FILE);
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_KENNY.file);
         provisioningService.addObject(account, null, null, task, result);
 
-        account = PrismTestUtil.parseObject(ACCOUNT_TPALIDO_FILE);
+        account = PrismTestUtil.parseObject(ACCOUNT_TPALIDO.file);
         provisioningService.addObject(account, null, null, task, result);
 
-        account = PrismTestUtil.parseObject(ACCOUNT_LECHIMP_FILE);
+        account = PrismTestUtil.parseObject(ACCOUNT_LECHIMP.file);
         provisioningService.addObject(account, null, null, task, result);
 
-        account = PrismTestUtil.parseObject(ACCOUNT_TLECHIMP_FILE);
+        account = PrismTestUtil.parseObject(ACCOUNT_TLECHIMP.file);
         provisioningService.addObject(account, null, null, task, result);
 
-        account = PrismTestUtil.parseObject(ACCOUNT_ANDRE_FILE);
+        account = PrismTestUtil.parseObject(ACCOUNT_ANDRE.file);
         provisioningService.addObject(account, null, null, task, result);
 
-        account = PrismTestUtil.parseObject(ACCOUNT_TANDRE_FILE);
+        account = PrismTestUtil.parseObject(ACCOUNT_TANDRE.file);
         provisioningService.addObject(account, null, null, task, result);
 
-        account = PrismTestUtil.parseObject(ACCOUNT_TLAFOOT_FILE);
+        account = PrismTestUtil.parseObject(ACCOUNT_TLAFOOT.file);
         provisioningService.addObject(account, null, null, task, result);
 
-        account = PrismTestUtil.parseObject(ACCOUNT_CRUFF_FILE);
+        account = PrismTestUtil.parseObject(ACCOUNT_CRUFF.file);
         provisioningService.addObject(account, null, null, task, result);
 
         // Preconditions
@@ -2450,7 +2456,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -2460,6 +2466,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         loginAdministrator();
 
         waitForTaskFinish(task, true, 40000);
+
+        dumpStatistics(task);
 
         // THEN
         then();
@@ -2484,12 +2492,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
-        assertImportedUserByUsername(ACCOUNT_KENNY_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_KENNY.name, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(USER_PALIDO_NAME, RESOURCE_DUMMY_OID);
-        assertImportedUserByUsername(ACCOUNT_LECHIMP_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
-        assertImportedUserByUsername(ACCOUNT_CRUFF_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_LECHIMP.name, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_CRUFF.name, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(USER_LAFOOT_NAME, RESOURCE_DUMMY_OID);
-        assertImportedUserByUsername(ACCOUNT_ANDRE_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_ANDRE.name, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
 
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -2497,8 +2505,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 12);
 
-        assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-        assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+        assertShadowKindIntent(ACCOUNT_AUGUSTUS.oid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        assertShadowKindIntent(ACCOUNT_TAUGUSTUS.oid, ShadowKindType.ACCOUNT, INTENT_TEST);
     }
 
     /**
@@ -2506,10 +2514,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test520ReconResourceDummyFilter() throws Exception {
-        final String TEST_NAME = "test520ReconResourceDummyFilter";
-
         // GIVEN
-        Task task = getTestTask();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Preconditions
@@ -2525,14 +2530,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // runPrivileged is necessary for TestImportReconAuthorizations as importObjectFromFile() is using raw operations
         runPrivileged(() -> {
             try {
-                importObjectFromFile(TASK_RECONCILE_DUMMY_FILTER_FILE);
+                importObjectFromFile(TASK_RECONCILE_DUMMY_FILTER.file);
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
             return null;
         });
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER_OID, true, 40000);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, true, 40000);
+        dumpStatistics(taskAfter);
+
         OperationStatsType statistics = taskAfter.getStoredOperationStats();
         SynchronizationInformationType syncInfo = statistics.getSynchronizationInformation();
         assertEquals(17 - 3 - 2, syncInfo.getCountLinked());  //total (17) - filtered (3)- protectected (2)
@@ -2540,8 +2547,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test600SearchAllDummyAccounts() throws Exception {
-        final String TEST_NAME = "test600SearchAllDummyAccounts";
-
         // GIVEN
         loginAdministrator();
 
@@ -2549,7 +2554,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
+                DUMMY_ACCOUNT_OBJECT_CLASS, prismContext);
 
         // WHEN
         when();
@@ -2567,14 +2572,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test610SearchDummyAccountsNameSubstring() throws Exception {
-        final String TEST_NAME = "test610SearchDummyAccountsNameSubstring";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query =
-                ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)
+                ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, prismContext)
                         .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
                         ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
                               .contains("s")
@@ -2596,8 +2599,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test900DeleteDummyShadows() throws Exception {
-        final String TEST_NAME = "test900DeleteDummyShadows";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2609,18 +2610,19 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
      // WHEN
         when();
-        importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS_FILE);
+        importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS.file);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS_OID, true, 20000);
+        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS.oid, true, 20000);
+        dumpStatistics(taskAfter);
 
         // THEN
         then();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_SHADOWS_OID);
+        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_SHADOWS.oid);
         OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
         display("Final delete task result", deleteTaskResultType);
         TestUtil.assertSuccess(deleteTaskResultType);
@@ -2641,8 +2643,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test910DeleteDummyAccounts() throws Exception {
-        final String TEST_NAME = "test910DeleteDummyAccounts";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2654,18 +2654,19 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_DELETE_DUMMY_ACCOUNTS_FILE);
+        importObjectFromFile(TASK_DELETE_DUMMY_ACCOUNTS.file);
 
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS_OID, true, 20000);
+        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS.oid, true, 20000);
+        dumpStatistics(taskAfter);
 
         // THEN
         then();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
-        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_ACCOUNTS_OID);
+        PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_ACCOUNTS.oid);
         OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
         display("Final delete task result", deleteTaskResultType);
         TestUtil.assertSuccess(deleteTaskResultType);
@@ -2686,7 +2687,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
+                DUMMY_ACCOUNT_OBJECT_CLASS, prismContext);
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
@@ -2745,14 +2746,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 
-        Iterator<AuditEventRecord> iterator = auditRecords.iterator();
-        while (iterator.hasNext()) {
-            AuditEventRecord record = iterator.next();
-            if (record.getTaskOID() != null && !record.getTaskOID().equals(taskOid)) {
-                // Record from some other task, skip it
-                iterator.remove();
-            }
-        }
+        // Record from some other task, skip it
+        auditRecords.removeIf(record -> record.getTaskOid() != null && !record.getTaskOid().equals(taskOid));
 
         int i=0;
         while (i < (auditRecords.size() - 1)) {

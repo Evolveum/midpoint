@@ -688,7 +688,8 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+    public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
+            SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement) {
     }
 
     @Override
