@@ -601,7 +601,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 
         try {
-            wrapper = factory.createObjectWrapper(object, itemStatus, context);
+            wrapper = factory.createObjectWrapper(object.clone(), itemStatus, context);
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
