@@ -44,5 +44,29 @@
         <!-- This applies to all testing submodules, all of them have only src/test, not main. -->
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
+
+        <!-- Properties controlling "extra" test modules. See "extratest" profile lower. -->
+        <skipConnTests>true</skipConnTests>
+        <skipLongTests>true</skipLongTests>
+        <skipRestTests>true</skipRestTests>
+        <skipSamplesTests>true</skipSamplesTests>
+        <skipStoryTests>true</skipStoryTests>
+        <!-- By default we skip Schrodinger tests. This is not part of "extra" tests. -->
+        <skipSchrodingerTests>true</skipSchrodingerTests>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>extratest</id>
+            <properties>
+                <skipTests>true</skipTests>
+                <skipConnTests>false</skipConnTests>
+                <skipLongTests>false</skipLongTests>
+                <skipRestTests>false</skipRestTests>
+                <skipSamplesTests>false</skipSamplesTests>
+                <skipStoryTests>false</skipStoryTests>
+                <!-- Schrodinger tests are separate, we don't want them in this profile -->
+            </properties>
+        </profile>
+    </profiles>
 </project>

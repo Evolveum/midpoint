@@ -19,11 +19,6 @@
 
     <name>midPoint Testing - REST API</name>
 
-    <properties>
-        <!-- See comment in testing parent module. -->
-        <skipRestTests>true</skipRestTests>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

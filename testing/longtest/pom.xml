@@ -19,11 +19,6 @@
 
     <name>midPoint Testing - Long Tests</name>
 
-    <properties>
-        <!-- See comment in testing parent module. -->
-        <skipLongTests>true</skipLongTests>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

@@ -28,8 +28,6 @@
         -->
         <project.starter.module>../../gui/admin-gui</project.starter.module>
         <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
-        <!-- See comment in testing parent module. -->
-        <skipSchrodingerTests>true</skipSchrodingerTests>
         <server.port>8180</server.port>
         <midpoint.host>0.0.0.0</midpoint.host>
         <midpoint.home></midpoint.home>

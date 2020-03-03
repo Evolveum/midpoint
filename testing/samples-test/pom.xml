@@ -19,11 +19,6 @@
 
     <name>midPoint Samples - Test</name>
 
-    <properties>
-        <!-- See comment in testing parent module. -->
-        <skipSamplesTests>true</skipSamplesTests>
-    </properties>
-
     <dependencies>
         <!-- TEST dependency -->
         <dependency>

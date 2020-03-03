@@ -23,25 +23,34 @@
     - Test JARs of some modules are created, installed/deployed and used downstream (search for test-jar).
 
     VARIOUS MVN COMMANDS (with rough times on average notebook)
+    Note: Javadoc takes long time but it's only part of the "dist" profile (active by default).
+    Hence, " -Dmaven.javadoc.skip" is not necessary with "-P -dist".
 
-    Quick run without any tests (~6m):
-    mvn clean install -P -dist -DskipTests -Dmaven.javadoc.skip -Dcheckstyle.skip
+    Quick developer's run without any tests, skipping distribution (~6m):
+    mvn clean install -P -dist -DskipTests -Dcheckstyle.skip
 
     "Quick" build with unit tests only and checkstyle (~30m):
-    mvn clean install -P -dist -DskipITs -Dmaven.javadoc.skip
+    mvn clean install -P -dist -DskipITs
 
-    "Quick" build with smaller integration test (~1h20m):
-    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip
+    "Quick" build with smaller/faster set of integration test (~1h20m):
+    mvn clean install -P -dist -DintegrationTestSuite=fast
 
-    Running tests of a selected module (-pl) with output to stdout (don't use stdout for complete build, it's too much):
+    Default build - creates distribution package, runs all tests except "extra" tests ():
+    mvn clean install
+
+    Extra test run with custom JVM args (we have 16g on CI server, but it works without args too),
+    runs just under 900 tests, skips distribution and any common unit/IT tests (~1h50m):
+    mvn clean install -P extratest,-dist -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
+
+    Extra test run for a single module, -D property matches the module in -pl:
+    mvn clean install -DskipConnTests=false -pl testing/conntest
+
+    Full build with extra tests for a single module, "-DskipTests" suppresses other default tests:
+    mvn clean install -P -dist -DskipTests -DskipStoryTests=false
+    See "extratest" profile in testing/pom.xml for all individual properties enabling extra tests.
+
+    Running unit+IT tests of a selected module (-pl) with output to stdout:
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
-
-    Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?),
-    runs just under 900 tests (~1h50m):
-    mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
-
-    Comprehensive quick build/dist with normally excluded modules including checkstyle, but no tests/javadoc (~13m):
-    mvn clean install -P dist,extratest,conntest,schrodinger -DskipTests -Dmaven.javadoc.skip
     -->
 
     <groupId>com.evolveum.midpoint</groupId>
@@ -2028,6 +2037,18 @@
             <modules>
                 <module>dist</module>
             </modules>
+        </profile>
+
+        <!--
+        Activating extra tests (tests under testing module), skipping other tests.
+        Often we want to combine with disabling dist: -P extratest,-dist
+        See testing/pom.xml for more on "extra" tests, here we just skip the default tests.
+        -->
+        <profile>
+            <id>extratest</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
         </profile>
 
         <profile>
