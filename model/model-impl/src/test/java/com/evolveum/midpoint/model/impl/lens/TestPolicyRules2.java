@@ -50,30 +50,28 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyRules2 extends AbstractLensTest {
 
-    protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "lens/policy");
+    private static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "lens/policy");
 
-    protected static final File ROLE_PERSON_FILE = new File(TEST_DIR, "role-person.xml");
-    protected static final File ROLE_TEMPORARY_FILE = new File(TEST_DIR, "role-temporary.xml");
-    protected static final File ROLE_STUDENT_FILE = new File(TEST_DIR, "role-student.xml");
-    protected static final File USER_JOE_FILE = new File(TEST_DIR, "user-joe.xml");
-    protected static final File USER_FRANK_FILE = new File(TEST_DIR, "user-frank.xml");
-    protected static final File USER_PETER_FILE = new File(TEST_DIR, "user-peter.xml");
+    private static final File ROLE_PERSON_FILE = new File(TEST_DIR, "role-person.xml");
+    private static final File ROLE_TEMPORARY_FILE = new File(TEST_DIR, "role-temporary.xml");
+    private static final File ROLE_STUDENT_FILE = new File(TEST_DIR, "role-student.xml");
+    private static final File USER_JOE_FILE = new File(TEST_DIR, "user-joe.xml");
+    private static final File USER_FRANK_FILE = new File(TEST_DIR, "user-frank.xml");
+    private static final File USER_PETER_FILE = new File(TEST_DIR, "user-peter.xml");
 
-    protected static final File ROLE_CHAINED_REFERENCES_FILE = new File(TEST_DIR, "role-chained-references.xml");
-    protected static final File ROLE_CYCLIC_REFERENCES_FILE = new File(TEST_DIR, "role-cyclic-references.xml");
-    protected static final File ROLE_UNRESOLVABLE_REFERENCES_FILE = new File(TEST_DIR, "role-unresolvable-references.xml");
-    protected static final File ROLE_AMBIGUOUS_REFERENCE_FILE = new File(TEST_DIR, "role-ambiguous-reference.xml");
-    protected static final File ROLE_IMMUTABLE_INDUCEMENTS_FILE = new File(TEST_DIR, "role-immutable-inducements.xml");
-    protected static final File ROLE_NO_INDUCEMENTS_ADD_DELETE_FILE = new File(TEST_DIR, "role-no-inducements-add-delete.xml");
-    protected static final File ROLE_NO_INDUCEMENTS_ADD_DELETE_VIA_EXPRESSION_FILE = new File(TEST_DIR, "role-no-inducements-add-delete-via-expression.xml");
+    private static final File ROLE_CHAINED_REFERENCES_FILE = new File(TEST_DIR, "role-chained-references.xml");
+    private static final File ROLE_CYCLIC_REFERENCES_FILE = new File(TEST_DIR, "role-cyclic-references.xml");
+    private static final File ROLE_UNRESOLVABLE_REFERENCES_FILE = new File(TEST_DIR, "role-unresolvable-references.xml");
+    private static final File ROLE_AMBIGUOUS_REFERENCE_FILE = new File(TEST_DIR, "role-ambiguous-reference.xml");
+    private static final File ROLE_IMMUTABLE_INDUCEMENTS_FILE = new File(TEST_DIR, "role-immutable-inducements.xml");
+    private static final File ROLE_NO_INDUCEMENTS_ADD_DELETE_FILE = new File(TEST_DIR, "role-no-inducements-add-delete.xml");
+    private static final File ROLE_NO_INDUCEMENTS_ADD_DELETE_VIA_EXPRESSION_FILE = new File(TEST_DIR, "role-no-inducements-add-delete-via-expression.xml");
 
     private static final int STUDENT_TARGET_RULES = 6;          // one is global
     private static final int STUDENT_FOCUS_RULES = 21;
 
     private static final String ACTIVITY_DESCRIPTION = "PROJECTOR (test)";
 
-    private String rolePersonOid;
-    private String roleTemporaryOid;
     private String roleImmutableInducementsOid;
     private String roleNoInducementsAddDeleteOid;
     private String roleNoInducementsAddDeleteViaExpressionOid;
@@ -90,8 +88,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         roleNoInducementsAddDeleteOid = addAndRecompute(ROLE_NO_INDUCEMENTS_ADD_DELETE_FILE, initTask, initResult);
         roleNoInducementsAddDeleteViaExpressionOid = addAndRecompute(ROLE_NO_INDUCEMENTS_ADD_DELETE_VIA_EXPRESSION_FILE, initTask, initResult);
-        rolePersonOid = addAndRecompute(ROLE_PERSON_FILE, initTask, initResult);
-        roleTemporaryOid = addAndRecompute(ROLE_TEMPORARY_FILE, initTask, initResult);
+        addAndRecompute(ROLE_PERSON_FILE, initTask, initResult);
+        addAndRecompute(ROLE_TEMPORARY_FILE, initTask, initResult);
         roleStudentOid = addAndRecompute(ROLE_STUDENT_FILE, initTask, initResult);
         userJoeOid = addAndRecompute(USER_JOE_FILE, initTask, initResult);
         userFrankOid = addAndRecompute(USER_FRANK_FILE, initTask, initResult);
@@ -217,7 +215,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
      * Jacks's cost center is set to be 1900. So 1900/new constraint should trigger. But not 1900/current nor 1900/old.
      * Also validTo constraint should trigger.
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void test120JackAttemptToMoveTo1900AndAssignRoleStudent() throws Exception {
         final String TEST_NAME = "test120JackAttemptToMoveTo1900AndAssignRoleStudent";
@@ -270,7 +267,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
      * However, 1900/current will trigger only in secondary phase (wave 1). This is important because of approvals:
      * such triggered actions will not be recognized.
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void test130JackMoveTo1900AndAssignRoleStudent() throws Exception {
         final String TEST_NAME = "test130JackMoveTo1900AndAssignRoleStudent";
@@ -326,7 +322,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 //                SchemaConstants.MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test135JackChangeValidTo() throws Exception {
         final String TEST_NAME = "test135JackChangeValidTo";
@@ -476,7 +471,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     }
 
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test150FrankAttemptToAssignRoleStudentButDisabled() throws Exception {
         final String TEST_NAME = "test150FrankAttemptToAssignRoleStudentButDisabled";
@@ -593,25 +587,21 @@ public class TestPolicyRules2 extends AbstractLensTest {
         dumpPolicySituations(context);
 
         assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
-        assertTargetTriggers(context, null, 1);
-        // Assignment situation is already gone (in second iteration)!
-        // This is different from test130, where an assignment is being added (instead of whole user being added).
-        // The difference is that when adding a user, its assignments (in wave 1) are in the zero set.
-        // Whereas when modifying a user, its new assignments (in wave 1) are in the plus set.
-        // This is to be solved somehow.
-        // See MID-4126.
-        assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+        assertTargetTriggers(context, null, 2);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, "assignment-of-student");
+        assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, "always-true");
 
         assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-        assertFocusTriggers(context, null, 8);
-        assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
-        assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
-        assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
-        assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 2);
-        // for the same reason as in target rules, student assignment is caught in "true-true" transition situation
-        // instead of "false-true" and "false-any" situations!
+        assertFocusTriggers(context, null, 9);
+        assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, "cc-1900");
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT,
+                "has-person-assignment-indirect", "has-person-assignment-enabled",
+                "has-student-assignment-enabled", "has-student-assignment");
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, "has-no-assignment-for-aaa");
+        assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION,
+                "cc-from-1900-false-true", "has-student-assignment-false-true",
+                "has-student-assignment-false-any");
 
-        // adapt the test after fixing MID-4126
 //        assertAssignmentPolicySituation(context, roleStudentOid,
 //                SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE);
 //        assertFocusPolicySituation(context,

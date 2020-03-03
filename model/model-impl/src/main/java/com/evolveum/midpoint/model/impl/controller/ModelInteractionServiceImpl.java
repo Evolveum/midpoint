@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
@@ -1462,7 +1463,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 // TODO some special mode for verification of the validity - we don't need complete calculation here!
                 EvaluatedAssignment<UserType> assignment = assignmentEvaluator
                         .evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),
-                                potentialDeputy.toString(), false, task, result);
+                                potentialDeputy.toString(), AssignmentOrigin.createInObject(), task, result);
                 if (!assignment.isValid()) {
                     continue;
                 }

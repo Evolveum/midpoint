@@ -62,7 +62,7 @@ public class PolicyStateRecorder {
         }
     }
 
-    public <F extends AssignmentHolderType> void applyAssignmentState(LensContext<F> context,
+    <F extends AssignmentHolderType> void applyAssignmentState(LensContext<F> context,
             EvaluatedAssignmentImpl<F> evaluatedAssignment, PlusMinusZero mode, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext.isDelete()) {

@@ -88,16 +88,16 @@ public class GuiProfileCompiler {
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(), systemConfiguration, task, result));
 
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-        collect(adminGuiConfigurations, principal, systemConfiguration, authorizationTransformer, task, result);
+        collect(adminGuiConfigurations, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
 
-    private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
+    private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, GuiProfiledPrincipal principal, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
         FocusType focusType = principal.getFocus();
 
-        Collection<? extends EvaluatedAssignment<? extends FocusType>> evaluatedAssignments = assignmentCollector.collect(focusType.asPrismObject(), systemConfiguration, true, task, result);
+        Collection<? extends EvaluatedAssignment<? extends FocusType>> evaluatedAssignments = assignmentCollector.collect(focusType.asPrismObject(), true, task, result);
         Collection<Authorization> authorizations = principal.getAuthorities();
         for (EvaluatedAssignment<? extends FocusType> assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
