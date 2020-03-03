@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.model.api.context.*;
@@ -95,21 +96,21 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private boolean isValid;
     private boolean wasValid;
     private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
-    private boolean presentInCurrentObject;
-    private boolean presentInOldObject;
+    @NotNull private final AssignmentOrigin origin;
     private Collection<String> policySituations = new HashSet<>();
 
     private PrismContext prismContext;
 
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            boolean evaluatedOld, PrismContext prismContext) {
+            boolean evaluatedOld, @NotNull AssignmentOrigin origin, PrismContext prismContext) {
         this.assignmentIdi = assignmentIdi;
         this.evaluatedOld = evaluatedOld;
         this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
         this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
         this.roles = prismContext.deltaFactory().createDeltaSetTriple();
         this.prismContext = prismContext;
+        this.origin = origin;
     }
 
     @NotNull
@@ -368,22 +369,19 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         evaluateConstructions(focusOdo, null, null, task, result);
     }
 
-    public void setPresentInCurrentObject(boolean presentInCurrentObject) {
-        this.presentInCurrentObject = presentInCurrentObject;
-    }
-
-    public void setPresentInOldObject(boolean presentInOldObject) {
-        this.presentInOldObject = presentInOldObject;
+    @NotNull
+    public AssignmentOrigin getOrigin() {
+        return origin;
     }
 
     @Override
     public boolean isPresentInCurrentObject() {
-        return presentInCurrentObject;
+        return origin.isCurrent();
     }
 
     @Override
     public boolean isPresentInOldObject() {
-        return presentInOldObject;
+        return origin.isOld();
     }
 
     @NotNull
@@ -526,8 +524,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetPolicyRules), thisTargetPolicyRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules " + ruleCountInfo(otherTargetsPolicyRules), otherTargetsPolicyRules, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent+1);
         return sb.toString();
     }
 
@@ -605,7 +602,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     public PlusMinusZero getMode() {
         if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
             return MINUS;
-        } else if (presentInCurrentObject) {
+        } else if (origin.isCurrent()) {
             return ZERO;
         } else {
             return PLUS;

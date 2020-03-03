@@ -209,7 +209,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Task assignment: {}", taskAssignment);
 
-        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignment);
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta,
+                forcedAssignments, taskAssignment);
 
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
@@ -568,11 +569,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         try {
             // Evaluate assignment. This follows to the assignment targets, follows to the inducements,
             // evaluates all the expressions, etc.
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, smartAssignment.isVirtual(), task, subResult);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld,
+                    source, assignmentPlacementDesc, smartAssignment.getOrigin(), task, subResult);
             subResult.recordSuccess();
             LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
-            evaluatedAssignment.setPresentInCurrentObject(smartAssignment.isCurrent());
-            evaluatedAssignment.setPresentInOldObject(smartAssignment.isOld());
             if (evaluatedAssignment.getTarget() != null) {
                 subResult.addContext("assignmentTargetName", PolyString.getOrig(evaluatedAssignment.getTarget().getName()));
             }

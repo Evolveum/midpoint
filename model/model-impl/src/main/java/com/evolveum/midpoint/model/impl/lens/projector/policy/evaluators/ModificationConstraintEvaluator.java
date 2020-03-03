@@ -7,60 +7,55 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import javax.xml.bind.JAXBElement;
+
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBElement;
-
-/**
- * @author semancik
- * @author mederly
- */
 @Component
 public abstract class ModificationConstraintEvaluator<T extends ModificationPolicyConstraintType> implements PolicyConstraintEvaluator<T> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
 
     @Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
 
-    @NotNull
-    protected <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
+    @NotNull <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
         ModelState state = rctx.lensContext.getState();
-        String stateKey;
+
+        // TODO derive more precise information from executed deltas, if needed
         if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
-            stateKey = "toBe";
+            return "toBe";
         } else {
-            stateKey = "was";
-            // TODO derive more precise information from executed deltas, if needed
+            return "was";
         }
-        return stateKey;
     }
 
+    // TODO retrieve localization messages from return (it should be Object then, not Boolean)
     boolean expressionPasses(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
+        return constraintElement.getValue().getExpression() == null || expressionEvaluatesToTrue(constraintElement, ctx, result);
+    }
+
+    private boolean expressionEvaluatesToTrue(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         T constraint = constraintElement.getValue();
-        if (constraint.getExpression() != null) {
-            if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
-                    "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
-                return false;
-            }
-            // TODO retrieve localization messages from return (it should be Object then, not Boolean)
-        }
-        return true;
+        ExpressionVariables variables = evaluatorHelper.createExpressionVariables(ctx, constraintElement);
+        String contextDescription = "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")";
+        return evaluatorHelper.evaluateBoolean(constraint.getExpression(), variables, contextDescription, ctx.task, result);
     }
 }

@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,8 +48,8 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<TransitionPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
+    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(@NotNull JAXBElement<TransitionPolicyConstraintType> constraintElement,
+            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)

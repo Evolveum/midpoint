@@ -246,7 +246,8 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <runOrder>alphabetical</runOrder>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
                 </configuration>
             </plugin>
             <plugin>

@@ -14,13 +14,12 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
 /**
- * @author mederly
+ * Evaluation context for a policy rule.
  */
 public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderType> implements Cloneable {
 
@@ -29,7 +28,7 @@ public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderTyp
     @NotNull public final LensFocusContext<AH> focusContext;
     @NotNull public final Task task;
     @NotNull public final ObjectState state;
-    @NotNull public final RulesEvaluationContext globalCtx;
+    @NotNull final RulesEvaluationContext globalCtx;
 
     protected PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<AH> context,
             @NotNull Task task, @NotNull RulesEvaluationContext globalCtx, @NotNull ObjectState state) {
