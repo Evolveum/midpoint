@@ -19,6 +19,11 @@
 
     <name>midPoint Testing - Long Tests</name>
 
+    <properties>
+        <!-- See comment in testing parent module. -->
+        <skipLongTests>true</skipLongTests>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -209,29 +214,23 @@
         </dependency>
     </dependencies>
 
-    <!-- surefire/failsafe only for profile extratest - see lower -->
-
-    <profiles>
-        <profile>
-            <id>extratest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                            <runOrder>alphabetical</runOrder>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                            <runOrder>alphabetical</runOrder>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipLongTests}</skipTests>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

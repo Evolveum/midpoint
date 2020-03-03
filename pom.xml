@@ -111,10 +111,13 @@
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
-        <!--suppress UnresolvedMavenProperty -->
+
+        <!--suppress UnresolvedMavenProperty (for IDE development) -->
         <git.describe>${describe}</git.describe>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
+
+        <!-- JVM args for testing plugins, can be used to add profiling, etc. -->
         <surefire.args>-Xms1024m -Xmx4096m</surefire.args>
         <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en</failsafe.args>
         <!--
@@ -1876,9 +1879,6 @@
                         <forkCount>1</forkCount>
                         <reuseForks>true</reuseForks>
                         <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
-                        <!-- <threadCount>1</threadCount> -->
-                        <!-- <perCoreThreadCount>false</perCoreThreadCount> -->
-                        <!-- <reportFormat>plain</reportFormat> -->
                         <trimStackTrace>false</trimStackTrace>
                         <!-- See https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
                         <useSystemClassLoader>false</useSystemClassLoader>
@@ -1889,8 +1889,6 @@
                             </java.util.logging.config.file>
                         </systemPropertyVariables>
                         <argLine>${surefire.args}</argLine>
-                        <!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot
-                            -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine> -->
 
                         <!-- it's used for CI build to load JDBC libraries which can not
                             be installed to public maven repository (MS SQL, ORACLE) -->
@@ -2083,56 +2081,6 @@
             <activation>
                 <jdk>1.8</jdk>
             </activation>
-        </profile>
-
-        <!--
-        Testing profiles - in all cases this skips surefire/failsafe,
-        which is switched on only in specific testing related modules.
-        TODO: How do we run schrodinger? Don't we want it in this mode as well?
-        -->
-        <profile>
-            <id>extratest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- Skip all tests by default. We only want selected tests to run. -->
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>conntest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- Skip all tests by default. We only want selected tests to run. -->
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 </project>

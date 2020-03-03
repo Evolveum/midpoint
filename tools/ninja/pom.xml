@@ -20,7 +20,7 @@
     <artifactId>ninja</artifactId>
     <packaging>jar</packaging>
 
-    <name>ninja</name>
+    <name>midPoint Tools - Ninja</name>
 
     <properties>
         <midpoint.version>${project.version}</midpoint.version>

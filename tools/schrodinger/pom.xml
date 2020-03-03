@@ -21,7 +21,7 @@
     <version>4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>schrodinger</name>
+    <name>midPoint Tools - Schrodinger</name>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>

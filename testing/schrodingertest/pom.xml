@@ -19,10 +19,17 @@
 
     <artifactId>schrodingertest</artifactId>
 
+    <name>midPoint Testing - Schrodinger</name>
+
     <properties>
+        <!--
+        TODO: consider ${maven.multiModuleProjectDirectory}
+        How do we run this anyway? From midpoint root with -pl? From this directory? Or GUI?
+        -->
         <project.starter.module>../../gui/admin-gui</project.starter.module>
         <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
-        <skipTests>false</skipTests>
+        <!-- See comment in testing parent module. -->
+        <skipSchrodingerTests>true</skipSchrodingerTests>
         <server.port>8180</server.port>
         <midpoint.host>0.0.0.0</midpoint.host>
         <midpoint.home></midpoint.home>
@@ -111,23 +118,25 @@
     <build>
         <plugins>
             <plugin>
-                <!--
-                TODO remove in 2021 if it works - all the configuration/executions should already come from parent
-                and skip works this way anyway.
-                -->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <!--<configuration>-->
-                <!--    <skipITs>${skipTests}</skipITs>-->
-                <!--</configuration>-->
-                <!--<executions>-->
-                <!--    <execution>-->
-                <!--        <goals>-->
-                <!--            <goal>integration-test</goal>-->
-                <!--            <goal>verify</goal>-->
-                <!--        </goals>-->
-                <!--    </execution>-->
-                <!--</executions>-->
+                <configuration>
+                    <skipITs>${skipSchrodingerTests}</skipITs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -136,7 +145,7 @@
                     <execution>
                         <phase>pre-integration-test</phase>
                         <configuration>
-                            <skip>${skipTests}</skip>
+                            <skip>${skipSchrodingerTests}</skip>
                             <target name="Midpoint ${project.version} booting up for integration testing, embedded Tomcat instance configured to listen on port: ${server.port}">
                                 <exec dir="." executable="cmd" osfamily="windows" spawn="true">
                                     <arg value="/c"/>
@@ -167,7 +176,7 @@
                         <id>Attempt to execute the Shut-down-process</id>
                         <phase>post-integration-test</phase>
                         <configuration>
-                            <skip>${skipTests}</skip>
+                            <skip>${skipSchrodingerTests}</skip>
                             <target name="Shutting down Midpoint ${project.version} after integration testing, no cleaning up" unless="cleanup">
                                 <exec executable="jps">
                                     <arg value="-l"/>
@@ -200,7 +209,7 @@
                         <id>Shut-down-process and attempt to execute clean up</id>
                         <phase>post-integration-test</phase>
                         <configuration>
-                            <skip>${skipTests}</skip>
+                            <skip>${skipSchrodingerTests}</skip>
                             <target name="Shutting down Midpoint ${project.version} after integration testing, and cleaning up" if="cleanup">
                                 <exec executable="jps">
                                     <arg value="-l"/>
