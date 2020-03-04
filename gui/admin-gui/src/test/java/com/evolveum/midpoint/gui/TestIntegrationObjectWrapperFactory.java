@@ -208,6 +208,64 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("wrong container paths in "+objectWrapper, expectedUniformPaths, realUniformPaths);
     }
 
+    @Test
+    public void test102CreateWrapperUserEmpty() throws Exception {
+        PrismObject<UserType> user = getUser(USER_EMPTY_OID);
+        PrismObject<UserType> userOld = user.clone();
+
+        // WHEN
+        when();
+
+        Task task = createTask();
+        OperationResult result = task.getResult();
+
+        ModelServiceLocator modelServiceLocator = getServiceLocator(task);
+        PrismObjectWrapperFactory<UserType> factory = modelServiceLocator.findObjectWrapperFactory(user.getDefinition());
+        WrapperContext context = new WrapperContext(task, result);
+
+        PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
+
+        // THEN
+        then();
+
+        PrismTestUtil.display("Wrapper after", objectWrapper);
+
+        WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), "user description", user, userOld, ItemStatus.NOT_CHANGED);
+        assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
+
+        WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), null, user, ItemStatus.NOT_CHANGED);
+        assertEquals("wrong number of containers in "+objectWrapper, 1, objectWrapper.getValues().size());
+        PrismContainerValueWrapper<UserType> mainContainerValueWrapper = objectWrapper.getValue();
+        WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_EMPTY_USERNAME));
+        WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_TIMEZONE, null);
+
+        // Not sure about this
+//        ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainer(ItemPath.create(UserType.F_ACTIVATION));
+//        assertNull("Unexpected activation "+activationContainerWrapper, activationContainerWrapper);
+
+        assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadOnly());
+
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, false); // empty
+
+        // WHEN
+        mainContainerValueWrapper.setShowEmpty(true);
+
+        // THEN
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
+
+        ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
+        display("Delta", objectDelta);
+        assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
+    }
+
     /**
      * Create wrapper for brand new empty user.
      */
@@ -281,7 +339,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<UserType> user = getUserDefinition().instantiate();
 
         when();
-        Task task = getTestTask();
+        Task task = createTask();
         OperationResult result = task.getResult();
 
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
@@ -309,7 +367,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), null, user, ItemStatus.ADDED);
         assertEquals("wrong number of containers in "+objectWrapper, 1, objectWrapper.getValues().size());
         WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_USERNAME));
-        WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_TIMEZONE);
+        WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_TIMEZONE, null);
         WrapperTestUtil.assertPropertyWrapper(mainContainerValueWrapper, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
 
         PrismContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainer(UserType.F_ACTIVATION);
@@ -348,64 +406,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_EMPLOYEE_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
         PrismAsserts.assertPropertyValue(objectToAdd, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
         PrismAsserts.assertItems(objectToAdd, 5);
-    }
-
-    @Test
-    public void test102CreateWrapperUserEmpty() throws Exception {
-        PrismObject<UserType> user = getUser(USER_EMPTY_OID);
-        PrismObject<UserType> userOld = user.clone();
-
-        // WHEN
-        when();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        ModelServiceLocator modelServiceLocator = getServiceLocator(task);
-        PrismObjectWrapperFactory<UserType> factory = modelServiceLocator.findObjectWrapperFactory(user.getDefinition());
-        WrapperContext context = new WrapperContext(task, result);
-
-        PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
-
-        // THEN
-        then();
-
-        PrismTestUtil.display("Wrapper after", objectWrapper);
-
-        WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), "user description", user, userOld, ItemStatus.NOT_CHANGED);
-        assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
-
-        WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), null, user, ItemStatus.NOT_CHANGED);
-        assertEquals("wrong number of containers in "+objectWrapper, 1, objectWrapper.getValues().size());
-        PrismContainerValueWrapper<UserType> mainContainerValueWrapper = objectWrapper.getValue();
-        WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_EMPTY_USERNAME));
-        WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_TIMEZONE);
-
-        // Not sure about this
-//        ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainer(ItemPath.create(UserType.F_ACTIVATION));
-//        assertNull("Unexpected activation "+activationContainerWrapper, activationContainerWrapper);
-
-        assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadOnly());
-
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, false); // empty
-
-        // WHEN
-        mainContainerValueWrapper.setShowEmpty(true);
-
-        // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
-
-        ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
-        display("Delta", objectDelta);
-        assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
     }
 
 
