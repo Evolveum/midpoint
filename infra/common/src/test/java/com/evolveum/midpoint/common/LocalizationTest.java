@@ -9,6 +9,7 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import org.testng.AssertJUnit;
@@ -22,7 +23,7 @@ import java.util.Locale;
 /**
  * Created by Viliam Repan (lazyman).
  */
-// TODO testing: missing from suite, 1 test failing
+@UnusedTestElement("1 test failing, not in suite")
 public class LocalizationTest extends AbstractUnitTest {
 
     private static String midpointHome;

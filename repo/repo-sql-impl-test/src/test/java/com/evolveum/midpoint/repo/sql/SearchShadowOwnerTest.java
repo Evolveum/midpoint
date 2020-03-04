@@ -11,8 +11,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -35,10 +33,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SearchShadowOwnerTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SearchShadowOwnerTest.class);
-
     @Test
-    public void searchNonExistingShadowOwner() throws Exception {
+    public void searchNonExistingShadowOwner() {
         //searching owner for non existing shadow
         OperationResult result = new OperationResult("List owner");
         PrismObject<FocusType> shadow = repositoryService.searchShadowOwner("12345", null, result);

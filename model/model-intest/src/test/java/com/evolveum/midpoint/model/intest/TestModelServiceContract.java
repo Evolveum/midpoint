@@ -1052,7 +1052,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 
     @Test
-    public void test130PreviewModifyUserJackAssignAccount() throws Exception {
+    public void test130PreviewModifyUserJackAssignAccount() {
 
         // GIVEN
         try{
@@ -1092,7 +1092,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         dummyAuditService.assertNoRecord();
         }catch(Exception ex){
-            LOGGER.info("Exception {}", ex.getMessage(), ex);
+            logger.info("Exception {}", ex.getMessage(), ex);
         }
 
         assertSteadyResources();

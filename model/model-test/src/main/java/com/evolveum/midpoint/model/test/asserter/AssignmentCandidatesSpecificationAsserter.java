@@ -11,7 +11,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 
 /**
@@ -49,7 +49,7 @@ public class AssignmentCandidatesSpecificationAsserter<RA> extends AbstractAsser
     }
 
     public AssignmentCandidatesSpecificationAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, candidateSpec);
+        PrismTestUtil.display(message, candidateSpec);
         return this;
     }
 

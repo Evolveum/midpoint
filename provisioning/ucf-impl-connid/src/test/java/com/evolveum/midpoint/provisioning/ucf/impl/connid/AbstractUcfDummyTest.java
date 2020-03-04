@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -103,5 +104,13 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest {
             int maxOccurs) {
         QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
         PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
+    }
+
+    protected void display(String title, DebugDumpable value) {
+        PrismTestUtil.display(title, value);
+    }
+
+    protected void display(String title, Object value) {
+        PrismTestUtil.display(title, value);
     }
 }

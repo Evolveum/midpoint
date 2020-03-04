@@ -1270,7 +1270,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, dummyResourceCtl.getAccountObjectClassQName());
-        IntegrationTestTools.display("Discr", discr);
+        PrismTestUtil.display("Discr", discr);
 
         // WHEN
         when();
@@ -1302,7 +1302,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(null, null);
-        IntegrationTestTools.display("Discr", discr);
+        PrismTestUtil.display("Discr", discr);
 
         // WHEN
         when();
@@ -1548,7 +1548,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertEquals("Unexepected number of users found", 7, users.size());
+        assertEquals("Unexpected number of users found", 7, users.size());
 
         for (final PrismObject<UserType> user: users) {
             assertProperty(user, UserType.F_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
@@ -1619,7 +1619,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 try {
                     validator.validate(propDef, path.toString()+" (propDef) ");
                 } catch (Exception | Error e) {
-                    IntegrationTestTools.display("Wrong definition", propDef);
+                    PrismTestUtil.display("Wrong definition", propDef);
                     throw e;
                 }
             }
@@ -1633,7 +1633,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
             try {
                 validator.validate(propDef, path.toString()+" (propDef) ");
             } catch (Exception | Error e) {
-                IntegrationTestTools.display("Wrong definition", propDef);
+                PrismTestUtil.display("Wrong definition", propDef);
                 throw e;
             }
         }
@@ -1643,7 +1643,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         try {
             validator.validate(objPropDef, path.toString()+" (objectDef) ");
         } catch (Exception | Error e) {
-            IntegrationTestTools.display("Wrong definition", objPropDef);
+            PrismTestUtil.display("Wrong definition", objPropDef);
             throw e;
         }
 

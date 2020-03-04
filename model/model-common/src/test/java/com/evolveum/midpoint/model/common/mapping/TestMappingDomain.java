@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -26,7 +24,9 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -37,7 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  * @author Radovan Semancik
  */
-public class TestMappingDomain extends AbstractUnitTest {
+public class TestMappingDomain extends AbstractUnitTest
+        implements OperationResultTestMixin {
 
     private static final String MAPPING_DOMAIN_FILENAME = "mapping-domain.xml";
 
@@ -69,7 +70,7 @@ public class TestMappingDomain extends AbstractUnitTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(MAPPING_DOMAIN_FILENAME, getTestNameShort(), "organization", delta, userOld);
 
-        OperationResult opResult = new OperationResult(getTestNameShort());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -104,12 +105,11 @@ public class TestMappingDomain extends AbstractUnitTest {
                         UserType.F_ADDITIONAL_NAME, "Jackie");
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "991", "992");
 
-        String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
-                evaluator.createMapping(MAPPING_DOMAIN_FILENAME, shortTestName, "organization", delta, userOld);
+                evaluator.createMapping(MAPPING_DOMAIN_FILENAME, getTestNameShort(), "organization", delta, userOld);
 
         // WHEN
-        mapping.evaluate(createTask(), new OperationResult(shortTestName));
+        mapping.evaluate(createTask(), createOperationResult());
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -146,7 +146,7 @@ public class TestMappingDomain extends AbstractUnitTest {
                 evaluator.createMapping(
                         MAPPING_DOMAIN_FILENAME, shortTestName, "organization", delta, userOld);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         when();
@@ -188,7 +188,7 @@ public class TestMappingDomain extends AbstractUnitTest {
                 evaluator.createMapping(
                         MAPPING_DOMAIN_FILENAME, shortTestName, "organization", delta, userOld);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         when();
@@ -232,7 +232,7 @@ public class TestMappingDomain extends AbstractUnitTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 MAPPING_DOMAIN_FILENAME, shortTestName, "organization", delta, userOld);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         when();
@@ -252,4 +252,11 @@ public class TestMappingDomain extends AbstractUnitTest {
                 PrismTestUtil.createPolyString("Pirate Jackie (007)"));
     }
 
+    protected void display(String title, DebugDumpable value) {
+        PrismTestUtil.display(title, value);
+    }
+
+    protected void display(String title, Object value) {
+        PrismTestUtil.display(title, value);
+    }
 }

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.test.asserter;
 
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -94,7 +94,7 @@ public class ProjectionContextAsserter<RA> extends ElementContextAsserter<ModelP
 
     @Override
     public ProjectionContextAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, getProjectionContext());
+        PrismTestUtil.display(message, getProjectionContext());
         return this;
     }
 }

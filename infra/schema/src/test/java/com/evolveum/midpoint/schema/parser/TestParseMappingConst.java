@@ -39,14 +39,11 @@ public class TestParseMappingConst extends AbstractContainerValueParserTest<Mapp
 
     @Test
     public void testParseFile() throws Exception {
-        displayTestTitle("testParseFile");
         processParsings(null, null);
     }
 
     @Test
     public void testParseSerialize() throws Exception{
-        displayTestTitle("testParseSerialize");
-
         PrismContext prismContext = getPrismContext();
         PrismParser parser = prismContext.parserFor(getFile());
         PrismContainerValue<MappingType> mappingPval = parser.parseItemValue();
@@ -67,8 +64,6 @@ public class TestParseMappingConst extends AbstractContainerValueParserTest<Mapp
 
     @Test
     public void testParseRoundTrip() throws Exception{
-        displayTestTitle("testParseRoundTrip");
-
         processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
         processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");        // misleading item name
     }

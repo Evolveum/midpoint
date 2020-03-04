@@ -20,32 +20,25 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 
 /**
  * @author semancik
- *
  */
 public class CsvBackingStore implements BackingStore {
 
     public static final File CSV_SOURCE_FILE = new File(AbstractManualResourceTest.TEST_DIR, "semi-manual.csv");
     public static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
 
-    private static final Trace LOGGER = TraceManager.getTrace(CsvBackingStore.class);
-
     private final File sourceFile;
     private final File targetFile;
 
     public CsvBackingStore() {
-        super();
         this.sourceFile = CSV_SOURCE_FILE;
         this.targetFile = CSV_TARGET_FILE;
     }
 
     public CsvBackingStore(File sourceFile, File targetFile) {
-        super();
         this.sourceFile = sourceFile;
         this.targetFile = targetFile;
     }
@@ -57,14 +50,14 @@ public class CsvBackingStore implements BackingStore {
 
     @Override
     public void provisionWill(String interest) throws IOException {
-        appendToCsv(new String[]{
+        appendToCsv(new String[] {
                 AbstractManualResourceTest.USER_WILL_NAME,
                 AbstractManualResourceTest.USER_WILL_FULL_NAME,
                 AbstractManualResourceTest.ACCOUNT_WILL_DESCRIPTION_MANUAL,
                 interest,
                 "false",
                 AbstractManualResourceTest.USER_WILL_PASSWORD_OLD
-            });
+        });
     }
 
     @Override
@@ -76,14 +69,14 @@ public class CsvBackingStore implements BackingStore {
         } else {
             disabled = "true";
         }
-        replaceInCsv(new String[]{
+        replaceInCsv(new String[] {
                 AbstractManualResourceTest.USER_WILL_NAME,
                 newFullName,
                 AbstractManualResourceTest.ACCOUNT_WILL_DESCRIPTION_MANUAL,
                 interest,
                 disabled,
                 password
-            });
+        });
     }
 
     @Override
@@ -91,17 +84,16 @@ public class CsvBackingStore implements BackingStore {
         deprovisionInCsv(AbstractManualResourceTest.USER_WILL_NAME);
     }
 
-
     @Override
     public void addJack() throws IOException {
-        appendToCsv(new String[]{
+        appendToCsv(new String[] {
                 AbstractManualResourceTest.USER_JACK_USERNAME,
                 AbstractManualResourceTest.USER_JACK_FULL_NAME,
                 AbstractManualResourceTest.ACCOUNT_JACK_DESCRIPTION_MANUAL,
                 "",
                 "false",
                 AbstractManualResourceTest.USER_JACK_PASSWORD_OLD
-            });
+        });
     }
 
     @Override
@@ -111,7 +103,7 @@ public class CsvBackingStore implements BackingStore {
 
     @Override
     public void addPhantom() throws IOException {
-        appendToCsv(new String[]{
+        appendToCsv(new String[] {
                 AbstractManualResourceTest.USER_PHANTOM_USERNAME,
                 // Wrong fullname here ... by purpose. We wonder whether reconciliation fixes this.
                 AbstractManualResourceTest.USER_PHANTOM_FULL_NAME_WRONG,
@@ -119,21 +111,20 @@ public class CsvBackingStore implements BackingStore {
                 "",
                 "false",
                 AbstractManualResourceTest.ACCOUNT_PHANTOM_PASSWORD_MANUAL
-            });
+        });
     }
 
     @Override
     public void addPhoenix() throws IOException {
-        appendToCsv(new String[]{
+        appendToCsv(new String[] {
                 AbstractManualResourceTest.USER_PHOENIX_USERNAME,
                 AbstractManualResourceTest.USER_PHOENIX_FULL_NAME,
                 AbstractManualResourceTest.ACCOUNT_PHOENIX_DESCRIPTION_MANUAL,
                 "",
                 "false",
                 AbstractManualResourceTest.ACCOUNT_PHOENIX_PASSWORD_MANUAL
-            });
+        });
     }
-
 
     @Override
     public void deleteAccount(String username) throws IOException {
@@ -152,10 +143,9 @@ public class CsvBackingStore implements BackingStore {
 
     protected String[] readFromCsv(String username) throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
+        for (String line : lines) {
             String[] cols = line.split(",");
-            if (cols[0].matches("\""+username+"\"")) {
+            if (cols[0].matches("\"" + username + "\"")) {
                 return unescape(cols);
             }
         }
@@ -183,13 +173,13 @@ public class CsvBackingStore implements BackingStore {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             String[] cols = line.split(",");
-            if (cols[0].matches("\""+data[0]+"\"")) {
+            if (cols[0].matches("\"" + data[0] + "\"")) {
                 lines.set(i, formatCsvLine(data));
                 found = true;
             }
         }
         if (!found) {
-            throw new IllegalStateException("Not found in CSV: "+data[0]);
+            throw new IllegalStateException("Not found in CSV: " + data[0]);
         }
         Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines,
                 StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -201,7 +191,7 @@ public class CsvBackingStore implements BackingStore {
         while (iterator.hasNext()) {
             String line = iterator.next();
             String[] cols = line.split(",");
-            if (cols[0].matches("\""+username+"\"")) {
+            if (cols[0].matches("\"" + username + "\"")) {
                 iterator.remove();
             }
         }
@@ -210,7 +200,7 @@ public class CsvBackingStore implements BackingStore {
     }
 
     private String formatCsvLine(String[] data) {
-        return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(",")) + "\n";
+        return Arrays.stream(data).map(s -> "\"" + s + "\"").collect(Collectors.joining(",")) + "\n";
     }
 
     @Override
@@ -224,7 +214,7 @@ public class CsvBackingStore implements BackingStore {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName()+"(" + targetFile + ")";
+        return this.getClass().getSimpleName() + "(" + targetFile + ")";
     }
 
 }

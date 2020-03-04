@@ -19,8 +19,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -35,7 +33,7 @@ public class TestCsvUsername extends AbstractCsvTest {
     private static final File RESOURCE_CSV_USERNAME_FILE = new File(TEST_DIR, "resource-csv-username.xml");
     private static final String RESOURCE_CSV_USERNAME_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
 
-    private static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack-username.xml");;
+    private static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack-username.xml");
     private static final String ACCOUNT_JACK_OID = "2db718b6-243a-11e7-a9e5-bbb2545f80ed";
     private static final String ACCOUNT_JACK_USERNAME = "jack";
 
@@ -43,8 +41,6 @@ public class TestCsvUsername extends AbstractCsvTest {
 
     protected static final String ATTR_USERNAME = "username";
     protected static final QName ATTR_USERNAME_QNAME = new QName(RESOURCE_NS, ATTR_USERNAME);
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestCsvUsername.class);
 
     @Override
     protected File getResourceFile() {

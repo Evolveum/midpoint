@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
-import static com.evolveum.midpoint.testing.conntest.ad.AdUtils.*;
+import static com.evolveum.midpoint.testing.conntest.ad.AdTestMixin.*;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 

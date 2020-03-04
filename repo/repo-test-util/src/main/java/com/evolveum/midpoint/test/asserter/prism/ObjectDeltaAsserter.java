@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ContainerDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.PropertyDeltaAsserter;
@@ -114,7 +114,7 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
     }
 
     public ObjectDeltaAsserter<O,RA> display(String message) {
-        IntegrationTestTools.display(message, delta);
+        PrismTestUtil.display(message, delta);
         return this;
     }
 }

@@ -10,8 +10,8 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismSchemaAsserter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -101,7 +101,7 @@ public class RefinedResourceSchemaAsserter<RA> extends PrismSchemaAsserter<RA> {
     }
 
     public RefinedResourceSchemaAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, getSchema());
+        PrismTestUtil.display(message, getSchema());
         return this;
     }
 }

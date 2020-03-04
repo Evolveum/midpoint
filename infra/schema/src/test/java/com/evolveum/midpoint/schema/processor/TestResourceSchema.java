@@ -130,8 +130,6 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         // WHEN
 
-//        JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.C_RESOURCE, ResourceType.class, resource);
-//        String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
         String marshalledResource = PrismTestUtil.serializeObjectToString(resource.asPrismObject());
 
         System.out.println("Marshalled resource");
@@ -357,13 +355,13 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         assertNotNull("null native capabilities", resourceType.getCapabilities().getNative());
         assertFalse("empty native capabilities", resourceType.getCapabilities().getNative().getAny().isEmpty());
-        assertEquals("Unexepected number of native capabilities", 3, resourceType.getCapabilities().getNative().getAny().size());
+        assertEquals("Unexpected number of native capabilities", 3, resourceType.getCapabilities().getNative().getAny().size());
 
         assertNotNull("null configured capabilities", resourceType.getCapabilities().getConfigured());
         assertFalse("empty configured capabilities", resourceType.getCapabilities().getConfigured().getAny().isEmpty());
-        assertEquals("Unexepected number of configured capabilities", 2, resourceType.getCapabilities().getConfigured().getAny().size());
+        assertEquals("Unexpected number of configured capabilities", 2, resourceType.getCapabilities().getConfigured().getAny().size());
 
-        assertEquals("Unexepected number of effective capabilities", 3, effectiveCapabilities.size());
+        assertEquals("Unexpected number of effective capabilities", 3, effectiveCapabilities.size());
         assertNotNull("No credentials effective capability",
                 ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class));
         assertNotNull("No activation effective capability",

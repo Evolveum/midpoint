@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -17,26 +29,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTransportConfigurationType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author skublik
  */
-@ContextConfiguration(locations = {"classpath:ctx-task.xml",
+@ContextConfiguration(locations = { "classpath:ctx-task.xml",
         "classpath:ctx-repo-cache.xml",
         "classpath:ctx-provisioning.xml",
         "classpath*:ctx-repository-test.xml",
@@ -49,10 +47,8 @@ import static org.testng.AssertJUnit.assertTrue;
         "classpath:ctx-model.xml",
         "classpath:ctx-model-common.xml",
         "classpath:ctx-notifications-test.xml",
-        "classpath*:ctx-notifications.xml"})
+        "classpath*:ctx-notifications.xml" })
 public class TestTransportUtils extends AbstractSpringTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestTransportUtils.class);
 
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected TaskManager taskManager;
@@ -65,8 +61,6 @@ public class TestTransportUtils extends AbstractSpringTest {
 
     @Test
     public void test010CheckVariablesWhiteList() {
-        final String TEST_NAME = "test010CheckVariablesWhiteList";
-
         // GIVEN
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
@@ -88,26 +82,24 @@ public class TestTransportUtils extends AbstractSpringTest {
         recipients.add("janko@evolveum.eu");
 
         // WHEN
-        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
 
         // THEN
         then();
 
-        assertTrue("Expected <4> allowed recipient(s), but was <" +allowRecipient.size()+ ">", allowRecipient.size() == 4);
+        assertTrue("Expected <4> allowed recipient(s), but was <" + allowRecipient.size() + ">", allowRecipient.size() == 4);
         assertTrue("janko@evodevel.com shoud be allowed, but isn't.", allowRecipient.contains("janko@evodevel.com"));
         assertTrue("janko@evolveum.com shoud be allowed, but isn't.", allowRecipient.contains("janko@evolveum.com"));
         assertTrue("viliam@evodevel.com shoud be allowed, but isn't.", allowRecipient.contains("viliam@evodevel.com"));
         assertTrue("majka@evodevel.eu shoud be allowed, but isn't.", allowRecipient.contains("majka@evodevel.eu"));
 
-        assertTrue("Expected <2> forbidden recipient(s), but was <" +forbiddenRecipient.size()+ ">", forbiddenRecipient.size() == 2);
+        assertTrue("Expected <2> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">", forbiddenRecipient.size() == 2);
         assertTrue("jack@evodevel.sk shoud be forbidden, but isn't.", forbiddenRecipient.contains("jack@evodevel.sk"));
         assertTrue("janko@evolveum.eu shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.eu"));
     }
 
     @Test
     public void test020CheckVariablesBlackList() {
-        final String TEST_NAME = "test020CheckVariablesBlackList";
-
         // GIVEN
         NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
 
@@ -129,18 +121,18 @@ public class TestTransportUtils extends AbstractSpringTest {
         recipients.add("janko@evolveum.eu");
 
         // WHEN
-        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task, task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
 
         // THEN
         then();
 
-        assertTrue("Expected <4> forbidden recipient(s), but was <" +forbiddenRecipient.size()+ ">", forbiddenRecipient.size() == 4);
+        assertTrue("Expected <4> forbidden recipient(s), but was <" + forbiddenRecipient.size() + ">", forbiddenRecipient.size() == 4);
         assertTrue("janko@evodevel.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evodevel.com"));
         assertTrue("janko@evolveum.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("janko@evolveum.com"));
         assertTrue("viliam@evodevel.com shoud be forbidden, but isn't.", forbiddenRecipient.contains("viliam@evodevel.com"));
         assertTrue("majka@evodevel.eu shoud be forbidden, but isn't.", forbiddenRecipient.contains("majka@evodevel.eu"));
 
-        assertTrue("Expected <2> allowed recipient(s), but was <" +allowRecipient.size()+ ">", allowRecipient.size() == 2);
+        assertTrue("Expected <2> allowed recipient(s), but was <" + allowRecipient.size() + ">", allowRecipient.size() == 2);
         assertTrue("jack@evodevel.sk shoud be allowed, but isn't.", allowRecipient.contains("jack@evodevel.sk"));
         assertTrue("janko@evolveum.eu shoud be allowed, but isn't.", allowRecipient.contains("janko@evolveum.eu"));
     }

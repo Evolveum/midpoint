@@ -47,7 +47,7 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test
     public void testReindexExtensionItem() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("unstable")
@@ -74,7 +74,7 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexIndexOnlyItem() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name(getTestNameShort())
@@ -108,7 +108,7 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexPhoto() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         byte[] PHOTO = new byte[] { 1, 2, 3, 4 };
 
@@ -130,7 +130,7 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexTaskResult() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         OperationResultType taskOperationResult = new OperationResultType().message("Hello there");
 
@@ -152,7 +152,7 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexLookupTableRow() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         LookupTableRowType row = new LookupTableRowType(prismContext)
                 .key("key")
@@ -176,7 +176,7 @@ public class ModifyTestReindex extends ModifyTest {
 
     @Test   // MID-5112
     public void testReindexCertificationCampaignCase() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         AccessCertificationCaseType aCase = new AccessCertificationCaseType(prismContext)
                 .stageNumber(1);
@@ -203,7 +203,7 @@ public class ModifyTestReindex extends ModifyTest {
      */
     @Test
     public void testReindexShadow() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         String APPROVER_OID = "9123090439201432";
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)

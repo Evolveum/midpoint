@@ -19,26 +19,22 @@ import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstan
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Tests a slow semi manual resource with the use of proposed shadows.
  * The resource is "slow" in a way that it takes approx. a second to process a ticket.
  * This may cause all sorts of race conditions.
- *
+ * <p>
  * THIS TEST IS DISABLED MID-4166
  *
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualSlowProposed extends TestSemiManual {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualSlowProposed.class);
-
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryCache repositoryCache;
 

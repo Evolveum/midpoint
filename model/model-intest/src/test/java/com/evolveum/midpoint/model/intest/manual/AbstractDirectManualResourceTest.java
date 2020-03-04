@@ -1454,7 +1454,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test500AssignWillRoleOne() throws Exception {
-        assignWillRoleOne("test500AssignWillRoleOne", USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assignWillRoleOne(USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
     /**
@@ -1826,7 +1826,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test520AssignWillRoleOne() throws Exception {
-        assignWillRoleOne("test520AssignWillRoleOne", USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assignWillRoleOne(USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
 
@@ -1860,7 +1860,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assertAccountWillAfterAssign(USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
 
@@ -2141,13 +2141,13 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME));
 
         // WHEN
-        assignWillRoleOne(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assignWillRoleOne(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 
         // THEN
         restartTask(TASK_SHADOW_REFRESH_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
-        assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assertAccountWillAfterAssign(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
     @Test
@@ -2176,15 +2176,15 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        assertAccountJackAfterAssign(TEST_NAME);
+        assertAccountJackAfterAssign();
 
         // THEN
         restartTask(TASK_SHADOW_REFRESH_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
-        assertAccountJackAfterAssign(TEST_NAME);
+        assertAccountJackAfterAssign();
 
-        assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assertAccountWillAfterAssign(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
     @Test
@@ -2209,9 +2209,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        assertWillAfterCreateCaseClosed(TEST_NAME, false);
+        assertWillAfterCreateCaseClosed(false);
 
-        assertAccountJackAfterAssign(TEST_NAME);
+        assertAccountJackAfterAssign();
     }
 
     @Test

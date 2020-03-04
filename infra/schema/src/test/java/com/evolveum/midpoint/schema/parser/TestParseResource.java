@@ -62,8 +62,6 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
     @Test
     public void testParseResourceFile() throws Exception {
-        displayTestTitle("testParseResourceFile");
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -79,8 +77,6 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
     @Test
     public void testParseResourceFileSimple() throws Exception {
-        displayTestTitle("testParseResourceFileSimple");
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -96,19 +92,16 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
     @Test
     public void testParseResourceRoundtripXml() throws Exception {
-        displayTestTitle("testParseResourceRoundtripXml");
         doTestParseResourceRoundtrip(PrismContext.LANG_XML);
     }
 
     @Test
     public void testParseResourceRoundtripJson() throws Exception {
-        displayTestTitle("testParseResourceRoundtripJson");
         doTestParseResourceRoundtrip(PrismContext.LANG_JSON);
     }
 
     @Test
     public void testParseResourceRoundtripYaml() throws Exception {
-        displayTestTitle("testParseResourceRoundtripYaml");
         doTestParseResourceRoundtrip(PrismContext.LANG_YAML);
     }
 
@@ -168,8 +161,6 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
      */
     @Test
     public void testSchemaRoundtrip() throws Exception {
-        displayTestTitle("testSchemaRoundtrip");
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -284,19 +275,16 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
     @Test
     public void testParseResourceExpressionRoundtripXml() throws Exception {
-        displayTestTitle("testParseResourceExpressionRoundtripXml");
         doTestParseResourceExpressionRoundtrip(PrismContext.LANG_XML);
     }
 
     @Test
     public void testParseResourceExpressionRoundtripJson() throws Exception {
-        displayTestTitle("testParseResourceExpressionRoundtripJson");
         doTestParseResourceExpressionRoundtrip(PrismContext.LANG_JSON);
     }
 
     @Test
     public void testParseResourceExpressionRoundtripYaml() throws Exception {
-        displayTestTitle("testParseResourceExpressionRoundtripYaml");
         doTestParseResourceExpressionRoundtrip(PrismContext.LANG_YAML);
     }
 
@@ -654,8 +642,6 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         if (!"xml".equals(language)) {
             return;
         }
-        displayTestTitle("testParseResourceDomSimple");
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 

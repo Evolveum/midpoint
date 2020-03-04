@@ -79,7 +79,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     protected PrismContainerValue<?> parent;
     protected D definition;
     @NotNull protected final List<V> values = new ArrayList<>();
-    private transient Map<String,Object> userData = new HashMap<>();;
+    private transient Map<String,Object> userData = new HashMap<>();
 
     protected EquivalenceStrategy defaultEquivalenceStrategy;
 

@@ -688,9 +688,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 //     */
 //    @Test
 //    public void test150UnassignOrganizerFromAdam() throws Exception {
-//        final String TEST_NAME = "test150UnassignOrganizerFromAdam";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//
 //        // GIVEN
 //        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
 //        setModelLoggingTracing(task);

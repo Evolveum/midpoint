@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -231,6 +232,7 @@ public class IntegrationTestTools {
         }
     }
 
+    @UnusedTestElement
     public static <T> void assertEqualsCollection(String message, Collection<T> expectedValues, T[] actualValues) {
         assertEqualsCollection(message, expectedValues, Arrays.asList(actualValues));
     }
@@ -239,6 +241,7 @@ public class IntegrationTestTools {
         assertEqualsCollection(message, Arrays.asList(expectedValues), actualValues);
     }
 
+    @UnusedTestElement
     public static String getIcfsNameAttribute(PrismObject<ShadowType> shadow) {
         return getIcfsNameAttribute(shadow.asObjectable());
     }
@@ -262,6 +265,7 @@ public class IntegrationTestTools {
         assertEquals("Wrong secondary indetifier in " + repoShadow, value, getSecondaryIdentifier(repoShadow));
     }
 
+    @UnusedTestElement
     public static void assertIcfsNameAttribute(ShadowType repoShadow, String value) {
         assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
     }
@@ -495,13 +499,6 @@ public class IntegrationTestTools {
         }
     }
 
-    public static void display(String title, DebugDumpable dumpable) {
-        println(OBJECT_TITLE_OUT_PREFIX + title);
-        println(dumpable == null ? "null" : dumpable.debugDump(1));
-        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
-                + (dumpable == null ? "null" : dumpable.debugDump(1)));
-    }
-
     public static void display(String title, String value) {
         println(OBJECT_TITLE_OUT_PREFIX + title);
         println(value);
@@ -601,6 +598,7 @@ public class IntegrationTestTools {
         PrismAsserts.assertSets("Unexpected search result", matchingRule, names, expectedNames);
     }
 
+    @UnusedTestElement
     public static <O extends ObjectType> void assertSearchResultNames(
             SearchResultList<PrismObject<O>> resultList, String... expectedNames) {
         List<String> names = new ArrayList<>(expectedNames.length);
@@ -642,6 +640,7 @@ public class IntegrationTestTools {
         return createAllShadowsQuery(resourceType, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), objectClassLocalName), prismContext);
     }
 
+    @UnusedTestElement
     public static void checkAccountShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
             ObjectChecker<ShadowType> checker, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
         checkAccountShadow(shadowType, resourceType, repositoryService, checker, null, prismContext, parentResult);
@@ -654,6 +653,7 @@ public class IntegrationTestTools {
                 shadowType.getObjectClass());
     }
 
+    @UnusedTestElement
     public static void checkEntitlementShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService,
             ObjectChecker<ShadowType> checker, String objectClassLocalName, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
         checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, null, prismContext, parentResult);
@@ -796,6 +796,7 @@ public class IntegrationTestTools {
         return false;
     }
 
+    @UnusedTestElement
     public static void assertNotInMessageRecursive(Throwable e, String substring) {
         assert !e.getMessage().contains(substring) : "The substring '" + substring + "' was found in the message of exception " + e + ": " + e.getMessage();
         if (e.getCause() != null) {
@@ -1066,7 +1067,7 @@ public class IntegrationTestTools {
     public static void assertConnectorSchemaSanity(PrismSchema schema, String connectorDescription, boolean expectConnIdSchema) {
         assertNotNull("Cannot parse connector schema of " + connectorDescription, schema);
         assertFalse("Empty connector schema in " + connectorDescription, schema.isEmpty());
-        display("Parsed connector schema of " + connectorDescription, schema);
+        PrismTestUtil.display("Parsed connector schema of " + connectorDescription, schema);
 
         // Local schema namespace is used here.
         PrismContainerDefinition configurationDefinition =
@@ -1158,6 +1159,7 @@ public class IntegrationTestTools {
         }
     }
 
+    @UnusedTestElement
     public static boolean isSilentConsole() {
         return silentConsole;
     }

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.test.asserter;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -64,7 +64,7 @@ public class ModelContextAsserter<O extends ObjectType,RA> extends AbstractAsser
     }
 
     public ModelContextAsserter<O,RA> display(String message) {
-        IntegrationTestTools.display(message, modelContext);
+        PrismTestUtil.display(message, modelContext);
         return this;
     }
 

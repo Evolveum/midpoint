@@ -6,39 +6,34 @@
  */
 package com.evolveum.midpoint.model.intest.multi;
 
-import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
-
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
  * Test resources that have several connectors.
- *
+ * <p>
  * MID-5921
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/multi-connector");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestMultiConnectorResources.class);
 
     // Black dummy resource for testing tolerant attributes
     protected static final File RESOURCE_DUMMY_OPALINE_FILE = new File(TEST_DIR, "resource-dummy-opaline.xml");
@@ -48,7 +43,6 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
     protected static final String RESOURCE_DUMMY_OPALINE_NAMESPACE = MidPointConstants.NS_RI;
     private static final String CONF_USELESS_OPALINE = "USEless-opaline";
     private static final String CONF_USELESS_SCRIPT = "USEless-script";
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -67,8 +61,6 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         // GIVEN
         Task task = getTestTask();
 
@@ -86,8 +78,6 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test100JackAssignDummyOpaline() throws Exception {
-        final String TEST_NAME = "test100JackAssignDummyOpaline";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -100,9 +90,9 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
         assertUserAfter(USER_JACK_OID)
                 .singleLink()
-                    .target()
-                        .assertResource(RESOURCE_DUMMY_OPALINE_OID)
-                        .assertName(ACCOUNT_JACK_DUMMY_USERNAME);
+                .target()
+                .assertResource(RESOURCE_DUMMY_OPALINE_OID)
+                .assertName(ACCOUNT_JACK_DUMMY_USERNAME);
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_OPALINE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
                 .assertFullName(USER_JACK_FULL_NAME);

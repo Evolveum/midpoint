@@ -188,8 +188,8 @@ public class TestAddAssociation extends AbstractWfTest {
                     CaseType case0, List<CaseType> subcases,
                     Task opTask, OperationResult result) throws Exception {
                 ModelContext taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
-                IntegrationTestTools.display("model context from the root task", taskModelContext);
-//                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
+                PrismTestUtil.display("model context from the root task", taskModelContext);
+                //                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
 //                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
 //                assertTrue("There are modifications left in primary projection delta",
 //                        ObjectDelta.isEmpty(
@@ -268,8 +268,8 @@ public class TestAddAssociation extends AbstractWfTest {
                     CaseType case0, List<CaseType> subcases,
                     Task opTask, OperationResult result) throws Exception {
                 ModelContext taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
-                IntegrationTestTools.display("model context from the root task", taskModelContext);
-//                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
+                PrismTestUtil.display("model context from the root task", taskModelContext);
+                //                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
 //                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
 //                assertTrue("There are modifications left in primary projection delta",
 //                        ObjectDelta.isEmpty(
@@ -306,7 +306,7 @@ public class TestAddAssociation extends AbstractWfTest {
         final String TEST_NAME = "test100AddJackToGuests";
 
         Task modelTask = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         LensContext<UserType> context = createUserLensContext();

@@ -54,19 +54,12 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AddOverwriteTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddOverwriteTest.class);
     private static final String ORG_STRUCT_OBJECTS = "src/test/resources/orgstruct/org-monkey-island.xml";
     private static final String IMPORT_OVERWRITE = "src/test/resources/basic/import-overwrite.xml";
     private static final File RESOURCE_OPENDJ_FILE = new File("src/test/resources/basic/resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 
     private static final String ORG_OID = "00000000-8888-6666-0000-100000000001";
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @Test
     public void addWithOverwrite() throws Exception {

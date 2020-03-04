@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.test.asserter;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectFilterAsserter;
 
@@ -32,7 +32,7 @@ public class RoleSelectionSpecificationRelationAsserter<RA> extends AbstractAsse
     }
 
     public RoleSelectionSpecificationRelationAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, filter);
+        PrismTestUtil.display(message, filter);
         return this;
     }
 
