@@ -40,5 +40,6 @@ public class ModelPublicConstants {
     public static final String SCRIPT_EXECUTION_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/scripting/handler-3";
     public static final String ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/iterative-scripting/handler-3";
     public static final String EXECUTE_DELTAS_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/execute-deltas/handler-3";
+    public static final String EXECUTE_CHANGES_TASK_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
     public static final String DELETE_NOT_UPDATE_SHADOW_TASK_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/delete-not-updated-shadow/handler-3";
 }
