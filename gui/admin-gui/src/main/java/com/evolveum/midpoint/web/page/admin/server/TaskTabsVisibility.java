@@ -69,7 +69,10 @@ class TaskTabsVisibility implements Serializable {
     public boolean computeSubtasksAndThreadsVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
         TaskType task = taskWrapper.getObject().asObjectable();
-        if (parentPage.isEditingFocus() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
+
+        if (parentPage.isEditingFocus()) {
+            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable;
+        } else if (!parentPage.isAdd() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
             subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable
                     || !CollectionUtils.isNotEmpty(task.getSubtask());
         } else {
@@ -85,7 +88,7 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean computeEnvironmentalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         final OperationStatsType operationStats = taskWrapper.getObject().asObjectable().getOperationStats();
-        environmentalPerformanceVisible = !parentPage.isEditingFocus()
+        environmentalPerformanceVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
                 && operationStats != null
                 && !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
@@ -93,7 +96,7 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeInternalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        internalPerformanceVisible = !parentPage.isEditingFocus()
+        internalPerformanceVisible = !parentPage.isAdd() &&!parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
                 && taskWrapper.getObject().asObjectable().getOperationStats() != null;
         return internalPerformanceVisible;
@@ -106,7 +109,7 @@ class TaskTabsVisibility implements Serializable {
         } catch (SchemaException ex){
             LOGGER.warn("Unable to find modelOperationContext in task {}", taskWrapper.getObject().asObjectable());
         }
-        operationVisible = !parentPage.isEditingFocus()
+        operationVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_MODEL_OPERATION_CONTEXT)
                 && lensContext != null && !lensContext.isEmpty()
                 && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
@@ -114,14 +117,14 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeResultVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        resultVisible = !parentPage.isEditingFocus()
+        resultVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_RESULT)
                 && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
         return resultVisible;
     }
 
     public boolean computeErrorsVisible(PageTask parentPage, TaskType task) {
-        errorsVisible = !parentPage.isEditingFocus()
+        errorsVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && !WebComponentUtil.isWorkflowTask(task);
         return errorsVisible;
     }
@@ -134,6 +137,7 @@ class TaskTabsVisibility implements Serializable {
         computeSubtasksAndThreadsVisible(parentPage, taskWrapper);
         computeProgressVisible(parentPage);
         computeEnvironmentalPerformanceVisible(parentPage, taskWrapper);
+        computeInternalPerformanceVisible(parentPage, taskWrapper);
         computeOperationVisible(parentPage, taskWrapper);
         computeResultVisible(parentPage, taskWrapper);
         computeErrorsVisible(parentPage, taskWrapper.getObject().asObjectable());
