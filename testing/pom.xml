@@ -60,7 +60,8 @@
             <id>extratest</id>
             <properties>
                 <skipTests>true</skipTests>
-                <skipConnTests>false</skipConnTests>
+                <!-- Conntests are not ready to run in "long" build yet. -->
+                <!--<skipConnTests>false</skipConnTests>-->
                 <skipLongTests>false</skipLongTests>
                 <skipRestTests>false</skipRestTests>
                 <skipSamplesTests>false</skipSamplesTests>
