@@ -36,9 +36,12 @@ class TaskTabsVisibility implements Serializable {
 
     private boolean basicVisible;
     private boolean schedulingVisible;
+    private boolean workManagementVisible;
     private boolean subtasksAndThreadsVisible;
+    private boolean cleanupPolicyVisible;
     private boolean progressVisible;
     private boolean environmentalPerformanceVisible;
+    private boolean internalPerformanceVisible;
     private boolean operationVisible;
     private boolean resultVisible;
     private boolean errorsVisible;
@@ -50,7 +53,17 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean computeSchedulingVisible(PageTask parentPage, TaskType task) {
         schedulingVisible = !WebComponentUtil.isWorkflowTask(task);
-            return schedulingVisible;
+        return schedulingVisible;
+    }
+
+    public boolean computeWorkManagementVisible(){
+        workManagementVisible = true;   //todo when work management should be visible?
+        return workManagementVisible;
+    }
+
+    public boolean computeCleanupPolicyVisible(){
+        cleanupPolicyVisible = true;   //todo when cleanup policy should be visible?
+        return cleanupPolicyVisible;
     }
 
     public boolean computeSubtasksAndThreadsVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
@@ -80,10 +93,10 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeInternalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        environmentalPerformanceVisible = !parentPage.isEditingFocus()
+        internalPerformanceVisible = !parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
                 && taskWrapper.getObject().asObjectable().getOperationStats() != null;
-        return environmentalPerformanceVisible;
+        return internalPerformanceVisible;
     }
 
     public boolean computeOperationVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
@@ -116,6 +129,8 @@ class TaskTabsVisibility implements Serializable {
     public void computeAll(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         computeBasicVisible(parentPage, taskWrapper.getObject().asObjectable());
         computeSchedulingVisible(parentPage, taskWrapper.getObject().asObjectable());
+        computeWorkManagementVisible();
+        computeCleanupPolicyVisible();
         computeSubtasksAndThreadsVisible(parentPage, taskWrapper);
         computeProgressVisible(parentPage);
         computeEnvironmentalPerformanceVisible(parentPage, taskWrapper);
@@ -203,6 +218,14 @@ class TaskTabsVisibility implements Serializable {
         return schedulingVisible;
     }
 
+    public boolean isWorkManagementVisible() {
+        return workManagementVisible;
+    }
+
+    public boolean isCleanupPolicyVisible() {
+        return cleanupPolicyVisible;
+    }
+
     public boolean isSubtasksAndThreadsVisible() {
         return subtasksAndThreadsVisible;
     }
@@ -213,6 +236,10 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean isEnvironmentalPerformanceVisible() {
         return environmentalPerformanceVisible;
+    }
+
+    public boolean isInternalPerformanceVisible() {
+        return internalPerformanceVisible;
     }
 
     public boolean isOperationVisible() {

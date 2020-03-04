@@ -37,16 +37,16 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnableBehaviour {
+public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnableBehaviour {
     private static final long serialVersionUID = 1L;
 
-    private static final String OPERATION_LOAD_GUI_CONFIGURATION = FocusTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
+    private static final String OPERATION_LOAD_GUI_CONFIGURATION = ObjectTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
 
     private IModel<PrismObject<O>> objectModel;
     private String uiAuthorizationUrl;
     private PageBase pageBase;
 
-    public FocusTabVisibleBehavior(IModel<PrismObject<O>> objectModel, String uiAuthorizationUrl, PageBase pageBase) {
+    public ObjectTabVisibleBehavior(IModel<PrismObject<O>> objectModel, String uiAuthorizationUrl, PageBase pageBase) {
         this.objectModel = objectModel;
         this.uiAuthorizationUrl = uiAuthorizationUrl;
         this.pageBase = pageBase;

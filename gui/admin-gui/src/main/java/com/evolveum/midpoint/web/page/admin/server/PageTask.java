@@ -1,9 +1,11 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
@@ -317,7 +319,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     @Override
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
 
-        //TODO add visibility for each tab, look at the TaskTabsVisibility
         return new AbstractObjectMainPanel<TaskType>(id, getObjectModel(), this) {
 
             @Override
@@ -328,41 +329,104 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             @Override
             protected List<ITab> createTabs(PageAdminObjectDetails<TaskType> parentPage) {
                 List<ITab> tabs = new ArrayList<>();
-                tabs.add(new AbstractTab(createStringResource("pageTask.basic.title")) {
+                TaskTabsVisibility taskTabsVisibility = new TaskTabsVisibility();
+                taskTabsVisibility.computeAll(PageTask.this, getObjectWrapper());
+
+                ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isBasicVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.basic.title"), basicTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
                         return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler);
                     }
                 });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.schedule.title")) {
+                ObjectTabVisibleBehavior<TaskType> scheduleTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isSchedulingVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.schedule.title"), scheduleTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
                         return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler);
                     }
                 });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.workManagement.title")) {
+                ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isWorkManagementVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
                         return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler);
                     }
                 });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.cleanupPolicies.title")) {
+                ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isCleanupPolicyVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.cleanupPolicies.title"), cleanupPoliciesTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
                         return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)), visibilityHandler);
                     }
                 });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.subtasks.title")) {
+                ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isSubtasksAndThreadsVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.subtasks.title"), subtasksTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         return new TaskSubtasksAndThreadsTabPanel(panelId, getObjectModel());
                     }
 
@@ -372,22 +436,23 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     }
                 });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.operationStats.title")) {
+                ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isInternalPerformanceVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.operationStats.title"), operationStatsAndInternalPerfTabsVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         return new TaskOperationStatisticsPanel(panelId, getObjectModel());
                     }
-                    @Override
-                    public boolean isVisible() {
-                        return isEditingFocus();
-                    }
-                });
-
-                tabs.add(new AbstractTab(parentPage.createStringResource("pageTask.environmentalPerformance.title")) {
-                            @Override
-                            public WebMarkupContainer getPanel(String panelId) {
-                                return new TaskPerformanceTabPanel(panelId, getObjectModel());
-                            }
 
                     @Override
                     public boolean isVisible() {
@@ -395,10 +460,45 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     }
                 });
 
-                tabs.add(
-                        new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
+                ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isEnvironmentalPerformanceVisible();
+                    }
+                };
+                tabs.add(new PanelTab(parentPage.createStringResource("pageTask.environmentalPerformance.title"), envPerfTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new TaskPerformanceTabPanel(panelId, getObjectModel());
+                    }
+
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingFocus();
+                    }
+                });
+
+                ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isOperationVisible();
+                    }
+                };
+                tabs.add(new PanelTab(parentPage.createStringResource("pageTaskEdit.operation"), operationTabVisibility) {
+                            private static final long serialVersionUID = 1L;
+
                             @Override
-                            public WebMarkupContainer getPanel(String panelId) {
+                            public WebMarkupContainer createPanel(String panelId) {
                                 return new TaskOperationTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_MODEL_OPERATION_CONTEXT));
                             }
                             @Override
@@ -407,9 +507,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                             }
                         });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformance.title")) {
+                tabs.add(new PanelTab(createStringResource("pageTask.internalPerformance.title"), operationStatsAndInternalPerfTabsVisibility) {
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public WebMarkupContainer createPanel(String panelId) {
                         return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
                     }
                     @Override
@@ -418,9 +520,21 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     }
                 });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.result.title")) {
+                ObjectTabVisibleBehavior<TaskType> resultTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isResultVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.result.title"), resultTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         return new TaskResultTabPanel(panelId, getObjectModel());
                     }
                     @Override
@@ -430,9 +544,21 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 });
 
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.errors.title")) {
+                ObjectTabVisibleBehavior<TaskType> errorsTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
-                    public WebMarkupContainer getPanel(String panelId) {
+                    public boolean isVisible(){
+                        return taskTabsVisibility.isErrorsVisible();
+                    }
+                };
+                tabs.add(new PanelTab(createStringResource("pageTask.errors.title"), errorsTabVisibility) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
                         return new TaskErrorsTabPanel(panelId, getObjectModel());
                     }
                     @Override
