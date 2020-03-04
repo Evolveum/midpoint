@@ -269,6 +269,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
             }
         });
+        exportDataLink.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(exportDataLink);
 
         AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
@@ -289,7 +290,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         buttonsList.add(refreshIcon);
 
         AjaxIconButton playPauseIcon = new AjaxIconButton(buttonId, getRefreshPausePlayButtonModel(),
-                createStringResource("MainObjectListPanel.refresh.enabled", isRefreshEnabled())) {
+                getRefreshPausePlayButtonTitleModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -313,6 +314,15 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
 
             return GuiStyleConstants.CLASS_PLAY;
+        };
+    }
+
+    private IModel<String> getRefreshPausePlayButtonTitleModel() {
+        return () -> {
+            if (isRefreshEnabled()) {
+                return createStringResource("MainObjectListPanel.refresh.pause").getString();
+            }
+            return createStringResource("MainObjectListPanel.refresh.start").getString();
         };
     }
 

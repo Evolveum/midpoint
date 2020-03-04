@@ -196,7 +196,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 refresh(target);
             }
         };
-        refreshNow.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        refreshNow.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         repeatingView.add(refreshNow);
 
         AjaxIconButton resumePauseRefreshing = new AjaxIconButton(repeatingView.newChildId(), (IModel<String>) this::createResumePauseButton, createStringResource("autoRefreshPanel.resumeRefreshing")) {
