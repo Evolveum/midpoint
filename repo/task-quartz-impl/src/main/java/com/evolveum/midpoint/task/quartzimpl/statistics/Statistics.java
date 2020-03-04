@@ -292,10 +292,13 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
     }
 
-    public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType,
-            String objectOid) {
+    public synchronized void recordSynchronizationOperationEnd(ShadowType shadow,
+            long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
+            SynchronizationInformation.Record newStateIncrement) {
         if (synchronizationInformation != null) {
-            synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
+            synchronizationInformation.recordSynchronizationOperationEnd(PolyString.getOrig(shadow.getName()),
+                    StatisticsUtil.getDisplayName(shadow), ShadowType.COMPLEX_TYPE, shadow.getOid(),
+                    started, exception, originalStateIncrement, newStateIncrement);
         }
     }
 

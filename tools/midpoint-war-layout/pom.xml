@@ -19,6 +19,8 @@
 
     <artifactId>midpoint-war-layout</artifactId>
 
+    <name>midPoint Tools - WAR layout</name>
+
     <properties>
         <maven.test.skip>true</maven.test.skip>
     </properties>

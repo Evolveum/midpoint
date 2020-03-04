@@ -531,7 +531,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
             object = record.getDeltas();
             break;
         case TASK_OID_COLUMN:
-            object = record.getTaskOID();
+            object = record.getTaskOid();
             break;
         case NODE_IDENTIFIER_COLUMN:
             object = record.getNodeIdentifier();
@@ -595,7 +595,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
             }
             return sbDelta.toString();
         case TASK_OID_COLUMN:
-            return record.getTaskOID() == null ? "" : record.getTaskOID();
+            return record.getTaskOid() == null ? "" : record.getTaskOid();
         case NODE_IDENTIFIER_COLUMN:
             return record.getNodeIdentifier() == null ? "" : record.getNodeIdentifier();
         case ATTORNEY_COLUMN:

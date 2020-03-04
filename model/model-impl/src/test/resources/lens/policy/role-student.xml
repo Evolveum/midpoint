@@ -6,18 +6,17 @@
   -->
 <role oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
     <name>Student</name>
     <assignment>
         <!-- this is just to test when the assignment constraint is triggered and when not -->
         <policyRule>
             <name>assignment-of-student</name>
             <policyConstraints>
-                <assignment/>
+                <assignment>
+                    <name>assignment-of-student</name>
+                </assignment>
             </policyConstraints>
             <policyActions>
                 <!-- none -->
@@ -29,6 +28,7 @@
             <name>any-change-to-assignment-of-student-with-validTo</name>
             <policyConstraints>
                 <assignment>
+                    <name>any-change-to-assignment-of-student-with-validTo</name>
                     <item>activation/validTo</item>
                 </assignment>
             </policyConstraints>
@@ -128,6 +128,7 @@
             <name>cc-1900-true-true</name>
             <policyConstraints>
                 <transition>
+                    <name>cc-1900-true-true</name>
                     <stateBefore>true</stateBefore>
                     <stateAfter>true</stateAfter>
                     <constraints>
@@ -147,6 +148,7 @@
             <name>cc-from-1900-false-true</name>
             <policyConstraints>
                 <transition>
+                    <name>cc-from-1900-false-true</name>
                     <stateBefore>false</stateBefore>
                     <stateAfter>true</stateAfter>
                     <constraints>
@@ -166,6 +168,7 @@
             <name>cc-from-1900-true-false</name>
             <policyConstraints>
                 <transition>
+                    <name>cc-from-1900-true-false</name>
                     <stateBefore>true</stateBefore>
                     <stateAfter>false</stateAfter>
                     <constraints>
@@ -185,6 +188,7 @@
             <name>cc-from-1900-true-any</name>
             <policyConstraints>
                 <transition>
+                    <name>cc-from-1900-true-any</name>
                     <stateBefore>true</stateBefore>
                     <constraints>
                         <ref>
@@ -203,7 +207,7 @@
             <name>has-student-assignment</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>student-assignment</name>
+                    <name>has-student-assignment</name>
                     <targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
                     <!-- no state means current+new -->
                 </hasAssignment>
@@ -218,11 +222,12 @@
             <name>has-student-assignment-true-true</name>
             <policyConstraints>
                 <transition>
+                    <name>has-student-assignment-true-true</name>
                     <stateBefore>true</stateBefore>
                     <stateAfter>true</stateAfter>
                     <constraints>
                         <ref>
-                            <name>student-assignment</name>
+                            <name>has-student-assignment</name>
                         </ref>
                     </constraints>
                 </transition>
@@ -237,11 +242,12 @@
             <name>has-student-assignment-false-true</name>
             <policyConstraints>
                 <transition>
+                    <name>has-student-assignment-false-true</name>
                     <stateBefore>false</stateBefore>
                     <stateAfter>true</stateAfter>
                     <constraints>
                         <ref>
-                            <name>student-assignment</name>
+                            <name>has-student-assignment</name>
                         </ref>
                     </constraints>
                 </transition>
@@ -256,11 +262,12 @@
             <name>has-student-assignment-true-false</name>
             <policyConstraints>
                 <transition>
+                    <name>has-student-assignment-true-false</name>
                     <stateBefore>true</stateBefore>
                     <stateAfter>false</stateAfter>
                     <constraints>
                         <ref>
-                            <name>student-assignment</name>
+                            <name>has-student-assignment</name>
                         </ref>
                     </constraints>
                 </transition>
@@ -275,10 +282,11 @@
             <name>has-student-assignment-false-any</name>
             <policyConstraints>
                 <transition>
+                    <name>has-student-assignment-false-any</name>
                     <stateBefore>false</stateBefore>
                     <constraints>
                         <ref>
-                            <name>student-assignment</name>
+                            <name>has-student-assignment</name>
                         </ref>
                     </constraints>
                 </transition>
@@ -293,7 +301,7 @@
             <name>has-temporary-assignment-direct</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>temporary-assignment-direct</name>
+                    <name>has-temporary-assignment-direct</name>
                     <targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>    <!-- Temporary -->
                     <direct>true</direct>
                 </hasAssignment>
@@ -308,7 +316,7 @@
             <name>has-temporary-assignment-indirect</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>temporary-assignment-indirect</name>
+                    <name>has-temporary-assignment-indirect</name>
                     <targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>    <!-- Temporary -->
                     <direct>false</direct>
                 </hasAssignment>
@@ -323,7 +331,7 @@
             <name>has-temporary-assignment-enabled</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>temporary-assignment-enabled</name>
+                    <name>has-temporary-assignment-enabled</name>
                     <targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>    <!-- Temporary -->
                     <enabled>true</enabled>
                 </hasAssignment>
@@ -338,7 +346,7 @@
             <name>has-temporary-assignment-disabled</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>temporary-assignment-disabled</name>
+                    <name>has-temporary-assignment-disabled</name>
                     <targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>    <!-- Temporary -->
                     <enabled>false</enabled>
                 </hasAssignment>
@@ -353,7 +361,7 @@
             <name>has-person-assignment-direct</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>person-assignment-direct</name>
+                    <name>has-person-assignment-direct</name>
                     <targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>    <!-- Person -->
                     <direct>true</direct>
                 </hasAssignment>
@@ -368,7 +376,7 @@
             <name>has-person-assignment-indirect</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>person-assignment-indirect</name>
+                    <name>has-person-assignment-indirect</name>
                     <targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>    <!-- Person -->
                     <direct>false</direct>
                 </hasAssignment>
@@ -383,7 +391,7 @@
             <name>has-person-assignment-enabled</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>person-assignment-enabled</name>
+                    <name>has-person-assignment-enabled</name>
                     <targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>    <!-- Person -->
                     <enabled>true</enabled>
                 </hasAssignment>
@@ -398,7 +406,7 @@
             <name>has-person-assignment-disabled</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>person-assignment-disabled</name>
+                    <name>has-person-assignment-disabled</name>
                     <targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>    <!-- Person -->
                     <enabled>false</enabled>
                 </hasAssignment>
@@ -413,7 +421,7 @@
             <name>has-student-assignment-enabled</name>
             <policyConstraints>
                 <hasAssignment>
-                    <name>student-assignment-enabled</name>
+                    <name>has-student-assignment-enabled</name>
                     <targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>    <!-- Student -->
                     <enabled>true</enabled>
                 </hasAssignment>
@@ -428,7 +436,7 @@
             <name>has-no-assignment-for-aaa</name>
             <policyConstraints>
                 <hasNoAssignment>
-                    <name>aaa-assignment-direct</name>
+                    <name>has-no-assignment-for-aaa</name>
                     <targetRef oid="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" type="RoleType">
                         <targetName>abc</targetName>
                     </targetRef>
@@ -441,7 +449,7 @@
     </inducement>
     <inducement>
         <policyRule>
-            <name>no-task-for-this-object</name>
+            <name>task-for-this-object-exists</name>
             <policyConstraints>
                 <objectState>
                     <name>task-for-this-object-exists</name>
@@ -462,6 +470,7 @@
                                                 <script>
                                                     <code>
                                                         import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
                                                         // log.info('=== Variables ===')
                                                         // this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
                                                         new ObjectReferenceType().oid(object.oid)

@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 import javax.xml.bind.JAXBException;
@@ -179,21 +177,24 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         return assignmentType;
     }
 
-    protected List<EvaluatedPolicyRule> assertEvaluatedTargetPolicyRules(LensContext<? extends FocusType> context, int expected) {
+    List<EvaluatedPolicyRule> assertEvaluatedTargetPolicyRules(LensContext<? extends FocusType> context, int expected) {
+        display("Asserting target policy rules (expected " + expected + ")");
         List<EvaluatedPolicyRule> rules = new ArrayList<>();
         forEvaluatedTargetPolicyRule(context, null, rules::add);
         assertEquals("Unexpected number of evaluated target policy rules in the context", expected, rules.size());
         return rules;
     }
 
-    protected List<EvaluatedPolicyRule> assertEvaluatedFocusPolicyRules(LensContext<? extends FocusType> context, int expected) {
+    @SuppressWarnings("UnusedReturnValue")
+    List<EvaluatedPolicyRule> assertEvaluatedFocusPolicyRules(LensContext<? extends FocusType> context, int expected) {
+        display("Asserting focus policy rules (expected " + expected + ")");
         List<EvaluatedPolicyRule> rules = new ArrayList<>();
         forEvaluatedFocusPolicyRule(context, rules::add);
         assertEquals("Unexpected number of evaluated focus policy rules in the context", expected, rules.size());
         return rules;
     }
 
-    protected void assertTargetTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
+    void assertTargetTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
         display("Asserting target triggers for selected constraint kind = " + selectedConstraintKind + ", expected count = " + expectedCount);
         List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         forTriggeredTargetPolicyRule(context, null, trigger -> {
@@ -206,8 +207,26 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         assertEquals("Unexpected number of triggers ("+selectedConstraintKind+") in the context", expectedCount, triggers.size());
     }
 
-    protected void assertFocusTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
+    void assertTargetTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, String... expectedConstraintNames) {
+        List<String> expectedNamesList = Arrays.asList(expectedConstraintNames);
+        display("Asserting target triggers for selected constraint kind = " + selectedConstraintKind + ", expected names = " + expectedNamesList);
+        List<EvaluatedPolicyRuleTrigger<?>> triggersFound = new ArrayList<>();
+        Set<String> namesFound = new HashSet<>();
+        forTriggeredTargetPolicyRule(context, null, trigger -> {
+            if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
+                return;
+            }
+            display("Selected trigger", trigger);
+            triggersFound.add(trigger);
+            namesFound.add(trigger.getConstraint().getName());
+        });
+        assertEquals("Unexpected number of triggers ("+selectedConstraintKind+") in the context", expectedConstraintNames.length, triggersFound.size());
+        assertEquals("Unexpected constraint names", new HashSet<>(expectedNamesList), namesFound);
+    }
+
+    void assertFocusTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
         List<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
+        display("Asserting focus triggers for selected constraint kind = " + selectedConstraintKind + ", expected count = " + expectedCount);
         forTriggeredFocusPolicyRule(context, trigger -> {
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
                 return;
@@ -216,6 +235,23 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             triggers.add(trigger);
         });
         assertEquals("Unexpected number of focus triggers ("+selectedConstraintKind+") in the context", expectedCount, triggers.size());
+    }
+
+    void assertFocusTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, String... expectedConstraintNames) {
+        List<String> expectedNamesList = Arrays.asList(expectedConstraintNames);
+        display("Asserting focus triggers for selected constraint kind = " + selectedConstraintKind + ", expected names = " + expectedNamesList);
+        List<EvaluatedPolicyRuleTrigger<?>> triggersFound = new ArrayList<>();
+        Set<String> namesFound = new HashSet<>();
+        forTriggeredFocusPolicyRule(context, trigger -> {
+            if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
+                return;
+            }
+            display("Selected trigger", trigger);
+            triggersFound.add(trigger);
+            namesFound.add(trigger.getConstraint().getName());
+        });
+        assertEquals("Unexpected number of triggers ("+selectedConstraintKind+") in the context", expectedConstraintNames.length, triggersFound.size());
+        assertEquals("Unexpected constraint names", new HashSet<>(expectedNamesList), namesFound);
     }
 
     // exclusive=true : there can be no other triggers than 'expectedCount' of 'expectedConstraintKind'
@@ -248,6 +284,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         return rules.get(0);
     }
 
+    @SuppressWarnings("unused")
     protected EvaluatedPolicyRule getTriggeredFocusPolicyRule(LensContext<? extends FocusType> context, PolicyConstraintKindType expectedConstraintKind) {
         List<EvaluatedPolicyRule> rules = new ArrayList<>();
         forEvaluatedFocusPolicyRule(context, rule -> {
@@ -279,22 +316,22 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         });
     }
 
-    protected void forEvaluatedTargetPolicyRule(LensContext<? extends FocusType> context, String targetOid, Consumer<EvaluatedPolicyRule> handler) {
+    private void forEvaluatedTargetPolicyRule(LensContext<? extends FocusType> context, String targetOid, Consumer<EvaluatedPolicyRule> handler) {
+        //noinspection unchecked
         DeltaSetTriple<EvaluatedAssignmentImpl<? extends FocusType>> evaluatedAssignmentTriple =
                 (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
         evaluatedAssignmentTriple.simpleAccept(assignment -> {
             if (targetOid == null || assignment.getTarget() != null && targetOid.equals(assignment.getTarget().getOid())) {
-                assignment.getAllTargetsPolicyRules().forEach(handler::accept);
+                assignment.getAllTargetsPolicyRules().forEach(handler);
             }
         });
     }
 
-    protected void forEvaluatedFocusPolicyRule(LensContext<? extends FocusType> context, Consumer<EvaluatedPolicyRule> handler) {
+    void forEvaluatedFocusPolicyRule(LensContext<? extends FocusType> context, Consumer<EvaluatedPolicyRule> handler) {
+        //noinspection unchecked
         DeltaSetTriple<EvaluatedAssignmentImpl<? extends FocusType>> evaluatedAssignmentTriple =
                 (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-        evaluatedAssignmentTriple.simpleAccept(assignment -> {
-            assignment.getFocusPolicyRules().forEach(handler::accept);
-        });
+        evaluatedAssignmentTriple.simpleAccept(assignment -> assignment.getFocusPolicyRules().forEach(handler));
     }
 
     protected void dumpPolicyRules(LensContext<? extends FocusType> context) {

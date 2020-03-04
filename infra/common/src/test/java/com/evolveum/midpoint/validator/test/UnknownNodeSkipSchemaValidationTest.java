@@ -10,8 +10,8 @@ package com.evolveum.midpoint.validator.test;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 
 
+// TODO testing: missing from suite, 3 tests failing - so what about that annotation? :-)
 public class UnknownNodeSkipSchemaValidationTest extends UnknownNodeValidationTest {
-
 
     @Override
     protected void customizeValidator(LegacyValidator validator) {

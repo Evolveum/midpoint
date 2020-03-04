@@ -213,7 +213,7 @@
                 <executions>
                     <execution>
                         <id>unpack-samples</id>
-                        <phase>compile</phase>
+                        <phase>pre-integration-test</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
@@ -234,12 +234,15 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
                     <runOrder>alphabetical</runOrder>
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
+                    <skipTests>${skipSamplesTests}</skipTests>
                     <runOrder>alphabetical</runOrder>
                 </configuration>
             </plugin>

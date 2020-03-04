@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -221,7 +222,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      */
     public EvaluatedAssignmentImpl<AH> evaluate(
             ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, boolean forcedAssignment, Task task, OperationResult parentResult)
+            PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription,
+            AssignmentOrigin origin, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -229,7 +231,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                 .addParam("evaluateOld", evaluateOld)
                 .addArbitraryObjectAsParam("source", source)
                 .addParam("sourceDescription", sourceDescription)
-                .addParam("forcedAssignment", forcedAssignment)
+                .addArbitraryObjectAsParam("origin", origin)
                 .build();
         AssignmentEvaluationTraceType trace;
         if (result.isTracingNormal(AssignmentEvaluationTraceType.class)) {
@@ -247,8 +249,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         try {
             assertSourceNotNull(source, assignmentIdi);
 
-            EvaluatedAssignmentImpl<AH> evalAssignmentImpl = new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, prismContext);
-            evalAssignmentImpl.setVirtual(forcedAssignment);
+            EvaluatedAssignmentImpl<AH> evalAssignmentImpl = new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, origin, prismContext);
 
             EvaluationContext ctx = new EvaluationContext(
                     evalAssignmentImpl,

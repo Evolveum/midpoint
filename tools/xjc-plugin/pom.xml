@@ -18,7 +18,7 @@
     <artifactId>xjc-plugin</artifactId>
     <packaging>jar</packaging>
 
-    <name>midPoint Infrastructure - xjc plugin</name>
+    <name>midPoint Tools - xjc plugin</name>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.template.*;
 import org.testng.annotations.Test;
 
@@ -13,11 +14,10 @@ import java.util.*;
 
 import static org.testng.AssertJUnit.*;
 
-public class TestStringSubstitutorUtil {
+public class TestStringSubstitutorUtil extends AbstractUnitTest {
 
     @Test
     public void testSimpleExpand() {
-        System.out.println("===[ testSimpleExpand ]===");
         Map<String, String> map = new HashMap<>();
         map.put("t1", "TEST1");
         map.put("t2", "TEST2");

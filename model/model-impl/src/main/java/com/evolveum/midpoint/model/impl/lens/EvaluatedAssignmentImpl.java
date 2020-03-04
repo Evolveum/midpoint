@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.model.api.context.*;
@@ -91,25 +92,24 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private String tenantOid;
 
     private PrismObject<?> target;
-    private boolean virtual;
     private boolean isValid;
     private boolean wasValid;
     private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
-    private boolean presentInCurrentObject;
-    private boolean presentInOldObject;
+    @NotNull private final AssignmentOrigin origin;
     private Collection<String> policySituations = new HashSet<>();
 
     private PrismContext prismContext;
 
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            boolean evaluatedOld, PrismContext prismContext) {
+            boolean evaluatedOld, @NotNull AssignmentOrigin origin, PrismContext prismContext) {
         this.assignmentIdi = assignmentIdi;
         this.evaluatedOld = evaluatedOld;
         this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
         this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
         this.roles = prismContext.deltaFactory().createDeltaSetTriple();
         this.prismContext = prismContext;
+        this.origin = origin;
     }
 
     @NotNull
@@ -191,16 +191,20 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
     }
 
-    void addConstruction(Construction<AH> contruction, PlusMinusZero whichSet) {
+    void addConstruction(Construction<AH> construction, PlusMinusZero whichSet) {
+        addToTriple(construction, constructionTriple, whichSet);
+    }
+
+    private <T> void addToTriple(T construction, @NotNull DeltaSetTriple<T> triple, PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO:
-                constructionTriple.addToZeroSet(contruction);
+                triple.addToZeroSet(construction);
                 break;
             case PLUS:
-                constructionTriple.addToPlusSet(contruction);
+                triple.addToPlusSet(construction);
                 break;
             case MINUS:
-                constructionTriple.addToMinusSet(contruction);
+                triple.addToMinusSet(construction);
                 break;
             default:
                 throw new IllegalArgumentException("whichSet: " + whichSet);
@@ -212,20 +216,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return personaConstructionTriple;
     }
 
-    void addPersonaConstruction(PersonaConstruction<AH> personaContruction, PlusMinusZero whichSet) {
-        switch (whichSet) {
-            case ZERO:
-                personaConstructionTriple.addToZeroSet(personaContruction);
-                break;
-            case PLUS:
-                personaConstructionTriple.addToPlusSet(personaContruction);
-                break;
-            case MINUS:
-                personaConstructionTriple.addToMinusSet(personaContruction);
-                break;
-            default:
-                throw new IllegalArgumentException("whichSet: " + whichSet);
-        }
+    void addPersonaConstruction(PersonaConstruction<AH> personaConstruction, PlusMinusZero whichSet) {
+        addToTriple(personaConstruction, personaConstructionTriple, whichSet);
     }
 
     @NotNull
@@ -316,11 +308,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     public boolean isVirtual() {
-        return virtual;
-    }
-
-    public void setVirtual(boolean virtual) {
-        this.virtual = virtual;
+        return origin.isVirtual();
     }
 
     /* (non-Javadoc)
@@ -368,22 +356,19 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         evaluateConstructions(focusOdo, null, null, task, result);
     }
 
-    public void setPresentInCurrentObject(boolean presentInCurrentObject) {
-        this.presentInCurrentObject = presentInCurrentObject;
-    }
-
-    public void setPresentInOldObject(boolean presentInOldObject) {
-        this.presentInOldObject = presentInOldObject;
+    @NotNull
+    public AssignmentOrigin getOrigin() {
+        return origin;
     }
 
     @Override
     public boolean isPresentInCurrentObject() {
-        return presentInCurrentObject;
+        return origin.isCurrent();
     }
 
     @Override
     public boolean isPresentInOldObject() {
-        return presentInOldObject;
+        return origin.isOld();
     }
 
     @NotNull
@@ -469,7 +454,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "isVirtual", virtual, indent + 1);
         if (forceRecon) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
@@ -526,8 +510,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetPolicyRules), thisTargetPolicyRules, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules " + ruleCountInfo(otherTargetsPolicyRules), otherTargetsPolicyRules, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "origin", origin.toString(), indent+1);
         return sb.toString();
     }
 
@@ -605,7 +588,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     public PlusMinusZero getMode() {
         if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
             return MINUS;
-        } else if (presentInCurrentObject) {
+        } else if (origin.isCurrent()) {
             return ZERO;
         } else {
             return PLUS;

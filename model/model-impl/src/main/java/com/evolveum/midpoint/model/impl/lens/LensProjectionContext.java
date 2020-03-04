@@ -539,8 +539,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return synchronizationSituationResolved;
     }
 
-    public void setSynchronizationSituationResolved(
-            SynchronizationSituationType synchronizationSituationResolved) {
+    void setSynchronizationSituationResolved(SynchronizationSituationType synchronizationSituationResolved) {
         this.synchronizationSituationResolved = synchronizationSituationResolved;
     }
 

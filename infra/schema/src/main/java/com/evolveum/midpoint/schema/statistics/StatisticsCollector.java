@@ -58,11 +58,8 @@ public interface StatisticsCollector {
 
     void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception);
 
-    /**
-     * Records information about synchronization events.
-     */
-
-    void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
+    void recordSynchronizationOperationEnd(ShadowType shadow, long started,
+            Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement);
 
     void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started,
             Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement);

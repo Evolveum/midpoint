@@ -138,8 +138,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         if (record.getTaskIdentifier() == null && task != null) {
             record.setTaskIdentifier(task.getTaskIdentifier());
         }
-        if (record.getTaskOID() == null && task != null) {
-            record.setTaskOID(task.getOid());
+        if (record.getTaskOid() == null && task != null) {
+            record.setTaskOid(task.getOid());
         }
         if (record.getChannel() == null && task != null) {
             record.setChannel(task.getChannel());

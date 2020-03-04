@@ -780,7 +780,7 @@ public class ChangeExecutor {
 
         String channel = focusContext.getLensContext().getChannel();
 
-        LOGGER.debug("Unlinking shadow " + accountRef.getOid() + " from focus " + focusOid);
+        LOGGER.debug("Unlinking shadow {} from focus {}", accountRef.getOid(), focusOid);
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
         Collection<? extends ItemDelta> accountRefDeltas = prismContext.deltaFactory().reference().createModificationDeleteCollection(
                 FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
@@ -812,14 +812,15 @@ public class ChangeExecutor {
 
     private <F extends ObjectType> void updateSituationInShadow(Task task, SynchronizationSituationType newSituation,
             LensContext<?> context, LensFocusContext<F> focusContext, LensProjectionContext projectionCtx,
-            OperationResult parentResult)
-                    throws SchemaException {
+            OperationResult parentResult) throws SchemaException {
 
         String projectionOid = projectionCtx.getOid();
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_UPDATE_SITUATION_IN_SHADOW);
         result.addArbitraryObjectAsParam("situation", newSituation);
         result.addParam("accountRef", projectionOid);
+
+        projectionCtx.setSynchronizationSituationResolved(newSituation);
 
         PrismObject<ShadowType> currentShadow;
         GetOperationOptions getOptions = GetOperationOptions.createNoFetch();
@@ -870,7 +871,6 @@ public class ChangeExecutor {
             ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
             options.setDoNotDiscovery(true);
             provisioning.modifyObject(ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
-            projectionCtx.setSynchronizationSituationResolved(newSituation);
             LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, newSituation);
         } catch (ObjectNotFoundException ex) {
             // if the object not found exception is thrown, it's ok..probably
@@ -888,7 +888,6 @@ public class ChangeExecutor {
         // if everything is OK, add result of the situation modification to the
         // parent result
         result.recordSuccess();
-
     }
 
     /**

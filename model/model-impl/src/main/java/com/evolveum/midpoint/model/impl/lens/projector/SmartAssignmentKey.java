@@ -8,34 +8,31 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  */
 public class SmartAssignmentKey {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SmartAssignmentKey.class);
+    @NotNull private final PrismContainerValue<AssignmentType> assignmentCVal;
 
-    private PrismContainerValue<AssignmentType> assignmentCVal;
-
-    public SmartAssignmentKey(PrismContainerValue<AssignmentType> assignmentCVal) {
-        super();
+    SmartAssignmentKey(@NotNull PrismContainerValue<AssignmentType> assignmentCVal) {
         this.assignmentCVal = assignmentCVal;
     }
 
-    // This is a key to an assignment hashmap.
+    // This is a key to an assignment map.
     // hashCode() and equals() are very important here.
     // Especially equals(). We want to make the comparison reliable, but reasonably quick.
 
     @Override
     public int hashCode() {
         return assignmentCVal.hashCode();
-        //return 1;
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -47,15 +44,7 @@ public class SmartAssignmentKey {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        SmartAssignmentKey other = (SmartAssignmentKey) obj;
-        if (assignmentCVal == null) {
-            if (other.assignmentCVal != null) {
-                return false;
-            }
-        } else if (!equalsAssignment(other.assignmentCVal)) {
-            return false;
-        }
-        return true;
+        return equalsAssignment(((SmartAssignmentKey) obj).assignmentCVal);
     }
 
     private boolean equalsAssignment(PrismContainerValue<AssignmentType> other) {

@@ -37,6 +37,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.slf4j.LoggerFactory;
@@ -107,6 +108,7 @@ import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAs
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.*;
 import com.evolveum.midpoint.tools.testng.CurrentTestResultHolder;
+import com.evolveum.midpoint.tools.testng.MidpointTestContext;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -224,6 +226,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
     }
 
+    @Override
+    @Nullable
+    public MidpointTestContext getTestContext() {
+        return MidpointTestContextWithTask.get();
+    }
+
     /**
      * Test class initialization.
      */
@@ -242,7 +250,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     /**
      * Creates test method context which includes customized {@link Task}
      * (see {@link #createTask(String)}) and other test related info wrapped as
-     * {@link MidpointTestMethodContext} and stores it in thread-local variable for future access.
+     * {@link MidpointTestContextWithTask} and stores it in thread-local variable for future access.
      * This implementation fully overrides version from {@link AbstractSpringTest}.
      */
     @BeforeMethod
@@ -268,7 +276,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         // (I.e. not via the test context.)
 //        task.setResult(result);
 
-        MidpointTestMethodContext.create(testClass, testMethodName, task, task.getResult());
+        MidpointTestContextWithTask.create(testClass, testMethodName, task, task.getResult());
         // TODO inttest: remove after fix in TracerImpl
         TestNameHolder.setCurrentTestName(contextName());
     }
@@ -279,10 +287,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      */
     @AfterMethod
     public void finishTestContext(ITestResult testResult) {
-        MidpointTestMethodContext context = MidpointTestMethodContext.get();
-        MidpointTestMethodContext.destroy(); // let's destroy it before anything else in this method
+        MidpointTestContextWithTask context = MidpointTestContextWithTask.get();
+        MidpointTestContextWithTask.destroy(); // let's destroy it before anything else in this method
 
-        displayDefaultTestFooter(testResult);
+        displayDefaultTestFooter(context.getTestName(), testResult);
 
         Task task = context.getTask();
         if (task != null) {
@@ -333,7 +341,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * Returns default pre-created test-method-scoped {@link Task}.
      */
     protected Task getTestTask() {
-        return MidpointTestMethodContext.get().getTask();
+        return MidpointTestContextWithTask.get().getTask();
     }
 
     /**
@@ -373,7 +381,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         return createPlainTask(null);
     }
 
-
     /**
      * Subclasses may override this if test task needs additional customization.
      * Each task used or created by the test is customized - this applies to default
@@ -381,16 +388,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      */
     protected void customizeTask(Task task) {
         // nothing by default
-    }
-
-    @NotNull
-    public String contextName() {
-        MidpointTestMethodContext context = MidpointTestMethodContext.get();
-        return context != null ? context.getTestName() : getClass().getSimpleName();
-    }
-
-    public String getTestNameShort() {
-        return MidpointTestMethodContext.get().getTestNameShort();
     }
 
     /**
@@ -420,7 +417,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      * after method, only displayed.
      */
     protected OperationResult getTestOperationResult() {
-        return MidpointTestMethodContext.get().getResult();
+        return MidpointTestContextWithTask.get().getResult();
     }
 
     public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {

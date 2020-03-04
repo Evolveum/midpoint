@@ -414,14 +414,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 
-        Iterator<AuditEventRecord> iterator = auditRecords.iterator();
-        while (iterator.hasNext()) {
-            AuditEventRecord record = iterator.next();
-            if (record.getTaskOID() != null && !record.getTaskOID().equals(taskOid)) {
-                // Record from some other task, skip it
-                iterator.remove();
-            }
-        }
+        // Record from some other task, skip it
+        auditRecords.removeIf(record -> record.getTaskOid() != null && !record.getTaskOid().equals(taskOid));
 
         int i=0;
         while (i < (auditRecords.size() - 1)) {

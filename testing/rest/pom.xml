@@ -337,27 +337,21 @@
         </dependency>
     </dependencies>
 
-    <!-- surefire/failsafe only for profile extratest - see lower -->
-
-    <profiles>
-        <profile>
-            <id>extratest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipRestTests}</skipTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

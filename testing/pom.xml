@@ -23,7 +23,20 @@
 
     <modules>
         <module>sanity</module>
-        <!-- DO NOT include other testing submodules by default, it runs too long for ordinary build -->
+        <!--
+        The following modules skip tests by default, but we ALWAYS want to build the sources.
+        Tests are run in "long" CI builds, skip=false semantic is used.
+        See each POM for property controlling the tests - typically for "module-name" it's:
+        -Dskip<ModuleName>Tests=false (default value is true)
+        We try to avoid repeating "tests" in the property name, check its exact spelling in POMs.
+        If skip is set to false, values of skipTests/skipITs are not applied for these modules.
+        -->
+        <module>conntest</module>
+        <module>longtest</module>
+        <module>story</module>
+        <module>rest</module>
+        <module>samples-test</module>
+        <module>schrodingertest</module>
     </modules>
 
     <properties>
@@ -31,29 +44,29 @@
         <!-- This applies to all testing submodules, all of them have only src/test, not main. -->
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
+
+        <!-- Properties controlling "extra" test modules. See "extratest" profile lower. -->
+        <skipConnTests>true</skipConnTests>
+        <skipLongTests>true</skipLongTests>
+        <skipRestTests>true</skipRestTests>
+        <skipSamplesTests>true</skipSamplesTests>
+        <skipStoryTests>true</skipStoryTests>
+        <!-- By default we skip Schrodinger tests. This is not part of "extra" tests. -->
+        <skipSchrodingerTests>true</skipSchrodingerTests>
     </properties>
 
     <profiles>
         <profile>
             <id>extratest</id>
-            <modules>
-                <module>longtest</module>
-                <module>story</module>
-                <module>rest</module>
-                <module>samples-test</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>conntest</id>
-            <modules>
-                <module>conntest</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>schrodinger</id>
-            <modules>
-                <module>schrodingertest</module>
-            </modules>
+            <properties>
+                <skipTests>true</skipTests>
+                <skipConnTests>false</skipConnTests>
+                <skipLongTests>false</skipLongTests>
+                <skipRestTests>false</skipRestTests>
+                <skipSamplesTests>false</skipSamplesTests>
+                <skipStoryTests>false</skipStoryTests>
+                <!-- Schrodinger tests are separate, we don't want them in this profile -->
+            </properties>
         </profile>
     </profiles>
 </project>

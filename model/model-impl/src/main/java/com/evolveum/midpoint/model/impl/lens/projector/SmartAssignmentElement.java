@@ -7,51 +7,44 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  */
 public class SmartAssignmentElement implements DebugDumpable {
 
-    private PrismContainerValue<AssignmentType> assignmentCVal;
-    private boolean isCurrent = false;
-    private boolean isOld = false;
-    private boolean isChanged = false;
+    @NotNull private final PrismContainerValue<AssignmentType> assignmentCVal;
+    @NotNull private final AssignmentOrigin origin;
 
-    private boolean virtual;
-
-    SmartAssignmentElement(PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
+    SmartAssignmentElement(@NotNull PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
         this.assignmentCVal = assignmentCVal;
-        this.virtual = virtual;
+        this.origin = new AssignmentOrigin(virtual);
+    }
+
+    @NotNull
+    public AssignmentOrigin getOrigin() {
+        return origin;
     }
 
     public boolean isCurrent() {
-        return isCurrent;
-    }
-
-    public void setCurrent(boolean isCurrent) {
-        this.isCurrent = isCurrent;
+        return origin.isCurrent();
     }
 
     public boolean isOld() {
-        return isOld;
-    }
-
-    public void setOld(boolean isOld) {
-        this.isOld = isOld;
+        return origin.isOld();
     }
 
     public boolean isChanged() {
-        return isChanged;
+        return origin.isChanged();
     }
 
-    public void setChanged(boolean isChanged) {
-        this.isChanged = isChanged;
-    }
-
+    @NotNull
     public PrismContainerValue<AssignmentType> getAssignmentCVal() {
         return assignmentCVal;
     }
@@ -61,45 +54,26 @@ public class SmartAssignmentElement implements DebugDumpable {
     }
 
     public boolean isVirtual() {
-        return virtual;
-    }
-
-    public void setVirtual(boolean virtual) {
-        this.virtual = virtual;
+        return origin.isVirtual();
     }
 
     @Override
     public String toString() {
-        return "SAE(" + flag(isCurrent,"current") + flag(isOld,"old") + flag(isChanged,"changed") + ": " + assignmentCVal + ")";
-    }
-
-    private String flag(boolean b, String label) {
-        if (b) {
-            return label + ",";
-        }
-        return "";
+        return "SAE(" + origin + ": " + assignmentCVal + ")";
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("SmartAssignmentElement: ");
-        flag(sb, isCurrent, "current");
-        flag(sb, isOld, "old");
-        flag(sb, isChanged, "changed");
-        sb.append("\n");
+        sb.append("SmartAssignmentElement: ").append(origin).append("\n");
         sb.append(assignmentCVal.debugDump(indent + 1));
         return sb.toString();
     }
 
-    private void flag(StringBuilder sb, boolean b, String label) {
-        if (b) {
-            sb.append(label).append(",");
-        }
+    void updateFlags(SmartAssignmentCollection.Mode mode, AddDeleteReplace deltaSet) {
+        origin.updateFlags(mode, deltaSet);
     }
 
     // TODO: equals, hashCode
-
-
 }

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 /**
- * @author mederly
+ * Evaluation context for object-based policy rule.
  */
 public class ObjectPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
 
@@ -48,9 +48,14 @@ public class ObjectPolicyRuleEvaluationContext<AH extends AssignmentHolderType> 
         return ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
     }
 
-    @SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
+    @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
     @Override
     public ObjectPolicyRuleEvaluationContext<AH> clone() {
         return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task);
+    }
+
+    @Override
+    public String toString() {
+        return "ObjectPolicyRuleEvaluationContext{" + getShortDescription() + ")";
     }
 }

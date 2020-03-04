@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -1123,8 +1126,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Consumer<AssignmentType> modificationBlock, boolean add, ModelExecuteOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<F> focusDelta = createAssignmentFocusDelta(focusClass, focusOid, elementName, roleOid, refType, relation, modificationBlock, add);
-        // TODO inttest: seems useless and doesn't change the problem with TestSecurityAdvanced 320
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
         executeChanges(focusDelta, options, task, result);
     }
 
@@ -5603,8 +5604,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return task -> {
             try {
                 if (lastTimeShown.get() + period < System.currentTimeMillis()) {
-                    // TODO inttest: task. (for result) is missing in master, is it good?
-                    dumpTaskTree(task.getOid(), task.getResult());
+                    dumpTaskTree(task.getOid(), createOperationalResult());
                     lastTimeShown.set(System.currentTimeMillis());
                 }
             } catch (CommonException e) {
@@ -5786,6 +5786,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(oid);
         return assertUser(user, message);
+    }
+
+    protected TaskAsserter<Void> assertTask(Task task, String message) {
+        return assertTask(task.getUpdatedTaskObject().asObjectable(), message);
+    }
+
+    protected TaskAsserter<Void> assertTask(TaskType task, String message) {
+        return TaskAsserter.forTask(task.asPrismObject(), message);
     }
 
     protected RepoOpAsserter createRepoOpAsserter(String details) {
@@ -6508,4 +6516,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return ExpressionVariables.create(prismContext, params);
     }
 
+    protected void dumpStatistics(Task task) {
+        OperationStatsType stats = task.getStoredOperationStats();
+        IterativeTaskInformationType iterativeInfo = stats.getIterativeTaskInformation();
+        display("Iterative information", IterativeTaskInformation.format(iterativeInfo));
+        SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
+        display("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
+    }
+
+    protected void dumpShadowSituations(String resourceOid, OperationResult result) throws SchemaException {
+        ObjectQuery query = queryFor(ShadowType.class)
+                .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                .build();
+        List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        System.out.println("Current shadows for " + resourceOid + " (" + shadows.size() + "):\n");
+        for (PrismObject<ShadowType> shadowObject : shadows) {
+            ShadowType shadow = shadowObject.asObjectable();
+            System.out.println(String.format("%30s%20s%20s %s", shadow.getName(), shadow.getKind(),
+                    shadow.getSynchronizationSituation(), Boolean.TRUE.equals(shadow.isProtectedObject()) ? " (protected)" : ""));
+        }
+    }
 }
