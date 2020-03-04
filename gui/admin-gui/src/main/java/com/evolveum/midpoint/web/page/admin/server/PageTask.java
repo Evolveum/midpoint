@@ -430,10 +430,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                         return new TaskSubtasksAndThreadsTabPanel(panelId, getObjectModel());
                     }
 
-                    @Override
-                    public boolean isVisible() {
-                        return isEditingFocus();
-                    }
                 });
 
                 ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
@@ -454,10 +450,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                         return new TaskOperationStatisticsPanel(panelId, getObjectModel());
                     }
 
-                    @Override
-                    public boolean isVisible() {
-                        return isEditingFocus();
-                    }
                 });
 
                 ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<TaskType>
@@ -478,10 +470,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                         return new TaskPerformanceTabPanel(panelId, getObjectModel());
                     }
 
-                    @Override
-                    public boolean isVisible() {
-                        return isEditingFocus();
-                    }
                 });
 
                 ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<TaskType>
@@ -501,11 +489,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                             public WebMarkupContainer createPanel(String panelId) {
                                 return new TaskOperationTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_MODEL_OPERATION_CONTEXT));
                             }
-                            @Override
-                            public boolean isVisible() {
-                                return false;
-                            }
-                        });
+                });
 
                 tabs.add(new PanelTab(createStringResource("pageTask.internalPerformance.title"), operationStatsAndInternalPerfTabsVisibility) {
                     private static final long serialVersionUID = 1L;
@@ -513,10 +497,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
-                    }
-                    @Override
-                    public boolean isVisible() {
-                        return isEditingFocus();
                     }
                 });
 
@@ -537,10 +517,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     public WebMarkupContainer createPanel(String panelId) {
                         return new TaskResultTabPanel(panelId, getObjectModel());
                     }
-                    @Override
-                    public boolean isVisible() {
-                        return isEditingFocus();
-                    }
                 });
 
 
@@ -560,10 +536,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         return new TaskErrorsTabPanel(panelId, getObjectModel());
-                    }
-                    @Override
-                    public boolean isVisible() {
-                        return isEditingFocus();
                     }
                 });
 
