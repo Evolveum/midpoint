@@ -258,80 +258,88 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
-        PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true, schemaTransformer::setFullAccessFlags );
-        MutablePrismContainerDefinition<O> mutableObjectDefinition = objectDefinition.toMutable();
-
+        MutablePrismObjectDefinition<O> objectDefinition = object.getDefinition()
+                .deepClone(true, schemaTransformer::setFullAccessFlags)
+                .toMutable();
         try {
-
-            PrismObject<O> baseObject = object;
+            PrismObject<O> baseObject;
             if (object.getOid() != null) {
                 // Re-read the object from the repository to make sure we have all the properties.
                 // the object from method parameters may be already processed by the security code
                 // and properties needed to evaluate authorizations may not be there
                 // MID-3126, see also MID-3435
                 baseObject = cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+            } else {
+                baseObject = object;
             }
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(baseObject, null, task, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
-            }
+            LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             if (securityConstraints == null) {
                 // Nothing allowed => everything denied
                 result.setStatus(OperationResultStatus.NOT_APPLICABLE);
                 return null;
-            }
-
-            try {
-                ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
-                if (archetypePolicy != null) {
-
-                    schemaTransformer.applyItemsConstraints(mutableObjectDefinition, archetypePolicy, result);
-
-                    ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
-                    if (objectTemplateRef != null) {
-                        PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
-                        schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplate.asObjectable(), result);
-                    }
-
+            } else {
+                applyArchetypePolicy(objectDefinition, object, result);
+                schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
+                if (object.canRepresent(ShadowType.class)) {
+                    applyObjectClassDefinition(objectDefinition, object, phase, task, result);
                 }
-            } catch (ConfigurationException | ObjectNotFoundException e) {
-                result.recordFatalError(e);
+                return objectDefinition;
             }
-
-            schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
-
-            if (object.canRepresent(ShadowType.class)) {
-                PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-                String resourceOid = ShadowUtil.getResourceOid(shadow);
-                if (resourceOid != null) {
-                    Collection<SelectorOptions<GetOperationOptions>> options = createCollection(GetOperationOptions.createReadOnly());
-                    PrismObject<ResourceType> resource;
-                    try {
-                        resource = provisioning.getObject(ResourceType.class, resourceOid, options, task, result);
-                    } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
-                        throw new ConfigurationException(e.getMessage(), e);
-                    }
-                    RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
-                    if (refinedObjectClassDefinition != null) {
-                        objectDefinition.getComplexTypeDefinition().toMutable().replaceDefinition(ShadowType.F_ATTRIBUTES,
-                                refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
-
-                        objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION)).toMutable()
-                                .replaceDefinition(ShadowAssociationType.F_IDENTIFIERS, refinedObjectClassDefinition.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
-                    }
-                }
-            }
-
-            result.computeStatus();
-            return objectDefinition;
-
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
             result.recordFatalError(e);
             throw e;
+        } finally {
+            result.computeStatusIfUnknown();
         }
+    }
 
+    private <O extends ObjectType> void applyObjectClassDefinition(MutablePrismObjectDefinition<O> objectDefinition,
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
+        //noinspection unchecked
+        PrismObject<ShadowType> shadow = (PrismObject<ShadowType>) object;
+        String resourceOid = ShadowUtil.getResourceOid(shadow);
+        if (resourceOid != null) {
+            Collection<SelectorOptions<GetOperationOptions>> options = createCollection(GetOperationOptions.createReadOnly());
+            PrismObject<ResourceType> resource;
+            try {
+                resource = provisioning.getObject(ResourceType.class, resourceOid, options, task, result);
+            } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
+                throw new ConfigurationException(e.getMessage(), e);
+            }
+            RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
+            if (refinedObjectClassDefinition != null) {
+                objectDefinition.getComplexTypeDefinition().toMutable().replaceDefinition(ShadowType.F_ATTRIBUTES,
+                        refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+
+                objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION)).toMutable()
+                        .replaceDefinition(ShadowAssociationType.F_IDENTIFIERS, refinedObjectClassDefinition.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
+            }
+        }
+    }
+
+    private <O extends ObjectType> void applyArchetypePolicy(MutablePrismObjectDefinition<O> objectDefinition,
+            PrismObject<O> object, OperationResult result) throws SchemaException {
+        try {
+            ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
+            if (archetypePolicy != null) {
+
+                schemaTransformer.applyItemsConstraints(objectDefinition, archetypePolicy);
+
+                ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
+                if (objectTemplateRef != null) {
+                    PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+                    schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplate.asObjectable(), result);
+                }
+
+            }
+        } catch (ConfigurationException | ObjectNotFoundException e) {
+            result.recordFatalError(e);
+        }
     }
 
     @Override

@@ -94,6 +94,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
         return getItemDefinition().createEmptyDelta(path);
     }
 
+    @NotNull
     @Override
     public PrismContainerDefinition<C> clone() {
         return getItemDefinition().clone();
@@ -115,7 +116,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     }
 
     @Override
-    public boolean canRepresent(QName type) {
+    public boolean canRepresent(@NotNull QName type) {
         return getItemDefinition().canRepresent(type);
     }
 
@@ -390,5 +391,9 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     @Override
     public void accept(Visitor<Definition> visitor) {
         // TODO
+    }
+
+    public boolean isCompletelyDefined() {
+        return getItemDefinition().isCompletelyDefined();
     }
 }

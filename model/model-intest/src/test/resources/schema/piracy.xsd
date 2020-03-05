@@ -128,19 +128,9 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <!-- assignment extension -->
+    <!-- assignment extension is in separate XSD file to allow it to be selectively disabled -->
 
-    <xsd:complexType name="AssignmentTypeExtensionType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:extension ref="c:AssignmentType"/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="tns:sea"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
+    <!-- duplicates tns:sea in piracy-assignment.xsd (ugly!!!); hopefully all will be OK -->
     <xsd:element name="sea" type="xsd:string"/>
 
     <!-- role extension -->

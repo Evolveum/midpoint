@@ -7,20 +7,21 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
 
 /**
- * @author mederly
+ * TODO
  */
 public interface ResourceAttributeContainerDefinition extends PrismContainerDefinition<ShadowAttributesType> {
     @Override

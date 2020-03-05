@@ -704,7 +704,7 @@ public class LensUtil {
         mergeExtensionContainers(destIdi.getItemOld(), srcExtension);
     }
 
-    private static void  mergeExtensionContainers(Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem, PrismContainer<Containerable> srcExtension) throws SchemaException {
+    private static void mergeExtensionContainers(Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem, PrismContainer<Containerable> srcExtension) throws SchemaException {
         if (dstItem == null) {
             return;
         }

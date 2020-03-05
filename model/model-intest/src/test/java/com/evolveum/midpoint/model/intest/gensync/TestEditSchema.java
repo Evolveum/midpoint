@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -15,6 +16,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.init.ConfigurablePrismContextFactory;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -65,11 +67,18 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
+@SuppressWarnings({ "SimplifiedTestNGAssertion", "SameParameterValue" })
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestEditSchema extends AbstractGenericSyncTest {
 
-    public static final File LOOKUP_LANGUAGES_REPLACEMENT_FILE = new File(TEST_DIR, "lookup-languages-replacement.xml");
+    private static final File LOOKUP_LANGUAGES_REPLACEMENT_FILE = new File(TEST_DIR, "lookup-languages-replacement.xml");
+
+    static {
+        // We need to have assignment/extension definition empty so it would be eliminated by archetype item visibility algorithm.
+        // See test900AddReconciliationTask.
+        ConfigurablePrismContextFactory.setExtensionFilesToIgnore(singleton("piracy-assignment.xsd"));
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -84,7 +93,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test100LookupLanguagesGet() throws Exception {
-        final String TEST_NAME="test100LookupLanguagesGet";
 
         // GIVEN
         Task task = getTestTask();
@@ -110,7 +118,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test102LookupLanguagesGetExclude() throws Exception {
-        final String TEST_NAME="test102LookupLanguagesGetExclude";
 
         // GIVEN
         Task task = getTestTask();
@@ -140,7 +147,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test110LookupLanguagesGetAll() throws Exception {
-        final String TEST_NAME="test110LookupLanguagesGetAll";
 
         // GIVEN
         Task task = getTestTask();
@@ -162,7 +168,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test120LookupLanguagesGetByKeyExact() throws Exception {
-        final String TEST_NAME="test120LookupLanguagesGetByKeyExact";
 
         // GIVEN
         Task task = getTestTask();
@@ -188,7 +193,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test121LookupLanguagesGetByKeyStartingWith() throws Exception {
-        final String TEST_NAME="test121LookupLanguagesGetByKeyStartingWith";
 
         // GIVEN
         Task task = getTestTask();
@@ -215,7 +219,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test122LookupLanguagesGetByKeyContaining() throws Exception {
-        final String TEST_NAME="test122LookupLanguagesGetByKeyContaining";
 
         // GIVEN
         Task task = getTestTask();
@@ -241,7 +244,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test123LookupLanguagesGetByKeyContainingWithPaging() throws Exception {
-        final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
 
         // GIVEN
         Task task = getTestTask();
@@ -270,7 +272,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test124LookupLanguagesGetByKeyContainingReturningNothing() throws Exception {
-        final String TEST_NAME="test124LookupLanguagesGetByKeyContainingReturningNothing";
 
         // GIVEN
         Task task = getTestTask();
@@ -303,7 +304,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test130LookupLanguagesGetByValueExact() throws Exception {
-        final String TEST_NAME="test130LookupLanguagesGetByValueExact";
 
         // GIVEN
         Task task = getTestTask();
@@ -333,7 +333,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
      */
     @Test
     public void test131LookupLanguagesGetByLabelStartingWith() throws Exception {
-        final String TEST_NAME="test131LookupLanguagesGetByLabelStartingWith";
 
         // GIVEN
         Task task = getTestTask();
@@ -361,7 +360,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test133LookupLanguagesGetByValueContainingWithPaging() throws Exception {
-        final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
 
         // GIVEN
         Task task = getTestTask();
@@ -393,7 +391,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
      */
     @Test(enabled = false)
     public void test140LookupLanguagesGetByIdExisting() throws Exception {
-        final String TEST_NAME="test140LookupLanguagesGetByIdExisting";
 
         // GIVEN
         Task task = getTestTask();
@@ -433,7 +430,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test150LookupLanguagesAddRowFull() throws Exception {
-        final String TEST_NAME="test150LookupLanguagesAddRow";
 
         // GIVEN
         Task task = getTestTask();
@@ -480,7 +476,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test152LookupLanguagesAddRowKeyLabel() throws Exception {
-        final String TEST_NAME="test152LookupLanguagesAddRowKeyLabel";
 
         // GIVEN
         Task task = getTestTask();
@@ -527,7 +522,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test154LookupLanguagesAddRowKeyValue() throws Exception {
-        final String TEST_NAME="test154LookupLanguagesAddRowKeyValue";
 
         // GIVEN
         Task task = getTestTask();
@@ -575,7 +569,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test156LookupLanguagesAddRowExistingKey() throws Exception {
-        final String TEST_NAME="test156LookupLanguagesAddRowExistingKey";
 
         // GIVEN
         Task task = getTestTask();
@@ -630,12 +623,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
-    /**
-     * @throws Exception
-     */
     @Test
     public void test162LookupLanguagesDeleteRowFullNoId() throws Exception {
-        final String TEST_NAME="test162LookupLanguagesDeleteRowFullNoId";
 
         // GIVEN
         Task task = getTestTask();
@@ -682,7 +671,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test164LookupLanguagesDeleteRowFullId() throws Exception {
-        final String TEST_NAME="test164LookupLanguagesDeleteRowFullId";
 
         // GIVEN
         Task task = getTestTask();
@@ -727,7 +715,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test166LookupLanguagesDeleteRowIdOnly() throws Exception {
-        final String TEST_NAME="test166LookupLanguagesDeleteRowIdOnly";
 
         // GIVEN
         Task task = getTestTask();
@@ -768,7 +755,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test168LookupLanguagesDeleteRowByKey() throws Exception {
-        final String TEST_NAME="test168LookupLanguagesDeleteRowByKey";
 
         // GIVEN
         Task task = getTestTask();
@@ -808,7 +794,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test170LookupLanguagesReplaceRows() throws Exception {
-        final String TEST_NAME="test170LookupLanguagesReplaceRows";
 
         // GIVEN
         Task task = getTestTask();
@@ -863,7 +848,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test180LookupLanguagesReplaceObject() throws Exception {
-        final String TEST_NAME="test180LookupLanguagesReplaceObject";
 
         // GIVEN
         Task task = getTestTask();
@@ -902,7 +886,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test182LookupLanguagesReimport() throws Exception {
-        final String TEST_NAME="test182LookupLanguagesReimport";
 
         // GIVEN
         Task task = getTestTask();
@@ -964,12 +947,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test200EditSchemaUser() throws Exception {
-        final String TEST_NAME="test200EditSchemaUser";
 
         // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismObject<UserType> user = userDef.instantiate();
 
@@ -1031,17 +1010,16 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertNotNull("No definition for credentials in user", credentialsDef);
         assertTrue("Credentials not readable", credentialsDef.canRead());
 
-        ItemPath passwdValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-        PrismPropertyDefinition<ProtectedStringType> passwdValDef = editDef.findPropertyDefinition(passwdValPath);
-        assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
-        assertTrue("Password not readable", passwdValDef.canRead());
+        ItemPath passwordValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+        PrismPropertyDefinition<ProtectedStringType> passwordValDef = editDef.findPropertyDefinition(passwordValPath);
+        assertNotNull("No definition for "+passwordValPath+" in user", passwordValDef);
+        assertTrue("Password not readable", passwordValDef.canRead());
 
         assertSteadyResources();
     }
 
     @Test
     public void test210UserDefinition() throws Exception {
-        final String TEST_NAME="test210UserDefinition";
 
         // GIVEN
         Task task = getTestTask();
@@ -1085,20 +1063,16 @@ public class TestEditSchema extends AbstractGenericSyncTest {
             }, true);
 
         assertProperty(user, ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-            (propDef, name) -> {
-                    assertTrue("Password not readable", propDef.canRead());
-                });
+            (propDef, name) -> assertTrue("Password not readable", propDef.canRead()));
 
         assertSteadyResources();
     }
 
     /**
      * Check that the user definition in schema registry was not ruined
-     * @throws Exception
      */
     @Test
-    public void test211SchemaRegistryUntouched() throws Exception {
-        final String TEST_NAME="test211SchemaRegistryUntouched";
+    public void test211SchemaRegistryUntouched() {
 
         assertUntouchedUserDefinition();
         assertSteadyResources();
@@ -1109,7 +1083,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
      */
     @Test
     public void test213ModifiedUserJack() throws Exception {
-        final String TEST_NAME="test213ModifiedUserJack";
 
         // GIVEN
         Task task = getTestTask();
@@ -1147,14 +1120,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         }, "en_PR");
 
 
-        assertContainer(user, UserType.F_CREDENTIALS, new Validator<PrismContainerDefinition<CredentialsType>>() {
-            @Override
-            public void validate(PrismContainerDefinition<CredentialsType> credentialsDef, String name)
-                    throws Exception {
-                assertNotNull("No definition for credentials in user", credentialsDef);
-                assertTrue("Credentials not readable", credentialsDef.canRead());
-            }
-
+        assertContainer(user, UserType.F_CREDENTIALS, (Validator<PrismContainerDefinition<CredentialsType>>) (credentialsDef, name) -> {
+            assertNotNull("No definition for credentials in user", credentialsDef);
+            assertTrue("Credentials not readable", credentialsDef.canRead());
         }, true);
 
         assertProperty(user, ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
@@ -1198,11 +1166,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test250EditSchemaRole() throws Exception {
-        final String TEST_NAME="test250EditSchemaRole";
 
         // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
         PrismObject<RoleType> role = roleDef.instantiate();
@@ -1215,7 +1180,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         then();
 
         // TODO
-        PrismPropertyDefinition requestableDef = editDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
+        PrismPropertyDefinition<?> requestableDef = editDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
         assertNotNull("No definition for requestable in role", requestableDef);
         assertEquals("Wrong requestable displayName", "Can request", requestableDef.getDisplayName());
 
@@ -1224,7 +1189,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test260EditShadowSchemaKindIntent() throws Exception {
-        final String TEST_NAME="test260EditShadowSchemaKindIntent";
 
         // GIVEN
         Task task = getTestTask();
@@ -1252,12 +1216,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         PrismContainerDefinition<Containerable> identifiersDef = editDef.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION,
                 ShadowAssociationType.F_IDENTIFIERS));
-        StringBuilder message = new StringBuilder();
-        message.append("Wrong type for ").append(ShadowAssociationType.F_IDENTIFIERS)
-            .append(", expected ResourceAttributeContainerDefinition but was ")
-            .append(identifiersDef == null ? null : identifiersDef.getClass().getName())
-            .append("; ");
-        assertClassType(message.toString(), identifiersDef, ResourceAttributeContainerDefinition.class);
+        String message = "Wrong type for " + ShadowAssociationType.F_IDENTIFIERS
+                + ", expected ResourceAttributeContainerDefinition but was "
+                + (identifiersDef == null ? null : identifiersDef.getClass().getName())
+                + "; ";
+        assertClassType(message, identifiersDef, ResourceAttributeContainerDefinition.class);
 
 
         assertSteadyResources();
@@ -1265,7 +1228,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test261EditShadowSchemaObjectclass() throws Exception {
-        final String TEST_NAME="test261EditShadowSchemaObjectclass";
 
         // GIVEN
         Task task = getTestTask();
@@ -1297,7 +1259,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test263EditShadowSchemaEmpty() throws Exception {
-        final String TEST_NAME="test263EditShadowSchemaEmpty";
 
         // GIVEN
         Task task = getTestTask();
@@ -1327,7 +1288,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test265EditShadowSchemaNull() throws Exception {
-        final String TEST_NAME="test265EditShadowSchemaNull";
 
         // GIVEN
         Task task = getTestTask();
@@ -1356,11 +1316,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
      * MID-4660, MID-4491, MID-3581
      */
     @Test
-    public void test310CustomRelations() throws Exception {
-        final String TEST_NAME="test310CustomRelations";
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
+    public void test310CustomRelations() {
 
         // WHEN
         when();
@@ -1381,13 +1337,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
      */
     @Test
     public void test800OtisEditSchemaUser() throws Exception {
-        final String TEST_NAME="test800OtisEditSchemaUser";
 
         // GIVEN
         login(USER_OTIS_USERNAME);
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismObject<UserType> user = userDef.instantiate();
@@ -1437,12 +1389,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertTrue("Credentials is creatable", !credentialsDef.canAdd());
         assertTrue("Credentials is modifiable", !credentialsDef.canModify());
 
-        ItemPath passwdValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-        PrismPropertyDefinition<ProtectedStringType> passwdValDef = editDef.findPropertyDefinition(passwdValPath);
-        assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
-        assertTrue("Password is readable", !passwdValDef.canRead());
-        assertTrue("Password is creatable", !passwdValDef.canAdd());
-        assertTrue("Password is modifiable", !passwdValDef.canModify());
+        ItemPath passwordValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+        PrismPropertyDefinition<ProtectedStringType> passwordValDef = editDef.findPropertyDefinition(passwordValPath);
+        assertNotNull("No definition for "+passwordValPath+" in user", passwordValDef);
+        assertTrue("Password is readable", !passwordValDef.canRead());
+        assertTrue("Password is creatable", !passwordValDef.canAdd());
+        assertTrue("Password is modifiable", !passwordValDef.canModify());
 
         assertUntouchedUserDefinition();
         assertSteadyResources();
@@ -1450,7 +1402,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test810OtisGetJack() throws Exception {
-        final String TEST_NAME="test810OtisGetJack";
 
         // GIVEN
         login(USER_OTIS_USERNAME);
@@ -1467,62 +1418,47 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertPropertyValues(user, UserType.F_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
-            @Override
-            public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
-                assertNotNull("No definition for name in user", propDef);
-                assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
-                assertTrue(name+" not readable", propDef.canRead());
-                assertTrue(name+" is creatable", !propDef.canAdd());
-                assertTrue(name+" is modifiable", !propDef.canModify());
-            }
+        assertPropertyValues(user, UserType.F_NAME, (propDef, name) -> {
+            assertNotNull("No definition for name in user", propDef);
+            assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
+            assertTrue(name+" not readable", propDef.canRead());
+            assertTrue(name+" is creatable", !propDef.canAdd());
+            assertTrue(name+" is modifiable", !propDef.canModify());
         }, PrismTestUtil.createPolyString("jack"));
 
-        assertPropertyValues(user, UserType.F_DESCRIPTION, new Validator<PrismPropertyDefinition<String>>() {
-            @Override
-            public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
-                assertNotNull("No definition for description in user", propDef);
-                assertEquals("Wrong description displayName", "Comment", propDef.getDisplayName());
-                assertTrue(name+" not readable", propDef.canRead());
-                assertTrue(name+" is creatable", !propDef.canAdd());
-                assertTrue(name+" not modifiable", propDef.canModify());
-            }
+        assertPropertyValues(user, UserType.F_DESCRIPTION, (propDef, name) -> {
+            assertNotNull("No definition for description in user", propDef);
+            assertEquals("Wrong description displayName", "Comment", propDef.getDisplayName());
+            assertTrue(name+" not readable", propDef.canRead());
+            assertTrue(name+" is creatable", !propDef.canAdd());
+            assertTrue(name+" not modifiable", propDef.canModify());
         }, "Where's the rum?");
 
-        assertPropertyValues(user, UserType.F_ADDITIONAL_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
-            @Override
-            public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
-                assertNotNull("No definition for additionalName in user", propDef);
-                assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
-                assertTrue(name+" is readable", !propDef.canRead());
-                assertTrue(name+" is creatable", !propDef.canAdd());
-                assertTrue(name+" not modifiable", propDef.canModify());
-            }
+        assertPropertyValues(user, UserType.F_ADDITIONAL_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
+            assertNotNull("No definition for additionalName in user", propDef);
+            assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
+            assertTrue(name+" is readable", !propDef.canRead());
+            assertTrue(name+" is creatable", !propDef.canAdd());
+            assertTrue(name+" not modifiable", propDef.canModify());
         });
 
-        assertPropertyValues(user, UserType.F_COST_CENTER, new Validator<PrismPropertyDefinition<String>>() {
-            @Override
-            public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
-                assertNotNull("No definition for costCenter in user", propDef);
-                assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
-                assertTrue(name+" is readable", !propDef.canRead());
-                assertTrue(name+" is creatable", !propDef.canAdd());
-                assertTrue(name+" is modifiable", !propDef.canModify());
-            }
+        assertPropertyValues(user, UserType.F_COST_CENTER, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
+            assertNotNull("No definition for costCenter in user", propDef);
+            assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
+            assertTrue(name+" is readable", !propDef.canRead());
+            assertTrue(name+" is creatable", !propDef.canAdd());
+            assertTrue(name+" is modifiable", !propDef.canModify());
         });
 
-        assertPropertyValues(user, UserType.F_PREFERRED_LANGUAGE, new Validator<PrismPropertyDefinition<String>>() {
-            @Override
-            public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
-                assertNotNull("No definition for preferredLanguage in user", propDef);
-                assertEquals("Wrong preferredLanguage displayName", "Language", propDef.getDisplayName());
-                PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
-                assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
-                assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
-                assertTrue(name+" is readable", !propDef.canRead());
-                assertTrue(name+" is creatable", !propDef.canAdd());
-                assertTrue(name+" is modifiable", !propDef.canModify());
-            }
+        assertPropertyValues(user, UserType.F_PREFERRED_LANGUAGE, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
+            assertNotNull("No definition for preferredLanguage in user", propDef);
+            assertEquals("Wrong preferredLanguage displayName", "Language", propDef.getDisplayName());
+            PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
+            assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
+            assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
+            assertTrue(name+" is readable", !propDef.canRead());
+            assertTrue(name+" is creatable", !propDef.canAdd());
+            assertTrue(name+" is modifiable", !propDef.canModify());
         });
 
         PrismAsserts.assertNoItem(user, UserType.F_CREDENTIALS);
@@ -1533,7 +1469,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     @Test
     public void test820OtisSearchUsers() throws Exception {
-        final String TEST_NAME="test820OtisSearchUsers";
 
         // GIVEN
         login(USER_OTIS_USERNAME);
@@ -1553,49 +1488,37 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertEquals("Unexpected number of users found", 7, users.size());
 
         for (final PrismObject<UserType> user: users) {
-            assertProperty(user, UserType.F_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
-                @Override
-                public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
-                    assertNotNull("No definition for name in user", propDef);
-                    assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
-                    assertTrue(name+" of "+user+" not readable", propDef.canRead());
-                    assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                    assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
-                }
+            assertProperty(user, UserType.F_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
+                assertNotNull("No definition for name in user", propDef);
+                assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
+                assertTrue(name+" of "+user+" not readable", propDef.canRead());
+                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+                assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
             });
-            assertProperty(user, UserType.F_ADDITIONAL_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
-                @Override
-                public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
-                    assertNotNull("No definition for additionalName in user", propDef);
-                    assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
-                    assertTrue(name+" of "+user+" is readable", !propDef.canRead());
-                    assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                    assertTrue(name+" of "+user+" not modifiable", propDef.canModify());
-                }
+            assertProperty(user, UserType.F_ADDITIONAL_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
+                assertNotNull("No definition for additionalName in user", propDef);
+                assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
+                assertTrue(name+" of "+user+" is readable", !propDef.canRead());
+                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+                assertTrue(name+" of "+user+" not modifiable", propDef.canModify());
             });
-            assertProperty(user, UserType.F_COST_CENTER, new Validator<PrismPropertyDefinition<String>>() {
-                @Override
-                public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
-                    assertNotNull("No definition for costCenter in user", propDef);
-                    assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
-                    assertTrue(name+" of "+user+" is readable", !propDef.canRead());
-                    assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                    assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
-                }
+            assertProperty(user, UserType.F_COST_CENTER, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
+                assertNotNull("No definition for costCenter in user", propDef);
+                assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
+                assertTrue(name+" of "+user+" is readable", !propDef.canRead());
+                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+                assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
             });
 
-            assertProperty(user, UserType.F_PREFERRED_LANGUAGE, new Validator<PrismPropertyDefinition<String>>() {
-                @Override
-                public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
-                    assertNotNull("No definition for preferredLanguage in user", propDef);
-                    assertEquals("Wrong preferredLanguage displayName", "Language", propDef.getDisplayName());
-                    PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
-                    assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
-                    assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
-                    assertTrue(name+" of "+user+" is readable", !propDef.canRead());
-                    assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                    assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
-                }
+            assertProperty(user, UserType.F_PREFERRED_LANGUAGE, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
+                assertNotNull("No definition for preferredLanguage in user", propDef);
+                assertEquals("Wrong preferredLanguage displayName", "Language", propDef.getDisplayName());
+                PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
+                assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
+                assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
+                assertTrue(name+" of "+user+" is readable", !propDef.canRead());
+                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+                assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
             });
 
             PrismAsserts.assertNoItem(user, UserType.F_CREDENTIALS);
@@ -1605,12 +1528,46 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     }
 
+    @Test
+    public void test900AddReconciliationTask() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // GIVEN
+        login(userAdministrator);
+
+        PrismObject<TaskType> reconTask = new TaskType(prismContext)
+                .name("Reconciliation")
+                .archetypeRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE)
+                .beginAssignment()
+                    .targetRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE)
+                .<TaskType>end()
+                .executionStatus(TaskExecutionStatusType.SUSPENDED)
+                .recurrence(TaskRecurrenceType.SINGLE)
+                .asPrismObject();
+
+        reconTask.findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN))
+                .setRealValue(true);
+
+        PrismObjectDefinition<TaskType> editDef = getEditObjectDefinition(reconTask);
+        reconTask.applyDefinition(editDef, true);
+
+        // WHEN
+        when();
+        addObject(reconTask, task, result);
+
+        // THEN
+        then();
+        result.computeStatus();
+        assertSuccess(result);
+    }
 
     private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, ItemPath path,
             Validator<PrismPropertyDefinition<T>> validator) throws Exception {
         assertPropertyValues(object, path, validator, (T[])null);
     }
 
+    @SuppressWarnings("unchecked")
     private <O extends ObjectType, T> void assertPropertyValues(PrismObject<O> object, ItemPath path,
             Validator<PrismPropertyDefinition<T>> validator, T... expectedValues) throws Exception {
         PrismProperty<T> prop = object.findProperty(path);
@@ -1696,7 +1653,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertTrue("costCenter not creatable", costCenterDef.canAdd());
         assertTrue("costCenter not modifiable", costCenterDef.canModify());
         PrismReferenceValue valueEnumerationRef = costCenterDef.getValueEnumerationRef();
-        assertNull("valueEnumerationRef for costCente sneaked in", valueEnumerationRef);
+        assertNull("valueEnumerationRef for costCenter sneaked in", valueEnumerationRef);
 
         PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
         assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
@@ -1715,12 +1672,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertTrue("Credentials not creatable", credentialsDef.canAdd());
         assertTrue("Credentials not modifiable", credentialsDef.canModify());
 
-        ItemPath passwdValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-        PrismPropertyDefinition<ProtectedStringType> passwdValDef = userDefinition.findPropertyDefinition(passwdValPath);
-        assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
-        assertTrue("Password not readable", passwdValDef.canRead());
-        assertTrue("Password not creatable", passwdValDef.canAdd());
-        assertTrue("Password not modifiable", passwdValDef.canModify());
+        ItemPath passwordValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+        PrismPropertyDefinition<ProtectedStringType> passwordValDef = userDefinition.findPropertyDefinition(passwordValPath);
+        assertNotNull("No definition for "+passwordValPath+" in user", passwordValDef);
+        assertTrue("Password not readable", passwordValDef.canRead());
+        assertTrue("Password not creatable", passwordValDef.canAdd());
+        assertTrue("Password not modifiable", passwordValDef.canModify());
 
     }
 
