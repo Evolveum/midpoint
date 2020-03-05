@@ -117,6 +117,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.*;
@@ -4365,7 +4366,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected Entry assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
         Entry entry = openDJController.searchByUid(uid);
         assertNotNull("OpenDJ accoun with uid " + uid + " not found", entry);
-        openDJController.assertAttribute(entry, "cn", cn);
+        OpenDJController.assertAttribute(entry, "cn", cn);
         if (active != null) {
             openDJController.assertActive(entry, active);
         }
@@ -4543,33 +4544,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         SecurityContextHolder.getContext().setAuthentication(createMpAuthentication(authentication));
     }
 
-    protected void assertLoggedInUsername(String username) {
+    protected void assertLoggedInUsername(@NotNull String username) {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
         FocusType user = midPointPrincipal.getFocus();
-        if (user == null) {
-            if (username == null) {
-                return;
-            } else {
-                AssertJUnit.fail("Expected logged in user '" + username + "' but there was no user in the spring security context");
-            }
-        }
         assertEquals("Wrong logged-in user", username, user.getName().getOrig());
     }
 
-    protected void assertLoggedInUserOid(String userOid) {
+    protected void assertLoggedInUserOid(@NotNull String userOid) {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
         assertPrincipalUserOid(midPointPrincipal, userOid);
     }
 
-    protected void assertPrincipalUserOid(MidPointPrincipal principal, String userOid) {
+    protected void assertPrincipalUserOid(
+            @NotNull MidPointPrincipal principal, @NotNull String userOid) {
         FocusType user = principal.getFocus();
-        if (user == null) {
-            if (userOid == null) {
-                return;
-            } else {
-                AssertJUnit.fail("Expected user " + userOid + " in principal " + principal + " but there was none");
-            }
-        }
         assertEquals("Wrong user OID in principal", userOid, user.getOid());
     }
 

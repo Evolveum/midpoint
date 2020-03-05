@@ -20,12 +20,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInfor
 
 /**
  * @author katka
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsReconSimulate extends TestThresholds {
-
 
     private static final File TASK_RECONCILE_OPENDJ_SIMULATE_FILE = new File(TEST_DIR, "task-opendj-reconcile-simulate.xml");
     private static final String TASK_RECONCILE_OPENDJ_SIMULATE_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
@@ -46,7 +44,7 @@ public class TestThresholdsReconSimulate extends TestThresholds {
     }
 
     @Override
-    protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
+    protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 1);
 
@@ -67,7 +65,7 @@ public class TestThresholdsReconSimulate extends TestThresholds {
      * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
      */
     @Override
-    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
+    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 1);
 
@@ -99,5 +97,4 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), getDefaultUsers() + getProcessedUsers());
         assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
     }
-
 }

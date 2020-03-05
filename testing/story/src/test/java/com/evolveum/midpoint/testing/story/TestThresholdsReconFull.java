@@ -20,17 +20,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katka
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsReconFull extends TestThresholds {
 
@@ -67,11 +62,9 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     @Test
-    public void test600chageTaskPolicyRule() throws Exception {
-        final String TEST_NAME = "test600chageTaskPolicyRule";
-
+    public void test600changeTaskPolicyRule() throws Exception {
         //WHEN
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, ROLE_POLICY_RULE_DELETE_OID, task, result);
 
@@ -83,10 +76,8 @@ public class TestThresholdsReconFull extends TestThresholds {
         assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskExecutionStatus.SUSPENDED);
     }
 
-
     @Test
     public void test610testFullRecon() throws Exception {
-        final String TEST_NAME = "test610testFullRecon";
         OperationResult result = createOperationResult();
 
         //WHEN
@@ -103,10 +94,8 @@ public class TestThresholdsReconFull extends TestThresholds {
 
     }
 
-
     @Test
     public void test611testFullRecon() throws Exception {
-        final String TEST_NAME = "test611testFullRecon";
         OperationResult result = createOperationResult();
 
         openDJController.delete("uid=user10,ou=People,dc=example,dc=com");
@@ -150,9 +139,8 @@ public class TestThresholdsReconFull extends TestThresholds {
 
     }
 
-
     @Override
-    protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
+    protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 1);
 
@@ -169,7 +157,7 @@ public class TestThresholdsReconFull extends TestThresholds {
         assertEquals(syncInfo.getCountUnlinked(), 0);
     }
 
-    private void assertSynchronizationStatisticsFull(Task taskAfter) throws Exception {
+    private void assertSynchronizationStatisticsFull(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 0);
         assertNull(taskAfter.getWorkState(), "Unexpected work state in task.");
@@ -180,7 +168,7 @@ public class TestThresholdsReconFull extends TestThresholds {
      * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
      */
     @Override
-    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
+    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 1);
 
@@ -188,12 +176,12 @@ public class TestThresholdsReconFull extends TestThresholds {
 
         assertEquals(syncInfo.getCountUnmatched(), 5);
         assertEquals(syncInfo.getCountDeleted(), 0);
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers()+getProcessedUsers());
+        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
         assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
         assertEquals(syncInfo.getCountDeleted(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers()*2);
+        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers() * 2);
         assertEquals(syncInfo.getCountUnlinked(), 0);
     }
 
@@ -211,5 +199,4 @@ public class TestThresholdsReconFull extends TestThresholds {
         assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 14);
         assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
     }
-
 }
