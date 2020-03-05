@@ -138,7 +138,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
     @Override
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
             throws ObjectNotFoundException, SchemaException {
-        OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".assertSyncToken");
+        OperationResult result = createOperationResult();
         Task task = taskManager.getTask(syncTaskOid, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -147,7 +147,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         assertNotNull("No sync token in " + task, syncTokenProperty);
         String syncToken = syncTokenProperty.getRealValue();
         assertNotNull("No sync token in " + task, syncToken);
-        IntegrationTestTools.display("Sync token", syncToken);
+        display("Sync token", syncToken);
 
         GeneralizedTime syncTokenGt;
         try {

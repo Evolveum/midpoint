@@ -15,20 +15,17 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
 /**
  * @author katka
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsLiveSyncFull extends TestThresholds {
 
     private static final File TASK_LIVESYNC_OPENDJ_FULL_FILE = new File(TEST_DIR, "task-opendj-livesync-full.xml");
     private static final String TASK_LIVESYNC_OPENDJ_FULL_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
-
 
     @Override
     protected File getTaskFile() {

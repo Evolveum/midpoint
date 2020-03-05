@@ -53,7 +53,6 @@ public class PrismTestUtil {
 
     private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
     private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
-    private static final String LOG_MESSAGE_PREFIX = "";
 
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
@@ -203,22 +202,6 @@ public class PrismTestUtil {
         return new PolyStringType(createPolyString(orig, norm));
     }
 
-    // TODO inttest: replace with UnitTestMixin (TestUtil?)
-    public static void displayTestTitle(String testName) {
-        System.out.println("\n\n===[ "+testName+" ]===\n");
-        LOGGER.info("===[ {} ]===",testName);
-    }
-
-    public static void displayWhen(String testName) {
-        System.out.println("\n\n---[ "+testName+" WHEN ]---\n");
-        LOGGER.info("---[ {} WHEN ]---",testName);
-    }
-
-    public static void displayThen(String testName) {
-        System.out.println("\n\n---[ "+testName+" THEN ]---\n");
-        LOGGER.info("---[ {} THEN ]---",testName);
-    }
-
     public static SearchFilterType unmarshalFilter(File file) throws Exception {
         return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
     }
@@ -230,13 +213,7 @@ public class PrismTestUtil {
         return ((LogicalFilter) filter).getConditions().get(index);
     }
 
-    public static void display(String title, String value) {
-        System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-        System.out.println(value);
-        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
-                + value);
-    }
-
+    // TODO versions with external logger?
     public static void display(String title, DebugDumpable dumpable) {
         System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
         System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));

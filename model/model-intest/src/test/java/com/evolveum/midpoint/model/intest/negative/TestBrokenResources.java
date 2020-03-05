@@ -1280,7 +1280,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertDummyScripts(RESOURCE_DUMMY_EBONY_NAME, "delete/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 
         // CLEANUP
-        displayCleanup(TEST_NAME);
+        displayCleanup();
         forceDeleteShadow(shadowOid);
 
         assertUserAfter(USER_GUYBRUSH_OID)

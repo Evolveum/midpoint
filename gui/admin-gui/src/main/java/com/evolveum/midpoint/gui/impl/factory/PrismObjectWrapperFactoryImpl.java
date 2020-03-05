@@ -57,7 +57,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         try {
             applySecurityConstraints(object, context);
         } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
-            context.getResult().recordFatalError("Cannot create object wrapper for " + object + ". An eeror occured: " + e.getMessage(), e);
+            context.getResult().recordFatalError("Cannot create object wrapper for " + object + ". An error occurred: " + e.getMessage(), e);
             throw new SchemaException(e.getMessage(), e);
         }
         if (context.getObjectStatus() == null) {

@@ -37,14 +37,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
-/**
- * @author Radovan Semancik
- */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegrationTest {
@@ -52,8 +47,6 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     public static final File COMMON_DIR = ProvisioningTestUtil.COMMON_TEST_DIR_FILE;
 
     protected static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractProvisioningIntegrationTest.class);
 
     @Autowired protected ProvisioningService provisioningService;
     @Autowired protected SynchronizationServiceMock syncServiceMock;
@@ -169,7 +162,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     }
 
     protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) {
-        LOGGER.debug("Remembering connector instance {}", currentConnectorInstance);
+        logger.debug("Remembering connector instance {}", currentConnectorInstance);
         lastConfiguredConnectorInstance = currentConnectorInstance;
     }
 

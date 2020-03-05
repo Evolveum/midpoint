@@ -40,7 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Service(value = "syncServiceMock")
-public class SynchronizationServiceMock implements ResourceObjectChangeListener, ResourceOperationListener {
+public class SynchronizationServiceMock
+        implements ResourceObjectChangeListener, ResourceOperationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceMock.class);
 

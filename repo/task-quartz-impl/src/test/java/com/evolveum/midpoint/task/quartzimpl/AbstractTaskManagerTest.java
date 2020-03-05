@@ -10,7 +10,6 @@ package com.evolveum.midpoint.task.quartzimpl;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 
 import java.io.File;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -343,5 +343,13 @@ public class AbstractTaskManagerTest extends AbstractSpringTest {
     private Set<String> getCachingProfiles(Task task) {
         TaskExecutionEnvironmentType env = task.getExecutionEnvironment();
         return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
+    }
+
+    protected void display(String title, DebugDumpable value) {
+        PrismTestUtil.display(title, value);
+    }
+
+    protected void display(String title, Object value) {
+        PrismTestUtil.display(title, value);
     }
 }

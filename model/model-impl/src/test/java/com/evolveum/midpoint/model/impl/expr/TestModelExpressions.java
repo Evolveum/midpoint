@@ -98,7 +98,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         assertExecuteScriptExpressionString(null, "Hello swashbuckler");
     }
 
-    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
+    private ScriptExpressionEvaluatorType parseScriptType(String fileName)
+            throws SchemaException, IOException {
         ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
         return expressionType;
@@ -106,11 +107,9 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testGetUserByOid() throws Exception {
-        final String TEST_NAME = "testGetUserByOid";
-
         // GIVEN
-        OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
-        PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
 
         ExpressionVariables variables = createVariables(ExpressionConstants.VAR_USER, chef, chef.getDefinition());
 
@@ -122,7 +121,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     public void testGetManagersOids() throws Exception {
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         String shortTestName = getTestNameShort();
 
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
@@ -148,7 +147,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         oids.add(scriptOutputs.get(0).getValue());
         oids.add(scriptOutputs.get(1).getValue());
         oids.add(scriptOutputs.get(2).getValue());
-        Set<String> expectedOids = new HashSet<>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, LECHUCK_OID }));
+        Set<String> expectedOids = new HashSet<>(
+                Arrays.asList(CHEESE_OID, CHEESE_JR_OID, LECHUCK_OID));
         assertEquals("Unexpected script output", expectedOids, oids);
     }
 
@@ -157,25 +157,24 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
      */
     @Test
     public void testIsUniquePropertyValue() throws Exception {
-        final String TEST_NAME = "testIsUniquePropertyValue";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String testName = getTestNameShort();
 
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + testName + ".xml");
         PrismPropertyDefinition<Boolean> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition,
-                MiscSchemaUtil.getExpressionProfile(), expressionFactory, TEST_NAME, task, result);
+                MiscSchemaUtil.getExpressionProfile(), expressionFactory, testName, task, result);
 
         ExpressionVariables variables = createVariables(
                 ExpressionConstants.VAR_USER, chef, chef.getDefinition(),
                 ExpressionConstants.VAR_VALUE, "Scumm Bar Chef", String.class);
 
         // WHEN
-        List<PrismPropertyValue<Boolean>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
+        List<PrismPropertyValue<Boolean>> scriptOutputs = evaluate(scriptExpression, variables, false, testName, null, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -186,14 +185,11 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testGetOrgByName() throws Exception {
-        final String TEST_NAME = "testGetOrgByName";
         assertExecuteScriptExpressionString(null, F0006_OID);
     }
 
     @Test
     public void testGetLinkedShadowName() throws Exception {
-        final String TEST_NAME = "testGetLinkedShadowName";
-
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
@@ -207,8 +203,6 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testGetLinkedShadowKindIntentUsername() throws Exception {
-        final String TEST_NAME = "testGetLinkedShadowKindIntentUsername";
-
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
@@ -222,8 +216,6 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testGetLinkedShadowKindIntentFullname() throws Exception {
-        final String TEST_NAME = "testGetLinkedShadowKindIntentFullname";
-
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
@@ -237,8 +229,6 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testGetLinkedShadowNameRepo() throws Exception {
-        final String TEST_NAME = "testGetLinkedShadowNameRepo";
-
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
@@ -252,8 +242,6 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testGetLinkedShadowKindIntentUsernameRepo() throws Exception {
-        final String TEST_NAME = "testGetLinkedShadowKindIntentUsernameRepo";
-
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
@@ -267,8 +255,6 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testGetLinkedShadowKindIntentFullnameRepo() throws Exception {
-        final String TEST_NAME = "testGetLinkedShadowKindIntentFullnameRepo";
-
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
@@ -293,7 +279,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
         Task task = createPlainTask("executeScriptExpressionString");
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         String shortTestName = getTestNameShort();
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");

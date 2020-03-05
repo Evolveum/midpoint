@@ -33,9 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,8 +59,6 @@ import static org.testng.AssertJUnit.*;
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestWrapperDelta.class);
-
     private static final String TEST_DIR = "src/test/resources/delta";
 
     private static final File USER_ELAINE = new File(TEST_DIR, "user-elaine.xml");
@@ -78,8 +73,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test100modifyUserFullname() throws Exception {
-        final String TEST_NAME = "test100CreateWrapperUserJack";
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
 
@@ -108,9 +102,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test101modifyUserWeapon() throws Exception {
-        final String TEST_NAME = "test101modifyUserWeapon";
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
@@ -136,16 +128,14 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         executeChanges(elaineDelta, null, task, result);
 
         PrismObject<UserType> userElaineAfter = getUser(USER_ELAINE_OID);
-        LOGGER.info("ELAINE AFTER: {}", userElaineAfter.debugDump());
+        logger.info("ELAINE AFTER: {}", userElaineAfter.debugDump());
         UserAsserter.forUser(userElaineAfter).extension().assertPropertyValuesEqual(PIRACY_WEAPON, "revolver");
 
     }
 
     @Test
     public void test110modifyUserAddAssignment() throws Exception {
-        final String TEST_NAME = "test110modifyUserAddAssignment";
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
@@ -177,9 +167,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test111modifyUserAssignemnt() throws Exception {
-        final String TEST_NAME = "test110modifyUserAddAssignment";
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
@@ -218,7 +206,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
         ObjectDelta<UserType> delta = objectWrapper.getObjectDelta();
         assertModificationsSize(delta, 1);
-        LOGGER.info("Attr delta: {}", delta.debugDump());
+        logger.info("Attr delta: {}", delta.debugDump());
 
         ResourceAttributeDefinitionType expectedvalue = new ResourceAttributeDefinitionType(locator.getPrismContext());
         expectedvalue.setRef(new ItemPathType(ItemPath.create(SchemaConstants.ICFS_NAME)));
@@ -260,9 +248,8 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test200createUser() throws Exception {
-        String TEST_NAME = "test200createUser";
-
-        Task task = createSimpleTask(TEST_NAME);
+//        Task task = getTestTask(); // TODO we don't want customized task here?
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         PrismObjectDefinition<UserType> def = getServiceLocator(task).getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -315,9 +302,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test300SaveSystemConfigWithoutChanges() throws Exception {
-        final String TEST_NAME = "test300SaveSystemConfigWithoutChanges";
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         SystemConfigurationType systemConfig = getSystemConfiguration();
@@ -332,9 +317,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     @Test
     public void test301ModifyProfilingClassLoggerOfSystemConfig() throws Exception {
-        final String TEST_NAME = "test301ModifyProfilingClassLoggerOfSystemConfig";
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         SystemConfigurationType systemConfigBefore = getSystemConfiguration();
@@ -414,7 +397,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     private <O extends ObjectType> void assertModificationsSize(ObjectDelta<O> delta, int expectedModifications) {
         assertNotNull("Unexpeted null delta", delta);
-        LOGGER.trace("Delta: {}", delta.debugDump());
+        logger.trace("Delta: {}", delta.debugDump());
 
         Collection<? extends ItemDelta<?,?>> modifications = delta.getModifications();
         assertEquals("Unexpected modifications size", expectedModifications, modifications.size());

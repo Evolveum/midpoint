@@ -7,6 +7,25 @@
 
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
@@ -24,34 +43,13 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DomAsserts;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
-import static org.testng.AssertJUnit.*;
 
 public class TestQueryConverter extends AbstractUnitTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestQueryConverter.class);
 
     private static final File TEST_DIR = new File("src/test/resources/queryconverter");
 
@@ -152,7 +150,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
         QueryType convertedQueryType = toQueryType(query);
-        LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
     }
 
     @Test
@@ -210,7 +208,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         assertRefFilterValue((RefFilter) forth, "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
         QueryType convertedQueryType = toQueryType(query);
-        LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
     }
 
     @Test
@@ -230,13 +228,13 @@ public class TestQueryConverter extends AbstractUnitTest {
             QueryType convertedQueryType = toQueryType(query);
             displayQueryType(convertedQueryType);
         } catch (Exception ex) {
-            LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+            logger.error("Error while converting query: {}", ex.getMessage(), ex);
             throw ex;
         }
 
     }
 
-    private PrismObjectDefinition<UserType> getUserDefinition(){
+    private PrismObjectDefinition<UserType> getUserDefinition() {
         return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
     }
 
@@ -263,7 +261,7 @@ public class TestQueryConverter extends AbstractUnitTest {
             QueryType convertedQueryType = toQueryType(query);
             displayQueryType(convertedQueryType);
         } catch (Exception ex) {
-            LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+            logger.error("Error while converting query: {}", ex.getMessage(), ex);
             throw ex;
         }
 
@@ -291,7 +289,7 @@ public class TestQueryConverter extends AbstractUnitTest {
 
             displayQueryType(convertedQueryType);
         } catch (Exception ex) {
-            LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+            logger.error("Error while converting query: {}", ex.getMessage(), ex);
             throw ex;
         }
 
@@ -376,20 +374,20 @@ public class TestQueryConverter extends AbstractUnitTest {
         // prismContext.silentMarshalObject(queryTypeNew, LOGGER);
         for (File file : userQueriesToTest) {
             SearchFilterType filterType = PrismTestUtil.parseAtomicValue(file, SearchFilterType.COMPLEX_TYPE);
-            LOGGER.info("===[ query type parsed ]===");
+            logger.info("===[ query type parsed ]===");
             ObjectQuery query;
             try {
                 query = getQueryConverter().createObjectQuery(UserType.class, filterType);
-                LOGGER.info("query converted: ");
+                logger.info("query converted: ");
 
-                LOGGER.info("QUERY DUMP: {}", query.debugDump());
-                LOGGER.info("QUERY Pretty print: {}", query.toString());
+                logger.info("QUERY DUMP: {}", query.debugDump());
+                logger.info("QUERY Pretty print: {}", query.toString());
                 System.out.println("QUERY Pretty print: " + query.toString());
 
                 QueryType convertedQueryType = getQueryConverter().createQueryType(query);
-                LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+                logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
             } catch (Exception ex) {
-                LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+                logger.error("Error while converting query: {}", ex.getMessage(), ex);
                 throw ex;
             }
         }
@@ -404,8 +402,8 @@ public class TestQueryConverter extends AbstractUnitTest {
         assertNull(queryType.getFilter());
         PagingType paging = queryType.getPaging();
         assertNotNull(paging);
-        assertEquals(new Integer(0), paging.getOffset());
-        assertEquals(new Integer(10), paging.getMaxSize());
+        assertEquals(Integer.valueOf(0), paging.getOffset());
+        assertEquals(Integer.valueOf(10), paging.getMaxSize());
 
     }
 
@@ -431,7 +429,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         displayQueryType(q2jaxb);
         ObjectQuery q2object = toObjectQuery(objectClass, q2jaxb);
         assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString());    // primitive way of comparing parsed queries
-        assertTrue("Reparsed query is not as original one (via equivalent):\nq1="+q1object+"\nq2="+q2object, q1object.equivalent(q2object));
+        assertTrue("Reparsed query is not as original one (via equivalent):\nq1=" + q1object + "\nq2=" + q2object, q1object.equivalent(q2object));
     }
 
     private void checkQueryRoundtrip(Class<? extends Containerable> objectClass, ObjectQuery q1object, String q2xml) throws Exception {
@@ -556,13 +554,13 @@ public class TestQueryConverter extends AbstractUnitTest {
         displayQueryType(q2jaxb);
         ObjectQuery q2object = toObjectQuery(ShadowType.class, q2jaxb);
 
-        System.out.println("q1object:\n"+q1object.debugDump(1));
-        System.out.println("q2object:\n"+q2object.debugDump(1));
+        System.out.println("q1object:\n" + q1object.debugDump(1));
+        System.out.println("q2object:\n" + q2object.debugDump(1));
 
         assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString());    // primitive way of comparing parsed queries
 
         if (!q1object.equivalent(q2object)) {
-            AssertJUnit.fail("Reparsed query is not as original one (via equivalent):\nq1="+q1object+"\nq2="+q2object);
+            AssertJUnit.fail("Reparsed query is not as original one (via equivalent):\nq1=" + q1object + "\nq2=" + q2object);
         }
     }
 
@@ -645,17 +643,17 @@ public class TestQueryConverter extends AbstractUnitTest {
     public void test590Logicals() throws Exception {
         ObjectQuery q = getPrismContext().queryFor(UserType.class)
                 .block()
-                    .all()
-                    .or().none()
-                    .or().undefined()
+                .all()
+                .or().none()
+                .or().undefined()
                 .endBlock()
                 .and().none()
                 .and()
-                    .not()
-                        .block()
-                            .all()
-                            .and().undefined()
-                        .endBlock()
+                .not()
+                .block()
+                .all()
+                .and().undefined()
+                .endBlock()
                 .build();
         checkQueryRoundtripFile(UserType.class, q);
     }
@@ -668,11 +666,11 @@ public class TestQueryConverter extends AbstractUnitTest {
                 .or().item(UserType.F_DESCRIPTION).eq("C")
                 .and().item(UserType.F_DESCRIPTION).eq("D")
                 .and()
-                    .block()
-                        .item(UserType.F_DESCRIPTION).eq("E1")
-                        .and().item(UserType.F_DESCRIPTION).eq("E2")
-                        .or().item(UserType.F_DESCRIPTION).eq("E3")
-                    .endBlock()
+                .block()
+                .item(UserType.F_DESCRIPTION).eq("E1")
+                .and().item(UserType.F_DESCRIPTION).eq("E2")
+                .or().item(UserType.F_DESCRIPTION).eq("E3")
+                .endBlock()
                 .build();
 
         checkQueryRoundtripFile(UserType.class, q);
@@ -682,7 +680,7 @@ public class TestQueryConverter extends AbstractUnitTest {
     public void test600Type() throws Exception {
         ObjectQuery q = getPrismContext().queryFor(ObjectType.class)
                 .type(UserType.class)
-                    .item(UserType.F_NAME).eqPoly("somename", "somename")
+                .item(UserType.F_NAME).eqPoly("somename", "somename")
                 .build();
         checkQueryRoundtripFile(ObjectType.class, q);
     }
@@ -692,12 +690,12 @@ public class TestQueryConverter extends AbstractUnitTest {
         PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
         ObjectQuery q = getPrismContext().queryFor(AccessCertificationCaseType.class)
                 .exists(new ParentPathSegment())        // if using T_PARENT then toString representation of paths is different
-                    .block()
-                        .id(123456L)
-                        .or().item(F_OWNER_REF).ref(ownerRef)
-                    .endBlock()
+                .block()
+                .id(123456L)
+                .or().item(F_OWNER_REF).ref(ownerRef)
+                .endBlock()
                 .and().exists(AccessCertificationCaseType.F_WORK_ITEM)
-                    .item(AccessCertificationWorkItemType.F_STAGE_NUMBER).eq(3)
+                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER).eq(3)
                 .build();
         checkQueryRoundtripFile(AccessCertificationCaseType.class, q);
     }

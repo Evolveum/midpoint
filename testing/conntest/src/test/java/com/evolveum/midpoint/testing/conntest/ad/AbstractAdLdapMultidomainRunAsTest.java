@@ -20,9 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
 
 /**
  * @author semancik
- *
  */
-@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapMultidomainTest {
 
     @Override
@@ -40,11 +39,11 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
     @Test
     @Override
     public void test222ModifyUserBarbossaPasswordSelfServicePassword1Again() throws Exception {
-        final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServicePassword1Again";
-        testModifyUserBarbossaPasswordSelfServiceFailure(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_1);
+        testModifyUserBarbossaPasswordSelfServiceFailure(
+                USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_1);
 
         assertUserAfter(USER_BARBOSSA_OID)
-            .assertPassword(USER_BARBOSSA_PASSWORD_AD_1);
+                .assertPassword(USER_BARBOSSA_PASSWORD_AD_1);
     }
 
     /**
@@ -56,10 +55,8 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
     @Test
     @Override
     public void test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain() throws Exception {
-        final String TEST_NAME = "test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain";
-        testModifyUserBarbossaPasswordSelfServiceFailure(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_2, USER_BARBOSSA_PASSWORD_AD_1);
-
-
+        testModifyUserBarbossaPasswordSelfServiceFailure(
+                USER_BARBOSSA_PASSWORD_AD_2, USER_BARBOSSA_PASSWORD_AD_1);
     }
 
     /**
@@ -74,9 +71,8 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 
         // preconditions
         assertUserBefore(USER_BARBOSSA_OID)
-            .assertPassword(USER_BARBOSSA_PASSWORD_AD_1);
+                .assertPassword(USER_BARBOSSA_PASSWORD_AD_1);
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_2);
-
 
         login(USER_BARBOSSA_USERNAME);
 
@@ -100,11 +96,11 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
         assertUserAfter(USER_BARBOSSA_OID)
-            .assertPassword(USER_BARBOSSA_PASSWORD_AD_3)
-            .singleLink()
+                .assertPassword(USER_BARBOSSA_PASSWORD_AD_3)
+                .singleLink()
                 .resolveTarget()
-                    .pendingOperations()
-                        .assertNone();
+                .pendingOperations()
+                .assertNone();
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_2);
 

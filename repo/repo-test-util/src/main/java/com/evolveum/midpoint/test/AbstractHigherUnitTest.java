@@ -504,10 +504,6 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest {
         TestUtil.displaySkip(testName);
     }
 
-    protected void display(String str) {
-        IntegrationTestTools.display(str);
-    }
-
     public static void display(String message, SearchResultEntry response) {
         IntegrationTestTools.display(message, response);
     }
@@ -553,11 +549,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest {
     }
 
     public static void display(String title, DebugDumpable dumpable) {
-        IntegrationTestTools.display(title, dumpable);
-    }
-
-    public static void display(String title, String value) {
-        IntegrationTestTools.display(title, value);
+        PrismTestUtil.display(title, dumpable);
     }
 
     public static void display(String title, Object value) {

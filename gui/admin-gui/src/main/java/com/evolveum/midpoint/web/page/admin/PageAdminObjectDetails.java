@@ -195,7 +195,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return getCompileTimeClass().getSimpleName();
     }
 
-    private boolean isAdd() {
+    public boolean isAdd() {
         return !isOidParameterExists() && !editingFocus;
     }
 

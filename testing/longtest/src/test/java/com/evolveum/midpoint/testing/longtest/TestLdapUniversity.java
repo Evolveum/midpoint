@@ -125,7 +125,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
 
         loadEntries("u");
-        createUsers(new OperationResult("createUsers")); // we do not want to have all this in the task's result
+        createUsers(createOperationResult()); // we do not want to have all this in the task's result
 
         display("e0", findUserByUsername("e0"));
 

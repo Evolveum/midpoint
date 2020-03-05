@@ -11,16 +11,13 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,13 +25,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -46,14 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ListAccountShadowOwnerTest.class);
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test
     public void listExistingOwner() throws Exception {
         OperationResult result = new OperationResult("List owner");
@@ -61,8 +44,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         //insert sample data
         final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(OBJECTS_FILE).parseObjects();
-        for (int i = 0; i < elements.size(); i++) {
-            PrismObject object = elements.get(i);
+        for (PrismObject object : elements) {
             repositoryService.addObject(object, null, result);
         }
 
@@ -85,7 +67,6 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
     @Test
     public void testLinkUnlink() throws Exception {
-        LOGGER.info("==[testLinkUnlink]==");
         // GIVEN
         OperationResult result = new OperationResult("testLinkUnlink");
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user.xml"));
@@ -117,13 +98,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         assertNull("listAccountShadowOwner returned non-null value after unlink", accountOwnerOid);
     }
 
-    /**
-     * @param string
-     * @param userOid
-     * @param accountOwnerOid
-     */
-    private void assertEquals(String string, String userOid, PrismObject<UserType> accountOwnerOid) {
-        // TODO Auto-generated method stub
-
+    private void assertEquals(String string, String userOid, PrismObject<UserType> accountOwner) {
+        AssertJUnit.assertEquals(string, userOid, accountOwner != null ? accountOwner.getOid() : null);
     }
 }

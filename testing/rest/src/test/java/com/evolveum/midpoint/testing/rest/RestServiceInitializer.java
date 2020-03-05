@@ -36,10 +36,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyAuditService;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -50,8 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @SpringBootTest(classes = TestMidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "server.port=18088")
 public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(RestServiceInitializer.class);
 
     protected static final File BASE_REPO_DIR = new File("src/test/resources/repo/");
 
@@ -116,7 +111,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
         super.initSystem(initTask, result);
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
 
         InternalsConfig.encryptionChecks = false;
 
@@ -180,10 +175,6 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
 
     public PrismContext getPrismContext() {
         return prismContext;
-    }
-
-    public TaskManager getTaskManager() {
-        return taskManager;
     }
 
     public ModelService getModelService() {

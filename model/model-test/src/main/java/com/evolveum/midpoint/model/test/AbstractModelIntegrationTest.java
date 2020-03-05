@@ -25,9 +25,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +100,9 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -118,6 +117,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.*;
@@ -402,7 +402,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
     }
 
-    protected void assertUsers(int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertUsers(int expectedNumberOfUsers)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         assertObjects(UserType.class, expectedNumberOfUsers);
     }
 
@@ -1622,7 +1624,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assign(type, focusOid, assignmentType, task, result);
     }
 
-    protected <F extends FocusType> void assign(Class<F> type, String focusOid, AssignmentType assignmentType, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <F extends FocusType> void assign(Class<F> type, String focusOid,
+            AssignmentType assignmentType, Task task, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            PolicyViolationException, SecurityViolationException {
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(assignmentType, true));
         ObjectDelta<F> userDelta = prismContext.deltaFactory().object().createModifyDelta(focusOid, modifications, type
@@ -1630,7 +1636,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         executeChanges(userDelta, null, task, result);
     }
 
-    protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected PrismObject<UserType> getUser(String userOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = createPlainTask("getUser");
         OperationResult result = task.getResult();
         PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
@@ -1768,7 +1776,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <O extends ObjectType> void assertObjectByName(Class<O> type, String name, Task task, OperationResult result)
+    protected <O extends ObjectType> void assertObjectByName(
+            Class<O> type, String name, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         SearchResultList<PrismObject<O>> objects = modelService
@@ -1779,7 +1788,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <O extends ObjectType> void assertNoObjectByName(Class<O> type, String name, Task task, OperationResult result)
+    protected <O extends ObjectType> void assertNoObjectByName(
+            Class<O> type, String name, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         SearchResultList<PrismObject<O>> objects = modelService
@@ -2018,7 +2028,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidPointAsserts.assertAssignedRoles(user, roleOids);
     }
 
-    protected <R extends AbstractRoleType> AssignmentType assertInducedRole(PrismObject<R> role, String roleOid) {
+    protected <R extends AbstractRoleType> AssignmentType assertInducedRole(
+            PrismObject<R> role, String roleOid) {
         return MidPointAsserts.assertInducedRole(role, roleOid);
     }
 
@@ -2135,7 +2146,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         PrismAsserts.assertSets("Wrong values in delegatedRef in " + focus, refOids, oids);
     }
 
-    protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertNotAssignedRole(
+            PrismObject<F> focus, String roleOid, Task task, OperationResult result) {
         MidPointAsserts.assertNotAssignedRole(focus, roleOid);
     }
 
@@ -2188,7 +2200,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAssignedOrg(user, orgOid);
     }
 
-    protected <F extends FocusType> void assertHasOrgs(PrismObject<F> user, String... orgOids) throws Exception {
+    protected <F extends FocusType> void assertHasOrgs(PrismObject<F> user, String... orgOids) {
         for (String orgOid : orgOids) {
             assertHasOrg(user, orgOid);
         }
@@ -2394,7 +2406,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
+    protected <F extends AssignmentHolderType> void assertAssignments(
+            PrismObject<F> user, Class expectedType, int expectedNumber) {
         MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
     }
 
@@ -2411,11 +2424,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAssignedNo(user, OrgType.COMPLEX_TYPE);
     }
 
-    protected <F extends FocusType> void assertAssignedNoRole(PrismObject<F> focus, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertAssignedNoRole(
+            PrismObject<F> focus, Task task, OperationResult result) {
         assertAssignedNoRole(focus);
     }
 
-    protected void assertAssignedNoRole(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    protected void assertAssignedNoRole(String userOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
         assertAssignedNoRole(user);
     }
@@ -2436,12 +2451,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void assertAssignedAccount(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    protected void assertAssignedAccount(
+            String userOid, String resourceOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
         assertAssignedAccount(user, resourceOid);
     }
 
-    protected AssignmentType assertAssignedAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
+    protected AssignmentType assertAssignedAccount(PrismObject<UserType> user, String resourceOid) {
         UserType userType = user.asObjectable();
         for (AssignmentType assignmentType : userType.getAssignment()) {
             ConstructionType construction = assignmentType.getConstruction();
@@ -2458,7 +2475,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return null; // not reached
     }
 
-    protected void assertAssignedNoAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException {
+    protected void assertAssignedNoAccount(PrismObject<UserType> user, String resourceOid) {
         UserType userType = user.asObjectable();
         for (AssignmentType assignmentType : userType.getAssignment()) {
             ConstructionType construction = assignmentType.getConstruction();
@@ -2712,7 +2729,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     }
 
-    protected void setConflictResolutionAction(QName objectType, String subType, ConflictResolutionActionType conflictResolutionAction, OperationResult parentResult)
+    protected void setConflictResolutionAction(QName objectType, String subType,
+            ConflictResolutionActionType conflictResolutionAction, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ConflictResolutionType conflictResolutionType = new ConflictResolutionType();
         conflictResolutionType.action(conflictResolutionAction);
@@ -4348,7 +4366,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected Entry assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
         Entry entry = openDJController.searchByUid(uid);
         assertNotNull("OpenDJ accoun with uid " + uid + " not found", entry);
-        openDJController.assertAttribute(entry, "cn", cn);
+        OpenDJController.assertAttribute(entry, "cn", cn);
         if (active != null) {
             openDJController.assertActive(entry, active);
         }
@@ -4526,33 +4544,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         SecurityContextHolder.getContext().setAuthentication(createMpAuthentication(authentication));
     }
 
-    protected void assertLoggedInUsername(String username) {
+    protected void assertLoggedInUsername(@NotNull String username) {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
         FocusType user = midPointPrincipal.getFocus();
-        if (user == null) {
-            if (username == null) {
-                return;
-            } else {
-                AssertJUnit.fail("Expected logged in user '" + username + "' but there was no user in the spring security context");
-            }
-        }
         assertEquals("Wrong logged-in user", username, user.getName().getOrig());
     }
 
-    protected void assertLoggedInUserOid(String userOid) {
+    protected void assertLoggedInUserOid(@NotNull String userOid) {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
         assertPrincipalUserOid(midPointPrincipal, userOid);
     }
 
-    protected void assertPrincipalUserOid(MidPointPrincipal principal, String userOid) {
+    protected void assertPrincipalUserOid(
+            @NotNull MidPointPrincipal principal, @NotNull String userOid) {
         FocusType user = principal.getFocus();
-        if (user == null) {
-            if (userOid == null) {
-                return;
-            } else {
-                AssertJUnit.fail("Expected user " + userOid + " in principal " + principal + " but there was none");
-            }
-        }
         assertEquals("Wrong user OID in principal", userOid, user.getOid());
     }
 
@@ -5604,7 +5609,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return task -> {
             try {
                 if (lastTimeShown.get() + period < System.currentTimeMillis()) {
-                    dumpTaskTree(task.getOid(), createOperationalResult());
+                    dumpTaskTree(task.getOid(), createOperationResult());
                     lastTimeShown.set(System.currentTimeMillis());
                 }
             } catch (CommonException e) {

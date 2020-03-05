@@ -163,7 +163,7 @@ public class TestClockwork extends AbstractLensTest {
             assertFalse("No contexts recorded by the hook", hookContexts.isEmpty());
 
         } finally {
-            displayCleanup(TEST_NAME);
+            displayCleanup();
             mockClockworkHook.reset();
             unassignJackAccount();
             assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -178,7 +178,7 @@ public class TestClockwork extends AbstractLensTest {
             assignAccountToJackAsync(TEST_NAME, false);
 
         } finally {
-            displayCleanup(TEST_NAME);
+            displayCleanup();
             mockClockworkHook.reset();
             unassignJackAccount();
             assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -193,7 +193,7 @@ public class TestClockwork extends AbstractLensTest {
             assignAccountToJackAsync(TEST_NAME, true);
 
         } finally {
-            displayCleanup(TEST_NAME);
+            displayCleanup();
             mockClockworkHook.reset();
             unassignJackAccount();
             assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);

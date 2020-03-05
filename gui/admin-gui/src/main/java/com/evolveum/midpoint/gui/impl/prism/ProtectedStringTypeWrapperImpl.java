@@ -25,8 +25,6 @@ public class ProtectedStringTypeWrapperImpl extends PrismPropertyWrapperImpl<Pro
 
     public ProtectedStringTypeWrapperImpl(PrismContainerValueWrapper<?> parent, PrismProperty<ProtectedStringType> item, ItemStatus status) {
         super(parent, item, status);
-
-//        getItem().setRealValue(null);
     }
 
     @Override

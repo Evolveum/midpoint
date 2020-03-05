@@ -67,6 +67,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static java.util.Collections.emptyList;
+
 /**
  * Registry and resolver of schema files and resources.
  *
@@ -301,6 +303,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     public void registerPrismSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
+        registerPrismSchemasFromDirectory(directory, emptyList());
+    }
+
+    public void registerPrismSchemasFromDirectory(File directory, @NotNull Collection<String> extensionFilesToIgnore)
+            throws FileNotFoundException, SchemaException {
         File[] fileArray = directory.listFiles();
         if (fileArray != null) {
             List<File> files = Arrays.asList(fileArray);
@@ -308,8 +315,12 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             // This is useful in tests but may come handy also during customization
             Collections.sort(files);
             for (File file: files) {
-                if (file.getName().startsWith(".")) {
+                String name = file.getName();
+                if (name.startsWith(".")) {
                     // skip dotfiles. this will skip SVN data and similar things
+                    continue;
+                }
+                if (extensionFilesToIgnore.contains(name)) {
                     continue;
                 }
                 if (file.isDirectory()) {
@@ -682,7 +693,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             @NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
         PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
         if (schema == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return schema.findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass);
     }
@@ -750,7 +761,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         }
         PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
         if (schema == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return schema.findTypeDefinitionsByType(typeName, definitionClass);
     }

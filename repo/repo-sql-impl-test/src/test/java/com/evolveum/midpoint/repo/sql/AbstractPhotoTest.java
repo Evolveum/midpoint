@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Evolveum and contributors
- *  
- * This work is dual-licensed under the Apache License 2.0 
+ *
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,13 +32,6 @@ import static org.testng.AssertJUnit.*;
 public abstract class AbstractPhotoTest<T extends FocusType> extends BaseSQLRepoTest {
 
     static final File TEST_DIR = new File("src/test/resources/photo");
-
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        super.beforeClass();
-
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     protected abstract Class<T> getObjectType();
 

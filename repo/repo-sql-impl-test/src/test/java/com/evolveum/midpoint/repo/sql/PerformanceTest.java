@@ -12,8 +12,6 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.FileUtils;
@@ -33,8 +31,6 @@ import java.util.*;
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class PerformanceTest extends BaseSQLRepoTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PerformanceTest.class);
 
     private static final String[] GIVEN_NAMES = {"James", "Josephine", "Art", "Lenna", "Donette", "Simona", "Mitsue",
             "Leota", "Sage", "Kris", "Minna", "Abel", "Kiley", "Graciela", "Cammy", "Mattie", "Meaghan", "Gladys", "Yuki",
@@ -76,14 +72,13 @@ public class PerformanceTest extends BaseSQLRepoTest {
                 prismContext.serializerFor(lang).serialize(o);
             }
         }
-        LOGGER.info("xxx>> time: {}", (System.currentTimeMillis() - time));
+        logger.info("xxx>> time: {}", (System.currentTimeMillis() - time));
     }
 
     @Test(enabled = false)
     public void test200PrepareBigXml() throws Exception {
         File file = new File("./target/big-test.xml");
-        Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
-        try {
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
             writeHeader(writer);
 
             OrgType root = createOrgType("University", "University org. structure", "UROOT", "Bratislava", null);
@@ -119,8 +114,6 @@ public class PerformanceTest extends BaseSQLRepoTest {
             }
 
             writeFooter(writer);
-        } finally {
-            writer.close();
         }
     }
 
@@ -136,11 +129,11 @@ public class PerformanceTest extends BaseSQLRepoTest {
 
         int COUNT = 100;
         for (int i = 0; i < COUNT; i++) {
-            LOGGER.info("Get operation {} of {}", i+1, COUNT);
+            logger.info("Get operation {} of {}", i+1, COUNT);
             repositoryService.getObject(UserType.class, oid, null, result);
         }
         long duration = System.currentTimeMillis() - time;
-        LOGGER.info("xxx>> time: {} ms, per get: {} ms", duration, (double) duration/COUNT);
+        logger.info("xxx>> time: {} ms, per get: {} ms", duration, (double) duration/COUNT);
     }
 
 
@@ -180,12 +173,9 @@ public class PerformanceTest extends BaseSQLRepoTest {
     }
 
     private String createUserName(String given, String family, int userId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(given.toLowerCase().charAt(0));
-        sb.append(family.toLowerCase().charAt(0));
-        sb.append(StringUtils.leftPad(Integer.toString(userId), 8, "0"));
-
-        return sb.toString();
+        return String.valueOf(given.toLowerCase().charAt(0))
+                + family.toLowerCase().charAt(0)
+                + StringUtils.leftPad(Integer.toString(userId), 8, "0");
     }
 
     private UserType createUserType(int userId, String orgOid) throws SchemaException {

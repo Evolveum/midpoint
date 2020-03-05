@@ -8,14 +8,18 @@ package com.evolveum.midpoint.model.common;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * @author semancik
  */
-public class AbstractModelCommonTest extends AbstractUnitTest {
+public class AbstractModelCommonTest extends AbstractUnitTest
+        implements OperationResultTestMixin {
 
     protected static final File COMMON_DIR = new File("src/test/resources/common");
 
@@ -24,5 +28,13 @@ public class AbstractModelCommonTest extends AbstractUnitTest {
 
     protected Task createTask() {
         return new NullTaskImpl();
+    }
+
+    protected void display(String title, DebugDumpable value) {
+        PrismTestUtil.display(title, value);
+    }
+
+    protected void display(String title, Object value) {
+        PrismTestUtil.display(title, value);
     }
 }

@@ -129,7 +129,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       final String TEST_NAME = "test200ReportUserListScript";
 
       if (!isOsUnix()) {
-            displaySkip(TEST_NAME);
+            displaySkip();
             return;
         }
 

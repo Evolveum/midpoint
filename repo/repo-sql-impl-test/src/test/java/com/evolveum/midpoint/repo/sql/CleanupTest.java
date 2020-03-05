@@ -15,8 +15,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -36,14 +34,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CleanupTest extends BaseSQLRepoTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(CleanupTest.class);
 
     private Calendar create_2013_07_12_12_00_Calendar() {
         Calendar calendar = Calendar.getInstance();
@@ -72,18 +65,17 @@ public class CleanupTest extends BaseSQLRepoTest {
         return policy;
     }
 
-    private CleanupPolicyType createPolicy(int maxRecords) throws Exception {
+    private CleanupPolicyType createPolicy(int maxRecords) {
         CleanupPolicyType policy = new CleanupPolicyType();
 
-        policy.setMaxRecords(Integer.valueOf(maxRecords));
+        policy.setMaxRecords(maxRecords);
 
         return policy;
     }
 
     @AfterMethod
     public void cleanup() {
-        Session session = getFactory().openSession();
-        try {
+        try (Session session = getFactory().openSession()) {
             session.beginTransaction();
             session.createQuery("delete from RObjectDeltaOperation").executeUpdate();
             session.createQuery("delete from RAuditPropertyValue").executeUpdate();
@@ -95,8 +87,6 @@ public class CleanupTest extends BaseSQLRepoTest {
 
             AssertJUnit.assertEquals(0L, (long) count);
             session.getTransaction().commit();
-        } finally {
-            session.close();
         }
     }
 
@@ -139,7 +129,6 @@ public class CleanupTest extends BaseSQLRepoTest {
         calendar.add(Calendar.HOUR_OF_DAY, 1);
         calendar.add(Calendar.MINUTE, 1);
 
-        final long NOW = System.currentTimeMillis();
         CleanupPolicyType policy = createPolicy(1);
 
         OperationResult result = new OperationResult("Cleanup audit");
@@ -147,8 +136,7 @@ public class CleanupTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         //THEN
-       RAuditEventRecord record = assertAndReturnAuditEventRecord(result);
-
+        assertAndReturnAuditEventRecord(result);
     }
 
     private RAuditEventRecord assertAndReturnAuditEventRecord(OperationResult result) {
@@ -179,7 +167,7 @@ public class CleanupTest extends BaseSQLRepoTest {
              record.setTimestamp(timestamp);
              record.addPropertyValue("prop1", "val1");
              record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
-             LOGGER.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
+             logger.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
 
              auditService.audit(record, new NullTaskImpl());
              calendar.add(Calendar.HOUR_OF_DAY, 1);

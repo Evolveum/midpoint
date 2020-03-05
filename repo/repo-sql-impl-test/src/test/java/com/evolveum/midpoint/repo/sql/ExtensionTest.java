@@ -6,6 +6,21 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import java.io.File;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.hibernate.Session;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -19,27 +34,15 @@ import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.*;
 
 /**
  * Comprehensive test for extension and attribute values processing.
@@ -80,12 +83,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
     private static final int ADD_VALUE_ITERATIONS = 100000;
 
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        super.beforeClass();
-
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-
+    @Override
+    public void initSystem() throws Exception {
         itemHidden1 = createOrFindExtensionItemDefinition(UserType.class, EXT_HIDDEN1);
         itemHidden2 = createOrFindExtensionItemDefinition(UserType.class, EXT_HIDDEN2);
         itemHidden3 = createOrFindExtensionItemDefinition(UserType.class, EXT_HIDDEN3);

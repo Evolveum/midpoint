@@ -34,19 +34,18 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
-public class ExpressionHandlerImplTest extends AbstractSpringTest {
+public class ExpressionHandlerImplTest extends AbstractSpringTest
+        implements OperationResultTestMixin {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
     private static final File TEST_FOLDER = new File("./src/test/resources/expr");
     private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 
@@ -87,10 +86,10 @@ public class ExpressionHandlerImplTest extends AbstractSpringTest {
                         + "</script>"
                         + "</object>", ExpressionType.COMPLEX_TYPE);
 
-        OperationResult result = new OperationResult("testConfirmUser");
-        boolean confirmed = expressionHandler.evaluateConfirmationExpression(user.asObjectable(), account.asObjectable(), expression,
-                null, result);
-        LOGGER.info(result.debugDump());
+        OperationResult result = createOperationResult();
+        boolean confirmed = expressionHandler.evaluateConfirmationExpression(
+                user.asObjectable(), account.asObjectable(), expression, null, result);
+        logger.info(result.debugDump());
 
         assertTrue("Wrong expression result (expected true)", confirmed);
     }
@@ -113,11 +112,11 @@ public class ExpressionHandlerImplTest extends AbstractSpringTest {
                     .getEntryAsRoot(new QName(SchemaConstants.NS_C, "expression"));
 
             ExpressionType expression = PrismTestUtil.getPrismContext().parserFor(expressionNode).parseRealValue(ExpressionType.class);
-            LOGGER.debug("Expression: {}", SchemaDebugUtil.prettyPrint(expression));
+            logger.debug("Expression: {}", SchemaDebugUtil.prettyPrint(expression));
 
-            OperationResult result = new OperationResult("testCorrelationRule");
+            OperationResult result = createOperationResult();
             String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", null, result);
-            LOGGER.info(result.debugDump());
+            logger.info(result.debugDump());
 
             assertEquals("Wrong expression result", "hbarbossa", name);
         }

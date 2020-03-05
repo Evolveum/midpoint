@@ -35,7 +35,6 @@ public class TestParseObjects extends AbstractParserTest {
 
     @Test
     public void testRoundTrip() throws Exception {
-        displayTestTitle("testRoundTrip");
         PrismContext prismContext = getPrismContext();
 
         PrismParser parser = prismContext.parserFor(getFile());

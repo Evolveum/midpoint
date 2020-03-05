@@ -31,8 +31,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -80,9 +78,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     private static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 
     static final String ASYNC_CONNECTOR_TYPE = "AsyncUpdateConnector";
-
-    @SuppressWarnings("unused")
-    private static final Trace LOGGER = TraceManager.getTrace(TestAsyncUpdate.class);
 
     private static final String ATTR_TEST = "test";
     private static final String ATTR_MEMBER_OF = "memberOf";
@@ -189,7 +184,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
-        PrismContainerDefinition confContDef = configurationContainer.getDefinition();
+        PrismContainerDefinition<?> confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
     }
 

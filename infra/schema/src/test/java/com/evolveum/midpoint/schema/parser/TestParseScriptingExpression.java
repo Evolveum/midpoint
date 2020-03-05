@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
@@ -41,8 +40,7 @@ public class TestParseScriptingExpression extends AbstractPropertyValueParserTes
 
     @Test
     public void testParseToXNode() throws Exception {
-        displayTestTitle("testParseToXNode");
-        ItemDefinition sequenceDef = getPrismContext().getSchemaRegistry().findItemDefinitionByElementName(SchemaConstants.S_SEQUENCE);
+        ItemDefinition<?> sequenceDef = getPrismContext().getSchemaRegistry().findItemDefinitionByElementName(SchemaConstants.S_SEQUENCE);
         System.out.println("sequence.substitutionHead = " + sequenceDef.getSubstitutionHead());
         System.out.println("sequence.heterogeneousListItem = " + sequenceDef.isHeterogeneousListItem());
         ComplexTypeDefinition sequenceCtd = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(sequenceDef.getTypeName());
@@ -63,14 +61,11 @@ public class TestParseScriptingExpression extends AbstractPropertyValueParserTes
 
     @Test
     public void testParseFile() throws Exception {
-        displayTestTitle("testParseFile");
         processParsings(null, null);
     }
 
     @Test
     public void testParseRoundTrip() throws Exception{
-        displayTestTitle("testParseRoundTrip");
-
         processParsings(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
         processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
         processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");        // misleading item name
@@ -79,13 +74,13 @@ public class TestParseScriptingExpression extends AbstractPropertyValueParserTes
     }
 
     private void processParsings(SerializingFunction<PrismPropertyValue<ExpressionPipelineType>> serializer, String serId) throws Exception {
-        PrismPropertyDefinition definition = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.S_PIPELINE);
+        PrismPropertyDefinition<ExpressionPipelineType> definition = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.S_PIPELINE);
         processParsings(ExpressionPipelineType.class, ExpressionPipelineType.COMPLEX_TYPE, definition, serializer, serId);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void assertPrismPropertyValueLocal(PrismPropertyValue<ExpressionPipelineType> value) throws SchemaException {
+    protected void assertPrismPropertyValueLocal(PrismPropertyValue<ExpressionPipelineType> value) {
         ExpressionPipelineType pipe = value.getValue();
         JAXBElement<ExpressionSequenceType> sequenceJaxb1 = (JAXBElement<ExpressionSequenceType>) pipe.getScriptingExpression().get(0);
         assertEquals("Wrong element name (1)", SchemaConstants.S_SEQUENCE, sequenceJaxb1.getName());

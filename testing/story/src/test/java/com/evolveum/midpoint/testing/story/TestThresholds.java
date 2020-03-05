@@ -22,15 +22,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katka
- *
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -46,7 +41,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     private static final File LDIF_CREATE_USERS_NEXT_FILE = new File(TEST_DIR, "users-next.ldif");
     private static final File LDIF_CHANGE_ACTIVATION_FILE = new File(TEST_DIR, "users-activation.ldif");
 
-
     private static final File ROLE_POLICY_RULE_CREATE_FILE = new File(TEST_DIR, "role-policy-rule-create.xml");
     private static final String ROLE_POLICY_RULE_CREATE_OID = "00000000-role-0000-0000-999111111112";
 
@@ -58,13 +52,9 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     private static final int TASK_IMPORT_TIMEOUT = 60000;
 
-
-    private PrismObject<ResourceType> resourceOpenDj;
-
     protected int getDefaultUsers() {
         return 6;
     }
-
 
     @Override
     protected void startResources() throws Exception {
@@ -72,7 +62,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -83,13 +73,13 @@ public abstract class TestThresholds extends AbstractStoryTest {
     protected abstract void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception;
     protected abstract void assertSynchronizationStatisticsActivation(Task taskAfter);
 
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         //Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(
+                ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         repoAddObjectFromFile(ROLE_POLICY_RULE_CREATE_FILE, initResult);
@@ -98,11 +88,9 @@ public abstract class TestThresholds extends AbstractStoryTest {
         repoAddObjectFromFile(getTaskFile(), initResult);
     }
 
-
     @Test
     public void test001testImportBaseUsers() throws Exception {
-        final String TEST_NAME = "test001testImportBaseUsers";
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_IMPORT_BASE_USERS_FILE);
 
@@ -141,10 +129,8 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     @Test
     public void test100assignPolicyRuleCreateToTask() throws Exception {
-        final String TEST_NAME = "test100assignPolicyRuleCreateToTask";
-
         // WHEN
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         assignRole(TaskType.class, getTaskOid(), ROLE_POLICY_RULE_CREATE_OID, task, result);
 
@@ -159,14 +145,10 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     @Test
     public void test110importAccounts() throws Exception {
-        final String TEST_NAME = "test110importAccountsSimulate";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_FILE);
-
-
 
         assertUsers(getNumberOfUsers());
         //WHEN
@@ -180,27 +162,23 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
         assertSynchronizationStatisticsAfterImport(taskAfter);
-
     }
+
     @Test
     public void test111importAccountsAgain() throws Exception {
-        final String TEST_NAME = "test111importAccountsAgain";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_NEXT_FILE);
 
-
-
-        assertUsers(getNumberOfUsers()+getProcessedUsers());
+        assertUsers(getNumberOfUsers() + getProcessedUsers());
         //WHEN
         when();
         OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
         assertFailure(reconResult);
 
         //THEN
-        assertUsers(getProcessedUsers()*2 + getNumberOfUsers());
+        assertUsers(getProcessedUsers() * 2 + getNumberOfUsers());
         assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
 
         Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
@@ -209,11 +187,9 @@ public abstract class TestThresholds extends AbstractStoryTest {
     }
 
     @Test
-    public void test500chageTaskPolicyRule() throws Exception {
-        final String TEST_NAME = "test500chageTaskPolicyRule";
-
+    public void test500changeTaskPolicyRule() throws Exception {
         //WHEN
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         unassignRole(TaskType.class, getTaskOid(), ROLE_POLICY_RULE_CREATE_OID, task, result);
         assignRole(TaskType.class, getTaskOid(), ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID, task, result);
@@ -226,11 +202,9 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
     }
 
-
     @Test
     public void test520changeActivationThreeAccounts() throws Exception {
-        final String TEST_NAME = "test520changeActivationThreeAccounts";
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         //GIVEN
         openDJController.executeLdifChange(LDIF_CHANGE_ACTIVATION_FILE);
@@ -247,7 +221,5 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
 
         assertSynchronizationStatisticsActivation(taskAfter);
-
     }
-
 }

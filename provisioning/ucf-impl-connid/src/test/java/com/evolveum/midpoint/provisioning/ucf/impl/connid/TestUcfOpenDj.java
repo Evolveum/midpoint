@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,14 +52,11 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -81,7 +77,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  * a lesser evil for now (MID-392)
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
-public class TestUcfOpenDj extends AbstractSpringTest {
+public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     private static final File RESOURCE_OPENDJ_FILE = new File(UcfTestUtil.TEST_DIR, "resource-opendj.xml");
     private static final File RESOURCE_OPENDJ_BAD_FILE = new File(UcfTestUtil.TEST_DIR, "resource-opendj-bad.xml");
@@ -95,14 +91,9 @@ public class TestUcfOpenDj extends AbstractSpringTest {
     private PrismSchema connectorSchema;
     private ResourceSchema resourceSchema;
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestUcfOpenDj.class);
-
-    @Autowired
-    ConnectorFactory connectorFactoryIcfImpl;
-    @Autowired
-    Protector protector;
-    @Autowired
-    PrismContext prismContext;
+    @Autowired ConnectorFactory connectorFactoryIcfImpl;
+    @Autowired Protector protector;
+    @Autowired PrismContext prismContext;
 
     protected static OpenDJController openDJController = new OpenDJController();
 
@@ -113,19 +104,19 @@ public class TestUcfOpenDj extends AbstractSpringTest {
     }
 
     @BeforeClass
-    public static void startLdap() throws Exception {
-        LOGGER.info("------------------------------------------------------------------------------");
-        LOGGER.info("START:  OpenDjUcfTest");
-        LOGGER.info("------------------------------------------------------------------------------");
+    public void startLdap() throws Exception {
+        logger.info("------------------------------------------------------------------------------");
+        logger.info("START:  OpenDjUcfTest");
+        logger.info("------------------------------------------------------------------------------");
         openDJController.startCleanServer();
     }
 
     @AfterClass
-    public static void stopLdap() {
+    public void stopLdap() {
         openDJController.stop();
-        LOGGER.info("------------------------------------------------------------------------------");
-        LOGGER.info("STOP:  OpenDjUcfTest");
-        LOGGER.info("------------------------------------------------------------------------------");
+        logger.info("------------------------------------------------------------------------------");
+        logger.info("STOP:  OpenDjUcfTest");
+        logger.info("------------------------------------------------------------------------------");
     }
 
     @BeforeMethod
@@ -273,7 +264,7 @@ public class TestUcfOpenDj extends AbstractSpringTest {
 
         Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
-        String uid = null;
+        String uid;
         for (ResourceAttribute<?> resourceAttribute : identifiers) {
             if (SchemaConstants.ICFS_UID.equals(resourceAttribute.getElementName())) {
                 uid = resourceAttribute.getValue(String.class).getValue();
@@ -406,15 +397,6 @@ public class TestUcfOpenDj extends AbstractSpringTest {
         delta.addRealValuesToDelete(propertyValue);
         PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
         return attributeModification;
-    }
-
-    private PropertyModificationOperation createActivationChange(ActivationStatusType status) {
-        PrismObjectDefinition<ShadowType> shadowDefinition = getShadowDefinition(ShadowType.class);
-        PropertyDelta<ActivationStatusType> delta = prismContext.deltaFactory().property().createDelta(
-                ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                shadowDefinition);
-        delta.setRealValuesToReplace(status);
-        return new PropertyModificationOperation(delta);
     }
 
     /**
@@ -671,9 +653,7 @@ public class TestUcfOpenDj extends AbstractSpringTest {
 
         ItemDeltaType propMod = new ItemDeltaType();
         //create modification path
-        Document doc = DOMUtil.getDocument();
         ItemPathType path = prismContext.itemPathParser().asItemPathType("credentials/password/value");
-//        PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
         propMod.setPath(path);
 
         //set the replace value

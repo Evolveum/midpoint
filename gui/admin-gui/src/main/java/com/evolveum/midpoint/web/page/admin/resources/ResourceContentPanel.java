@@ -421,7 +421,8 @@ public abstract class ResourceContentPanel extends Panel {
         }
 
         taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(SecurityUtils.getPrincipalUser().getOid(), ObjectTypes.USER));
-        setResponsePage(new PageTask(taskType.asPrismObject(), true));
+
+        getPageBase().navigateToNext(new PageTask(taskType.asPrismObject(), true));
     }
 
     private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList){

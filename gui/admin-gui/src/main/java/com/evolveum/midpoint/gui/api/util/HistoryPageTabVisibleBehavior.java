@@ -14,7 +14,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar.
  */
-public class HistoryPageTabVisibleBehavior<O extends ObjectType> extends FocusTabVisibleBehavior<O>{
+public class HistoryPageTabVisibleBehavior<O extends ObjectType> extends ObjectTabVisibleBehavior<O> {
     private static final long serialVersionUID = 1L;
 
     private boolean visibleOnHistoryPage = false;

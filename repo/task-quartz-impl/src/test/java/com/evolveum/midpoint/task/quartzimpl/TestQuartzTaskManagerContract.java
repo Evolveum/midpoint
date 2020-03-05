@@ -6,6 +6,28 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.PostConstruct;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobKey;
+import org.quartz.SchedulerException;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -31,30 +53,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobKey;
-import org.quartz.SchedulerException;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author Radovan Semancik
@@ -63,8 +62,6 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestQuartzTaskManagerContract.class);
 
     private static final String TASK_OWNER_FILENAME = "src/test/resources/basic/owner.xml";
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";
@@ -116,7 +113,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
-        LOGGER.trace("Retrieving the task and getting its progress...");
+        logger.trace("Retrieving the task and getting its progress...");
 
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
         AssertJUnit.assertEquals("Progress is not 0", 0, task.getProgress());
@@ -161,7 +158,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         System.out.println("1st round: Task = " + task.debugDump());
 
-        LOGGER.trace("Retrieving the task and comparing its properties...");
+        logger.trace("Retrieving the task and comparing its properties...");
 
         Task task001 = getTask(taskOid(TEST_NAME), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
@@ -222,7 +219,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         System.out.println("1st round: Task = " + task.debugDump());
 
-        LOGGER.trace("Retrieving the task and comparing its properties...");
+        logger.trace("Retrieving the task and comparing its properties...");
 
         Task task001 = getTask(taskOid(TEST_NAME), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
@@ -354,14 +351,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         objectReferenceType.setOid(objectOid);
         task.setObjectRef(objectReferenceType);
 
-        LOGGER.trace("Saving modifications...");
+        logger.trace("Saving modifications...");
 
         task.flushPendingModifications(result);
 
-        LOGGER.trace("Retrieving the task (second time) and comparing its properties...");
+        logger.trace("Retrieving the task (second time) and comparing its properties...");
 
         Task task001 = getTask(taskOid(TEST_NAME), result);
-        LOGGER.trace("Task from repo: " + task001.debugDump());
+        logger.trace("Task from repo: " + task001.debugDump());
         AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
         PrismAsserts.assertEqualsPolyString("Name not", newname, task001.getName());
 //        AssertJUnit.assertEquals(newname, task001.getName());
@@ -443,11 +440,11 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // Add single task. This will get picked by task scanner and executed
         addObjectFromFile(taskFilename(TEST_NAME));
 
-        LOGGER.trace("Retrieving the task...");
+        logger.trace("Retrieving the task...");
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
            AssertJUnit.assertNotNull(task);
-           LOGGER.trace("Task retrieval OK.");
+           logger.trace("Task retrieval OK.");
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
@@ -455,7 +452,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         waitForTaskClose(taskOid(TEST_NAME), result, 10000, 1000);
 
-        LOGGER.info("... done");
+        logger.info("... done");
 
         // Check task status
 
@@ -1034,7 +1031,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
             secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
             taskManager.switchToBackground(secondPrerequisiteTask, result);
 
-            LOGGER.info("Starting waiting for child/prerequisite tasks");
+            logger.info("Starting waiting for child/prerequisite tasks");
             rootTask.startWaitingForTasksImmediate(result);
 
             firstChildTask.refresh(result);
@@ -1054,7 +1051,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
             assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (count differs)", 1, deps.size());
             assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
 
-            LOGGER.info("Resuming suspended child/prerequisite tasks");
+            logger.info("Resuming suspended child/prerequisite tasks");
             taskManager.resumeTask(secondChildTask, result);
             taskManager.resumeTask(secondPrerequisiteTask, result);
 
@@ -1214,7 +1211,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         taskManager.resumeTask(childTask2, result);
         parentTask.startWaitingForTasksImmediate(result);
 
-        LOGGER.info("Deleting task {} and its subtasks", parentTask);
+        logger.info("Deleting task {} and its subtasks", parentTask);
 
         taskManager.suspendAndDeleteTasks(Collections.singletonList(parentTask.getOid()), 2000L, true, result);
 
@@ -1565,14 +1562,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
             t = getTask(oid, result);
         } catch (ObjectNotFoundException e) {
             // this is OK, test probably did not start
-            LOGGER.info("Check leftovers: Task " + oid + " does not exist.");
+            logger.info("Check leftovers: Task " + oid + " does not exist.");
             return;
         }
 
-        LOGGER.info("Check leftovers: Task " + oid + " state: " + t.getExecutionStatus());
+        logger.info("Check leftovers: Task " + oid + " state: " + t.getExecutionStatus());
 
         if (t.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-            LOGGER.info("Leftover task: {}", t);
+            logger.info("Leftover task: {}", t);
             leftovers.add(t.getOid());
         }
     }

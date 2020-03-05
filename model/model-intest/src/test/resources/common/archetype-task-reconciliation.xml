@@ -7,6 +7,7 @@
 <archetype oid="00000000-0000-0000-0000-000000000501"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3"
            xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Reconciliation task</name>
     <archetypePolicy>
@@ -49,6 +50,10 @@
         <itemConstraint>
             <path>extension/mext:dryRun</path>
             <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/rext:reportParam</path>
+            <visibility>hidden</visibility>             <!-- just to test hiding whole containers -->
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>

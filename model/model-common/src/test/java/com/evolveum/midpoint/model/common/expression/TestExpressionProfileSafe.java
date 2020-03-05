@@ -31,7 +31,7 @@ public class TestExpressionProfileSafe extends TestExpression {
     @Override
     public void test130Const() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -52,7 +52,7 @@ public class TestExpressionProfileSafe extends TestExpression {
     @Override
     public void test154ScriptGroovySystemDeny() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -73,7 +73,7 @@ public class TestExpressionProfileSafe extends TestExpression {
     @Override
     public void test160ScriptJavaScript() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 

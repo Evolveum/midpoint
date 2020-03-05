@@ -6,28 +6,32 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.Collection;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.util.Collection;
-
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests AbstractSearchIterativeTaskHandler and related classes. See e.g. MID-5227.
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@UnusedTestElement("not in suite")
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIterativeTasks extends AbstractInitializedModelIntegrationTest {
 
@@ -53,7 +57,7 @@ public class TestIterativeTasks extends AbstractInitializedModelIntegrationTest 
     private void createUsers(OperationResult result) throws ObjectAlreadyExistsException, SchemaException {
         for (int i = 0; i < BUCKETS; i++) {
             for (int j = 0; j < USERS_PER_BUCKET; j++) {
-                createUser(result, i*10 + j);
+                createUser(result, i * 10 + j);
             }
         }
     }
@@ -70,8 +74,6 @@ public class TestIterativeTasks extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test100RunBucketsMultithreaded() throws Exception {
-        final String TEST_NAME = "test100RunBucketsMultithreaded";
-
         // GIVEN
 
         // WHEN
@@ -88,10 +90,11 @@ public class TestIterativeTasks extends AbstractInitializedModelIntegrationTest 
         RunningTask parent = instance.taskManager.getLocallyRunningTaskByIdentifier(subtask.getParent());
         assertNotNull("no parent running task", parent);
         Collection<? extends RunningTask> subtasks = parent.getLightweightAsynchronousSubtasks();
-        LOGGER.info("Subtask: {}, parent: {}, its subtasks: ({}): {}", subtask, parent, subtasks.size(), subtasks);
+        LoggerFactory.getLogger(TestIterativeTasks.class).info(
+                "Subtask: {}, parent: {}, its subtasks: ({}): {}", subtask, parent, subtasks.size(), subtasks);
         if (subtasks.size() > EXPECTED_SUBTASKS) {
-            AssertJUnit.fail("Exceeded the expected number of subtasks: have " + subtasks.size() + ", expected max: " + EXPECTED_SUBTASKS + ": " + subtasks);
+            AssertJUnit.fail("Exceeded the expected number of subtasks: have " + subtasks.size()
+                    + ", expected max: " + EXPECTED_SUBTASKS + ": " + subtasks);
         }
     }
-
 }

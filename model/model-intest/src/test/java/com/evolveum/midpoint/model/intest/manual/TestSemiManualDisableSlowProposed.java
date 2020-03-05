@@ -19,28 +19,20 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
 /**
  * @author Radovan Semancik
- *
+ * <p>
  * THIS TEST IS DISABLED MID-4166
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualDisableSlowProposed extends TestSemiManualDisable {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualDisableSlowProposed.class);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -120,7 +112,7 @@ public class TestSemiManualDisableSlowProposed extends TestSemiManualDisable {
     @Override
     protected void assertTest919ShadowRepo(PrismObject<ShadowType> shadowRepo, Task task, OperationResult result) throws Exception {
         ObjectDeltaType disablePendingDelta = null;
-        for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+        for (PendingOperationType pendingOperation : shadowRepo.asObjectable().getPendingOperation()) {
             ObjectDeltaType delta = pendingOperation.getDelta();
             if (delta.getChangeType() == ChangeTypeType.ADD) {
                 ObjectType objectToAdd = delta.getObjectToAdd();
@@ -128,15 +120,15 @@ public class TestSemiManualDisableSlowProposed extends TestSemiManualDisable {
             }
             if (isActivationStatusModifyDelta(delta, ActivationStatusType.DISABLED)) {
                 if (disablePendingDelta != null) {
-                    fail("More than one disable pending delta found:\n"+disablePendingDelta+"\n"+delta);
+                    fail("More than one disable pending delta found:\n" + disablePendingDelta + "\n" + delta);
                 }
                 disablePendingDelta = delta;
             }
             if (isActivationStatusModifyDelta(delta, ActivationStatusType.ENABLED)) {
-                fail("Unexpected enable pending delta found:\n"+delta);
+                fail("Unexpected enable pending delta found:\n" + delta);
             }
             if (delta.getChangeType() == ChangeTypeType.DELETE) {
-                fail("Unexpected delete pending delta found:\n"+disablePendingDelta+"\n"+delta);
+                fail("Unexpected delete pending delta found:\n" + disablePendingDelta + "\n" + delta);
             }
 
         }

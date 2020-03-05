@@ -37,6 +37,11 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
     }
 
     public InlineMenu<TableRow> getInlineMenu() {
-        return null;
+        SelenideElement element = getParentElement().find("td:last-child div.btn-group");
+        if (element == null) {
+            return null;
+        }
+
+        return new InlineMenu<>(this, element);
     }
 }

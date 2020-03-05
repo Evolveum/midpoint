@@ -35,10 +35,6 @@ public class TestParseScriptOutput extends AbstractPropertyValueParserTest<Pipel
 
     @Test
     public void testParseToXNode() throws Exception {
-        displayTestTitle("testParseToXNode");
-
-        System.out.println("\n\n-----------------------------------\n");
-
         String file = MiscUtil.readFile(getFile());
         System.out.println("Original text:\n" + file);
 
@@ -52,14 +48,11 @@ public class TestParseScriptOutput extends AbstractPropertyValueParserTest<Pipel
 
     @Test
     public void testParseFile() throws Exception {
-        displayTestTitle("testParseFile");
         processParsings(null, null);
     }
 
     @Test
     public void testParseRoundTrip() throws Exception {
-        displayTestTitle("testParseRoundTrip");
-
         processParsings(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
         processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
         processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");        // misleading item name
