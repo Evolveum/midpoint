@@ -1,5 +1,5 @@
 /*
-  * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,45 +7,28 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -61,27 +44,29 @@ import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyTest extends BaseSQLRepoTest {
 
@@ -97,17 +82,6 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final File SYSTEM_CONFIGURATION_BEFORE_FILE = new File(TEST_DIR, "system-configuration-before.xml");
     private static final File SYSTEM_CONFIGURATION_AFTER_FILE = new File(TEST_DIR, "system-configuration-after.xml");
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
-    @BeforeClass
-    public void setupClass() {
-        InternalsConfig.encryptionChecks = false;
-    }
-
     @Override
     public void initSystem() throws Exception {
         super.initSystem();
@@ -115,6 +89,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         // This is an experimental feature, so it needs to be explicitly enabled. This will be eliminated later,
         // when we make it enabled by default.
         sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
+        InternalsConfig.encryptionChecks = false;
     }
 
     protected RepoModifyOptions getModifyOptions() {
@@ -194,7 +169,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         //add account
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_FILE);
@@ -230,7 +205,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test032ModifyTaskObjectRef() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
         File taskFile = new File(TEST_DIR, "task.xml");
         System.out.println("ADD");
         PrismObject<TaskType> task = prismContext.parseObject(taskFile);
@@ -319,7 +294,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801 (this passed even before fixing that issue)
     public void test035ModifyTaskOwnerRef() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
         TaskType task = new TaskType(prismContext)
                 .oid("035")
                 .name("task035")
@@ -338,7 +313,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801 (this failed before fixing that issue)
     public void test036ModifyTaskOwnerRefAddAndDelete() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
         TaskType task = new TaskType(prismContext)
                 .oid("036")
                 .name("task036")
@@ -350,8 +325,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
                 .item(TaskType.F_OWNER_REF)
-                    .add(ObjectTypeUtil.createObjectRef("owner-new", ObjectTypes.USER))
-                    .delete(ObjectTypeUtil.createObjectRef("owner-old", ObjectTypes.USER))
+                .add(ObjectTypeUtil.createObjectRef("owner-new", ObjectTypes.USER))
+                .delete(ObjectTypeUtil.createObjectRef("owner-old", ObjectTypes.USER))
                 .asItemDeltas();
         repositoryService.modifyObject(TaskType.class, task.getOid(), modifications, getModifyOptions(), result);
         assertTaskOwner(task.getOid(), "owner-new");
@@ -359,7 +334,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801
     public void test050ModifyUserEmployeeNumber() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
         UserType user = new UserType(prismContext)
                 .oid("050")
                 .name("user050")
@@ -370,8 +345,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_NUMBER)
-                    .add("new")
-                    .delete("old")
+                .add("new")
+                .delete("old")
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
         assertUserEmployeeNumber(user.getOid(), "new");
@@ -379,7 +354,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801
     public void test055DeleteUserEmployeeNumberWrong() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
         UserType user = new UserType(prismContext)
                 .oid("055")
                 .name("user055")
@@ -390,7 +365,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_NUMBER)
-                    .delete("oldWrong")
+                .delete("oldWrong")
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
 
@@ -403,7 +378,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test   // MID-4801
     public void test056EmptyUserEmployeeNumberDelta() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
         UserType user = new UserType(prismContext)
                 .oid("056")
                 .name("user056")
@@ -469,7 +444,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(TEST_DIR + "/modify-user-add-roles.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
 
-
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
 
         repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), getModifyOptions(), parentResult);
@@ -492,7 +466,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test120ModifyAccountMetadata() throws Exception {
         // GIVEN
-        OperationResult parentResult = createResult();
+        OperationResult parentResult = createOperationResult();
 
         repositoryService.deleteObject(ShadowType.class, "1234567890", parentResult);       // from earlier test
 
@@ -525,7 +499,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println(shadowBefore.debugDump());
 
         String oid = repositoryService.addObject(shadowBefore, null, parentResult);
-
 
         // WHEN
         when();
@@ -652,7 +625,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         SynchronizationSituationDescriptionType description = afterFirstModifyType.getSynchronizationSituationDescription().get(0);
         assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
 
-
         timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false, timestamp,
                 prismContext);
@@ -683,7 +655,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test142ModifyAccountAttributeSameValue() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
         repositoryService.addObject(account, null, result);
@@ -706,7 +678,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test144ModifyAccountAttributeDifferent() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         assertNotNull("account-attribute was not imported in previous tests", accountOid);
 
@@ -727,7 +699,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test148ModifyAssignmentExtension() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user-with-assignment-extension.xml"));
         repositoryService.addObject(user, null, result);
@@ -751,7 +723,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test150ModifyRoleAddInducements() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         File roleFile = new File(TEST_DIR, "role-modify.xml");
         //add first user
@@ -799,11 +771,13 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test160ModifyWithPrecondition() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
-        ModificationPrecondition<RoleType> precondition = o -> { throw new PreconditionViolationException("hello"); };
+        ModificationPrecondition<RoleType> precondition = o -> {
+            throw new PreconditionViolationException("hello");
+        };
 
         // WHEN
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(RoleType.class)
@@ -823,7 +797,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test162ModifyWithPrecondition2() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
@@ -848,7 +822,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test164ModifyWithVersionPreconditionFalse() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
@@ -873,7 +847,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test166ModifyWithVersionPreconditionTrue() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         // GIVEN
         String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
@@ -886,14 +860,14 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
 
         String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
-        assertEquals("unexpected version change", Integer.parseInt(versionBefore)+1, Integer.parseInt(versionAfter));
+        assertEquals("unexpected version change", Integer.parseInt(versionBefore) + 1, Integer.parseInt(versionAfter));
         String description = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable().getDescription();
         assertEquals("description was not set", "123456", description);
     }
 
     @Test
     public void test200ReplaceAttributes() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
         account.setOid(null);
@@ -979,9 +953,9 @@ public class ModifyTest extends BaseSQLRepoTest {
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQName, T... expectedValues) {
         PrismProperty<T> attr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName));
         if (expectedValues.length == 0) {
-            assertTrue("Expected no value for attribute "+attrQName+" in "+shadow+", but it has "+attr, attr == null);
+            assertTrue("Expected no value for attribute " + attrQName + " in " + shadow + ", but it has " + attr, attr == null);
         } else {
-            assertNotNull("No attribute "+attrQName+" in "+shadow, attr);
+            assertNotNull("No attribute " + attrQName + " in " + shadow, attr);
             PrismAsserts.assertPropertyValue(attr, expectedValues);
         }
     }
@@ -1040,7 +1014,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test250AddShadowPendingOperations() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("shadow1")
@@ -1076,13 +1050,13 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test260DeleteShadowPendingOperations() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("shadow2")
                 .oid("000-aaa-bbb-ddd")
                 .beginPendingOperation()
-                    .executionStatus(COMPLETED)
+                .executionStatus(COMPLETED)
                 .<ShadowType>end()
                 .asPrismObject();
         repositoryService.addObject(shadow, null, result);
@@ -1114,7 +1088,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test300AddCaseWorkItem() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<CaseType> caseObject = prismContext.createObjectable(CaseType.class)
                 .name("testcase1")
@@ -1147,7 +1121,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test310ModifyCaseWorkItemAssignee() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         final String OLD_OID = "0f4082cf-c0b6-4cd2-a3db-544c668bab0c";
         final String NEW_OID = "4cbdc40b-5693-4174-8634-acd3e0b96168";
@@ -1157,8 +1131,8 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .oid("7d0c37f8-26e5-4213-af95-cfde175f3ff7")
                 .state("open")
                 .beginWorkItem()
-                    .id(1L)
-                    .assigneeRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))
+                .id(1L)
+                .assigneeRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))
                 .<CaseType>end()
                 .asPrismObject();
         repositoryService.addObject(caseObject, null, result);
@@ -1167,7 +1141,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
                 .item(CaseType.F_WORK_ITEM, 1L, CaseWorkItemType.F_ASSIGNEE_REF)
-                    .replace(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
+                .replace(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
                 .asItemDeltas();
         repositoryService.modifyObject(CaseType.class, caseObject.getOid(), itemDeltas, getModifyOptions(), result);
 
@@ -1182,7 +1156,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test320ModifyCaseWorkItemAssigneeAndCandidate() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         final String OLD_OID = "d886a44c-732d-44d4-8403-e7c44bbfba8b";
         final String OLD2_OID = "9a28119e-1283-4328-9e2f-ef383728a4d1";
@@ -1192,10 +1166,10 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .name("case320")
                 .state("open")
                 .beginWorkItem()
-                    .id(1L)
-                    .assigneeRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))
-                    .candidateRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))       // intentionally the same
-                    .candidateRef(new ObjectReferenceType().oid(OLD2_OID).type(UserType.COMPLEX_TYPE))
+                .id(1L)
+                .assigneeRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))
+                .candidateRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))       // intentionally the same
+                .candidateRef(new ObjectReferenceType().oid(OLD2_OID).type(UserType.COMPLEX_TYPE))
                 .<CaseType>end()
                 .asPrismObject();
         repositoryService.addObject(caseObject, null, result);
@@ -1208,9 +1182,9 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
                 .item(CaseType.F_WORK_ITEM, 1L, CaseWorkItemType.F_ASSIGNEE_REF)
-                    .replace(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
+                .replace(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
                 .item(CaseType.F_WORK_ITEM, 1L, CaseWorkItemType.F_CANDIDATE_REF)
-                    .add(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
+                .add(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
                 .asItemDeltas();
         repositoryService.modifyObject(CaseType.class, caseObject.getOid(), itemDeltas, getModifyOptions(), result);
 
@@ -1250,14 +1224,14 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test   // MID-5104
     public void test350ReplaceAssignmentModifyApprover() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("test350")
                 .oid("oid-350")
                 .beginAssignment()
-                    .id(123L)
-                    .targetRef("oid0", RoleType.COMPLEX_TYPE)
+                .id(123L)
+                .targetRef("oid0", RoleType.COMPLEX_TYPE)
                 .<UserType>end()
                 .asPrismObject();
         repositoryService.addObject(user, null, result);
@@ -1278,7 +1252,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test   // MID-5105
     public void test360ReplaceModifyApprovers() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("test360")
@@ -1327,7 +1301,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .<CredentialsType>end()
                 .end();
 
-        PrismTestUtil.display("jack before", jack.asPrismObject());
+        display("jack before", jack.asPrismObject());
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)
@@ -1336,7 +1310,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         delta.applyTo(jack.asPrismObject());
 
-        PrismTestUtil.display("jack after", jack.asPrismObject());
+        display("jack after", jack.asPrismObject());
 
         jack.asPrismObject().checkConsistence();
     }
@@ -1352,7 +1326,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         protectedProperty.setRealValue(protectedValue.clone());
         jack.asPrismObject().addExtensionItem(protectedProperty);
 
-        PrismTestUtil.display("jack before", jack.asPrismObject());
+        display("jack before", jack.asPrismObject());
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION, "protected")
@@ -1361,7 +1335,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         delta.applyTo(jack.asPrismObject());
 
-        PrismTestUtil.display("jack after", jack.asPrismObject());
+        display("jack after", jack.asPrismObject());
 
         jack.asPrismObject().checkConsistence();
     }
@@ -1369,7 +1343,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test   // MID-5516
     public void test420RemoveExtensionProtectedStringValueInRepo() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         ProtectedStringType protectedValue = protector.encryptString("hi");
         UserType jack = new UserType(prismContext)
@@ -1382,7 +1356,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.addObject(jack.asPrismObject(), null, result);
 
-        PrismTestUtil.display("jack before", jack.asPrismObject());
+        display("jack before", jack.asPrismObject());
 
         // WHEN
 
@@ -1397,7 +1371,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> jackAfter = repositoryService.getObject(UserType.class, jack.getOid(), null, result);
 
-        PrismTestUtil.display("jack after", jackAfter);
+        display("jack after", jackAfter);
 
         jackAfter.checkConsistence();
     }
@@ -1405,7 +1379,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test  // MID-5826 - fortunately, in 4.0 this works due to reworked handling of extension values in repo
     public void test450ReplaceExtensionItem() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("test400")
@@ -1444,7 +1418,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(enabled = false)  // MID-5958
     public void test500ReferenceTargetNameAdding() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PolyStringType parentName = new PolyStringType("Parent");
         parentName.setNorm("Parent");
@@ -1481,7 +1455,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test510ModifySystemConfiguration() throws Exception {
         // GIVEN
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<SystemConfigurationType> before = prismContext.parseObject(SYSTEM_CONFIGURATION_BEFORE_FILE);
         repositoryService.addObject(before, null, result);

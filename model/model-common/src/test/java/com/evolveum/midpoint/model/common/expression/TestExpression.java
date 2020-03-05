@@ -81,7 +81,7 @@ public class TestExpression extends AbstractModelCommonTest {
     protected static final String INPUT_VALUE = "garbage in";
     protected static final String GROOVY_SCRIPT_OUTPUT_SUCCESS = "SUCCESS";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestExpression.class);
+    private static final Trace logger = TraceManager.getTrace(TestExpression.class);
 
     protected PrismContext prismContext;
     protected ExpressionFactory expressionFactory;
@@ -107,23 +107,26 @@ public class TestExpression extends AbstractModelCommonTest {
 
         expressionProfile = compileExpressionProfile(getExpressionProfileName());
         System.out.println("Using expression profile: " + expressionProfile);
-        LOGGER.info("EXPRESSION PROFILE: {}", expressionProfile);
+        logger.info("EXPRESSION PROFILE: {}", expressionProfile);
     }
 
     @Test
     public void test100AsIs() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
         ExpressionType expressionType = parseExpression(EXPRESSION_ASIS_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
         ExpressionVariables variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
+        ExpressionEvaluationContext expressionContext =
+                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(
+                        expressionType, PrimitiveType.STRING, expressionContext, result);
 
         // THEN
         assertOutputTriple(outputTriple)
@@ -138,7 +141,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test110Path() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -164,7 +167,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test120Value() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -190,7 +193,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test130Const() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -216,7 +219,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test150ScriptGroovySimple() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -242,7 +245,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test152ScriptGroovySystemAllow() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -268,7 +271,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test154ScriptGroovySystemDeny() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -294,7 +297,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test160ScriptJavaScript() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -320,7 +323,7 @@ public class TestExpression extends AbstractModelCommonTest {
     @Test
     public void test200IterationCondition() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(contextName());
+        OperationResult result = createOperationResult();
 
         rememberScriptExecutionCount();
 
@@ -392,7 +395,7 @@ public class TestExpression extends AbstractModelCommonTest {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
                 expressionContext.getContextDescription(), expressionContext.getTask(), result);
-        LOGGER.debug("Starting evaluation of expression: {}", expression);
+        logger.debug("Starting evaluation of expression: {}", expression);
         return expression.evaluate(expressionContext, result);
     }
 
@@ -424,12 +427,12 @@ public class TestExpression extends AbstractModelCommonTest {
         } catch (SecurityViolationException e) {
             // Exception may happen here, or it may happen later.
             // Expected
-            LOGGER.debug("Expected exception", e);
+            logger.debug("Expected exception", e);
             assertTrue("Wrong exception message: " + e.getMessage(), e.getMessage().contains("Access to script language"));
             return;
         }
 
-        LOGGER.debug("Starting evaluation of expression (expecting security violation): {}", expression);
+        logger.debug("Starting evaluation of expression (expecting security violation): {}", expression);
         try {
 
             expression.evaluate(expressionContext, result);
@@ -438,7 +441,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
         } catch (SecurityViolationException e) {
             // Expected
-            LOGGER.debug("Expected exception", e);
+            logger.debug("Expected exception", e);
             assertTrue("Wrong exception message: " + e.getMessage(),
                     e.getMessage().contains("Access to expression evaluator")
                             || e.getMessage().contains("Access to Groovy method"));
@@ -454,7 +457,7 @@ public class TestExpression extends AbstractModelCommonTest {
         evaluateExpressionRestricted(expressionType, outputDefinition, expressionContext, result);
     }
 
-    protected <T> void evaluatePropertyExpressionRestricted(
+    protected void evaluatePropertyExpressionRestricted(
             ExpressionType expressionType, PrimitiveType outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
@@ -469,7 +472,8 @@ public class TestExpression extends AbstractModelCommonTest {
     protected void assertScriptExecutionIncrement(int expectedIncrement) {
         long currentScriptExecutionCount = InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
         long actualIncrement = currentScriptExecutionCount - lastScriptExecutionCount;
-        assertEquals("Unexpected increment in script execution count", (long) expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in script execution count",
+                expectedIncrement, actualIncrement);
         lastScriptExecutionCount = currentScriptExecutionCount;
     }
 

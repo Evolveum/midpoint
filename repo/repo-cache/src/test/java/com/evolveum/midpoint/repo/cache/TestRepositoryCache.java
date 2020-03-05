@@ -8,7 +8,8 @@ package com.evolveum.midpoint.repo.cache;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -44,9 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-/**
- *
- */
 @SuppressWarnings("SameParameterValue")
 @ContextConfiguration(locations = { "classpath:ctx-repo-cache-test.xml" })
 public class TestRepositoryCache extends AbstractSpringTest {
@@ -107,18 +105,18 @@ public class TestRepositoryCache extends AbstractSpringTest {
         String oid = repositoryCache.addObject(object, null, result);
 
         PrismObject<T> object1 = repositoryCache.getObject(objectClass, oid, null, result);
-        display("1st object retrieved", object1);
+        PrismTestUtil.display("1st object retrieved", object1);
         assertEquals("Wrong object1", object, object1);
         object1.asObjectable().setDescription("garbage");
 
         PrismObject<T> object2 = repositoryCache.getObject(objectClass, oid, null, result);
-        display("2nd object retrieved", object2);
+        PrismTestUtil.display("2nd object retrieved", object2);
         assertEquals("Wrong object2", object, object2);
         object2.asObjectable().setDescription("total garbage");
 
         PrismObject<T> object3 = repositoryCache.getObject(objectClass, oid, null, result);
         assertEquals("Wrong object3", object, object3);
-        display("3rd object retrieved", object3);
+        PrismTestUtil.display("3rd object retrieved", object3);
 
         dumpStatistics();
         assertAddOperations(1);

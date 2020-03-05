@@ -7,6 +7,23 @@
 
 package com.evolveum.midpoint.wf.impl.other;
 
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -19,26 +36,8 @@ import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * This is an adaptation of model-intest manual resource test(s) aimed to verify workflow-related aspects
@@ -47,15 +46,12 @@ import static org.testng.AssertJUnit.*;
  * @author Radovan Semancik
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class ManualResourceTest extends AbstractWfTest {
 
     private static final File TEST_DIR = new File("src/test/resources/manual/");
-
-    @SuppressWarnings("unused")
-    private static final Trace LOGGER = TraceManager.getTrace(ManualResourceTest.class);
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
@@ -115,12 +111,12 @@ public class ManualResourceTest extends AbstractWfTest {
     private PrismObject<UserType> createUserWill() throws SchemaException {
         PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
         user.asObjectable()
-            .name(USER_WILL_NAME)
-            .givenName(USER_WILL_GIVEN_NAME)
-            .familyName(USER_WILL_FAMILY_NAME)
-            .fullName(USER_WILL_FULL_NAME)
-            .beginActivation().administrativeStatus(ActivationStatusType.ENABLED).<UserType>end()
-            .beginCredentials().beginPassword().beginValue().setClearValue(USER_WILL_PASSWORD_OLD);
+                .name(USER_WILL_NAME)
+                .givenName(USER_WILL_GIVEN_NAME)
+                .familyName(USER_WILL_FAMILY_NAME)
+                .fullName(USER_WILL_FULL_NAME)
+                .beginActivation().administrativeStatus(ActivationStatusType.ENABLED).<UserType>end()
+                .beginCredentials().beginPassword().beginValue().setClearValue(USER_WILL_PASSWORD_OLD);
         return user;
     }
 
@@ -247,35 +243,35 @@ public class ManualResourceTest extends AbstractWfTest {
 
     private void assertAccountWillAfterAssign(String expectedFullName) throws Exception {
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
-            .assertConception()
-            .pendingOperations()
+                .assertConception()
+                .pendingOperations()
                 .singleOperation()
-                    .assertId()
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                    .delta()
-                        .display()
-                        .end()
-                    .end()
+                .assertId()
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .delta()
+                .display()
                 .end()
-            .attributes()
+                .end()
+                .end()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end()
-            .assertNoPassword();
+                .assertNoPassword();
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter.getObject(), ActivationStatusType.ENABLED);
 
-        ShadowAsserter<Void> shadowModelAsserter =  assertModelShadow(accountWillOid)
-            .assertName(USER_WILL_NAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .assertConception()
-            .attributes()
+        ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
+                .assertName(USER_WILL_NAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertConception()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end()
-            .assertNoPassword()
-            .pendingOperations()
+                .assertNoPassword()
+                .pendingOperations()
                 .singleOperation()
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                    .end()
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .end()
                 .end();
         assertAttributeFromCache(shadowModelAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
         assertShadowActivationAdministrativeStatusFromCache(shadowModelAsserter.getObject(), ActivationStatusType.ENABLED);
@@ -295,40 +291,40 @@ public class ManualResourceTest extends AbstractWfTest {
 
     private void assertWillAfterCreateCaseClosed() throws Exception {
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-                    .end()
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                 .end()
-            .attributes()
+                .end()
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end();
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
 
         ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
-            .assertName(USER_WILL_NAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .attributes()
+                .assertName(USER_WILL_NAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end();
         shadowRepoAsserter
-            .assertLife();
+                .assertLife();
 
         shadowModelAsserter
-            .assertLife()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .attributes()
+                .assertLife()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .attributes()
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
                 .end()
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-                    .end()
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+                .end()
                 .end();
         assertAttributeFromBackingStore(shadowModelAsserter, ATTR_DESCRIPTION_QNAME);
         assertShadowPassword(shadowModelAsserter);

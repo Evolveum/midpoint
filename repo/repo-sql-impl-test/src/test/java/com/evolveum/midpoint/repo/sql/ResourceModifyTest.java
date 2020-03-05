@@ -30,8 +30,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -41,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ResourceModifyTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceModifyTest.class);
     private static final File TEST_DIR = new File("src/test/resources/modify");
 
     private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
@@ -63,7 +60,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     @Test
     public void test010AddResource() throws Exception {
         final String TEST_NAME = "test010AddResource";
-        LOGGER.info("===[ {} ]===", TEST_NAME);
+        logger.info("===[ {} ]===", TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
@@ -85,7 +82,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     @Test
     public void test020SingleDescriptionModify() throws Exception {
         final String TEST_NAME = "test020SingleDescriptionModify";
-        LOGGER.info("===[ {} ]===", TEST_NAME);
+        logger.info("===[ {} ]===", TEST_NAME);
 
         OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
         singleModify(descriptionAnt, -1, result);
@@ -94,7 +91,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     @Test
     public void test030DescriptionModifySequence() throws Exception {
         final String TEST_NAME = "test030DescriptionModifySequence";
-        LOGGER.info("===[ {} ]===", TEST_NAME);
+        logger.info("===[ {} ]===", TEST_NAME);
 
         OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
 
@@ -106,7 +103,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     @Test
     public void test040RadomModifySequence() throws Exception {
         final String TEST_NAME = "test040RadomModifySequence";
-        LOGGER.info("===[ {} ]===", TEST_NAME);
+        logger.info("===[ {} ]===", TEST_NAME);
 
         OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
 

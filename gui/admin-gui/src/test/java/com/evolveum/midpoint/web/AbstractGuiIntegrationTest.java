@@ -73,8 +73,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiIntegrationTest.class);
-
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     public static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
@@ -131,13 +129,13 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.info("before super init");
+        logger.info("before super init");
         super.initSystem(initTask, initResult);
 
-        LOGGER.info("after super init");
+        logger.info("after super init");
 
         login(USER_ADMINISTRATOR_USERNAME);
-        LOGGER.info("user logged in");
+        logger.info("user logged in");
 
         tester = new WicketTester(application, true);
     }
@@ -153,28 +151,28 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     @BeforeClass
     public void beforeClass() {
         System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName() });
-        LOGGER.info("Loalization serivce : {}", localizationService);
+        logger.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName() });
+        logger.info("Loalization serivce : {}", localizationService);
         String s = localizationService.translate("midpoint.system.build", null, localizationService.getDefaultLocale());
-        LOGGER.info("SsSSSSSSSSSSSSS {}", s);
+        logger.info("SsSSSSSSSSSSSSS {}", s);
     }
 
     @AfterClass
     public void afterClass() {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<\n", new Object[] { getClass().getName() });
+        logger.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<\n", new Object[] { getClass().getName() });
     }
 
     @BeforeMethod
     public void beforeMethod(Method method) {
         System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
+        logger.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
     }
 
     @AfterMethod
     public void afterMethod(Method method) {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
+        logger.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
     }
 
     protected ModelServiceLocator getServiceLocator(final Task pageTask) {
@@ -310,15 +308,8 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         return ItemPath.create(ObjectType.F_EXTENSION, qname);
     }
 
-    protected Task createSimpleTask(String operation) {
-        Task task = taskManager.createTaskInstance(operation);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-        return task;
-    }
-
     /**
      * Emulate closing ModalWindow component.
-     * @param path
      */
     protected void executeModalWindowCloseCallback(String path) {
         Component component = tester.getComponentFromLastRenderedPage(path);

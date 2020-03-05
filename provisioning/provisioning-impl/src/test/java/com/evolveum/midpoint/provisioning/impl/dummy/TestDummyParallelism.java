@@ -674,11 +674,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
                 RESOURCE_DUMMY_OID,
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECTCLAS_GROUP_LOCAL_NAME),
+                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECTCLASS_GROUP_LOCAL_NAME),
                 prismContext);
 
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
-        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(OBJECTCLAS_GROUP_LOCAL_NAME);
+        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(OBJECTCLASS_GROUP_LOCAL_NAME);
         ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
         ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)

@@ -7,55 +7,41 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.repo.api.RepositoryService.OP_SEARCH_OBJECTS;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.repo.api.RepositoryService.OP_SEARCH_OBJECTS;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-
-/**
- * @author mederly
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SearchIterativeTest extends BaseSQLRepoTest {
 
-    @SuppressWarnings("unused")
-    private static final Trace LOGGER = TraceManager.getTrace(SearchIterativeTest.class);
     private static final int BASE = 100000;
     private static final int COUNT = 500;       // should be divisible by BATCH
     private static final int BATCH = 50;        // should be synchronized with repo setting
 
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        super.beforeClass();
-
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-
+    @Override
+    public void initSystem() throws Exception {
         createObjects();
     }
 
@@ -64,7 +50,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         for (int i = BASE; i < BASE + COUNT; i++) {
             UserType user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate().asObjectable();
             user.setOid("user-" + i + "-00");
-            user.setName(new PolyStringType(new PolyString("user-"+i)));
+            user.setName(new PolyStringType(new PolyString("user-" + i)));
             user.setCostCenter(String.valueOf(i));
             repositoryService.addObject(user.asPrismObject(), null, result);
         }
@@ -288,7 +274,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         assertObjects(objects, COUNT);
 
         int count = repositoryService.countObjects(UserType.class, null, null, result);
-        assertEquals("Wrong # of objects after operation", COUNT/2, count);
+        assertEquals("Wrong # of objects after operation", COUNT / 2, count);
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .asc(UserType.F_NAME)
@@ -307,18 +293,18 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         ResultHandler<UserType> handler = (object, parentResult) -> {
             objects.add(object);
             System.out.print("Got object " + object.getOid());
-            LOGGER.info("Got object {} ({})", object.getOid(), object.asObjectable().getName().getOrig());
+            logger.info("Got object {} ({})", object.getOid(), object.asObjectable().getName().getOrig());
             try {
                 int number = Integer.parseInt(object.asObjectable().getCostCenter());
                 if (number >= 0) {
                     UserType user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate().asObjectable();
-                    user.setOid("user-" + (2*BASE + COUNT - number) + "-FF");
+                    user.setOid("user-" + (2 * BASE + COUNT - number) + "-FF");
                     user.setName(new PolyStringType(new PolyString("user-new-" + number)));
                     user.setCostCenter(String.valueOf(-number));
                     repositoryService.addObject(user.asPrismObject(), null, parentResult);
                     System.out.print(" ... creating object " + user.getOid());
                 }
-            } catch (ObjectAlreadyExistsException|SchemaException e) {
+            } catch (ObjectAlreadyExistsException | SchemaException e) {
                 throw new SystemException(e);
             }
             System.out.println();
@@ -332,9 +318,9 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         boolean[] map = assertObjects(objects, null);
         for (int i = 0; i < COUNT; i++) {
             if (i % 2 == 0) {
-                assertFalse("Object " + (BASE+i) + " does exist but it should not", map[i]);
+                assertFalse("Object " + (BASE + i) + " does exist but it should not", map[i]);
             } else {
-                assertTrue("Object " + (BASE+i) + " does not exist but it should", map[i]);
+                assertTrue("Object " + (BASE + i) + " does not exist but it should", map[i]);
             }
         }
 

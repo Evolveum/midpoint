@@ -35,6 +35,15 @@ public class TestPath extends AbstractPrismTest {
         creators.put('R', seq -> creators.get("CSN".charAt((int) (Math.random() * 3))).apply(seq));
     }
 
+    /**
+     * See TestEditSchema.testEmptyPath()
+     */
+    @Test
+    public void testEmptyPath() {
+        System.out.println("UniformItemPath.EMPTY_PATH = " + UniformItemPath.EMPTY_PATH);
+        System.out.println("UniformItemPathImpl.EMPTY_PATH = " + UniformItemPathImpl.EMPTY_PATH);
+    }
+
     @Test
     public void testPathNormalize() {
         PrismContext prismContext = getPrismContext();

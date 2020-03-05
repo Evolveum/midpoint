@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.model.intest.archetypes;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -27,8 +25,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
@@ -38,13 +34,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Test behavior of connectors that have several instances (poolable connectors).
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCollections extends AbstractArchetypesTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestCollections.class);
 
     private PrismObject<ObjectCollectionType> collectionActiveUsers;
     private CompiledObjectCollectionView collectionViewActiveUsers;
@@ -63,8 +56,6 @@ public class TestCollections extends AbstractArchetypesTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -82,8 +73,6 @@ public class TestCollections extends AbstractArchetypesTest {
 
     @Test
     public void test100CompileCollectionView() throws Exception {
-        final String TEST_NAME = "test100CompileCollectionView";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -99,8 +88,8 @@ public class TestCollections extends AbstractArchetypesTest {
         assertNotNull("Null view", collectionActiveUsers);
 
         assertObjectCollectionView(collectionViewActiveUsers)
-            .assertFilter()
-            .assertDomainFilter();
+                .assertFilter()
+                .assertDomainFilter();
 
     }
 
@@ -109,8 +98,6 @@ public class TestCollections extends AbstractArchetypesTest {
      */
     @Test
     public void test102SearchCollectionUsers() throws Exception {
-        final String TEST_NAME = "test102SearchCollectionUsers";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -128,8 +115,6 @@ public class TestCollections extends AbstractArchetypesTest {
 
     @Test
     public void test110CollectionStatsAllEnabled() throws Exception {
-        final String TEST_NAME = "test110CollectionStatsAllEnabled";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -145,14 +130,12 @@ public class TestCollections extends AbstractArchetypesTest {
         assertNotNull("Null stats", stats);
 
         assertEquals("Wrong object count", getNumberOfUsers(), stats.getObjectCount());
-        assertEquals("Wrong domain count", (Integer)getNumberOfUsers(), stats.getDomainCount());
+        assertEquals("Wrong domain count", (Integer) getNumberOfUsers(), stats.getDomainCount());
         assertPercentage(stats, 100);
     }
 
     @Test
     public void test112EvaluateRulesAllEnabled() throws Exception {
-        final String TEST_NAME = "test112EvaluateRulesAllEnabled";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -166,14 +149,12 @@ public class TestCollections extends AbstractArchetypesTest {
         assertSuccess(result);
 
         assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)
-            .single()
+                .single()
                 .assertNotTriggered();
     }
 
     @Test
     public void test120CollectionStatsOneDisabled() throws Exception {
-        final String TEST_NAME = "test120CollectionStatsOneDisabled";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -192,14 +173,12 @@ public class TestCollections extends AbstractArchetypesTest {
         assertNotNull("Null stats", stats);
 
         assertEquals("Wrong object count", getNumberOfUsers() - numberOfDisabledUsers, stats.getObjectCount());
-        assertEquals("Wrong domain count", (Integer)getNumberOfUsers(), stats.getDomainCount());
-        assertPercentage(stats, (Float)((getNumberOfUsers() - numberOfDisabledUsers)*100f)/getNumberOfUsers());
+        assertEquals("Wrong domain count", (Integer) getNumberOfUsers(), stats.getDomainCount());
+        assertPercentage(stats, (getNumberOfUsers() - numberOfDisabledUsers) * 100f / getNumberOfUsers());
     }
 
     @Test
     public void test122EvaluateRulesOneDisabled() throws Exception {
-        final String TEST_NAME = "test122EvaluateRulesOneDisabled";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -213,10 +192,10 @@ public class TestCollections extends AbstractArchetypesTest {
         assertSuccess(result);
 
         assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)
-            .single()
+                .single()
                 .assertPolicySituation(POLICY_SITUATION_TOO_MANY_INACTIVE_USERS)
                 .singleTrigger()
-                    .assertConstraintKind(PolicyConstraintKindType.COLLECTION_STATS);
+                .assertConstraintKind(PolicyConstraintKindType.COLLECTION_STATS);
 
     }
 }

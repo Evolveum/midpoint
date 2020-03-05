@@ -236,7 +236,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test006GetObjectSchemaless() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, null, result);
         assertNotNull("Resource is null", resource);
         ResourceType resourceType = resource.asObjectable();
@@ -547,7 +547,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test106GetObjectStaticSchema() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result);
         assertNotNull("Resource is null", resource);
@@ -734,7 +734,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test200AddAccount() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         ShadowType account = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
         account.asPrismObject().checkConsistence();

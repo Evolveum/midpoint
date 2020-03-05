@@ -6,6 +6,22 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static java.util.Collections.singletonList;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
+import javax.annotation.PostConstruct;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -17,26 +33,7 @@ import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationS
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.annotation.PostConstruct;
-
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static java.util.Collections.singletonList;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Low level tests of work bucket strategies.
@@ -44,11 +41,9 @@ import static org.testng.AssertJUnit.assertTrue;
  * @author mederly
  */
 
-@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestWorkBucketStrategies.class);
 
     @Autowired private WorkStateManager workStateManager;
     @Autowired private WorkSegmentationStrategyFactory strategyFactory;

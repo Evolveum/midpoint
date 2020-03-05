@@ -51,7 +51,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "text001testReconcileScriptsWhenProvisioning";
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult parentResult = createOperationalResult();
+        OperationResult parentResult = createOperationResult();
 
         ObjectDelta<UserType> delta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -124,7 +124,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "test003testReconcileScriptsAddUserAction";
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult parentResult = createOperationalResult();
+        OperationResult parentResult = createOperationResult();
 
         ShadowType shadow = parseObjectType(new File(ACCOUNT_BEFORE_SCRIPT_FILENAME), ShadowType.class);
 
@@ -169,7 +169,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "test005TestDryRunDelete";
 
         PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
-        OperationResult parentResult = createOperationalResult();
+        OperationResult parentResult = createOperationResult();
 
         PropertyDelta dryRunDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(PATH_MODEL_EXTENSION_DRY_RUN, task.getDefinition(), true);
         Collection<PropertyDelta> modifications = new ArrayList<>();
@@ -200,7 +200,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "test006TestReconDelete";
 
         PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
-        OperationResult parentResult = createOperationalResult();
+        OperationResult parentResult = createOperationResult();
 
         PropertyDelta<Boolean> dryRunDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 PATH_MODEL_EXTENSION_DRY_RUN, task.getDefinition(), false);

@@ -59,22 +59,19 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointPrincipalManagerMock.class);
 
-    @Autowired(required = true)
+    @Autowired
     private transient RepositoryService repositoryService;
 
-    @Autowired(required = true)
+    @Autowired
     private ActivationComputer activationComputer;
 
-    @Autowired(required = true)
-    private Clock clock;
-
-    @Autowired(required = true)
+    @Autowired
     private PrismContext prismContext;
 
     @Override
     public MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        PrismObject<? extends FocusType> focus = null;
+        PrismObject<? extends FocusType> focus;
         try {
             focus = findByUsername(username, clazz, result);
         } catch (ObjectNotFoundException ex) {

@@ -102,7 +102,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test001testImportBaseUsers() throws Exception {
         final String TEST_NAME = "test001testImportBaseUsers";
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_IMPORT_BASE_USERS_FILE);
 
@@ -230,7 +230,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test520changeActivationThreeAccounts() throws Exception {
         final String TEST_NAME = "test520changeActivationThreeAccounts";
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         //GIVEN
         openDJController.executeLdifChange(LDIF_CHANGE_ACTIVATION_FILE);

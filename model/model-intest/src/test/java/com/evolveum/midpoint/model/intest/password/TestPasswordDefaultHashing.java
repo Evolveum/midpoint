@@ -163,7 +163,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 
         // CLEANUP
-        displayCleanup(contextName());
+        displayCleanup();
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
@@ -210,7 +210,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 
         // CLEANUP
-        displayCleanup(contextName());
+        displayCleanup();
 
         unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 

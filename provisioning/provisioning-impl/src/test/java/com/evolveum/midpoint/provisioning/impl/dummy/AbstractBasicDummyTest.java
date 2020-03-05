@@ -116,7 +116,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
 
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result)
                 .asObjectable();
@@ -140,7 +140,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test010ListConnectors() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         // WHEN
         List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class,
@@ -186,7 +186,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test012ConnectorRediscovery() {
         given();
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         when();
         Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
@@ -354,7 +354,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test021Configuration() throws Exception {
         given();
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         when();
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
@@ -534,7 +534,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test028Capabilities() throws Exception {
         given();
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         when();
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
@@ -664,7 +664,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test029CapabilitiesRepo() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         // WHEN
         PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
@@ -763,7 +763,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test032ResourceAndConnectorCaching() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
                 resource, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
@@ -821,7 +821,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
         // Check if the connector still works.
-        OperationResult testResult = createOperationalResult("test");
+        OperationResult testResult = createOperationResult("test");
         configuredConnectorInstanceAgain.test(testResult);
         testResult.computeStatus();
         TestUtil.assertSuccess("Connector test failed", testResult);
@@ -877,7 +877,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("Connector instance was changed", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
         // Check if the connector still works
-        OperationResult testResult = createOperationalResult("test");
+        OperationResult testResult = createOperationResult("test");
         configuredConnectorInstanceAgain.test(testResult);
         testResult.computeStatus();
         TestUtil.assertSuccess("Connector test failed", testResult);
@@ -1222,7 +1222,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test102GetAccount() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -1260,7 +1260,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test103GetAccountNoFetch() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         GetOperationOptions rootOptions = new GetOperationOptions();
@@ -1321,7 +1321,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test106GetModifiedAccount() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);

@@ -6,27 +6,26 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.LocalizationTestUtil;
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
@@ -44,29 +44,26 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
  * @author semancik
  */
-public class TestScriptCaching extends AbstractUnitTest {
+public class TestScriptCaching extends AbstractUnitTest
+        implements OperationResultTestMixin {
 
     private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
     protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
 
     private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
 
-     protected ScriptExpressionFactory scriptExpressionfactory;
-     protected ScriptEvaluator evaluator;
+    protected ScriptExpressionFactory scriptExpressionfactory;
+    protected ScriptEvaluator evaluator;
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -96,43 +93,45 @@ public class TestScriptCaching extends AbstractUnitTest {
         // GIVEN
         InternalMonitor.reset();
 
-        assertScriptMonitor(0,0, "init");
+        assertScriptMonitor(0, 0, "init");
 
         // WHEN, THEN
         long etimeFirst = executeScript("expression-string-variables.xml", "FOOBAR", "first");
-        assertScriptMonitor(1,1, "first");
+        assertScriptMonitor(1, 1, "first");
 
         long etimeSecond = executeScript("expression-string-variables.xml", "FOOBAR", "second");
-        assertScriptMonitor(1,2, "second");
-        assertTrue("Einstein was wrong! "+etimeFirst+" -> "+etimeSecond, etimeSecond <= etimeFirst);
+        assertScriptMonitor(1, 2, "second");
+        assertTrue("Einstein was wrong! " + etimeFirst + " -> " + etimeSecond, etimeSecond <= etimeFirst);
 
         long etimeThird = executeScript("expression-string-variables.xml", "FOOBAR", "second");
-        assertScriptMonitor(1,3, "third");
-        assertTrue("Einstein was wrong again! "+etimeFirst+" -> "+etimeThird, etimeThird <= etimeFirst);
+        assertScriptMonitor(1, 3, "third");
+        assertTrue("Einstein was wrong again! " + etimeFirst + " -> " + etimeThird, etimeThird <= etimeFirst);
 
         // Different script. Should compile.
         long horatio1Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio");
-        assertScriptMonitor(2,4, "horatio");
+        assertScriptMonitor(2, 4, "horatio");
 
         // Same script. No compilation.
         long etimeFourth = executeScript("expression-string-variables.xml", "FOOBAR", "fourth");
-        assertScriptMonitor(2,5, "fourth");
-        assertTrue("Einstein was wrong all the time! "+etimeFirst+" -> "+etimeFourth, etimeFourth <= etimeFirst);
+        assertScriptMonitor(2, 5, "fourth");
+        assertTrue("Einstein was wrong all the time! " + etimeFirst + " -> " + etimeFourth, etimeFourth <= etimeFirst);
 
         // Try this again. No compile.
         long horatio2Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio2");
-        assertScriptMonitor(2,6, "horatio2");
-        assertTrue("Even Horatio was wrong! "+horatio1Time+" -> "+horatio2Time, horatio2Time <= horatio1Time);
+        assertScriptMonitor(2, 6, "horatio2");
+        assertTrue("Even Horatio was wrong! " + horatio1Time + " -> " + horatio2Time, horatio2Time <= horatio1Time);
     }
 
     private void assertScriptMonitor(int expCompilations, int expExecutions, String desc) {
-        assertEquals("Unexpected number of script compilations after "+desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
-        assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
+        assertEquals("Unexpected number of script compilations after " + desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
+        assertEquals("Unexpected number of script executions after " + desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
     }
 
-    private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, IOException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private long executeScript(String filname, String expectedResult, String desc)
+            throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
-        OperationResult result = new OperationResult(desc);
+        OperationResult result = createOperationResult(desc);
         ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
         ItemDefinition outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
@@ -145,20 +144,22 @@ public class TestScriptCaching extends AbstractUnitTest {
 
         // WHEN
         long startTime = System.currentTimeMillis();
-        List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(variables , null, false, desc, null, result);
+        List<PrismPropertyValue<String>> scripResults =
+                scriptExpression.evaluate(variables, null, false, desc, null, result);
         long endTime = System.currentTimeMillis();
 
         // THEN
-        System.out.println("Script results "+desc+", etime: "+(endTime - startTime)+" ms");
+        System.out.println("Script results " + desc + ", etime: " + (endTime - startTime) + " ms");
         System.out.println(scripResults);
 
         String scriptResult = asScalarString(scripResults);
-        assertEquals("Wrong script "+desc+" result", expectedResult, scriptResult);
+        assertEquals("Wrong script " + desc + " result", expectedResult, scriptResult);
 
         return (endTime - startTime);
     }
 
-    private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition) {
+    private ScriptExpression createScriptExpression(
+            ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition) {
         ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
@@ -166,15 +167,15 @@ public class TestScriptCaching extends AbstractUnitTest {
         return expression;
     }
 
-    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
-        ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
+    private ScriptExpressionEvaluatorType parseScriptType(String fileName)
+            throws SchemaException, IOException {
+        return PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
-        return expressionType;
     }
 
     private String asScalarString(List<PrismPropertyValue<String>> expressionResultList) {
         if (expressionResultList.size() > 1) {
-            AssertJUnit.fail("Expression produces a list of "+expressionResultList.size()+" while only expected a single value: "+expressionResultList);
+            AssertJUnit.fail("Expression produces a list of " + expressionResultList.size() + " while only expected a single value: " + expressionResultList);
         }
         if (expressionResultList.isEmpty()) {
             return null;

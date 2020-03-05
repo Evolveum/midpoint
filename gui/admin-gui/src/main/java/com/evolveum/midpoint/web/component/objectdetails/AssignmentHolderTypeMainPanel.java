@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.HistoryPageTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
@@ -92,11 +92,11 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
         };
     }
 
-    protected FocusTabVisibleBehavior getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, PageAdminObjectDetails<AHT> parentPage){
+    protected ObjectTabVisibleBehavior getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, PageAdminObjectDetails<AHT> parentPage){
         if (isFocusHistoryPage()){
             return new HistoryPageTabVisibleBehavior<AHT>(unwrapModel(), authUrl, isVisibleOnHistoryPage, parentPage);
         } else {
-            return new FocusTabVisibleBehavior<AHT>(unwrapModel(), authUrl, parentPage);
+            return new ObjectTabVisibleBehavior<AHT>(unwrapModel(), authUrl, parentPage);
         }
     }
 

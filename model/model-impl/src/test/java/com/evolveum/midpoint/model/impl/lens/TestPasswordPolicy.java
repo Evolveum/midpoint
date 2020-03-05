@@ -31,8 +31,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -43,8 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/lens/ppolicy/");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestPasswordPolicy.class);
 
     private static final String USER_AB_USERNAME = "ab";
     private static final String USER_AB_FULL_NAME = "Ad Fel";
@@ -112,7 +108,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
             l.setMustBeFirst(true);
         }
-        LOGGER.info("Negative testing: passwordGeneratorComplexTest");
+        logger.info("Negative testing: passwordGeneratorComplexTest");
         try {
             valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, false, null, getTestNameShort(), task, result);
             assertNotReached();
@@ -190,7 +186,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
 
         File file = new File(TEST_DIR, "value-policy-generate-empty.xml");
-        LOGGER.info("Positive testing {}: {}", "testValueGenerate", "value-policy-generate-empty.xml");
+        logger.info("Positive testing {}: {}", "testValueGenerate", "value-policy-generate-empty.xml");
         ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
         // WHEN
@@ -213,31 +209,31 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
 
         File file = new File(TEST_DIR, policyFilename);
-        LOGGER.info("Positive testing {}: {}", getTestNameShort(), policyFilename);
+        logger.info("Positive testing {}: {}", getTestNameShort(), policyFilename);
         ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
         String psswd;
         // generate minimal size passwd
         for (int i = 0; i < 100; i++) {
             psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, null, getTestNameShort(), task, result);
-            LOGGER.info("Generated password:" + psswd);
+            logger.info("Generated password:" + psswd);
             result.computeStatus();
             if (!result.isSuccess()) {
-                LOGGER.info("Result:" + result.debugDump());
+                logger.info("Result:" + result.debugDump());
                 AssertJUnit.fail("Password generator failed:\n" + result.debugDump());
             }
             assertNotNull(psswd);
             assertPassword(psswd, pp);
         }
         // genereata to meet as possible
-        LOGGER.info("-------------------------");
+        logger.info("-------------------------");
         // Generate up to possible
         for (int i = 0; i < 100; i++) {
             psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, false, null, getTestNameShort(), task, result);
-            LOGGER.info("Generated password:" + psswd);
+            logger.info("Generated password:" + psswd);
             result.computeStatus();
             if (!result.isSuccess()) {
-                LOGGER.info("Result:" + result.debugDump());
+                logger.info("Result:" + result.debugDump());
             }
             AssertJUnit.assertTrue(result.isSuccess());
             assertNotNull(psswd);
@@ -373,8 +369,8 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         result.computeStatus();
         String msg = "-> Policy " + pp.getName() + ", password '" + password + "': " + result.getStatus();
         System.out.println(msg);
-        LOGGER.info(msg);
-        LOGGER.trace(result.debugDump());
+        logger.info(msg);
+        logger.trace(result.debugDump());
         return (result.isSuccess());
     }
 }

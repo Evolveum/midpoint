@@ -36,9 +36,12 @@ class TaskTabsVisibility implements Serializable {
 
     private boolean basicVisible;
     private boolean schedulingVisible;
+    private boolean workManagementVisible;
     private boolean subtasksAndThreadsVisible;
+    private boolean cleanupPolicyVisible;
     private boolean progressVisible;
     private boolean environmentalPerformanceVisible;
+    private boolean internalPerformanceVisible;
     private boolean operationVisible;
     private boolean resultVisible;
     private boolean errorsVisible;
@@ -50,13 +53,26 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean computeSchedulingVisible(PageTask parentPage, TaskType task) {
         schedulingVisible = !WebComponentUtil.isWorkflowTask(task);
-            return schedulingVisible;
+        return schedulingVisible;
+    }
+
+    public boolean computeWorkManagementVisible(){
+        workManagementVisible = true;   //todo when work management should be visible?
+        return workManagementVisible;
+    }
+
+    public boolean computeCleanupPolicyVisible(){
+        cleanupPolicyVisible = true;   //todo when cleanup policy should be visible?
+        return cleanupPolicyVisible;
     }
 
     public boolean computeSubtasksAndThreadsVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
         TaskType task = taskWrapper.getObject().asObjectable();
-        if (parentPage.isEditingFocus() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
+
+        if (parentPage.isEditingFocus()) {
+            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable;
+        } else if (!parentPage.isAdd() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
             subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable
                     || !CollectionUtils.isNotEmpty(task.getSubtask());
         } else {
@@ -72,7 +88,7 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean computeEnvironmentalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         final OperationStatsType operationStats = taskWrapper.getObject().asObjectable().getOperationStats();
-        environmentalPerformanceVisible = !parentPage.isEditingFocus()
+        environmentalPerformanceVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
                 && operationStats != null
                 && !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
@@ -80,10 +96,10 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeInternalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        environmentalPerformanceVisible = !parentPage.isEditingFocus()
+        internalPerformanceVisible = !parentPage.isAdd() &&!parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
                 && taskWrapper.getObject().asObjectable().getOperationStats() != null;
-        return environmentalPerformanceVisible;
+        return internalPerformanceVisible;
     }
 
     public boolean computeOperationVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
@@ -93,7 +109,7 @@ class TaskTabsVisibility implements Serializable {
         } catch (SchemaException ex){
             LOGGER.warn("Unable to find modelOperationContext in task {}", taskWrapper.getObject().asObjectable());
         }
-        operationVisible = !parentPage.isEditingFocus()
+        operationVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_MODEL_OPERATION_CONTEXT)
                 && lensContext != null && !lensContext.isEmpty()
                 && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
@@ -101,14 +117,14 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeResultVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        resultVisible = !parentPage.isEditingFocus()
+        resultVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_RESULT)
                 && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
         return resultVisible;
     }
 
     public boolean computeErrorsVisible(PageTask parentPage, TaskType task) {
-        errorsVisible = !parentPage.isEditingFocus()
+        errorsVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
                 && !WebComponentUtil.isWorkflowTask(task);
         return errorsVisible;
     }
@@ -116,9 +132,12 @@ class TaskTabsVisibility implements Serializable {
     public void computeAll(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         computeBasicVisible(parentPage, taskWrapper.getObject().asObjectable());
         computeSchedulingVisible(parentPage, taskWrapper.getObject().asObjectable());
+        computeWorkManagementVisible();
+        computeCleanupPolicyVisible();
         computeSubtasksAndThreadsVisible(parentPage, taskWrapper);
         computeProgressVisible(parentPage);
         computeEnvironmentalPerformanceVisible(parentPage, taskWrapper);
+        computeInternalPerformanceVisible(parentPage, taskWrapper);
         computeOperationVisible(parentPage, taskWrapper);
         computeResultVisible(parentPage, taskWrapper);
         computeErrorsVisible(parentPage, taskWrapper.getObject().asObjectable());
@@ -203,6 +222,14 @@ class TaskTabsVisibility implements Serializable {
         return schedulingVisible;
     }
 
+    public boolean isWorkManagementVisible() {
+        return workManagementVisible;
+    }
+
+    public boolean isCleanupPolicyVisible() {
+        return cleanupPolicyVisible;
+    }
+
     public boolean isSubtasksAndThreadsVisible() {
         return subtasksAndThreadsVisible;
     }
@@ -213,6 +240,10 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean isEnvironmentalPerformanceVisible() {
         return environmentalPerformanceVisible;
+    }
+
+    public boolean isInternalPerformanceVisible() {
+        return internalPerformanceVisible;
     }
 
     public boolean isOperationVisible() {

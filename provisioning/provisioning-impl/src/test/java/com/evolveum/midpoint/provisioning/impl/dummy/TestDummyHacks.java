@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
@@ -16,12 +15,8 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy resource for speed and flexibility.
@@ -39,11 +34,6 @@ public class TestDummyHacks extends TestDummy {
     private static final File CONNECTOR_DUMMY_FILE = new File(TEST_DIR, "connector-dummy.xml");
 
     private static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-    private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummyHacks.class);
-
-    private PrismObject<ConnectorType> connector;
 
     @Override
     protected File getResourceDummyFile() {
@@ -61,7 +51,7 @@ public class TestDummyHacks extends TestDummy {
         // We want to avoid connector discovery and insert our own connector object
 //        provisioningService.postInit(initResult);
 
-        connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILE, initResult);
+        repoAddObjectFromFile(CONNECTOR_DUMMY_FILE, initResult);
 
         super.initSystem(initTask, initResult);
     }

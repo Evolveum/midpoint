@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -15,33 +28,18 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.util.*;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuditTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AuditTest.class);
-
     @Test
-    public void test100AuditSimple() throws Exception {
-        LOGGER.info("===[ test100AuditSimple ]===");
-
+    public void test100AuditSimple() {
         // WHEN
         AuditEventRecord record = new AuditEventRecord();
         record.addPropertyValue("prop1", "val1.1");
@@ -56,7 +54,7 @@ public class AuditTest extends BaseSQLRepoTest {
         record.addReferenceValue("ref1", refVal1_2);
         record.addReferenceValue("ref2", refVal2);
         record.addReferenceValue("ref3", refVal3);
-        LOGGER.info("Adding audit record {}", record);
+        logger.info("Adding audit record {}", record);
         auditService.audit(record, new NullTaskImpl());
 
         // THEN
@@ -81,13 +79,11 @@ public class AuditTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test110AuditSecond() throws Exception {
-        LOGGER.info("===[ test110AuditSecond ]===");
-
+    public void test110AuditSecond() {
         // WHEN
         AuditEventRecord record = new AuditEventRecord();
         record.addPropertyValue("prop", "val");
-        LOGGER.info("Adding audit record {}", record);
+        logger.info("Adding audit record {}", record);
         auditService.audit(record, new NullTaskImpl());
 
         // THEN

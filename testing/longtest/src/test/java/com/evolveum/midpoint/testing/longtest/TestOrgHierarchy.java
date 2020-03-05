@@ -6,15 +6,6 @@
  */
 package com.evolveum.midpoint.testing.longtest;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import java.io.File;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -23,23 +14,28 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestOrgHierarchy extends AbstractModelIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestOrgHierarchy.class);
-
-    private static final File SYSTEM_CONFIGURATION_FILE = new File( COMMON_DIR, "system-configuration.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
-    private static final File USER_ADMINISTRATOR_FILENAME = new File( COMMON_DIR, "user-administrator.xml");
+    private static final File USER_ADMINISTRATOR_FILENAME = new File(COMMON_DIR, "user-administrator.xml");
     private static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     private static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
-    private static final File ROLE_SUPERUSER_FILENAME = new File( COMMON_DIR, "role-superuser.xml");
+    private static final File ROLE_SUPERUSER_FILENAME = new File(COMMON_DIR, "role-superuser.xml");
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     //222 org. units, 2160 users
@@ -55,8 +51,8 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
 //    private static final int[] TREE_LEVELS_USER = {3, 5, 10};
 
     //18 org. units, 86 users
-    private static final int[] TREE_LEVELS = {2, 8};
-    private static final int[] TREE_LEVELS_USER = {3, 5};
+    private static final int[] TREE_LEVELS = { 2, 8 };
+    private static final int[] TREE_LEVELS_USER = { 3, 5 };
 
     private int count = 0;
 
@@ -79,7 +75,7 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
 
     @Test
     public void test100ImportOrgStructure() throws Exception {
-        OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
+        OperationResult opResult = getTestOperationResult();
 
         loadOrgStructure(null, TREE_LEVELS, TREE_LEVELS_USER, "", opResult);
         opResult.computeStatusIfUnknown();
@@ -87,8 +83,9 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
         TestUtil.assertSuccess(opResult);
     }
 
-    private void loadOrgStructure(String parentOid, int[] TREE_SIZE, int[] USER_SIZE, String oidPrefix,
-                                  OperationResult result) throws Exception {
+    private void loadOrgStructure(String parentOid,
+            int[] TREE_SIZE, int[] USER_SIZE, String oidPrefix, OperationResult result)
+            throws Exception {
         if (TREE_SIZE.length == 0) {
             return;
         }
@@ -96,13 +93,13 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
         for (int i = 0; i < TREE_SIZE[0]; i++) {
             String newOidPrefix = (TREE_SIZE[0] - i) + "a" + oidPrefix;
             PrismObject<OrgType> org = createOrg(parentOid, i, newOidPrefix);
-            LOGGER.info("Creating {}, total {}", org, count);
+            logger.info("Creating {}, total {}", org, count);
             String oid = repositoryService.addObject(org, null, result);
             count++;
 
             for (int u = 0; u < USER_SIZE[0]; u++) {
                 PrismObject<UserType> user = createUser(oid, i, u, newOidPrefix);
-                LOGGER.info("Creating {}, total {}", user, count);
+                logger.info("Creating {}, total {}", user, count);
                 repositoryService.addObject(user, null, result);
                 count++;
             }
@@ -149,19 +146,15 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
     }
 
     private String createOid(int i, String oidPrefix) {
-        String oid = StringUtils.rightPad(oidPrefix + Integer.toString(i), 31, 'a');
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(oid.substring(0, 7));
-        sb.append('-');
-        sb.append(oid.substring(7, 11));
-        sb.append('-');
-        sb.append(oid.substring(11, 15));
-        sb.append('-');
-        sb.append(oid.substring(15, 19));
-        sb.append('-');
-        sb.append(oid.substring(19, 31));
-
-        return sb.toString();
+        String oid = StringUtils.rightPad(oidPrefix + i, 31, 'a');
+        return oid.substring(0, 7)
+                + '-'
+                + oid.substring(7, 11)
+                + '-'
+                + oid.substring(11, 15)
+                + '-'
+                + oid.substring(15, 19)
+                + '-'
+                + oid.substring(19, 31);
     }
 }

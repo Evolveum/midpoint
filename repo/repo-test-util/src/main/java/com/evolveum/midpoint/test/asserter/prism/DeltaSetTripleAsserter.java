@@ -12,7 +12,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 
 /**
@@ -112,7 +112,7 @@ public class DeltaSetTripleAsserter<T,D extends DeltaSetTriple<T>,RA> extends Ab
     }
 
     public DeltaSetTripleAsserter<T,D,RA> display(String message) {
-        IntegrationTestTools.display(message, triple);
+        PrismTestUtil.display(message, triple);
         return this;
     }
 }

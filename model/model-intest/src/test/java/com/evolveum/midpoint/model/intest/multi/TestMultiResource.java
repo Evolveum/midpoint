@@ -859,7 +859,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 
         // CLEANUP - make sure we have clean slate for next tests
-        displayCleanup(contextName());
+        displayCleanup();
         forceDeleteShadow(deadShadowOid);
 
         assertNoShadow(deadShadowOid);
@@ -2455,7 +2455,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         deltas.add(delta);
         modelService.executeChanges(deltas, null, task, result);
 
-        OperationResult deleteResult = new OperationResult("Check if user was deleted properly.");
+        OperationResult deleteResult = createOperationResult("Check if user was deleted properly.");
         try {
             repositoryService.getObject(UserType.class, userWorld.getOid(), null, deleteResult);
         } catch (ObjectNotFoundException ex) {

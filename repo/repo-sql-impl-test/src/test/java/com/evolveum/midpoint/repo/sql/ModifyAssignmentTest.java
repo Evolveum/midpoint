@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.sql;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.resetPrismContext;
-
 import java.io.File;
 import java.util.List;
 
@@ -20,14 +18,12 @@ import org.hibernate.query.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,14 +49,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     private static final String ROLE_A1_OID = "aaaa00aa-aa00-aa00-a0a0-000000000001";
     private static final String ROLE_A2_OID = "aaaa00aa-aa00-aa00-a0a0-000000000002";
 
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        super.beforeClass();
-
-        resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    @Override
+    public void initSystem() throws Exception {
         //given
         //no role
-
         PrismObject<RoleType> role = prismContext.parseObject(FILE_ROLE);
 
         OperationResult result = new OperationResult("add role");
@@ -352,7 +344,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     @Test
     public void test100AssignmentAdd() throws Exception {
         //given
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<RoleType> roleBefore = getObject(RoleType.class, ROLE_OID);
         display("Role before", roleBefore);
@@ -387,7 +379,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     @Test
     public void test110AssignmentAddDeleteIds() throws Exception {
         //given
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<RoleType> roleBefore = getObject(RoleType.class, ROLE_OID);
         display("Role before", roleBefore);

@@ -10,7 +10,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.assertEquals;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.display;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.IOException;

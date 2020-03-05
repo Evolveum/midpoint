@@ -2169,7 +2169,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             ObjectFilter attrFilter, GetOperationOptions rootOptions, final boolean fullShadow,
             boolean useObjectClassFilter, final boolean useRepo, String... expectedAccountNames)
             throws Exception {
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         ObjectQuery query;
         if (useObjectClassFilter) {
@@ -2576,7 +2576,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void checkPrivPillage(PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException {
-        checkEntitlementShadow(shadow, result, OBJECTCLAS_PRIVILEGE_LOCAL_NAME, true);
+        checkEntitlementShadow(shadow, result, OBJECTCLASS_PRIVILEGE_LOCAL_NAME, true);
         assertShadowName(shadow, PRIVILEGE_PILLAGE_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
@@ -2647,7 +2647,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void checkPrivBargain(PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException {
-        checkEntitlementShadow(shadow, result, OBJECTCLAS_PRIVILEGE_LOCAL_NAME, true);
+        checkEntitlementShadow(shadow, result, OBJECTCLASS_PRIVILEGE_LOCAL_NAME, true);
         assertShadowName(shadow, PRIVILEGE_BARGAIN_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.asObjectable().getKind());
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
@@ -2914,7 +2914,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLAS_GROUP_LOCAL_NAME), "fools", resource, result);
+        PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLASS_GROUP_LOCAL_NAME), "fools", resource, result);
         assertNotNull("No shadow for group fools", foolsShadow);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -2974,7 +2974,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLAS_GROUP_LOCAL_NAME), "fools", resource, result);
+        PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLASS_GROUP_LOCAL_NAME), "fools", resource, result);
         assertNotNull("No shadow for group fools", foolsShadow);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);

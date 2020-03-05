@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.sql.closure;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,8 +25,6 @@ import static org.testng.AssertJUnit.assertFalse;
 @ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosureOverwriteAddTest extends AbstractOrgClosureTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(OrgClosureOverwriteAddTest.class);
 
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 1  };
     private static final int[] USER_CHILDREN_IN_LEVEL = null;
@@ -58,7 +54,7 @@ public class OrgClosureOverwriteAddTest extends AbstractOrgClosureTest {
         PrismObject<OrgType> childOrg = repositoryService.getObject(OrgType.class, childOid, null, opResult);
         childOrg.asObjectable().getParentOrgRef().clear();
 
-        LOGGER.info("+++ adding object with 'overwrite' option +++");
+        logger.info("+++ adding object with 'overwrite' option +++");
         repositoryService.addObject(childOrg, RepoAddOptions.createOverwrite(), opResult);
 
         orgGraph.removeEdge(childOid, parentOid);

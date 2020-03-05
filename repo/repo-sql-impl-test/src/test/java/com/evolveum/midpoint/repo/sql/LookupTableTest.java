@@ -7,6 +7,22 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+
+import java.io.File;
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,34 +39,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class LookupTableTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(LookupTableTest.class);
     private static final File TEST_DIR = new File("src/test/resources/lookup");
 
     private static final long TIMESTAMP_TOLERANCE = 10000L;
@@ -99,7 +97,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test200ModifyTableProperties() throws Exception {
         OperationResult result = new OperationResult("test200ModifyTableProperties");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_NAME).replace(new PolyString("Table 1", "table 1"))
                 .asItemDeltas();
 
@@ -110,12 +108,12 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test210ModifyRowProperties() throws Exception {
         OperationResult result = new OperationResult("test210ModifyRowProperties");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_KEY).replace("key 1")
                 .item(F_ROW, 2, F_VALUE).replace()
                 .item(F_ROW, 3, F_LABEL).replace(new PolyString("label 3"))
                 .item(F_ROW, 3, F_LAST_CHANGE_TIMESTAMP)
-                    .replace(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 10, 10)))
+                .replace(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 10, 10)))
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0, Arrays.asList("key 1", "2 key"));
@@ -131,7 +129,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test220AddRemoveValues() throws Exception {
         OperationResult result = new OperationResult("test220AddRemoveValues");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_VALUE).delete("first value")
                 .item(F_ROW, 2, F_VALUE).add("value 2")
                 .asItemDeltas();
@@ -142,7 +140,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test222ReplaceKeyToNull() throws Exception {
         OperationResult result = new OperationResult("test222ReplaceKeyToNull");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_KEY).replace()
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -152,7 +150,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test224DeleteKeyValue() throws Exception {
         OperationResult result = new OperationResult("test224DeleteKeyValue");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_KEY).delete("key 1")
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -162,7 +160,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test226AddKeylessRow() throws Exception {
         OperationResult result = new OperationResult("test226AddKeylessRow");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(new LookupTableRowType())
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -174,7 +172,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
 
         LookupTableRowType row = new LookupTableRowType();
         row.setValue("value");
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(row)
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -184,7 +182,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test230ModifyTableAndRow() throws Exception {
         OperationResult result = new OperationResult("test230ModifyTableAndRow");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_NAME).replace(new PolyString("Table 111", "table 111"))
                 .item(F_ROW, 2, F_KEY).replace("key 2")
                 .asItemDeltas();
@@ -210,7 +208,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row4.setKey("key 4");
         row4.setValue("value 4");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(rowNoId, rowNoId2, row4)
                 .asItemDeltas();
 
@@ -232,7 +230,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row4.setKey("key 4");
         row4.setValue("value 4 NEW");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(rowNoId, row4)
                 .asItemDeltas();
 
@@ -248,7 +246,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType row3 = new LookupTableRowType(prismContext);
         row3.setId(3L);
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).delete(row3)
                 .asItemDeltas();
 
@@ -262,7 +260,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType rowNoId = new LookupTableRowType(prismContext);
         rowNoId.setKey("non-existing-key");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).delete(rowNoId)
                 .asItemDeltas();
 
@@ -293,7 +291,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType row4 = new LookupTableRowType(prismContext);
         row4.setId(4L);
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(rowNoId, row5).delete(row4)
                 .asItemDeltas();
 
@@ -310,7 +308,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row5.setValue("value 5 plus");
         row5.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 3, 10)));
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).replace(row5)
                 .asItemDeltas();
 
@@ -325,7 +323,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         rowNoId.setKey("key new plus");
         rowNoId.setValue("value now plus");
 
-        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).replace(rowNoId)
                 .asItemDeltas();
 
@@ -373,18 +371,19 @@ public class LookupTableTest extends BaseSQLRepoTest {
 
     private PrismObject<LookupTableType> getTablePlain(String tableOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(LookupTableType.class, tableOid,null, result);
+        return repositoryService.getObject(LookupTableType.class, tableOid, null, result);
     }
 
-    protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta,
-                                               List<String> keysWithGeneratedTimestamps)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+    protected void executeAndCheckModification(List<ItemDelta<?, ?>> modifications,
+            OperationResult result, int versionDelta, List<String> keysWithGeneratedTimestamps)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         executeAndCheckModification(modifications, result, versionDelta, keysWithGeneratedTimestamps, null);
     }
 
-    protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta,
-                                               List<String> keysWithGeneratedTimestamps, List<String> replacedKeys)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+    protected void executeAndCheckModification(
+            List<ItemDelta<?, ?>> modifications, OperationResult result, int versionDelta,
+            List<String> keysWithGeneratedTimestamps, List<String> replacedKeys)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         RepoModifyOptions modifyOptions = getModifyOptions();
         if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions) && versionDelta == 0) {
             versionDelta = 1;
@@ -398,9 +397,9 @@ public class LookupTableTest extends BaseSQLRepoTest {
     }
 
     private void checkTable(String oid, OperationResult result, PrismObject<LookupTableType> expectedObject,
-                            List<ItemDelta<?, ?>> modifications, int expectedVersion,
-                            List<String> keysWithNewGeneratedTimestamps, List<String> replacedKeys)
-            throws SchemaException, ObjectNotFoundException, IOException {
+            List<ItemDelta<?, ?>> modifications, int expectedVersion,
+            List<String> keysWithNewGeneratedTimestamps, List<String> replacedKeys)
+            throws SchemaException, ObjectNotFoundException {
         expectedObject.setOid(oid);
 
         // remove keys that will be replaced
@@ -413,9 +412,9 @@ public class LookupTableTest extends BaseSQLRepoTest {
             ItemDeltaCollectionsUtil.applyTo(modifications, expectedObject);
         }
 
-        LOGGER.trace("Expected object = \n{}", expectedObject.debugDump());
+        logger.trace("Expected object = \n{}", expectedObject.debugDump());
         PrismObject<LookupTableType> actualObject = getFullTable(oid, result);
-        LOGGER.trace("Actual object from repo = \n{}", actualObject.debugDump());
+        logger.trace("Actual object from repo = \n{}", actualObject.debugDump());
 
         // before comparison, check and remove generated timestamps
         if (keysWithNewGeneratedTimestamps != null) {
@@ -456,9 +455,10 @@ public class LookupTableTest extends BaseSQLRepoTest {
         }
     }
 
-    private PrismObject<LookupTableType> getFullTable(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(prismContext.toUniformPath(F_ROW), GetOperationOptions.createRetrieve(INCLUDE));
+    private PrismObject<LookupTableType> getFullTable(String oid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(
+                prismContext.toUniformPath(F_ROW), GetOperationOptions.createRetrieve(INCLUDE));
         return repositoryService.getObject(LookupTableType.class, oid, Arrays.asList(retrieve), result);
     }
-
 }

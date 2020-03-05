@@ -6,13 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-
-import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -24,35 +20,23 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManual extends AbstractDirectManualResourceTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
-
     protected static final String ATTR_DISABLED = "disabled";
-    protected static final QName ATTR_DISABLED_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DISABLED);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -116,7 +100,6 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
      */
     @Test
     public void test700AssignAccountJackExisting() throws Exception {
-        final String TEST_NAME = "test700AssignAccountJack";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -175,7 +158,6 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
      */
     @Test
     public void test710UnassignAccountJack() throws Exception {
-        final String TEST_NAME = "test710UnassignAccountJack";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -230,7 +212,6 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
      */
     @Test
     public void test712CloseCaseAndRecomputeJack() throws Exception {
-        final String TEST_NAME = "test712CloseCaseAndRecomputeJack";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -254,27 +235,27 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         accountJackCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountJackOid)
-            .pendingOperations()
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+                .assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
                 .end()
-            .end();
+                .end();
         assertUnassignedShadow(shadowRepoAsserter, true, null);
 
         ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountJackOid)
-            .assertName(USER_JACK_USERNAME)
-            .assertKind(ShadowKindType.ACCOUNT)
-            .pendingOperations()
+                .assertName(USER_JACK_USERNAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .pendingOperations()
                 .singleOperation()
-                    .assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
-                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-                    .assertResultStatus(OperationResultStatusType.SUCCESS)
-                    .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+                .assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
                 .end()
-            .end();
+                .end();
         assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
 
         assertUnassignedFuture(assertModelShadowFuture(accountJackOid), false);
@@ -287,7 +268,6 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
      */
     @Test
     public void test717RecomputeJackAfter130min() throws Exception {
-        final String TEST_NAME = "test717RecomputeJackAfter130min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -316,8 +296,6 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
      */
     @Test
     public void test719CleanUp() throws Exception {
-        final String TEST_NAME = "test719CleanUp";
-
         cleanupUser(USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
     }
 
@@ -325,7 +303,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
         // CSV password is readable
         PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-        assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
+        assertNotNull("No password value property in " + shadow + ": " + passValProp, passValProp);
     }
 
     @Override

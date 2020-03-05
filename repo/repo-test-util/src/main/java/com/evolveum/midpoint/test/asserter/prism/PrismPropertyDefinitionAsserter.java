@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.test.asserter.prism;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
@@ -45,7 +45,7 @@ public class PrismPropertyDefinitionAsserter<T,RA> extends PrismDefinitionAssert
     }
 
     public PrismPropertyDefinitionAsserter<T,RA> display(String message) {
-        IntegrationTestTools.display(message, getDefinition());
+        PrismTestUtil.display(message, getDefinition());
         return this;
     }
 }

@@ -10,7 +10,6 @@ import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
-import static com.evolveum.midpoint.testing.conntest.ad.AdUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +70,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  */
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest {
+public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
+        implements AdTestMixin {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ad-ldap");
 
@@ -199,7 +199,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     }
 
     protected String getLdapConnectorClassName() {
-        return AdUtils.AD_CONNECTOR_TYPE;
+        return AdTestMixin.AD_CONNECTOR_TYPE;
     }
 
     @Override
@@ -224,7 +224,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     public void test000Sanity() throws Exception {
         super.test000Sanity();
 
-        assertLdapPassword(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
+        assertLdapPasswordByFullName(ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
         cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
         cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
         cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
@@ -235,7 +235,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     @Test
     @Override
     public void test020Schema() throws Exception {
-        accountObjectClassDefinition = AdUtils.assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
+        accountObjectClassDefinition = assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
 
         assertLdapConnectorInstances(1);
     }
@@ -590,10 +590,10 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
         assertEquals("Wrong ICFS UID",
-                AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
                 accountBarbossaIcfUid);
 
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
+        assertLdapPasswordByFullName(USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
@@ -730,7 +730,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_2);
+        assertLdapPasswordByFullName(USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_2);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -762,7 +762,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
+        assertLdapPasswordByFullName(USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -779,7 +779,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         // precondition
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
+        assertLdapPasswordByFullName(USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
 
         // WHEN
         when();
@@ -802,7 +802,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAccountDisabled(shadow);
 
         try {
-            assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
+            assertLdapPasswordByFullName(USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
             AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
             // this is expected
@@ -896,7 +896,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         try {
-            assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
+            assertLdapPasswordByFullName(USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
             AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
             // this is expected, account is disabled
@@ -930,7 +930,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         assertAccountEnabled(shadow);
 
-        assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
+        assertLdapPasswordByFullName(USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
 
         assertLdapConnectorInstances(2);
     }
@@ -1089,7 +1089,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         TestUtil.assertSuccess(result);
 
         orgMeleeIslandOid = org.getOid();
-        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
 
         org = getObject(OrgType.class, orgMeleeIslandOid);
         groupMeleeOid = getSingleLinkOid(org);
@@ -1192,13 +1192,15 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         }
     }
 
-    protected void assertLdapPassword(String uid, String fullName, String password) throws LdapException, IOException, CursorException {
+    protected void assertLdapPasswordByFullName(String fullName, String password)
+            throws LdapException, IOException, CursorException {
         Entry entry = getLdapAccountByCn(fullName);
         assertLdapPassword(entry, password);
     }
 
     protected void assertLdapPassword(String uid, String password) {
-        throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
+        throw new UnsupportedOperationException(
+                "Boom! Cannot do this here. This is bloody AD! We need full name!");
     }
 
     protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
@@ -1228,9 +1230,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     }
 
     @Override
-    protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException,
-            SchemaException {
-        OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".assertSyncToken");
+    protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
+            throws ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult("assertStepSyncToken");
         Task task = taskManager.getTask(syncTaskOid, result);
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         assertNotNull("No sync token", syncTokenProperty);
