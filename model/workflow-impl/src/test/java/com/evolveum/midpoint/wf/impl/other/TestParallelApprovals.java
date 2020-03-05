@@ -130,9 +130,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
                         ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDeltaCast(userJackOid);
         executeChanges(assignDelta, createExecuteImmediatelyAfterApproval(), task, result); // should start approval processes
-        assertNotAssignedRole(userJackOid, roleRole51aOid, task, result);
-        assertNotAssignedRole(userJackOid, roleRole52aOid, task, result);
-        assertNotAssignedRole(userJackOid, roleRole53aOid, task, result);
+        assertNotAssignedRole(userJackOid, roleRole51aOid, result);
+        assertNotAssignedRole(userJackOid, roleRole52aOid, result);
+        assertNotAssignedRole(userJackOid, roleRole53aOid, result);
 
         display("Task after operation", task);
 
@@ -248,9 +248,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
                         ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDeltaCast(userBobOid);
         executeChanges(assignDelta2, createExecuteImmediatelyAfterApproval(), task2, result2); // should start approval processes
-        assertNotAssignedRole(userBobOid, roleRole51aOid, task0, result0);
-        assertNotAssignedRole(userBobOid, roleRole52aOid, task0, result0);
-        assertNotAssignedRole(userBobOid, roleRole53aOid, task0, result0);
+        assertNotAssignedRole(userBobOid, roleRole51aOid, result0);
+        assertNotAssignedRole(userBobOid, roleRole52aOid, result0);
+        assertNotAssignedRole(userBobOid, roleRole53aOid, result0);
 
         display("Task1 after operation", task1);
         display("Task2 after operation", task2);
@@ -305,9 +305,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         assignRole(userChuckOid, roleRole51aOid, task1, result1);
         assignRole(userChuckOid, roleRole52aOid, task2, result2);
         assignRole(userChuckOid, roleRole53aOid, task3, result3);
-        assertNotAssignedRole(userChuckOid, roleRole51aOid, task0, result0);
-        assertNotAssignedRole(userChuckOid, roleRole52aOid, task0, result0);
-        assertNotAssignedRole(userChuckOid, roleRole53aOid, task0, result0);
+        assertNotAssignedRole(userChuckOid, roleRole51aOid, result0);
+        assertNotAssignedRole(userChuckOid, roleRole52aOid, result0);
+        assertNotAssignedRole(userChuckOid, roleRole53aOid, result0);
 
         display("Task1 after operation", task1);
         display("Task2 after operation", task2);

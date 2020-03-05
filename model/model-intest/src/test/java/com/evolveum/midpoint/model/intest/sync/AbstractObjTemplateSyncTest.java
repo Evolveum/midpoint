@@ -50,9 +50,6 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
     protected static final File TASK_LIVE_SYNC_DUMMY_BYZANTINE_FILE = new File(TEST_DIR, "task-dummy-byzantine-livesync.xml");
     protected static final String TASK_LIVE_SYNC_DUMMY_BYZANTINE_OID = "10000000-0000-0000-5555-55550000f904";
 
-    protected static final File TASK_RECON_DUMMY_BYZANTINE_FILE = new File(TEST_DIR, "task-dummy-byzantine-recon.xml");
-    protected static final String TASK_RECON_DUMMY_BYZANTINE_OID = "10000000-0000-0000-5656-56560000f904";
-
     protected static DummyResource dummyResourceByzantine;
     protected static DummyResourceContoller dummyResourceCtlByzantine;
     protected ResourceType resourceDummyByzantineType;
@@ -107,31 +104,17 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 
     @Test
     public void test100ImportLiveSyncTaskDummyByzantine() throws Exception {
-        final String TEST_NAME = "test100ImportLiveSyncTaskDummyByzantine";
-
-        // GIVEN
-        AbstractObjTemplateSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        /// WHEN
         when();
         importSyncTask(resourceDummyByzantine);
 
-        // THEN
         then();
-
         waitForSyncTaskStart(resourceDummyByzantine);
     }
 
     // MID-2149
     @Test
     public void test110AddDummyByzantineAccountMancomb() throws Exception {
-        final String TEST_NAME = "test110AddDummyByzantineAccountMancomb";
-
         // GIVEN
-        AbstractObjTemplateSyncTest.class.getName();
-        Task task = getTestTask();
         rememberTimeBeforeSync();
         prepareNotifications();
 

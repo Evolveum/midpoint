@@ -148,7 +148,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test100SuspendWhileIcfSync() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -177,7 +176,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test105SuspendWhileIcfSyncImprecise() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -210,7 +208,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test110SuspendWhileProcessing() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -264,7 +261,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test115SuspendWhileProcessingImprecise() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -306,7 +302,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test120Batched() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -372,7 +367,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test125BatchedImprecise() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -417,7 +411,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test130Error() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -476,7 +469,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test135ErrorImprecise() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -541,7 +533,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test140DryRun() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -578,7 +569,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test150DryRunWithUpdate() throws Exception {
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

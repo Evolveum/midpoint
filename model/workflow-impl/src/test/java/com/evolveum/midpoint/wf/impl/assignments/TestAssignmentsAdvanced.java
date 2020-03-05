@@ -1176,7 +1176,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                     if (yes) {
                         assertAssignedRole(userJackOid, oids[number-1], result);
                     } else {
-                        assertNotAssignedRole(userJackOid, oids[number-1], opTask, result);
+                        assertNotAssignedRole(userJackOid, oids[number-1], result);
                     }
                     break;
 
@@ -1442,8 +1442,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                             }
                         }
                         if (yes || !has1and2) {
-                            assertNotAssignedRole(userJackOid, roleRole21Oid, opTask, result);
-                            assertNotAssignedRole(userJackOid, roleRole22Oid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRole21Oid, result);
+                            assertNotAssignedRole(userJackOid, roleRole22Oid, result);
                         } else {
                             assertAssignedRole(userJackOid, roleRole21Oid, result);
                             assertAssignedRole(userJackOid, roleRole22Oid, result);
@@ -1451,7 +1451,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                         break;
                     case 1:
                         if (yes) {
-                            assertNotAssignedRole(userJackOid, roleRole23Oid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRole23Oid, result);
                         } else {
                             assertAssignedRole(userJackOid, roleRole23Oid, result);
                         }

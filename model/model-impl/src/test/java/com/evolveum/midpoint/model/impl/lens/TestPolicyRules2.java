@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,26 +39,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests some of the "new" policy rules (state, hasAssignment).
  * Moved out of TestPolicyRules to keep the tests of reasonable size.
  *
  * @author mederly
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyRules2 extends AbstractLensTest {
 
@@ -105,11 +105,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
                         .type(RoleType.COMPLEX_TYPE)
                         .filter(prismContext.getQueryConverter().createSearchFilterType(studentFilter)))
                 .beginPolicyConstraints()
-                    .beginHasAssignment()
-                        .name("student-assignment-disabled")
-                        .targetRef(roleStudentOid, RoleType.COMPLEX_TYPE)
-                        .enabled(false)
-                    .<PolicyConstraintsType>end()
+                .beginHasAssignment()
+                .name("student-assignment-disabled")
+                .targetRef(roleStudentOid, RoleType.COMPLEX_TYPE)
+                .enabled(false)
+                .<PolicyConstraintsType>end()
                 .<GlobalPolicyRuleType>end()
                 .evaluationTarget(PolicyRuleEvaluationTargetType.ASSIGNMENT)
                 .policyActions(new PolicyActionsType(prismContext));
@@ -128,10 +128,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
      */
     @Test
     public void test100JackAttemptAssignRoleStudent() throws Exception {
-        final String TEST_NAME = "test100JackAttemptAssignRoleStudent";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -170,10 +168,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
      */
     @Test
     public void test110JoeAttemptAssignRoleStudent() throws Exception {
-        final String TEST_NAME = "test110JoeAttemptAssignRoleStudent";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -215,10 +211,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
      */
     @Test
     public void test120JackAttemptToMoveTo1900AndAssignRoleStudent() throws Exception {
-        final String TEST_NAME = "test120JackAttemptToMoveTo1900AndAssignRoleStudent";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -266,10 +260,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
      */
     @Test
     public void test130JackMoveTo1900AndAssignRoleStudent() throws Exception {
-        final String TEST_NAME = "test130JackMoveTo1900AndAssignRoleStudent";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -320,10 +312,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test135JackChangeValidTo() throws Exception {
-        final String TEST_NAME = "test135JackChangeValidTo";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Long assignmentId = getUser(USER_JACK_OID).asObjectable().getAssignment().get(0).getId();
@@ -364,13 +354,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
     }
 
-
     @Test
     public void test140JackNoChange() throws Exception {
-        final String TEST_NAME = "test140JackNoChange";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -407,10 +394,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test142JackNoChangeButTaskExists() throws Exception {
-        final String TEST_NAME = "test142JackNoChangeButTaskExists";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         TaskType approvalTask = prismContext.createObjectable(TaskType.class)
@@ -463,13 +448,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
     }
 
-
     @Test
     public void test150FrankAttemptToAssignRoleStudentButDisabled() throws Exception {
-        final String TEST_NAME = "test150FrankAttemptToAssignRoleStudentButDisabled";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -513,10 +495,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test160AttemptToAddPeter() throws Exception {
-        final String TEST_NAME = "test160AttemptToAddPeter";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -552,10 +532,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test170AddPeter() throws Exception {
-        final String TEST_NAME = "test170AddPeter";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -605,10 +583,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
      */
     @Test
     public void test180StudentRecompute() throws Exception {
-        final String TEST_NAME = "test180StudentRecompute";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -640,10 +616,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test200AddUnresolvable() throws Exception {
-        final String TEST_NAME = "test200AddUnresolvable";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -670,10 +644,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test210AddCyclic() throws Exception {
-        final String TEST_NAME = "test210AddCyclic";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -700,10 +672,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test220AddChained() throws Exception {
-        final String TEST_NAME = "test220AddChained";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -719,7 +689,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         then();
         display("Output context", context);
 
-        Map<String,EvaluatedPolicyRule> rules = new HashMap<>();
+        Map<String, EvaluatedPolicyRule> rules = new HashMap<>();
         forEvaluatedFocusPolicyRule(context, (r) -> {
             display("rule", r);
             rules.put(r.getName(), r);
@@ -759,10 +729,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
     @Test
     public void test230AddAmbiguous() throws Exception {
-        final String TEST_NAME = "test230AddAmbiguous";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -790,10 +758,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
     // MID-4270
     @Test
     public void test300ModifyInducement() throws Exception {
-        final String TEST_NAME = "test300ModifyInducement";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
@@ -824,10 +790,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
     // MID-4270
     @Test
     public void test310ModifyInducementPass() throws Exception {
-        final String TEST_NAME = "test310ModifyInducementPass";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
@@ -850,10 +814,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
     // MID-4270
     @Test
     public void test320ModifyInducementPass2() throws Exception {
-        final String TEST_NAME = "test320ModifyInducementPass2";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
@@ -876,10 +838,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
     // MID-4270
     @Test
     public void test330AddInducement() throws Exception {
-        final String TEST_NAME = "test330AddInducement";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
@@ -910,10 +870,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
     // MID-4270
     @Test
     public void test340AddInducementViaExpression() throws Exception {
-        final String TEST_NAME = "test340AddInducementViaExpression";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)

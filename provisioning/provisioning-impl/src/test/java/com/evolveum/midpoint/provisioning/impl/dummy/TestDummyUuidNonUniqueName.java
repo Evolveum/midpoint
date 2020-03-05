@@ -111,7 +111,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
         // DO nothing. This test is meaningless in non-unique environment
     }
 
-    private String addFettucini(File file, String oid, String expectedFullName) throws Exception {
+    private void addFettucini(File file, String oid, String expectedFullName) throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -169,11 +169,9 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
         checkUniqueness(accountProvisioning);
         assertSteadyResource();
 
-        return icfUid;
     }
 
     private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        TestDummy.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(ShadowType.class)

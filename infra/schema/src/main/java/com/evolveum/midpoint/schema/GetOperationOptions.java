@@ -6,26 +6,26 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+
 /**
  * @author semancik
- *
  */
 public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable, ShortDumpable {
     private static final long serialVersionUID = 1L;
@@ -129,7 +129,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
      * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
      * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
-     *
+     * <p>
      * Null value is special in one more aspect: it allows to return partial cached data in case that the original is not
      * accessible. E.g. in that case provisioning can return repository shadow in case that the resource is not reachable.
      * Explicit specification of staleness=0 disables this behavior.
@@ -158,11 +158,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     /**
      * Should the results be made distinct.
      * Not all providers support this option.
-     *
+     * <p>
      * BEWARE:
-     *  - may bring a potentially huge performance penalty
-     *  - may interfere with paging (!)
-     *
+     * - may bring a potentially huge performance penalty
+     * - may interfere with paging (!)
+     * <p>
      * So please consider this option an EXPERIMENTAL, for now.
      */
     @Experimental
@@ -187,7 +187,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      * Whether this operation is already part of the execution phase. I.e. the request authorization was already
      * processed. This means that the operation is in fact operation invoked within another operation,
      * e.g. invoked from script or expression evaluator.
-     *
+     * <p>
      * WARNING: THIS OPTION MUST NOT BE AVAILABLE FROM REMOTE INTERFACES.
      * This is safe to use from a secure area of JVM, where the components can trick model to circumvent
      * authorizations anyway. But it must not be available outside of the secure area.
@@ -358,11 +358,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.noFetch;
     }
 
-     /**
-         * No not fetch any information from external sources, e.g. do not fetch account data from resource,
-         * do not fetch resource schema, etc.
-         * Such operation returns only the data stored in midPoint repository.
-         */
+    /**
+     * No not fetch any information from external sources, e.g. do not fetch account data from resource,
+     * do not fetch resource schema, etc.
+     * Such operation returns only the data stored in midPoint repository.
+     */
     public static GetOperationOptions createNoFetch() {
         GetOperationOptions opts = new GetOperationOptions();
         opts.setNoFetch(true);
@@ -476,11 +476,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return SelectorOptions.createCollection(createRaw());
     }
 
-     /**
-         * No not fetch any information from external sources, e.g. do not fetch account data from resource,
-         * do not fetch resource schema, etc.
-         * Such operation returns only the data stored in midPoint repository.
-         */
+    /**
+     * No not fetch any information from external sources, e.g. do not fetch account data from resource,
+     * do not fetch resource schema, etc.
+     * Such operation returns only the data stored in midPoint repository.
+     */
     public static Collection<SelectorOptions<GetOperationOptions>> createNoFetchCollection() {
         return SelectorOptions.createCollection(createNoFetch());
     }
@@ -756,11 +756,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     /**
      * Should the results be made distinct.
      * Not all providers support this option.
-     *
+     * <p>
      * BEWARE:
-     *  - may bring a potentially huge performance penalty
-     *  - may interfere with paging (!)
-     *
+     * - may bring a potentially huge performance penalty
+     * - may interfere with paging (!)
+     * <p>
      * So please consider this option an EXPERIMENTAL, for now.
      */
     @Experimental
@@ -898,8 +898,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof GetOperationOptions)) return false;
+        if (this == o) { return true; }
+        if (!(o instanceof GetOperationOptions)) { return false; }
         GetOperationOptions that = (GetOperationOptions) o;
         return retrieve == that.retrieve &&
                 Objects.equals(resolve, that.resolve) &&
@@ -1033,23 +1033,23 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return rv;
     }
 
-
     @NotNull
     @SafeVarargs
     public static Collection<SelectorOptions<GetOperationOptions>> merge(PrismContext prismContext,
             Collection<SelectorOptions<GetOperationOptions>>... parts) {
-        final UniformItemPath EMPTY_PATH = prismContext.emptyPath();
+        final UniformItemPath emptyPath = prismContext.emptyPath();
         Collection<SelectorOptions<GetOperationOptions>> merged = new ArrayList<>();
         for (Collection<SelectorOptions<GetOperationOptions>> part : parts) {
             for (SelectorOptions<GetOperationOptions> increment : CollectionUtils.emptyIfNull(part)) {
                 if (increment != null) {        // should always be so
-                    Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(merged, increment.getItemPath(EMPTY_PATH));
+                    Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(
+                            merged, increment.getItemPath(emptyPath));
                     if (existing.isEmpty()) {
                         merged.add(increment);
                     } else if (existing.size() == 1) {
                         existing.iterator().next().merge(increment.getOptions());
                     } else {
-                        throw new AssertionError("More than one options for path: " + increment.getItemPath(EMPTY_PATH));
+                        throw new AssertionError("More than one options for path: " + increment.getItemPath(emptyPath));
                     }
                 }
             }

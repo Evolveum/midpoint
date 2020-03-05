@@ -117,7 +117,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         modelService.executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContext), task, result);
 
-        assertNotAssignedRole(userJackOid, ROLE_SAILOR_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_SAILOR_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -184,7 +184,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         options.setExecuteImmediatelyAfterApproval(true);
         modelService.executeChanges(deltas, options, task, result);
 
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -252,7 +252,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertInProgress("Operation NOT in progress", result);
 
-        assertNotAssignedRole(userJackOid, ROLE_SILVER_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_SILVER_OID, result);
 
         // complete the work item related to assigning role silver
         CaseWorkItemType workItem = getWorkItem(task, result);
@@ -265,7 +265,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType rootCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(rootCase);
 
-        assertNotAssignedRole(userJackOid, ROLE_GOLD_OID, task, result);            // should be pruned without approval
+        assertNotAssignedRole(userJackOid, ROLE_GOLD_OID, result);            // should be pruned without approval
     }
 
     @Test
@@ -278,7 +278,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_OID);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         // some innocent change
@@ -301,7 +301,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER_OID);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         // some innocent change
@@ -325,7 +325,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         // GIVEN
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         assignRole(userJackOid, ROLE_ASSIGNING_CAPTAIN_OID, task, result);
@@ -347,7 +347,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         // GIVEN
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         ObjectDelta<? extends ObjectType> delta =

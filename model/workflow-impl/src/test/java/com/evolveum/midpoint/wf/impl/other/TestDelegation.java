@@ -79,7 +79,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         OperationResult result = getTestOperationResult();
 
         assignRole(userJackOid, ROLE_PRINCE_OID, task, result);                // should start approval process
-        assertNotAssignedRole(userJackOid, ROLE_PRINCE_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_PRINCE_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         workItemId = WorkItemId.of(workItem);

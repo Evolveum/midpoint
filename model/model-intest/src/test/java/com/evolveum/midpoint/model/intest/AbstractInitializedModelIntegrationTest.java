@@ -49,10 +49,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-/**
- * @author semancik
- *
- */
 public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredModelIntegrationTest {
 
     private static final int NUM_FUNCTIONAL_ORGS = 6;
