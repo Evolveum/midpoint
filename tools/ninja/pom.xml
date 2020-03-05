@@ -14,12 +14,12 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>tools</artifactId>
-        <version>4.0.2-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
     </parent>
 
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>ninja</artifactId>
-    <version>4.0.2-SNAPSHOT</version>
+    <version>4.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>ninja</name>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.0.2-SNAPSHOT</version>
+            <version>4.0.3-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -198,6 +198,11 @@
             <groupId>javax.xml.ws</groupId>
             <artifactId>jaxws-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- LOGGING -->
 
@@ -245,7 +250,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.2-SNAPSHOT</version>
+            <version>4.0.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

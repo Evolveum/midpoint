@@ -57,7 +57,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiator(user);
-        record.setParameter(WebComponentUtil.getName(user));
+        record.setParameter(WebComponentUtil.getName(user, false));
 
         record.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         record.setTimestamp(System.currentTimeMillis());

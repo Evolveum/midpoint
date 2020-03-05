@@ -148,7 +148,7 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getName() {
-        return workItem.getName();
+        return WebComponentUtil.getTranslatedPolyString(workItem.getName());
     }
 
     public String getCreatedFormatted() {

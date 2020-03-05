@@ -1007,12 +1007,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 SelectableBean<ObjectType> bean = rowModel.getObject();
                 ObjectType object = bean.getValue();
                 cellItem.add(new Label(componentId,
-                            getMemberObjectDisplayName(object)));
+                            getMemberObjectDisplayName(object, true)));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-                return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue()));
+                return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue(), true));
             }
 
         };
@@ -1069,14 +1069,17 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 
     private String getMemberObjectDisplayName(ObjectType object){
+        return getMemberObjectDisplayName(object, false);
+    }
+
+    private String getMemberObjectDisplayName(ObjectType object, boolean translate){
         if (object == null){
             return "";
         }
         if (object instanceof UserType) {
-            return WebComponentUtil.getOrigStringFromPoly(((UserType) object).getFullName());
+            return WebComponentUtil.getTranslatedPolyString(((UserType) object).getFullName());
         } else if (object instanceof AbstractRoleType) {
-            return WebComponentUtil
-                    .getOrigStringFromPoly(((AbstractRoleType) object).getDisplayName());
+            return WebComponentUtil.getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
         } else {
             return "";
         }

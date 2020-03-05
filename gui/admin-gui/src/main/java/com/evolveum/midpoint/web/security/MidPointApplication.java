@@ -558,6 +558,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return taskService;
     }
 
+    public LocalizationService getLocalizationService() {
+        return localizationService;
+    }
+
     public PrismContext getPrismContext() {
         return prismContext;
     }

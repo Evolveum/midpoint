@@ -148,10 +148,12 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
     public void refreshStatus(Task task) {
     }
 
+    @SuppressWarnings("unused")
     public boolean hasRun() {
         return hasRun;
     }
 
+    @SuppressWarnings("unused")
     public void resetHasRun() {
         hasRun = false;
     }
@@ -173,10 +175,10 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         this.processor = processor;
     }
 
-    public void setDelayProcessor(long delay) {
+    void setDelayProcessor(long delay) {
         setProcessor((task, bucket, i) -> {
             if (delay > 0) {
-                LOGGER.info("Sleeping for {} ms; task = {}", task);
+                LOGGER.info("Sleeping for {} ms; task = {}", delay, task);
                 try {
                     Thread.sleep(delay);
                 } catch (InterruptedException e) {
@@ -186,19 +188,20 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         });
     }
 
+    @SuppressWarnings("unused")
     public ObjectQuery getDefaultQuery() {
         return defaultQuery;
     }
 
-    public void setDefaultQuery(ObjectQuery defaultQuery) {
+    void setDefaultQuery(ObjectQuery defaultQuery) {
         this.defaultQuery = defaultQuery;
     }
 
-    public List<ObjectQuery> getQueriesExecuted() {
+    List<ObjectQuery> getQueriesExecuted() {
         return queriesExecuted;
     }
 
-    public void resetBeforeTest() {
+    void resetBeforeTest() {
         defaultQuery = null;
         queriesExecuted.clear();
         processor = null;
@@ -208,15 +211,17 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         failure = null;
     }
 
-    public int getItemsProcessed() {
+    int getItemsProcessed() {
         return itemsProcessed;
     }
 
+    @SuppressWarnings("unused")
     public boolean isEnsureSingleRunner() {
         return ensureSingleRunner;
     }
 
-    public void setEnsureSingleRunner(boolean ensureSingleRunner) {
+    @SuppressWarnings("SameParameterValue")
+    void setEnsureSingleRunner(boolean ensureSingleRunner) {
         this.ensureSingleRunner = ensureSingleRunner;
     }
 

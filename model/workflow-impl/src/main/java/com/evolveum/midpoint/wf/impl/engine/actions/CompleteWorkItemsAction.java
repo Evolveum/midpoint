@@ -85,7 +85,7 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Recording decision for approval process instance {} (case oid {}), stage {}: decision: {}",
-                            ctx.getProcessInstanceName(), ctx.getCaseOid(),
+                            ctx.getProcessInstanceNameOrig(), ctx.getCaseOid(),
                             approvalCase ? ApprovalContextUtil.getStageDiagName(stageDef) : null,
                             output.getOutcome());
                 }
