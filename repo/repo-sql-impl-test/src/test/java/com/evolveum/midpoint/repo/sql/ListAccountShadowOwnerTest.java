@@ -26,8 +26,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -69,7 +67,6 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
     @Test
     public void testLinkUnlink() throws Exception {
-        logger.info("==[testLinkUnlink]==");
         // GIVEN
         OperationResult result = new OperationResult("testLinkUnlink");
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user.xml"));
