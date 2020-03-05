@@ -18,6 +18,8 @@ import java.util.List;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -1720,5 +1722,24 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertTrue("Password not creatable", passwdValDef.canAdd());
         assertTrue("Password not modifiable", passwdValDef.canModify());
 
+    }
+
+    @Test
+    public void testEmptyPath() {
+        /*
+         * Strange: The output of this method is
+         *
+         * UniformItemPath.EMPTY_PATH = null
+         * UniformItemPathImpl.EMPTY_PATH =
+         *
+         * although both values should be equal (and non-null).
+         *
+         * Also strange is that TestPath.testEmptyPath produces expected result:
+         *
+         * UniformItemPath.EMPTY_PATH =
+         * UniformItemPathImpl.EMPTY_PATH =
+         */
+        System.out.println("UniformItemPath.EMPTY_PATH = " + UniformItemPath.EMPTY_PATH);
+        System.out.println("UniformItemPathImpl.EMPTY_PATH = " + UniformItemPathImpl.EMPTY_PATH);
     }
 }
