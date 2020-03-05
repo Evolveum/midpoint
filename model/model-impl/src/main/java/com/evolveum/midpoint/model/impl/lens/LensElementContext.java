@@ -259,7 +259,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
-        createOrModifyPrimaryDelta(
+        modifyOrCreatePrimaryDelta(
                 delta -> delta.swallow(itemDelta),
                 () -> {
                     ObjectDelta<O> newPrimaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
@@ -279,15 +279,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         ObjectDelta<O> create() throws SchemaException;
     }
 
-    private void createOrModifyPrimaryDelta(DeltaModifier<O> modifier, DeltaCreator<O> creator) throws SchemaException {
+    private void modifyOrCreatePrimaryDelta(DeltaModifier<O> modifier, DeltaCreator<O> creator) throws SchemaException {
         if (primaryDelta == null) {
             primaryDelta = creator.create();
         } else if (!primaryDelta.isImmutable()) {
             modifier.modify(primaryDelta);
         } else {
-            primaryDelta = primaryDelta.clone();
+            primaryDelta.setImmutable(false);
             modifier.modify(primaryDelta);
-            primaryDelta.freeze();
+            primaryDelta.setImmutable(true);
         }
     }
 
