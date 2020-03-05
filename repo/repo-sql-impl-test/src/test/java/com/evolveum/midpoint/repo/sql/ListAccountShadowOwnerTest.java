@@ -101,7 +101,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         assertNull("listAccountShadowOwner returned non-null value after unlink", accountOwnerOid);
     }
 
-    private void assertEquals(String string, String userOid, PrismObject<UserType> accountOwnerOid) {
-        // TODO Auto-generated method stub
+    private void assertEquals(String string, String userOid, PrismObject<UserType> accountOwner) {
+        AssertJUnit.assertEquals(string, userOid, accountOwner != null ? accountOwner.getOid() : null);
     }
 }

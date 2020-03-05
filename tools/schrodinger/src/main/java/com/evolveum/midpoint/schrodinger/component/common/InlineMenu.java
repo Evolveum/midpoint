@@ -16,12 +16,13 @@
 
 package com.evolveum.midpoint.schrodinger.component.common;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.component.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -32,8 +33,11 @@ public class InlineMenu<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public InlineMenu<T> open() {
-        // todo implement
+    public InlineMenu<T> caret() {
+        SelenideElement caret = getParentElement().find("div.btn-group span[data-s-id=caret]");
+        if (caret != null) {
+            caret.click();
+        }
 
         return this;
     }
@@ -41,13 +45,23 @@ public class InlineMenu<T> extends Component<T> {
     public List<String> getItems() {
         List<String> items = new ArrayList<>();
 
+        ElementsCollection lis = getParentElement().findAll("div.btn-group ul.dropdown-menu li");
+        for (SelenideElement li : lis) {
+//            li.find()
+        }
         // todo implement
 
         return items;
     }
 
+    public List<String> getItemKeys() {
+        // todo implement
+        return null;
+    }
+
     public InlineMenu<T> clickItem(String itemName) {
         // todo implement
+        SelenideElement dropdown = getParentElement().find("div.btn-group ul.dropdown-menu li");
 
         return this;
     }
