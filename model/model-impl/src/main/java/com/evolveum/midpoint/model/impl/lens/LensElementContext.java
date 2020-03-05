@@ -259,11 +259,36 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
+        createOrModifyPrimaryDelta(
+                delta -> delta.swallow(itemDelta),
+                () -> {
+                    ObjectDelta<O> newPrimaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+                    newPrimaryDelta.setOid(oid);
+                    newPrimaryDelta.addModification(itemDelta);
+                    return newPrimaryDelta;
+                });
+    }
+
+    @FunctionalInterface
+    private interface DeltaModifier<O extends Objectable> {
+        void modify(ObjectDelta<O> delta) throws SchemaException;
+    }
+
+    @FunctionalInterface
+    private interface DeltaCreator<O extends Objectable> {
+        ObjectDelta<O> create() throws SchemaException;
+    }
+
+    private void createOrModifyPrimaryDelta(DeltaModifier<O> modifier, DeltaCreator<O> creator) throws SchemaException {
         if (primaryDelta == null) {
-            primaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
-            primaryDelta.setOid(oid);
+            primaryDelta = creator.create();
+        } else if (!primaryDelta.isImmutable()) {
+            modifier.modify(primaryDelta);
+        } else {
+            primaryDelta = primaryDelta.clone();
+            modifier.modify(primaryDelta);
+            primaryDelta.freeze();
         }
-        primaryDelta.swallow(itemDelta);
     }
 
     public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
