@@ -122,7 +122,8 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
      * @param userOid
      * @param accountOwnerOid
      */
-    private void assertEquals(String string, String userOid, PrismObject<UserType> accountOwnerOid) {
+    private void assertEquals(String string, String userOid, PrismObject<UserType> accountOwner) {
+        AssertJUnit.assertEquals(string, userOid, accountOwner != null ? accountOwner.getOid() : null);
         // TODO Auto-generated method stub
 
     }
