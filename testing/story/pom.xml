@@ -306,7 +306,7 @@
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
-                    <skip>${skipStoryTests}</skip>
+                    <skipTests>${skipStoryTests}</skipTests>
                     <runOrder>alphabetical</runOrder>
                 </configuration>
             </plugin>
