@@ -6,6 +6,16 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -22,29 +32,16 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.ThreadTestExecutor;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * Tests behavior of selected components when executing in large number of threads.
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestManyThreads extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "threads");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestManyThreads.class);
 
     private static final TestResource RESOURCE_DUMMY = new TestResource(TEST_DIR, "resource-dummy.xml", "be4d88ff-bbb7-45f2-91dc-4b0fc9a00ced");
 

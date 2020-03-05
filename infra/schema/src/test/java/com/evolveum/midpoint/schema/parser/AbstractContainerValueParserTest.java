@@ -17,8 +17,8 @@ import javax.xml.namespace.QName;
 /**
  * @author mederly
  */
-public abstract class AbstractContainerValueParserTest<C extends Containerable> extends
-        AbstractPrismValueParserTest<PrismContainerValue<C>> {
+public abstract class AbstractContainerValueParserTest<C extends Containerable>
+        extends AbstractPrismValueParserTest<PrismContainerValue<C>> {
 
     @SuppressWarnings("Convert2MethodRef")
     protected void processParsings(Class<C> clazz, Class<? extends C> specificClass, QName type, QName specificType, SerializingFunction<PrismContainerValue<C>> serializer, String serId) throws Exception {

@@ -8,8 +8,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

@@ -14,8 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -115,7 +115,7 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
     }
 
     public ObjectReferenceAsserter<O,R> display(String message) {
-        IntegrationTestTools.display(message, refVal);
+        PrismTestUtil.display(message, refVal);
         return this;
     }
 }

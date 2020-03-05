@@ -14,8 +14,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.IOUtils;
@@ -42,8 +40,6 @@ import java.nio.charset.StandardCharsets;
 @ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestGenericSynchronization extends AbstractModelIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestGenericSynchronization.class);
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -169,7 +165,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private void logCreateEntry(Entry entry) {
         if (logCreateEntry ) {
             System.out.println("Creating LDAP entry: " + entry.getDN());
-            LOGGER.trace("Creating LDAP entry: {}", entry.getDN());
+            logger.trace("Creating LDAP entry: {}", entry.getDN());
         }
     }
 

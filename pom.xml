@@ -2042,7 +2042,8 @@
         <!--
         Activating extra tests (tests under testing module), skipping other tests.
         Often we want to combine with disabling dist: -P extratest,-dist
-        See testing/pom.xml for more on "extra" tests, here we just skip the default tests.
+        See testing/pom.xml for more on "extra" tests, but we need to skip tests here to disable
+        the default unit/integration tests covered by default "mvn clean install" build.
         -->
         <profile>
             <id>extratest</id>

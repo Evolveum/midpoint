@@ -363,21 +363,6 @@ public class DebugUtil {
         sb.append("\n");
     }
 
-    public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
-        StringBuilder sb = new StringBuilder();
-        indentDebugDump(sb, indent);
-        sb.append(getCollectionOpeningSymbol(xsdAnyCollection));
-        for (Object element : xsdAnyCollection) {
-            sb.append("\n");
-            indentDebugDump(sb, indent+1);
-            sb.append(PrettyPrinter.prettyPrintElementAsProperty(element));
-        }
-        sb.append("\n");
-        indentDebugDump(sb, indent);
-        sb.append(getCollectionClosingSymbol(xsdAnyCollection));
-        return sb.toString();
-    }
-
     public static String getCollectionOpeningSymbol(Collection<?> col) {
         if (col instanceof List) {
             return "[";

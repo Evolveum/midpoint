@@ -7,11 +7,29 @@
 
 package com.evolveum.midpoint.repo.sql.closure;
 
+import static org.testng.AssertJUnit.*;
+
+import java.util.*;
+import javax.xml.namespace.QName;
+
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
-import com.evolveum.midpoint.prism.*;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
+import org.jgrapht.alg.TransitiveClosure;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleDirectedGraph;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -21,37 +39,14 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.type.LongType;
-import org.hibernate.type.StringType;
-import org.jgrapht.alg.TransitiveClosure;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleDirectedGraph;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author lazyman
@@ -61,8 +56,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     @Autowired
     private OrgClosureManager closureManager;
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgClosureTest.class);
 
     // The following attributes describe the object graph as originally created/scanned.
     // Subsequent operations (add/remove node or link) DO NOT change these.
@@ -111,15 +104,15 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             SimpleDirectedGraph<String, DefaultEdge> tc = (SimpleDirectedGraph) orgGraph.clone();
             TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(tc);
             for (String subroot : oidsToCheck) {
-                LOGGER.info("Checking descendants of {}", subroot);
+                logger.info("Checking descendants of {}", subroot);
                 Set<String> expectedChildren = new HashSet<>();
                 for (DefaultEdge edge : tc.incomingEdgesOf(subroot)) {
                     expectedChildren.add(tc.getEdgeSource(edge));
                 }
                 expectedChildren.add(subroot);
-                LOGGER.trace("Expected children: {}", expectedChildren);
+                logger.trace("Expected children: {}", expectedChildren);
                 Set<String> actualChildren = getActualChildrenOf(subroot, session);
-                LOGGER.trace("Actual children: {}", actualChildren);
+                logger.trace("Actual children: {}", actualChildren);
 
                 Set<String> expectedMinusActual = new HashSet<>(expectedChildren);
                 expectedMinusActual.removeAll(actualChildren);
@@ -151,8 +144,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             // used to give indices to vertices
             List<String> vertexList = new ArrayList<>(getVertices());
 
-            if (DUMP_TC_MATRIX_DETAILS)
-                LOGGER.info("Vertex list = {}", vertexList);
+            if (DUMP_TC_MATRIX_DETAILS) { logger.info("Vertex list = {}", vertexList); }
 
             DoubleMatrix2D a = new SparseDoubleMatrix2D(vertices, vertices);
             //        for (int i = 0; i < vertices; i++) {
@@ -177,17 +169,16 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 //            System.out.println("a=" + a);
                 //            System.out.println("a^"+level+"="+power);
             }
-            LOGGER.info("TC matrix computed in {} ms", System.currentTimeMillis() - start);
+            logger.info("TC matrix computed in {} ms", System.currentTimeMillis() - start);
 
-            if (DUMP_TC_MATRIX_DETAILS)
-                LOGGER.info("TC matrix expected = {}", result);
+            if (DUMP_TC_MATRIX_DETAILS) { logger.info("TC matrix expected = {}", result); }
 
             Query q = session.createNativeQuery("select descendant_oid, ancestor_oid, val from m_org_closure")
                     .addScalar("descendant_oid", StringType.INSTANCE)
                     .addScalar("ancestor_oid", StringType.INSTANCE)
                     .addScalar("val", LongType.INSTANCE);
             List<Object[]> list = q.list();
-            LOGGER.info("OrgClosure has {} rows", list.size());
+            logger.info("OrgClosure has {} rows", list.size());
 
             DoubleMatrix2D closureInDatabase = new SparseDoubleMatrix2D(vertices, vertices);
             for (Object[] item : list) {
@@ -200,18 +191,16 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                         val);
             }
 
-            if (DUMP_TC_MATRIX_DETAILS)
-                LOGGER.info("TC matrix fetched from db = {}", closureInDatabase);
+            if (DUMP_TC_MATRIX_DETAILS) { logger.info("TC matrix fetched from db = {}", closureInDatabase); }
 
             double zSumResultBefore = result.zSum();
             double zSumClosureInDb = closureInDatabase.zSum();
             result.assign(closureInDatabase, Functions.minus);
             double zSumResultAfter = result.zSum();
-            LOGGER.info("Summary of items in closure computed: {}, in DB-stored closure: {}, delta: {}",
+            logger.info("Summary of items in closure computed: {}, in DB-stored closure: {}, delta: {}",
                     zSumResultBefore, zSumClosureInDb, zSumResultAfter);
 
-            if (DUMP_TC_MATRIX_DETAILS)
-                LOGGER.info("Difference matrix = {}", result);
+            if (DUMP_TC_MATRIX_DETAILS) { logger.info("Difference matrix = {}", result); }
 
             boolean problem = false;
             for (int i = 0; i < vertices; i++) {
@@ -221,7 +210,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                         System.err.println("delta(" + vertexList.get(i) + "," + vertexList.get(j) + ") = " + delta +
                                 " (closureInDB=" + closureInDatabase.get(i, j) + ", expected=" + (result.get(i, j)
                                 + closureInDatabase.get(i, j)) + ")");
-                        LOGGER.error("delta(" + vertexList.get(i) + "," + vertexList.get(j) + ") = " + delta);
+                        logger.error("delta(" + vertexList.get(i) + "," + vertexList.get(j) + ") = " + delta);
                         problem = true;
                     }
                 }
@@ -245,7 +234,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             OrgType orgType;
             try {
                 orgType = repositoryService.getObject(OrgType.class, oid, null, result).asObjectable();
-            } catch (ObjectNotFoundException|SchemaException e) {
+            } catch (ObjectNotFoundException | SchemaException e) {
                 throw new AssertionError("Couldn't fetch " + oid, e);
             }
             assertTrue(orgGraph.vertexSet().contains(orgType.getOid()));
@@ -355,7 +344,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     // parentsInLevel may be null (in that case, a simple tree is generated)
     protected void loadOrgStructure(int level, String parentOid, String oidPrefix,
-                                    OperationResult result) throws Exception {
+            OperationResult result) throws Exception {
 
         int[] orgChildrenInLevel = getConfiguration().getOrgChildrenInLevel();
         int[] userChildrenInLevel = getConfiguration().getUserChildrenInLevel();
@@ -373,9 +362,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         for (int i = 0; i < orgChildrenInLevel[level]; i++) {
             String newOidPrefix = getOidCharFor(i) + oidPrefix;
-            int numberOfParents = parentsInLevel==null ? (parentOid != null ? 1 : 0) : parentsInLevel[level];
+            int numberOfParents = parentsInLevel == null ? (parentOid != null ? 1 : 0) : parentsInLevel[level];
             PrismObject<OrgType> org = createOrg(generateParentsForLevel(parentOid, level, numberOfParents), newOidPrefix);
-            LOGGER.info("Creating {}, total {}; parents = {}", new Object[]{org, objectCount, getParentsOids(org)});
+            logger.info("Creating {}, total {}; parents = {}", new Object[] { org, objectCount, getParentsOids(org) });
             String oid = repositoryService.addObject(org, null, result);
             org.setOid(oid);
             if (parentOid == null) {
@@ -389,7 +378,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 info(objectCount + " objects created");
             }
 
-            loadOrgStructure(level+1, oid, newOidPrefix, result);
+            loadOrgStructure(level + 1, oid, newOidPrefix, result);
         }
 
         if (parentOid != null && userChildrenInLevel != null) {
@@ -397,9 +386,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             List<String> usersAtThisLevel = getUsersAtThisLevelSafe(level);
 
             for (int u = 0; u < userChildrenInLevel[level]; u++) {
-                int numberOfParents = parentsInLevel==null ? 1 : parentsInLevel[level];
+                int numberOfParents = parentsInLevel == null ? 1 : parentsInLevel[level];
                 PrismObject<UserType> user = createUser(generateParentsForLevel(parentOid, level, numberOfParents), getOidCharFor(u) + ":" + oidPrefix);
-                LOGGER.info("Creating {}, total {}; parents = {}", new Object[]{user, objectCount, getParentsOids(user)});
+                logger.info("Creating {}, total {}; parents = {}", new Object[] { user, objectCount, getParentsOids(user) });
                 String uoid = repositoryService.addObject(user, null, result);
                 user.setOid(uoid);
                 allUsersCreated.add(user.asObjectable());
@@ -427,54 +416,11 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         return orgsByLevels.get(level);
     }
 
-
-//    // todo better name
-//    protected void prepareOrgStructureOids(int level, String parentOid, int[] orgChildrenInLevel, int[] userChildrenInLevel, int[] parentsInLevel, String oidPrefix,
-//                                    OperationResult result) throws Exception {
-//        if (level == orgChildrenInLevel.length) {
-//            return;
-//        }
-//
-//        List<String> orgsAtThisLevel = getOrgsAtThisLevelSafe(level);
-//        for (int i = 0; i < orgChildrenInLevel[level]; i++) {
-//            String newOidPrefix = getOidCharFor(i) + oidPrefix;
-//            int numberOfParents = parentsInLevel==null ? (parentOid != null ? 1 : 0) : parentsInLevel[level];
-//            PrismObject<OrgType> org = createOrg(generateParentsForLevel(parentOid, level, numberOfParents), newOidPrefix);
-//            LOGGER.info("'Creating' {}, total {}; parents = {}", new Object[]{org, count, getParentsOids(org)});
-//            String oid = org.getOid();
-//            if (parentOid == null) {
-//                rootOids.add(oid);
-//            }
-//            allOrgCreated.add(org.asObjectable());
-//            registerObject(org.asObjectable(), false);
-//            orgsAtThisLevel.add(oid);
-//            count++;
-//
-//            prepareOrgStructureOids(level + 1, oid, orgChildrenInLevel, userChildrenInLevel, parentsInLevel, newOidPrefix, result);
-//        }
-//
-//        if (parentOid != null) {
-//
-//            List<String> usersAtThisLevel = getUsersAtThisLevelSafe(level);
-//
-//            for (int u = 0; u < userChildrenInLevel[level]; u++) {
-//                int numberOfParents = parentsInLevel==null ? 1 : parentsInLevel[level];
-//                PrismObject<UserType> user = createUser(generateParentsForLevel(parentOid, level, numberOfParents), getOidCharFor(u) + ":" + oidPrefix);
-//                LOGGER.info("'Creating' {}, total {}; parents = {}", new Object[]{user, count, getParentsOids(user)});
-//                String uoid = user.getOid();
-//                registerObject(user.asObjectable(), false);
-//                usersAtThisLevel.add(uoid);
-//                count++;
-//            }
-//        }
-//
-//    }
-
     protected void scanOrgStructure(OperationResult opResult) throws SchemaException, ObjectNotFoundException {
 
         // determine rootOids
         for (int i = 0; ; i++) {
-            String oid = "o" + createOid(""+getOidCharFor(i));
+            String oid = "o" + createOid("" + getOidCharFor(i));
             try {
                 System.out.println("Trying to find " + oid + " as a root");
                 OrgType org = repositoryService.getObject(OrgType.class, oid, null, opResult).asObjectable();
@@ -531,15 +477,15 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
     }
 
+    private static final String SPECIAL = "!@#$%^&*()";
 
-    private static final String SPECIAL="!@#$%^&*()";
     protected char getOidCharFor(int i) {
         if (i < 10) {
-            return (char) ('0'+i);
+            return (char) ('0' + i);
         } else if (i < 36) {
-            return (char) ('A'+i-10);
+            return (char) ('A' + i - 10);
         } else if (i < 46) {
-            return SPECIAL.charAt(i-36);
+            return SPECIAL.charAt(i - 36);
         } else {
             throw new IllegalArgumentException("Too many items in a level: " + i);
         }
@@ -547,7 +493,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected Collection<String> getParentsOids(PrismObject<? extends ObjectType> object) {
         List<String> retval = new ArrayList<>();
-        for(ObjectReferenceType objectReferenceType : object.asObjectable().getParentOrgRef()) {
+        for (ObjectReferenceType objectReferenceType : object.asObjectable().getParentOrgRef()) {
             retval.add(objectReferenceType.getOid());
         }
         return retval;
@@ -565,7 +511,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             totalParents--;
         }
         while (totalParents > 0 && !potentialParents.isEmpty()) {
-            int i = (int) Math.floor(Math.random()*potentialParents.size());
+            int i = (int) Math.floor(Math.random() * potentialParents.size());
             rv.add(potentialParents.get(i));
             potentialParents.remove(i);
             totalParents--;
@@ -578,7 +524,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             return;
         }
         String oid = objectType.getOid();
-        LOGGER.info("Registering {} into memory graph", oid);
+        logger.info("Registering {} into memory graph", oid);
         registerVertexIfNeeded(oid);
         for (ObjectReferenceType ort : objectType.getParentOrgRef()) {
             registerVertexIfNeeded(ort.getOid());
@@ -593,13 +539,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         if (registerChildrenLinks) {
             // let's check for existing children
             List<String> children = getOrgChildren(oid);
-            LOGGER.info("Registering children of {}: {} into memory graph", oid, children);
+            logger.info("Registering children of {}: {} into memory graph", oid, children);
             for (String child : children) {
                 registerVertexIfNeeded(child);
                 orgGraph.addEdge(child, oid);
             }
         }
-        LOGGER.info("Registration of {} done.", oid);
+        logger.info("Registration of {} done.", oid);
     }
 
     private void registerVertexIfNeeded(String oid) {
@@ -626,7 +572,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
     }
 
-
     protected void removeOrgStructure(OperationResult result) throws Exception {
         for (String rootOid : rootOids) {
             removeOrgStructure(rootOid, result);
@@ -647,7 +592,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         } catch (Exception e) {
             System.err.println("error while deleting " + nodeOid + ": " + e.getMessage());
         }
-        LOGGER.trace("Org " + nodeOid + " was removed");
+        logger.trace("Org " + nodeOid + " was removed");
     }
 
     protected void removeUsersFromOrg(String nodeOid, OperationResult result) throws Exception {
@@ -658,7 +603,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         for (PrismObject<UserType> user : users) {
             try {
                 repositoryService.deleteObject(UserType.class, user.getOid(), result);
-                LOGGER.trace("User " + user.getOid() + " was removed");
+                logger.trace("User " + user.getOid() + " was removed");
             } catch (Exception e) {
                 System.err.println("error while deleting " + user.getOid() + ": " + e.getMessage());
             }
@@ -670,7 +615,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         long totalTime = 0;
         List<String> vertices = new ArrayList<>(getVertices());
         while (!vertices.isEmpty()) {
-            int i = (int) Math.floor(vertices.size()*Math.random());
+            int i = (int) Math.floor(vertices.size() * Math.random());
             String oid = vertices.get(i);
             Class<? extends ObjectType> clazz = oid.startsWith("o") ? OrgType.class : UserType.class;       // hack!
             try {
@@ -683,11 +628,11 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             orgGraph.removeVertex(oid);
             vertices.remove(oid);
-            if (count%getConfiguration().getDeletionsToClosureTest() == 0) {
+            if (count % getConfiguration().getDeletionsToClosureTest() == 0) {
                 checkClosure(getVertices());
             }
         }
-        System.out.println(count + " objects deleted in avg time " + ((float) totalTime/count) + " ms (net)");
+        System.out.println(count + " objects deleted in avg time " + ((float) totalTime / count) + " ms (net)");
     }
 
     protected PrismObject<UserType> createUser(List<String> parentOids, String oidPrefix)
@@ -746,18 +691,15 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected String createOid(String oidPrefix) {
         String oid = StringUtils.rightPad(oidPrefix, 31, '.');
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(oid.substring(0, 7));
-        sb.append('-');
-        sb.append(oid.substring(7, 11));
-        sb.append('-');
-        sb.append(oid.substring(11, 15));
-        sb.append('-');
-        sb.append(oid.substring(15, 19));
-        sb.append('-');
-        sb.append(oid.substring(19, 31));
-
-        return sb.toString();
+        return oid.substring(0, 7)
+                + '-'
+                + oid.substring(7, 11)
+                + '-'
+                + oid.substring(11, 15)
+                + '-'
+                + oid.substring(15, 19)
+                + '-'
+                + oid.substring(19, 31);
     }
 
     protected PolyStringType createPolyString(String orig) {
@@ -796,7 +738,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected void _test100LoadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test100LoadOrgStructure ]===");
 
-        LOGGER.info("Start.");
+        logger.info("Start.");
 
         long start = System.currentTimeMillis();
         loadOrgStructure(0, null, "", opResult);
@@ -851,7 +793,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         //checkClosure(orgGraph.vertexSet());
     }
-
 
     protected void _test195RemoveLink(String childOid, String parentOid) throws Exception {
         OperationResult opResult = new OperationResult("===[ test195RemoveLink ]===");
@@ -941,9 +882,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         if (totalRounds > 0) {
             System.out.println("Avg time for an arbitrary link removal: " + ((double) totalTimeLinkRemovals / totalRounds) + " ms");
             System.out.println("Avg time for an arbitrary link re-addition: " + ((double) totalTimeLinkAdditions / totalRounds) + " ms");
-            LOGGER.info("===================================================");
-            LOGGER.info("Statistics for org link removal/addition:");
-            stat.dump(LOGGER, baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks");
+            logger.info("===================================================");
+            logger.info("Statistics for org link removal/addition:");
+            stat.dump(logger, baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks");
         }
     }
 
@@ -995,9 +936,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         if (totalRounds > 0) {
             System.out.println("Avg time for an arbitrary node removal: " + ((double) totalTimeNodeRemovals / totalRounds) + " ms");
             System.out.println("Avg time for an arbitrary node re-addition: " + ((double) totalTimeNodeAdditions / totalRounds) + " ms");
-            LOGGER.info("===================================================");
-            LOGGER.info("Statistics for org node removal/addition:");
-            stat.dump(LOGGER, baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs");
+            logger.info("===================================================");
+            logger.info("Statistics for org node removal/addition:");
+            stat.dump(logger, baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs");
         }
     }
 
@@ -1028,6 +969,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         checkClosure(getVertices());
     }
 
+    @UnusedTestElement
     protected void _test400UnloadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ unloadOrgStruct ]===");
         long start = System.currentTimeMillis();
@@ -1039,7 +981,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
         }
 
-        LOGGER.info("Finish.");
+        logger.info("Finish.");
     }
 
     protected void _test410RandomUnloadOrgStructure() throws Exception {
@@ -1055,13 +997,11 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             assertEquals("Closure is not empty", "0", count.toString());
         }
 
-        LOGGER.info("Finish.");
+        logger.info("Finish.");
     }
 
     protected void info(String s) {
         System.out.println(s);
-        LOGGER.info(s);
+        logger.info(s);
     }
-
-
 }

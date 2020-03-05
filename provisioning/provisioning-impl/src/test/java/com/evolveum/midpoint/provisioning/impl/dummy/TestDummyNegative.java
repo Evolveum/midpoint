@@ -65,7 +65,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     public void testGetResourceBrokenSchema(BreakMode breakMode) throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         // precondition
         PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);

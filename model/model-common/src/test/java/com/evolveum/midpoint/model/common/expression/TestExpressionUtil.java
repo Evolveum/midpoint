@@ -167,7 +167,8 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     }
 
-    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <T> T resolvePath(String path, final String TEST_NAME)
+            throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ExpressionVariables variables = createVariables();
         return resolvePath(path, variables, TEST_NAME);
     }
@@ -178,7 +179,7 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
     }
 
     private <T> T resolvePath(String path, ExpressionVariables variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ItemPath itemPath = toItemPath(path);
 
         // WHEN

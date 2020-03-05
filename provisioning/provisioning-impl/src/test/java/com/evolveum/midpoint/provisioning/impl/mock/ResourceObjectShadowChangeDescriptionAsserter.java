@@ -12,8 +12,8 @@ import static org.testng.AssertJUnit.assertNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -30,7 +30,7 @@ public class ResourceObjectShadowChangeDescriptionAsserter {
     }
 
     public ResourceObjectShadowChangeDescriptionAsserter display() {
-        IntegrationTestTools.display("Change notification", changeDesc);
+        PrismTestUtil.display("Change notification", changeDesc);
         return this;
     }
 

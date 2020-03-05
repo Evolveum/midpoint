@@ -27,8 +27,6 @@ import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,14 +54,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CertificationTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
     private static final File TEST_DIR = new File("src/test/resources/cert");
     public static final File CAMPAIGN_1_FILE = new File(TEST_DIR, "cert-campaign-1.xml");
     public static final File CAMPAIGN_2_FILE = new File(TEST_DIR, "cert-campaign-2.xml");
@@ -207,7 +201,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
     @Test
     public void test250DeleteCase() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         PrismObject<AccessCertificationCampaignType> campaign10Before = getFullCampaign(campaign1Oid);
         display("Campaign 10 before", campaign10Before);
@@ -555,7 +549,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 }
             }
             if (emptyDecisionFound) {
-                LOGGER.info("Expecting case of {}:{}", campaign.getOid(), aCase.getId());
+                logger.info("Expecting case of {}:{}", campaign.getOid(), aCase.getId());
                 expectedCases.add(aCase);
             }
         }
@@ -643,7 +637,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     private PrismObject<AccessCertificationCampaignType> getOwningCampaignChecked(AccessCertificationCaseType aCase) {
         PrismContainer caseContainer = (PrismContainer) aCase.asPrismContainerValue().getParent();
         assertNotNull("campaign is not fetched (case parent is null)", caseContainer);
-        PrismContainerValue campaignValue = (PrismContainerValue) caseContainer.getParent();
+        PrismContainerValue campaignValue = caseContainer.getParent();
         assertNotNull("campaign is not fetched (case container parent is null)", caseContainer);
         PrismObject<AccessCertificationCampaignType> campaign = (PrismObject) campaignValue.getParent();
         assertNotNull("campaign is not fetched (campaign PCV parent is null)", campaign);
@@ -679,7 +673,7 @@ public class CertificationTest extends BaseSQLRepoTest {
             ItemDeltaCollectionsUtil.applyTo(modifications, expectedObject);
         }
 
-        LOGGER.trace("Expected object = \n{}", expectedObject.debugDump());
+        logger.trace("Expected object = \n{}", expectedObject.debugDump());
 
         boolean casesExpected = !expectedObject.asObjectable().getCase().isEmpty();
 
@@ -689,7 +683,7 @@ public class CertificationTest extends BaseSQLRepoTest {
             assertFalse("campaign.case is marked as incomplete", caseContainerFull.isIncomplete());
         }
 
-        LOGGER.trace("Actual object from repo = \n{}", campaignFull.debugDump());
+        logger.trace("Actual object from repo = \n{}", campaignFull.debugDump());
 
         PrismAsserts.assertEquivalent("Campaign is not as expected", expectedObject, campaignFull);
         if (expectedVersion != null) {

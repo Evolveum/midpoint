@@ -37,15 +37,11 @@ public class TestParseCertificationCase extends AbstractContainerValueParserTest
 
     @Test
     public void testParseFile() throws Exception {
-        displayTestTitle("testParseFile");
         processParsings(null, null);
     }
 
     @Test
     public void testParseRoundTrip() throws Exception{
-        displayTestTitle("testParseRoundTrip");
-
-        //processParsings(v -> getPrismContext().serializerFor(language).serialize(v));                                                    // no item name nor definition => cannot serialize
         processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
         processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");        // misleading item name
         processParsings(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asContainerable()), "s3");

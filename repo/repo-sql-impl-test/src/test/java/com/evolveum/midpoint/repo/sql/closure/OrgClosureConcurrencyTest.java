@@ -7,46 +7,38 @@
 
 package com.evolveum.midpoint.repo.sql.closure;
 
+import static com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager.Edge;
+
+import java.util.*;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import static com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager.Edge;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OrgClosureConcurrencyTest.class);
-
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 5, 3, 3, 3  };
+    private static final int[] ORG_CHILDREN_IN_LEVEL = { 5, 3, 3, 3 };
     private static final int[] USER_CHILDREN_IN_LEVEL = null;
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 2, 2, 3  };
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 15, 20, 30  };
-//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3,  3,  3,  3  };           // small number of deletes
+    private static final int[] PARENTS_IN_LEVEL = { 0, 2, 2, 3 };
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 15, 20, 30 };
+    //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3,  3,  3,  3  };           // small number of deletes
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3, 15, 20, 30  };           // average number of deletes
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 15, 45, 100  };            // large number of deletes
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 15, 45, 100 };            // large number of deletes
     public static final int THREADS = 4;
 
     /*
@@ -59,7 +51,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
      *
      *  Dunno why. Let's use a timeout of 30 minutes so that the tests would not loop indefinitely.
      */
-    public static final long TIMEOUT = 1800L*1000L;
+    public static final long TIMEOUT = 1800L * 1000L;
 
     // very small scenario
 //    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 1  };
@@ -87,18 +79,41 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         return configuration;
     }
 
-    @Test public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
-    @Test public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
-    @Test public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
-    @Test public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
-    @Test public void test300AddRemoveNodesSeq() throws Exception { _test300AddRemoveNodesMT(false); }
-    @Test public void test301AddRemoveNodesRandom() throws Exception { _test300AddRemoveNodesMT(true); }
+    @Test
+    public void test100LoadOrgStructure() throws Exception {
+        _test100LoadOrgStructure();
+    }
+
+    @Test
+    public void test150CheckClosure() throws Exception {
+        _test150CheckClosure();
+    }
+
+    @Test
+    public void test200AddRemoveLinksSeq() throws Exception {
+        _test200AddRemoveLinksMT(false);
+    }
+
+    @Test
+    public void test201AddRemoveLinksRandom() throws Exception {
+        _test200AddRemoveLinksMT(true);
+    }
+
+    @Test
+    public void test300AddRemoveNodesSeq() throws Exception {
+        _test300AddRemoveNodesMT(false);
+    }
+
+    @Test
+    public void test301AddRemoveNodesRandom() throws Exception {
+        _test300AddRemoveNodesMT(true);
+    }
 
     /**
      * We randomly select a set of links to be removed.
      * Then we remove them, using a given set of threads.
      * After all threads are done, we will check the closure table consistency.
-     *
+     * <p>
      * And after that, we will do the reverse, re-adding all the links previously removed.
      * In the end, we again check the consistency.
      */
@@ -107,10 +122,10 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
         info("test200AddRemoveLinks starting with random = " + random);
 
-        final Set<Edge> edgesToRemove = Collections.synchronizedSet(new HashSet<Edge>());
-        final Set<Edge> edgesToAdd = Collections.synchronizedSet(new HashSet<Edge>());
+        final Set<Edge> edgesToRemove = Collections.synchronizedSet(new HashSet<>());
+        final Set<Edge> edgesToAdd = Collections.synchronizedSet(new HashSet<>());
 
-        final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
+        final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>());
 
         // parentRef link removal + addition
         for (int level = 0; level < getConfiguration().getLinkRoundsForLevel().length; level++) {
@@ -149,7 +164,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         int numberOfRunners = THREADS;
         info("Edges to remove/add (" + edgesToRemove.size() + ": " + edgesToRemove);
         info("Number of runners: " + numberOfRunners);
-        final List<Thread> runners = Collections.synchronizedList(new ArrayList<Thread>());
+        final List<Thread> runners = Collections.synchronizedList(new ArrayList<>());
 
         for (int i = 0; i < numberOfRunners; i++) {
             Runnable runnable = new Runnable() {
@@ -161,7 +176,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             if (edge == null) {
                                 break;
                             }
-                            LOGGER.info("Removing {}", edge);
+                            logger.info("Removing {}", edge);
                             removeEdge(edge);
                             int remaining;
                             synchronized (OrgClosureConcurrencyTest.this) {
@@ -206,7 +221,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             if (edge == null) {
                                 break;
                             }
-                            LOGGER.info("Adding {}", edge);
+                            logger.info("Adding {}", edge);
                             addEdge(edge);
                             int remaining;
                             synchronized (OrgClosureConcurrencyTest.this) {
@@ -247,7 +262,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         long start = System.currentTimeMillis();
         while (!runners.isEmpty()) {
             Thread.sleep(100);          // primitive way of waiting
-            if (System.currentTimeMillis()-start > TIMEOUT) {
+            if (System.currentTimeMillis() - start > TIMEOUT) {
                 throw new AssertionError("Test is running for too long. Probably caused by a locked-up thread. Runners = " + runners);
             }
         }
@@ -276,7 +291,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                 .createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
         modifications.add(removeParent);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
-        synchronized(this) {
+        synchronized (this) {
             orgGraph.removeEdge(edge.getDescendant(), edge.getAncestor());
         }
     }
@@ -290,7 +305,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                 parentOrgRef.asReferenceValue());
         modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
-        synchronized(this) {
+        synchronized (this) {
             orgGraph.addEdge(edge.getDescendant(), edge.getAncestor());
         }
     }
@@ -300,10 +315,10 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
         info("test300AddRemoveNodes starting with random = " + random);
 
-        final Set<ObjectType> nodesToRemove = Collections.synchronizedSet(new HashSet<ObjectType>());
-        final Set<ObjectType> nodesToAdd = Collections.synchronizedSet(new HashSet<ObjectType>());
+        final Set<ObjectType> nodesToRemove = Collections.synchronizedSet(new HashSet<>());
+        final Set<ObjectType> nodesToAdd = Collections.synchronizedSet(new HashSet<>());
 
-        final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
+        final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>());
 
         for (int level = 0; level < getConfiguration().getNodeRoundsForLevel().length; level++) {
             int rounds = getConfiguration().getNodeRoundsForLevel()[level];
@@ -312,7 +327,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         }
 
         int numberOfRunners = THREADS;
-        final List<Thread> runners = Collections.synchronizedList(new ArrayList<Thread>());
+        final List<Thread> runners = Collections.synchronizedList(new ArrayList<>());
 
         for (int i = 0; i < numberOfRunners; i++) {
             Runnable runnable = new Runnable() {
@@ -324,7 +339,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             if (objectType == null) {
                                 break;
                             }
-                            LOGGER.info("Removing {}", objectType);
+                            logger.info("Removing {}", objectType);
                             int remaining;
                             try {
                                 removeObject(objectType);
@@ -377,7 +392,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             if (objectType == null) {
                                 break;
                             }
-                            LOGGER.info("Adding {}", objectType);
+                            logger.info("Adding {}", objectType);
                             try {
                                 addObject(objectType.clone());
 //                                rebuildGraph();
@@ -426,7 +441,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         OperationResult result = new OperationResult("dummy");
         info("Graph before rebuilding: " + orgGraph.vertexSet().size() + " vertices, " + orgGraph.edgeSet().size() + " edges");
         orgGraph.removeAllVertices(new HashSet<>(orgGraph.vertexSet()));
-        List<PrismObject> objects = null;
+        List<PrismObject> objects;
         try {
             objects = (List) repositoryService.searchObjects(OrgType.class, null, null, result);
         } catch (SchemaException e) {
@@ -449,13 +464,13 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                 }
             }
         }
-        info("Graph after rebuilding: "+orgGraph.vertexSet().size()+" vertices, "+orgGraph.edgeSet().size()+" edges");
+        info("Graph after rebuilding: " + orgGraph.vertexSet().size() + " vertices, " + orgGraph.edgeSet().size() + " edges");
     }
 
     private void generateNodesAtOneLevel(Set<ObjectType> nodesToRemove, Set<ObjectType> nodesToAdd,
-                                         Class<? extends ObjectType> clazz,
-                                         int rounds, List<String> candidateOids,
-                                         OperationResult opResult) throws ObjectNotFoundException, SchemaException {
+            Class<? extends ObjectType> clazz,
+            int rounds, List<String> candidateOids,
+            OperationResult opResult) throws ObjectNotFoundException, SchemaException {
         if (candidateOids.isEmpty()) {
             return;
         }
@@ -482,7 +497,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
     void removeObject(ObjectType objectType) throws Exception {
         repositoryService.deleteObject(objectType.getClass(), objectType.getOid(), new OperationResult("dummy"));
-        synchronized(orgGraph) {
+        synchronized (orgGraph) {
             if (objectType instanceof OrgType) {
                 orgGraph.removeVertex(objectType.getOid());
             }
@@ -491,7 +506,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
     void addObject(ObjectType objectType) throws Exception {
         repositoryService.addObject(objectType.asPrismObject(), null, new OperationResult("dummy"));
-        synchronized(orgGraph) {
+        synchronized (orgGraph) {
             if (objectType instanceof OrgType) {
                 registerObject(objectType, true);
             }

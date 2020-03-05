@@ -6,7 +6,28 @@
  */
 package com.evolveum.midpoint.model.intest.importer;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getDefaultImportOptions;
+import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -37,34 +58,11 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getDefaultImportOptions;
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.testng.AssertJUnit.*;
-
 /**
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
-@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrationTest {
 
     private static final String TEST_FILE_DIRECTORY = "src/test/resources/importer/";
@@ -100,9 +98,6 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     private static final String ROLE_ONE_LEGACY_FILE_NAME = "role-one-legacy";
     private static final String ROLE_ONE_LEGACY_OID = "0d70504c-d094-11e8-b0cc-675c492577e7";
 
-    private DummyResource dummyResource;
-    private DummyResourceContoller dummyResourceCtl;
-
     private PrismObject<ConnectorType> dummyConnector;
     private PrismObject<ResourceType> importedResource;
     private PrismObject<ResourceType> importedRepoResource;
@@ -136,9 +131,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         repoAddObjectFromFile(USER_TEMPLATE_SCHEMA_CONSTRAINTS_FILE, initResult);
 
         // Just initialize the resource, do NOT import resource definition
-        dummyResourceCtl = DummyResourceContoller.create(null);
+        DummyResourceContoller dummyResourceCtl = DummyResourceContoller.create(null);
         dummyResourceCtl.extendSchemaPirate();
-        dummyResource = dummyResourceCtl.getDummyResource();
 
         dummyConnector = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, initResult);
 
@@ -147,7 +141,6 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     /**
      * Test integrity of the test setup.
-     *
      */
     @Test
     public void test000Integrity() {
@@ -158,8 +151,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test001ImportConnector() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test001ImportConnector");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(CONNECTOR_DBTABLE_FILE_NAME, true));
 
         dummyAuditService.clear();
@@ -178,7 +171,6 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_DBTABLE_OID, null, result).asObjectable();
         assertNotNull(connector);
         PrismAsserts.assertEqualsPolyString("Wrong connector name.", "ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
-//        assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
         assertEquals(CONNECTOR_NAMESPACE, connector.getNamespace());
         assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
 
@@ -197,8 +189,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test003ImportUsers() throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test003ImportUsers");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(IMPORT_USERS_FILE_NAME, false));
 
         dummyAuditService.clear();
@@ -215,7 +207,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
         // Check import with fixed OID
         UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
-        display("Jack",jack);
+        display("Jack", jack);
         assertNotNull(jack);
         PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", jack.getGivenName());
         PrismAsserts.assertEqualsPolyString("wrong familyName", "Sparrow", jack.getFamilyName());
@@ -223,8 +215,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         PrismAsserts.assertEquals("wrong costCenter", "<No 'cost' & no \"center\">", jack.getCostCenter());
         // Jack has a password. Check if it was encrypted
         ProtectedStringType protectedString = jack.getCredentials().getPassword().getValue();
-        assertNull("Arrgh! Pirate sectrets were revealed!",protectedString.getClearValue());
-        assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedDataType());
+        assertNull("Arrgh! Pirate sectrets were revealed!", protectedString.getClearValue());
+        assertNotNull("Er? The pirate sectrets were lost!", protectedString.getEncryptedDataType());
 
         assertMetadata(jack, startTime, endTime);
 
@@ -257,8 +249,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test004DuplicateImportUsers() throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test004DuplicateImportUsers");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(IMPORT_USERS_FILE_NAME, false));
 
         dummyAuditService.clear();
@@ -289,8 +281,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test005ImportUsersWithOverwrite() throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test005ImportUsersWithOverwrite");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(IMPORT_USERS_OVERWRITE_FILE_NAME, false));
         ImportOptionsType options = getDefaultImportOptions();
         options.setOverwrite(true);
@@ -308,20 +300,20 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // list all users
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createQuery(), null, task, result);
         // Three old users, one new
-        assertEquals(5,users.size());
+        assertEquals(5, users.size());
 
         for (PrismObject<UserType> user : users) {
             UserType userType = user.asObjectable();
             if (userType.getName().toString().equals("jack")) {
                 // OID and all the attributes should be the same
-                assertEquals(USER_JACK_OID,userType.getOid());
+                assertEquals(USER_JACK_OID, userType.getOid());
                 PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", userType.getGivenName());
                 PrismAsserts.assertEqualsPolyString("wrong familyName", "Sparrow", userType.getFamilyName());
                 PrismAsserts.assertEqualsPolyString("wrong fullName", "Cpt. Jack Sparrow", userType.getFullName());
             }
             if (userType.getName().toString().equals("will")) {
                 // OID should be the same, and there should be an employee type
-                assertEquals(USER_WILL_OID,userType.getOid());
+                assertEquals(USER_WILL_OID, userType.getOid());
                 assertTrue("Wrong Will's employee type", userType.getSubtype().contains("legendary"));
             }
             if (userType.getName().toString().equals("guybrush")) {
@@ -347,13 +339,12 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         dummyAuditService.assertRecords(8);        // 1 failed, 7 succeeded
     }
 
-
     // Import the same thing again, with overwrite and also while keeping OIDs
     @Test
     public void test006ImportUsersWithOverwriteKeepOid() throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test005ImportUsersWithOverwrite");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(IMPORT_USERS_OVERWRITE_FILE_NAME, false));
         ImportOptionsType options = getDefaultImportOptions();
         options.setOverwrite(true);
@@ -367,25 +358,25 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // THEN
         result.computeStatus();
         display("Result after import with overwrite", result);
-        TestUtil.assertSuccess("Import failed (result)", result,1);
+        TestUtil.assertSuccess("Import failed (result)", result, 1);
 
         // list all users
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createQuery(), null, task, result);
         // Three old users, one new
-        assertEquals(5,users.size());
+        assertEquals(5, users.size());
 
         for (PrismObject<UserType> user : users) {
             UserType userType = user.asObjectable();
             if (userType.getName().toString().equals("jack")) {
                 // OID and all the attributes should be the same
-                assertEquals(USER_JACK_OID,userType.getOid());
+                assertEquals(USER_JACK_OID, userType.getOid());
                 PrismAsserts.assertEqualsPolyString("wrong givenName", "Jack", userType.getGivenName());
                 PrismAsserts.assertEqualsPolyString("wrong familyName", "Sparrow", userType.getFamilyName());
                 PrismAsserts.assertEqualsPolyString("wrong fullName", "Cpt. Jack Sparrow", userType.getFullName());
             }
             if (userType.getName().toString().equals("will")) {
                 // OID should be the same, and there should be an employee type
-                assertEquals(USER_WILL_OID,userType.getOid());
+                assertEquals(USER_WILL_OID, userType.getOid());
                 assertTrue("Wrong Will's employee type", userType.getSubtype().contains("legendary"));
             }
             if (userType.getName().toString().equals("guybrush")) {
@@ -443,7 +434,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertEquals("xsi:type'd property has incorrect type", Integer.class, delayProp.getValues().get(0).getValue().getClass());
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
 
-     // Check audit
+        // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
@@ -470,7 +461,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // THEN
         result.computeStatus();
         display("Result after import", result);
-        TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_FILE_NAME+" has failed (result)", result, 2);
+        TestUtil.assertSuccess("Import of " + RESOURCE_DUMMY_FILE_NAME + " has failed (result)", result, 2);
 
         IntegrationTestTools.assertNoRepoCache();
 
@@ -523,7 +514,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // THEN
         result.computeStatus();
         display("Result after import", result);
-        TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_CHANGED_FILE_NAME+" has failed (result)", result, 2);
+        TestUtil.assertSuccess("Import of " + RESOURCE_DUMMY_CHANGED_FILE_NAME + " has failed (result)", result, 2);
 
         IntegrationTestTools.assertNoRepoCache();
 
@@ -574,7 +565,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // THEN
         result.computeStatus();
         display("Result after import", result);
-        TestUtil.assertSuccess("Import of "+RESOURCE_DERBY_FILE_NAME+" has failed (result)", result, 2);
+        TestUtil.assertSuccess("Import of " + RESOURCE_DERBY_FILE_NAME + " has failed (result)", result, 2);
 
         IntegrationTestTools.assertNoRepoCache();
 
@@ -582,20 +573,20 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Imported resource (repo)", importedRepoResource);
         IntegrationTestTools.assertNoRepoCache();
         assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
-                CONNECOTR_DBTABLE_OID, true);
+                CONNECOTR_DBTABLE_OID);
 
         importedResource = modelService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, task, result);
         display("Imported resource (model)", importedResource);
         IntegrationTestTools.assertNoRepoCache();
         assertResource(importedResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
-                CONNECOTR_DBTABLE_OID, false);
+                CONNECOTR_DBTABLE_OID);
 
         // Read it from repo again. The read from model triggers schema fetch which increases version
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
         display("Imported resource (repo2)", importedRepoResource);
         IntegrationTestTools.assertNoRepoCache();
         assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
-                CONNECOTR_DBTABLE_OID, true);
+                CONNECOTR_DBTABLE_OID);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -627,36 +618,34 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // THEN
         result.computeStatus();
         display("Result after import", result);
-        TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_RUNTIME_FILE_NAME+" has failed (result)", result, 2);
+        TestUtil.assertSuccess("Import of " + RESOURCE_DUMMY_RUNTIME_FILE_NAME + " has failed (result)", result, 2);
 
         IntegrationTestTools.assertNoRepoCache();
 
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_RUNTIME_OID, null, result);
         display("Imported resource (repo)", importedRepoResource);
         IntegrationTestTools.assertNoRepoCache();
-        assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null, true);
+        assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null);
 
         importedResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_RUNTIME_OID, null, task, result);
         display("Imported resource (model)", importedResource);
         IntegrationTestTools.assertNoRepoCache();
-        assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null,false);
+        assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null);
 
         // Read it from repo again. The read from model triggers schema fetch which increases version
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_RUNTIME_OID, null, result);
         display("Imported resource (repo2)", importedRepoResource);
         IntegrationTestTools.assertNoRepoCache();
-        assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null, true);
+        assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null);
     }
 
     @Test
     public void test040ImportUserHermanNoEncryption() throws Exception {
-        final String TEST_NAME = "test040ImportUserHermanNoEncryption";
         // GIVEN
-
         InternalsConfig.readEncryptionChecks = false;
 
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(USER_HERMAN_FILE_NAME, true));
 
         ImportOptionsType importOptions = getDefaultImportOptions();
@@ -696,11 +685,9 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test050ImportUserHermanOverwriteFullProcessing() throws Exception {
-        final String TEST_NAME = "test050ImportUserHermanOverwriteFullProcessing";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(USER_HERMAN_FILE_NAME, true));
 
         ImportOptionsType importOptions = getDefaultImportOptions();
@@ -740,11 +727,9 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test060ImportConstrainedWrongFullProcessing() throws Exception {
-        final String TEST_NAME = "test060ImportConstrainedWrongFullProcessing";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(USER_CONSTRAINED_WRONG_FILE_NAME, false));
 
         ImportOptionsType importOptions = getDefaultImportOptions();
@@ -777,11 +762,10 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test070ImportConstrainedWrong() throws Exception {
-        final String TEST_NAME = "test070ImportConstrainedWrong";
         // GIVEN
 
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(USER_CONSTRAINED_WRONG_FILE_NAME, false));
 
         ImportOptionsType importOptions = getDefaultImportOptions();
@@ -802,20 +786,13 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
         // Check audit
         display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(1);
-//        dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
-//        dummyAuditService.assertExecutionSuccess();
     }
 
     @Test
     public void test100GoodRefImport() throws Exception {
-        final String TEST_NAME = "test100GoodRefImport";
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." +TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(IMPORT_REF_FILE_NAME, false));
 
         // WHEN
@@ -826,8 +803,6 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after good import", result);
         TestUtil.assertSuccessOrWarning("Import has failed (result)", result, 2);
 
-        //        EqualsFilter equal = EqualsFilter.createEqual(UserType.F_NAME, UserType.class, PrismTestUtil.getPrismContext(), null, "jack");
-        //        ObjectQuery query = ObjectQuery.createObjectQuery(equal);
         ObjectQuery query = ObjectQueryUtil.createNameQuery("jack", PrismTestUtil.getPrismContext());
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
@@ -844,10 +819,9 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test200BadImport() throws Exception {
-        final String TEST_NAME = "test200BadImport";
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(BAD_IMPORT_FILE_NAME, false));
 
         repositoryService.deleteObject(UserType.class, USER_JACK_OID, result);
@@ -875,10 +849,9 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
      */
     @Test
     public void test210ImportRoleOneLegacyDefault() throws Exception {
-        final String TEST_NAME = "test210ImportRoleOneLegacyDefault";
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(ROLE_ONE_LEGACY_FILE_NAME, false));
 
         // WHEN
@@ -899,10 +872,9 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
      */
     @Test
     public void test212ImportRoleOneLegacyCompat() throws Exception {
-        final String TEST_NAME = "test212ImportRoleOneLegacyCompat";
         // GIVEN
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(ROLE_ONE_LEGACY_FILE_NAME, false));
         ImportOptionsType options = getDefaultImportOptions();
         options.setCompatMode(true);
@@ -922,7 +894,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     private void assertDummyResource(PrismObject<ResourceType> resource, boolean fromRepo) {
         PrismContainer<Containerable> configurationPropertiesContainer = assertResource(resource, "Dummy Resource", RESOURCE_DUMMY_NAMESPACE,
-                dummyConnector.getOid(), fromRepo);
+                dummyConnector.getOid());
         PrismProperty<ProtectedStringType> guardedProperty = configurationPropertiesContainer.findProperty(
                 new ItemName(CONNECTOR_DUMMY_NAMESPACE, "uselessGuardedString"));
         // The resource was pulled from the repository. Therefore it does not have the right schema here. We should proceed with caution
@@ -933,7 +905,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         if (fromRepo) {
             Object passwordRawElement = guardedPVal.getRawElement();
             if (!(passwordRawElement instanceof MapXNode)) {
-                AssertJUnit.fail("Expected password value of type "+ MapXNode.class+" but got "+passwordRawElement.getClass());
+                AssertJUnit.fail("Expected password value of type " + MapXNode.class + " but got " + passwordRawElement.getClass());
             }
             MapXNode passwordXNode = (MapXNode) passwordRawElement;
             assertTrue("uselessGuardedString was not encrypted (clearValue)", passwordXNode.get(new QName("clearValue")) == null);
@@ -945,18 +917,18 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         }
     }
 
-    private PrismContainer<Containerable> assertResource(PrismObject<ResourceType> resource, String resourceName, String namespace,
-            String connectorOid, boolean fromRepo) {
+    private PrismContainer<Containerable> assertResource(PrismObject<ResourceType> resource,
+            String resourceName, String namespace, String connectorOid) {
         ResourceType resourceType = resource.asObjectable();
         assertNotNull(resourceType);
         PrismAsserts.assertEqualsPolyString("Wrong resource name", resourceName, resourceType.getName());
-        assertEquals("Wrong namespace of "+resource, namespace, ResourceTypeUtil.getResourceNamespace(resourceType));
-        assertEquals("Wrong connector OID in "+resource, connectorOid, resourceType.getConnectorRef().getOid());
+        assertEquals("Wrong namespace of " + resource, namespace, ResourceTypeUtil.getResourceNamespace(resourceType));
+        assertEquals("Wrong connector OID in " + resource, connectorOid, resourceType.getConnectorRef().getOid());
 
         // The password in the resource configuration should be encrypted after import
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         PrismContainer<Containerable> configurationPropertiesContainer =
-            configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
+                configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
         assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
 
         return configurationPropertiesContainer;
@@ -964,11 +936,10 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     private <O extends ObjectType> void assertMetadata(O objectType, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         MetadataType metadata = objectType.getMetadata();
-        assertNotNull("No metadata in "+objectType, metadata);
+        assertNotNull("No metadata in " + objectType, metadata);
         XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();
-        assertNotNull("No createTimestamp in metadata of "+objectType, createTimestamp);
-        TestUtil.assertBetween("Wrong createTimestamp in metadata of "+objectType, startTime, endTime, createTimestamp);
-        assertEquals("Wrong channel in metadata of "+objectType, SchemaConstants.CHANNEL_OBJECT_IMPORT_URI, metadata.getCreateChannel());
+        assertNotNull("No createTimestamp in metadata of " + objectType, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in metadata of " + objectType, startTime, endTime, createTimestamp);
+        assertEquals("Wrong channel in metadata of " + objectType, SchemaConstants.CHANNEL_OBJECT_IMPORT_URI, metadata.getCreateChannel());
     }
-
 }

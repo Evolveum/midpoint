@@ -19,11 +19,6 @@
 
     <name>midPoint Testing - Story Tests</name>
 
-    <properties>
-        <!-- See comment in testing parent module. -->
-        <skipStoryTests>true</skipStoryTests>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -311,7 +306,7 @@
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
-                    <skip>${skipStoryTests}</skip>
+                    <skipTests>${skipStoryTests}</skipTests>
                     <runOrder>alphabetical</runOrder>
                 </configuration>
             </plugin>

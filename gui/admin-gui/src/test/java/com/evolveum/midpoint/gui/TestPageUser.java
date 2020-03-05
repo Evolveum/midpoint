@@ -28,8 +28,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeDetailsTabPanel;
 import com.evolveum.midpoint.web.component.objectdetails.ObjectHistoryTabPanel;
@@ -46,8 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestPageUser.class);
 
     private static final String TAB_MAIN = "mainPanel:mainForm:tabPanel:panel:main";
     private static final String TAB_ACTIVATION = "mainPanel:mainForm:tabPanel:panel:activation";
@@ -72,7 +68,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
         super.initSystem(initTask, initResult);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
-        LOGGER.info("adding system config page");
+        logger.info("adding system config page");
         addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
     }
 
@@ -113,7 +109,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
         PrismObject<UserType> newUser = findObjectByName(UserType.class, "newUser");
         assertNotNull(newUser, "New user not created.");
-        LOGGER.info("created user: {}", newUser.debugDump());
+        logger.info("created user: {}", newUser.debugDump());
 
     }
 
@@ -132,7 +128,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test011renderProjectionsTab() throws Exception {
+    public void test011renderProjectionsTab() {
         renderPage(USER_JACK_OID);
 
         clickOnTab(1);
@@ -207,7 +203,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     private PageUser renderPageWithParams(PageParameters params) {
-        LOGGER.info("render page user");
+        logger.info("render page user");
         if (params == null) {
             params = new PageParameters();
         }

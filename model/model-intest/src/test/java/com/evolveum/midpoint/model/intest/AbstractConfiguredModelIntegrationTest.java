@@ -638,7 +638,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void clearUserOrgAndRoleRefs(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        OperationResult result = new OperationResult("clearUserOrgAndRoleRefs");
+        OperationResult result = createOperationResult("clearUserOrgAndRoleRefs");
         Collection modifications = new ArrayList<>();
         ReferenceDelta parentOrgRefDelta = prismContext.deltaFactory().reference().createModificationReplace(
                 UserType.F_PARENT_ORG_REF, getUserDefinition(), (PrismReferenceValue)null);

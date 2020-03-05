@@ -7,15 +7,14 @@
 package com.evolveum.midpoint.testing.story;
 
 import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -47,19 +47,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -68,7 +56,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPlentyOfAssignments extends AbstractStoryTest {
 
@@ -110,9 +98,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     private static final int NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS = NUMBER_OF_GENERATED_DUMMY_ROLES;
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestPlentyOfAssignments.class);
-
-
     private CountingInspector inspector;
 
     @Override
@@ -126,20 +111,20 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         ObjectFactory objectFactory = new ObjectFactory();
         generateRoles(NUMBER_OF_GENERATED_EMPTY_ROLES, "Empty Role %04d", GENERATED_EMPTY_ROLE_OID_FORMAT, null, initResult);
         generateRoles(NUMBER_OF_GENERATED_DUMMY_ROLES, "Dummy Role %04d", GENERATED_DUMMY_ROLE_OID_FORMAT,
-                (role,i) -> {
+                (role, i) -> {
                     ItemPathType attrPath = new ItemPathType(
                             ItemPath.create(new QName(RESOURCE_DUMMY_NS, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME)));
                     JAXBElement<Object> evaluator = objectFactory.createValue(formatRum(i));
                     role
-                        .beginInducement()
+                            .beginInducement()
                             .beginConstruction()
-                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
-                                .kind(ShadowKindType.ACCOUNT)
-                                .beginAttribute()
-                                    .ref(attrPath)
-                                    .beginOutbound()
-                                        .beginExpression()
-                                            .expressionEvaluator(evaluator);
+                            .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                            .kind(ShadowKindType.ACCOUNT)
+                            .beginAttribute()
+                            .ref(attrPath)
+                            .beginOutbound()
+                            .beginExpression()
+                            .expressionEvaluator(evaluator);
                 }, initResult);
 
         inspector = new CountingInspector();
@@ -194,7 +179,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Added cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
+        display("Added cheese in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_CHEESE_ASSIGNMENTS) + "ms per assignment)");
 
         PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
         display("Cheese after", assignmentSummary(cheeseAfter));
@@ -210,7 +195,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
-
 
     @Test
     public void test110RecomputeCheese() throws Exception {
@@ -237,7 +221,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Recomputed cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
+        display("Recomputed cheese in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_CHEESE_ASSIGNMENTS) + "ms per assignment)");
 
         PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
         display("Cheese after", assignmentSummary(cheeseAfter));
@@ -281,7 +265,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Preview cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
+        display("Preview cheese in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_CHEESE_ASSIGNMENTS) + "ms per assignment)");
 
         PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
         display("Cheese after", assignmentSummary(cheeseAfter));
@@ -314,11 +298,10 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         assertRoleMembershipRefs(cheese, NUMBER_OF_CHEESE_ASSIGNMENTS);
     }
 
-
     /**
      * Create dummy groups that can be used for associationTargetSearch later on.
      * Create them from midPoint so they have shadows.
-     *
+     * <p>
      * MID-3938 #8
      */
     @Test
@@ -338,17 +321,17 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         ObjectFactory objectFactory = new ObjectFactory();
         ItemPath nameAttributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);
-        for (int i=0; i<NUMBER_OF_GENERATED_DUMMY_GROUPS; i++) {
+        for (int i = 0; i < NUMBER_OF_GENERATED_DUMMY_GROUPS; i++) {
             PrismObject<ShadowType> shadow = shadowDef.instantiate();
             ShadowType shadowType = shadow.asObjectable();
             shadowType
-                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
-                .objectClass(rOcDef.getTypeName());
+                    .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                    .objectClass(rOcDef.getTypeName());
             ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, rOcDef);
             ResourceAttribute<String> nameAttribute = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
             String groupName = formatGroupName(i);
             nameAttribute.setRealValue(groupName);
-            display("Group shadow "+i, shadow);
+            display("Group shadow " + i, shadow);
             addObject(shadow, task, result);
 
             PrismObject<RoleType> role = roleDef.instantiate();
@@ -362,17 +345,17 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
             associationTargetSearchType.setSearchStrategy(ObjectSearchStrategyType.IN_REPOSITORY);
             JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = objectFactory.createAssociationTargetSearch(associationTargetSearchType);
             roleType
-                .oid(generateRoleOid(GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT, i))
-                .name(String.format("Group role %04d", i))
-                .beginInducement()
+                    .oid(generateRoleOid(GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT, i))
+                    .name(String.format("Group role %04d", i))
+                    .beginInducement()
                     .beginConstruction()
                     .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
                     .kind(ShadowKindType.ACCOUNT)
                     .beginAssociation()
-                        .ref(assPath)
-                        .beginOutbound()
-                            .beginExpression()
-                                .expressionEvaluator(evaluator);
+                    .ref(assPath)
+                    .beginOutbound()
+                    .beginExpression()
+                    .expressionEvaluator(evaluator);
             try {
                 IntegrationTestTools.displayXml("RRRRRRRRR group", role);
             } catch (SchemaException e) {
@@ -421,7 +404,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Added bob in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS)+"ms per assignment)");
+        display("Added bob in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS) + "ms per assignment)");
 
         PrismObject<UserType> userAfter = getUser(USER_BOB_OID);
         display("User after", assignmentSummary(userAfter));
@@ -465,7 +448,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Recomputed bob in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS)+"ms per assignment)");
+        display("Recomputed bob in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS) + "ms per assignment)");
 
         PrismObject<UserType> userAfter = getUser(USER_BOB_OID);
         display("User after", assignmentSummary(userAfter));
@@ -509,7 +492,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Reconciled bob in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS)+"ms per assignment)");
+        display("Reconciled bob in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS) + "ms per assignment)");
 
         PrismObject<UserType> userAfter = getUser(USER_BOB_OID);
         display("User after", assignmentSummary(userAfter));
@@ -576,7 +559,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Added alice in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_GENERATED_DUMMY_GROUPS)+"ms per assignment)");
+        display("Added alice in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_GENERATED_DUMMY_GROUPS) + "ms per assignment)");
 
         PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
         display("User after", assignmentSummary(userAfter));
@@ -621,7 +604,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Recomputed alice in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_GENERATED_DUMMY_GROUPS)+"ms per assignment)");
+        display("Recomputed alice in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_GENERATED_DUMMY_GROUPS) + "ms per assignment)");
 
         PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
         display("User after", assignmentSummary(userAfter));
@@ -665,7 +648,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
-        display("Reconciled alice in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_GENERATED_DUMMY_GROUPS)+"ms per assignment)");
+        display("Reconciled alice in " + (endMillis - startMillis) + "ms (" + ((endMillis - startMillis) / NUMBER_OF_GENERATED_DUMMY_GROUPS) + "ms per assignment)");
 
         PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
         display("User after", assignmentSummary(userAfter));
@@ -720,12 +703,12 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     private void assertRoleMembershipRef(PrismObject<UserType> user, String roleOid, QName relation) {
         List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
-        for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {
+        for (ObjectReferenceType roleMembershipRef : roleMembershipRefs) {
             if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, RoleType.COMPLEX_TYPE, relation, prismContext)) {
                 return;
             }
         }
-        fail("Cannot find membership of role "+roleOid+" ("+relation.getLocalPart()+") in "+user);
+        fail("Cannot find membership of role " + roleOid + " (" + relation.getLocalPart() + ") in " + user);
     }
 
 }

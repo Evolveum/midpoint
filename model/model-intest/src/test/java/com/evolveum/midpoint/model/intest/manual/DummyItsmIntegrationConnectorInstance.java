@@ -104,7 +104,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
             String resourceOid, Collection<Operation> changes, OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+            throws CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException {
         DummyItsm itsm = DummyItsm.getInstance();
         String identifier;

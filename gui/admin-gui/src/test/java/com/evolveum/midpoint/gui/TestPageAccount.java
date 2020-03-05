@@ -18,8 +18,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
@@ -35,8 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageAccount extends AbstractInitializedGuiIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestPageAccount.class);
-
     private static final String FORM_SAVE = "mainForm:save";
 
     @Override
@@ -44,7 +40,7 @@ public class TestPageAccount extends AbstractInitializedGuiIntegrationTest {
         super.initSystem(initTask, initResult);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
-        LOGGER.info("adding system config page");
+        logger.info("adding system config page");
         addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
     }
 
@@ -73,7 +69,7 @@ public class TestPageAccount extends AbstractInitializedGuiIntegrationTest {
     }
 
     private PageAccount renderPageWithParams(PageParameters params) {
-        LOGGER.info("render page account");
+        logger.info("render page account");
         if(params == null) {
             params = new PageParameters();
         }

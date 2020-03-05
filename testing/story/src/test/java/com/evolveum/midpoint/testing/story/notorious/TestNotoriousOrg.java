@@ -16,8 +16,6 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -56,8 +54,6 @@ public class TestNotoriousOrg extends AbstractNotoriousTest {
     public static final File ORG_NOTORIOUS_FILE = new File(TEST_DIR, "org-notorious.xml");
     public static final String ORG_NOTORIOUS_OID = "f79fc21a-4d0a-11e7-ad8d-f7fe1a23c68a";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestNotoriousOrg.class);
-
     @Override
     protected String getNotoriousOid() {
         return ORG_NOTORIOUS_OID;
@@ -93,7 +89,7 @@ public class TestNotoriousOrg extends AbstractNotoriousTest {
         PrismObject<OrgType> org = parseObject(getNotoriousFile());
         OrgType orgType = org.asObjectable();
         fillNotorious(orgType);
-        LOGGER.info("Adding {}:\n{}", org, org.debugDump(1));
+        logger.info("Adding {}:\n{}", org, org.debugDump(1));
         repositoryService.addObject(org, null, result);
     }
 

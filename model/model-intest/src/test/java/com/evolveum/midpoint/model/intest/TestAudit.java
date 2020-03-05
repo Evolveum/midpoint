@@ -10,61 +10,54 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.*;
 import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Test of Model Audit Service.
- *
+ * <p>
  * Two users, interlaced events: jack and herman.
- *
+ * <p>
  * Jack already exists, but there is no create audit record for him. This simulates trimmed
  * audit log. There are several fresh modify operations.
- *
+ * <p>
  * Herman is properly created and modified. We have all the audit records.
- *
+ * <p>
  * The tests check if audit records are created and that they can be listed.
  * The other tests check that the state can be reconstructed by the time machine (object history).
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
@@ -94,11 +87,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         super.initSystem(initTask, initResult);
     }
 
-
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         assertTrue(modelAuditService.supportsRetrieval());
 
         Task task = getTestTask();
@@ -116,8 +106,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test010SanityJack() throws Exception {
-        final String TEST_NAME = "test010SanityJack";
-
         // WHEN
         List<AuditEventRecord> auditRecords = getObjectAuditRecords(USER_JACK_OID);
 
@@ -129,8 +117,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100ModifyUserJackKid() throws Exception {
-        final String TEST_NAME = "test100ModifyUserJackKid";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -157,8 +143,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test105CreateUserHerman() throws Exception {
-        final String TEST_NAME = "test105CreateUserHerman";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -188,11 +172,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test110ModifyUserJackSailor() throws Exception {
-        final String TEST_NAME = "test110ModifyUserJackSailor";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE,
                 createPolyString("Sailor"));
@@ -220,8 +201,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test115ModifyUserHermanMarooned() throws Exception {
-        final String TEST_NAME = "test115ModifyUserHermanMarooned";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -247,11 +226,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertRecordsFromInitial(hermanMaroonedTs, 8);
     }
 
-
     @Test
     public void test120ModifyUserJackCaptain() throws Exception {
-        final String TEST_NAME = "test120ModifyUserJackCaptain";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -280,8 +256,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test125ModifyUserHermanHermit() throws Exception {
-        final String TEST_NAME = "test125ModifyUserHermanHermit";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -301,7 +275,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
-
         // THEN
         then();
         assertSuccess(result);
@@ -316,8 +289,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test135ModifyUserHermanCivilisedHermit() throws Exception {
-        final String TEST_NAME = "test135ModifyUserHermanCivilisedHermit";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -331,7 +302,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         when();
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-
 
         // THEN
         then();
@@ -347,8 +317,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200ReconstructJackSailor() throws Exception {
-        final String TEST_NAME = "test200ReconstructJackSailor";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -377,8 +345,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test210ReconstructJackKid() throws Exception {
-        final String TEST_NAME = "test210ReconstructJackKid";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -409,8 +375,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test250ReconstructHermanCreated() throws Exception {
-        final String TEST_NAME = "test250ReconstructHermanCreated";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -448,8 +412,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test252ReconstructHermanMarooned() throws Exception {
-        final String TEST_NAME = "test252ReconstructHermanMarooned";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -480,8 +442,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test254ReconstructHermanHermit() throws Exception {
-        final String TEST_NAME = "test254ReconstructHermanHermit";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -510,8 +470,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test300QueryUnknown() throws Exception {
-        final String TEST_NAME = "test300QueryUnknown";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -564,13 +522,12 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test300ConcurrentAudits() throws Exception {
-        final String TEST_NAME = "test300ConcurrentAudits";
         final int NUM_THREADS = 2;
         final int ITERATIONS = 300;
         final long TIMEOUT = 600000;
 
         if (isH2()) {
-            display("Skipping " + TEST_NAME + " because of H2 database");
+            display("Skipping " + getTestNameShort() + " because of H2 database");
             return;
         }
 
@@ -604,7 +561,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                     results.set(index, null);
                 } catch (Throwable t) {
                     System.err.println("Thread " + index + " got an exception " + t);
-                    LoggingUtils.logUnexpectedException(LOGGER, "Thread {} got an exception", t, index);
+                    LoggingUtils.logUnexpectedException(logger, "Thread {} got an exception", t, index);
                     results.set(index, t);
                 }
             });
@@ -643,13 +600,12 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test310ConcurrentAuditsRaw() throws Exception {
-        final String TEST_NAME = "test310ConcurrentAuditsRaw";
         final int NUM_THREADS = 2;
         final int ITERATIONS = 300;
         final long TIMEOUT = 600000;
 
         if (isH2()) {
-            display("Skipping " + TEST_NAME + " because of H2 database");
+            display("Skipping " + getTestNameShort() + " because of H2 database");
             return;
         }
 
@@ -669,7 +625,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                         display("Executing iteration " + iteration + " in worker " + index);
                         AuditEventRecord record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
                         record.setEventIdentifier(
-                                String.valueOf(iteration + ":" + System.currentTimeMillis()) + "-" + (int) (Math.random() * 1000000));
+                                iteration + ":" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1_000_000));
                         ObjectDelta<?> delta = prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
                                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
@@ -684,7 +640,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                     results.set(index, null);
                 } catch (Throwable t) {
                     System.err.println("Thread " + index + " got an exception " + t);
-                    LoggingUtils.logUnexpectedException(LOGGER, "Thread {} got an exception", t, index);
+                    LoggingUtils.logUnexpectedException(logger, "Thread {} got an exception", t, index);
                     results.set(index, t);
                     failed.set(true);
                 }

@@ -16,7 +16,7 @@ import java.util.Set;
 import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 /**
  * @author semancik
@@ -116,7 +116,7 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
     }
 
     public DummyObjectAsserter<D,R> display(String message) {
-        IntegrationTestTools.display(message, dummyObject);
+        PrismTestUtil.display(message, dummyObject);
         return this;
     }
 }

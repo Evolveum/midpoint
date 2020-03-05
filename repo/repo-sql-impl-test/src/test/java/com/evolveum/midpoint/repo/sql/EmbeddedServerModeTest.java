@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -18,21 +16,16 @@ import org.testng.annotations.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class EmbeddedServerModeTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EmbeddedServerModeTest.class);
-
     @Autowired
-    SqlRepositoryFactory sqlFactory;
+    private SqlRepositoryFactory sqlFactory;
 
     @Test
     public void testServerMode() throws Exception {
-        LOGGER.info("testServerMode");
+        logger.info("testServerMode");
 
         Connection connection = null;
         try {
