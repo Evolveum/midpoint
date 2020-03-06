@@ -78,6 +78,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     protected static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
 
     protected static final TestResource USER_TEMPLATE_MID_5892 = new TestResource(TEST_DIR, "user-template-mid-5892.xml", "064993c0-34b4-4440-9331-e909fc923504");
+    private static final TestResource USER_TEMPLATE_MID_6045 = new TestResource(TEST_DIR, "user-template-mid-6045.xml", "f3dbd582-11dc-473f-8b51-a30be5cbd5ce");
 
     private static final String ACCOUNT_STAN_USERNAME = "stan";
     private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
@@ -85,6 +86,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     private static final String SUBTYPE_MAROONED = "marooned";
     private static final String SUBTYPE_USELESS = "useless";
     private static final String SUBTYPE_MID_5892 = "mid-5892";
+    private static final String SUBTYPE_MID_6045 = "mid-6045";
 
     private static final int NUMBER_OF_IMPORTED_ROLES = 5;
 
@@ -114,11 +116,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_USELESS_FILE, initResult);
         repoAdd(USER_TEMPLATE_MID_5892, initResult);
+        repoAdd(USER_TEMPLATE_MID_6045, initResult);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_5892, USER_TEMPLATE_MID_5892.oid, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_6045, USER_TEMPLATE_MID_6045.oid, initResult);
     }
 
     protected int getNumberOfRoles() {
@@ -3547,12 +3551,43 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, user.getOid(), null, task, result);
         display("User after", userAfter);
 
-        AssignmentType assignment = assertAssignedRole(userAfter, SystemObjectsType.ROLE_SUPERUSER.value());
+        assertAssignedRole(userAfter, SystemObjectsType.ROLE_SUPERUSER.value());
     }
 
-//    @Override
-//    protected TracingProfileType getTestMethodTracingProfile() {
-//        return createModelLoggingTracingProfile()
-//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-//    }
+    /**
+     * MID-6045
+     */
+    @Test
+    public void test990SpecialTimedMapping() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        XMLGregorianCalendar firstTriggerTime = XmlTypeConverter.fromNow("PT1M");
+
+        UserType user = new UserType(prismContext)
+                .name("test990SpecialTimedMapping")
+                .givenName("jim")
+                .subtype(SUBTYPE_MID_6045)
+                .beginTrigger()
+                    .timestamp(firstTriggerTime)
+                    .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .<UserType>end()
+                .beginAssignment()
+                    .targetRef(SystemObjectsType.ROLE_SUPERUSER.value(), RoleType.COMPLEX_TYPE)
+                .end();
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        when();
+        recomputeUser(user.getOid(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUser(user.getOid(), "user after")
+                .display()
+                .triggers()
+                    .assertTriggers(3)      // for some reason two new triggers are created
+                    .end()
+                .assertAssignments(1);
+    }
 }
