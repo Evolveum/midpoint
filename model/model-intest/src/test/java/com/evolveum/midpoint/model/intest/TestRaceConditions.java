@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -26,10 +25,6 @@ import java.util.*;
 
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRaceConditions extends AbstractInitializedModelIntegrationTest {
@@ -50,8 +45,6 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test100AssignRoles() throws Exception {
-        final String TEST_NAME="test100AssignRoles";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -91,10 +84,8 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test110UnassignRoles() throws Exception {
-        final String TEST_NAME = "test110UnassignRoles";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestRaceConditions.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);

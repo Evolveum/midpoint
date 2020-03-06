@@ -10,31 +10,24 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
@@ -43,13 +36,10 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
     protected static final File RESOURCE_DUMMY_HOOK_FILE = new File(TEST_DIR, "resource-dummy-hook.xml");
     protected static final String RESOURCE_DUMMY_HOOK_OID = "10000000-0000-0000-0000-000004444001";
     protected static final String RESOURCE_DUMMY_HOOK_NAME = "hook";
-    protected static final String RESOURCE_DUMMY_HOOK_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
-    private static final String ORG_TOP_OID = "80808080-8888-6666-0000-100000000001";
 
     private static final File GENERIC_BLACK_PEARL_FILE = new File(TEST_DIR, "generic-blackpearl.xml");
-    private static final String GENERIC_BLACK_PEARL_OID = "54195419-5419-5419-5419-000000000001";
 
     private static final File SYSTEM_CONFIGURATION_HOOKS_FILE = new File(TEST_DIR, "system-configuration-hooks.xml");
 
@@ -59,14 +49,15 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
     protected PrismObject<ResourceType> resourceDummyHook;
 
     @Override
-    public void initSystem(Task initTask, OperationResult initResult)
-            throws Exception {
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        dummyResourceCtlHook = DummyResourceContoller.create(RESOURCE_DUMMY_HOOK_NAME, resourceDummyHook);
+        dummyResourceCtlHook = DummyResourceContoller.create(
+                RESOURCE_DUMMY_HOOK_NAME, resourceDummyHook);
         dummyResourceCtlHook.extendSchemaPirate();
         dummyResourceHook = dummyResourceCtlHook.getDummyResource();
-        resourceDummyHook = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_HOOK_FILE, RESOURCE_DUMMY_HOOK_OID, initTask, initResult);
+        resourceDummyHook = importAndGetObjectFromFile(ResourceType.class,
+                RESOURCE_DUMMY_HOOK_FILE, RESOURCE_DUMMY_HOOK_OID, initTask, initResult);
         resourceDummyHookType = resourceDummyHook.asObjectable();
         dummyResourceCtlHook.setResource(resourceDummyHook);
 
@@ -79,14 +70,10 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         return SYSTEM_CONFIGURATION_HOOKS_FILE;
     }
 
-
-
     @Test
     public void test100JackAssignHookAccount() throws Exception {
-        final String TEST_NAME = "test100JackAssignHookAccount";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         dummyAuditService.clear();
@@ -136,10 +123,8 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test110JackAddOrganization() throws Exception {
-        final String TEST_NAME = "test110JackAddOrganization";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         dummyAuditService.clear();
@@ -180,18 +165,5 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         StaticHookRecorder.assertInvocationCount("foo", 10);
         StaticHookRecorder.assertInvocationCount("bar", 10);
         StaticHookRecorder.assertInvocationCount("bar-user", 1);
-
-
-        // TODO
-//        // Check audit
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(4);
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(1,1);
-//        dummyAuditService.asserHasDelta(1,ChangeType.ADD, OrgType.class);
-//        dummyAuditService.assertExecutionDeltas(3,1);
-//        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.assertExecutionSuccess();
     }
-
 }

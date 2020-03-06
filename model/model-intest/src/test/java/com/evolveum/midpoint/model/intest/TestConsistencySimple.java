@@ -61,90 +61,91 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private ObjectClassComplexTypeDefinition getAccountObjectClassDefinition() throws SchemaException {
         ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(getDummyResourceObject(), prismContext);
+        assertNotNull(schema);
         return schema.findObjectClassDefinition(dummyResourceCtl.getAccountObjectClassQName());
     }
 
     @Test
     public void test100Reconcile_Keep_Keep() throws Exception {
-        executeTest("test100Reconcile_Keep_Keep", FocusOperation.RECONCILE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test110Recompute_Keep_Keep() throws Exception {
-        executeTest("test110Recompute_Keep_Keep", FocusOperation.RECOMPUTE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test120Reconcile_Unlink_Keep() throws Exception {
-        executeTest("test120Reconcile_Unlink_Keep", FocusOperation.RECONCILE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test130Recompute_Unlink_Keep() throws Exception {
-        executeTest("test130Recompute_Unlink_Keep", FocusOperation.RECOMPUTE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test140Reconcile_UnlinkTombstone_Keep() throws Exception {
-        executeTest("test140Reconcile_UnlinkTombstone_Keep", FocusOperation.RECONCILE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test150Recompute_UnlinkTombstone_Keep() throws Exception {
-        executeTest("test150Recompute_UnlinkTombstone_Keep", FocusOperation.RECOMPUTE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test160Reconcile_Delete_Keep() throws Exception {
-        executeTest("test160Reconcile_Delete_Keep", FocusOperation.RECONCILE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test170Recompute_Delete_Keep() throws Exception {
-        executeTest("test170Recompute_Delete_Keep", FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test200Reconcile_Keep_Delete() throws Exception {
-        executeTest("test200Reconcile_Keep_Delete", FocusOperation.RECONCILE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test210Recompute_Keep_Delete() throws Exception {
-        executeTest("test210Recompute_Keep_Delete", FocusOperation.RECOMPUTE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.KEEP, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test220Reconcile_Unlink_Delete() throws Exception {
-        executeTest("test220Reconcile_Unlink_Delete", FocusOperation.RECONCILE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test230Recompute_Unlink_Delete() throws Exception {
-        executeTest("test230Recompute_Unlink_Delete", FocusOperation.RECOMPUTE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test240Reconcile_UnlinkTombstone_Delete() throws Exception {
-        executeTest("test240Reconcile_UnlinkTombstone_Delete", FocusOperation.RECONCILE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test250Recompute_UnlinkTombstone_Delete() throws Exception {
-        executeTest("test250Recompute_UnlinkTombstone_Delete", FocusOperation.RECOMPUTE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.UNLINK_AND_TOMBSTONE, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test260Reconcile_Delete_Delete() throws Exception {
-        executeTest("test260Reconcile_Delete_Delete", FocusOperation.RECONCILE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECONCILE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
     }
 
     @Test
     public void test270Recompute_Delete_Delete() throws Exception {
-        executeTest("test270Recompute_Delete_Delete", FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
+        executeTest(FocusOperation.RECOMPUTE, ShadowOperation.DELETE, ResourceObjectOperation.KEEP);
     }
 
-    private void executeTest(final String TEST_NAME, FocusOperation focusOperation, ShadowOperation shadowOperation,
+    private void executeTest(FocusOperation focusOperation, ShadowOperation shadowOperation,
             ResourceObjectOperation resourceObjectOperation) throws Exception {
 
         // GIVEN
@@ -162,7 +163,6 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         display("Shadow", shadowBefore);
 
         if (shadowOperation != ShadowOperation.KEEP) {
-            @SuppressWarnings("unchecked")
             ObjectDelta<UserType> removeLinkRefDelta = deltaFor(UserType.class)
                     .item(UserType.F_LINK_REF).replace()
                     .asObjectDelta(USER_JACK_OID);
@@ -175,7 +175,6 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                 assertNoObject(ShadowType.class, shadowBefore.getOid());
             } else {
                 if (shadowOperation == ShadowOperation.UNLINK_AND_TOMBSTONE) {
-                    @SuppressWarnings("unchecked")
                     ObjectDelta<ShadowType> markAsDead = deltaFor(ShadowType.class)
                             .item(ShadowType.F_DEAD).replace(Boolean.TRUE)
                             .item(ShadowType.F_EXISTS).replace(Boolean.FALSE)
