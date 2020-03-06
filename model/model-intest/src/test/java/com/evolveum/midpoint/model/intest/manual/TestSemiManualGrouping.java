@@ -122,7 +122,6 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
     @Test
     @Override
     public void test400PhantomAccount() throws Exception {
-        final String TEST_NAME = "test400PhantomAccount";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

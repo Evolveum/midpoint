@@ -72,15 +72,10 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
         TestUtil.assertSuccess(testResultGrouper);
-    }
-
-    private Task createTestTask(String TEST_NAME) {
-        return taskManager.createTaskInstance(TestAsyncUpdateUcf.class.getName() + "." + TEST_NAME);
     }
 
     /**
@@ -88,8 +83,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test100AddAnderson() throws Exception {
-        final String TEST_NAME = "test100AddAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -127,8 +121,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test110AddAlumniAndStaff() throws Exception {
-        final String TEST_NAME = "test110AddAlumni";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -173,8 +166,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test120AddWhite() throws Exception {
-        final String TEST_NAME = "test120AddWhite";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -212,8 +204,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test200AddAlumniForAnderson() throws Exception {
-        final String TEST_NAME = "test200AddAlumniForAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -251,8 +242,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test210AddStaffForAnderson() throws Exception {
-        final String TEST_NAME = "test210AddStaffForAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -290,8 +280,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test220AddAlumniForLewis() throws Exception {
-        final String TEST_NAME = "test220AddAlumniForLewis";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -329,8 +318,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test230MentionLewis() throws Exception {
-        final String TEST_NAME = "test230MentionLewis";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -368,8 +356,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test300DeleteAnderson() throws Exception {
-        final String TEST_NAME = "test300DeleteAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -399,8 +386,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test310DeleteStaff() throws Exception {
-        final String TEST_NAME = "test310DeleteStaff";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN

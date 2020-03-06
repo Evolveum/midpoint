@@ -360,7 +360,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // THEN
         // The returned type should have the schema pre-parsed
-        assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
+        assertTrue(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
@@ -370,7 +370,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertTrue("Broken caching", resourceSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+        assertSame("Broken caching", resourceSchema, RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
 
         ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
@@ -703,7 +703,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     @Test
     public void test104RecomputeWill() throws Exception {
-        final String TEST_NAME = "test104RecomputeWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2168,7 +2167,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
 
-    protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
+    protected void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
         assertNoAttribute(shadow.asObjectable(), attrName);
     }
 

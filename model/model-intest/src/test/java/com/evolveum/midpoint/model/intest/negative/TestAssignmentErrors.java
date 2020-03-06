@@ -6,21 +6,16 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -32,10 +27,12 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -45,19 +42,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -65,14 +50,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * correct handling of connector exceptions.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTest {
-
-    private static final String TEST_DIR = "src/test/resources/negative";
-    private static final String TEST_TARGET_DIR = "target/test/negative";
 
     private static final String USER_LEMONHEAD_NAME = "lemonhead";
     private static final String USER_LEMONHEAD_FULLNAME = "Lemonhead";
@@ -81,8 +62,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     private static final String USER_SHARPTOOTH_PASSWORD_1_CLEAR = "SHARPyourT33TH";
     private static final String USER_SHARPTOOTH_PASSWORD_2_CLEAR = "L00SEyourT33TH";
     private static final String USER_SHARPTOOTH_PASSWORD_3_CLEAR = "HAV3noT33TH";
-    private static final String USER_REDSKULL_NAME = "redskull";
-    private static final String USER_REDSKULL_FULLNAME = "Red Skull";
 
     private static final String USER_AFET_NAME = "afet";
     private static final String USER_AFET_FULLNAME = "Alfredo Fettucini";
@@ -91,10 +70,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     private static final String USER_CFET_NAME = "cfet";
     private static final String USER_CFET_FULLNAME = "Carlos Fettucini";
 
-    protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentErrors.class);
-
-    private PrismObject<ResourceType> resource;
-    private String userLemonheadOid;
     private String userSharptoothOid;
 
     @Override
@@ -162,8 +137,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
      */
     @Test
     public void test100UserJackAssignBlankAccount() throws Exception {
-        final String TEST_NAME = "test100UserJackAssignBlankAccount";
-
         // GIVEN
         Task task = getTestTask();
 
@@ -204,8 +177,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
      */
     @Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
-        final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -243,11 +214,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
     }
 
-
     @Test
     public void test200UserLemonheadAssignAccountBrokenNetwork() throws Exception {
-        final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -255,7 +223,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME);
         addObject(user);
-        userLemonheadOid = user.getOid();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
@@ -290,11 +257,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     // TODO: timeout or explicit retry
 //    @Test
 //    public void test205UserLemonheadRecovery() throws Exception {
-//        final String TEST_NAME = "test205UserLemonheadRecovery";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
 //        // GIVEN
-//        Task task = createTask(TEST_NAME);
+//        Task task = getTestTask();
 //        OperationResult result = task.getResult();
 //        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 //
@@ -324,8 +288,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
-        final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -393,8 +355,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
      */
     @Test
     public void test212UserSharptoothAssignAccountRecovery() throws Exception {
-        final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -424,25 +384,25 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
      */
     @Test
     public void test214UserSharptoothChangePasswordNetworkError() throws Exception {
-        testUserSharptoothChangePasswordError("test214UserSharptoothChangePasswordNetworkError",
+        testUserSharptoothChangePasswordError(
                 BreakMode.NETWORK, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_2_CLEAR,
                 OperationResultStatus.IN_PROGRESS);
     }
 
     /**
      * Change user password. But there is generic error on the resource.
-     *
+     * <p>
      * Default dummy resource has no error criticality definition. Therefore generic errors
      * are considered critical. This operation is supposed to die.
-     *
+     * <p>
      * MID-3569
      */
     @Test
     public void test215UserSharptoothChangePasswordGenericError() throws Exception {
         try {
-            testUserSharptoothChangePasswordError("test215UserSharptoothChangePasswordGenericError",
-                BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
-                OperationResultStatus.FATAL_ERROR);
+            testUserSharptoothChangePasswordError(
+                    BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
+                    OperationResultStatus.FATAL_ERROR);
 
             assertNotReached();
         } catch (GenericConnectorException e) {
@@ -466,7 +426,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 //                OperationResultStatus.PARTIAL_ERROR);
 //    }
 
-    public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
+    public void testUserSharptoothChangePasswordError(BreakMode breakMode,
+            String oldPassword, String newPassword, OperationResultStatus expectedResultStatus)
+            throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -498,15 +460,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     /**
      * Assign account to user, delete the account shadow (not the account), recompute the user.
      * We expect that the shadow will be re-created and re-linked.
-     *
+     * <p>
      * This is tried on the default dummy resource where synchronization is enabled.
      */
     @Test
     public void test220UserAssignAccountDeletedShadowRecomputeSync() throws Exception {
-        final String TEST_NAME = "test220UserAssignAccountDeletedShadowRecomputeSync";
-
         //GIVEN
-        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
+        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(RESOURCE_DUMMY_OID, null,
                 USER_AFET_NAME, USER_AFET_FULLNAME);
         String shadowOidBefore = getSingleLinkOid(user);
         Task task = getTestTask();
@@ -518,7 +478,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
@@ -527,7 +487,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
         display("Shadow after", shadowAfter);
 
-        assertFalse("New and old shadow OIDs are the same", shadowOidBefore.equals(shadowOidAfter));
+        assertThat(shadowOidAfter)
+                .withFailMessage("New and old shadow OIDs are the same")
+                .isNotEqualTo(shadowOidBefore);
 
         // ... and again ...
 
@@ -540,7 +502,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
@@ -553,7 +515,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     /**
      * Assign account to user, delete the account shadow (not the account), recompute the user.
      * We expect an error.
-     *
+     * <p>
      * This is tried on the red dummy resource where there is no synchronization.
      */
     //TODO: after fixing uniqueness check in ProjectionValueProcessor, change the test little bit
@@ -563,7 +525,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
 
         // GIVEN
-        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID,
+        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(RESOURCE_DUMMY_RED_OID,
                 RESOURCE_DUMMY_RED_NAME, USER_BFET_NAME, USER_BFET_FULLNAME);
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -608,15 +570,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     /**
      * Assign account to user, delete the account shadow (not the account), recompute the user.
      * We expect that the shadow will be re-created and re-linked.
-     *
+     * <p>
      * This is tried on the yellow dummy resource where there is reduced synchronization config.
      */
     @Test
     public void test224UserAssignAccountDeletedShadowRecomputeReducedSync() throws Exception {
-        final String TEST_NAME = "test224UserAssignAccountDeletedShadowRecomputeReducedSync";
-
         //GIVEN
-        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME,
+        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(
                 RESOURCE_DUMMY_YELLOW_OID, RESOURCE_DUMMY_YELLOW_NAME,
                 USER_CFET_NAME, USER_CFET_FULLNAME);
         String shadowOidBefore = getSingleLinkOid(user);
@@ -629,7 +589,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
@@ -638,7 +598,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
         display("Shadow after", shadowAfter);
 
-        assertFalse("New and old shadow OIDs are the same", shadowOidBefore.equals(shadowOidAfter));
+        assertThat(shadowOidAfter).withFailMessage("New and old shadow OIDs are the same")
+                .isNotEqualTo(shadowOidBefore);
 
         // ... and again ...
 
@@ -651,7 +612,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         // THEN
         result.computeStatus();
         display("Recompute result", result);
-        TestUtil.assertSuccess(result,2);
+        TestUtil.assertSuccess(result, 2);
 
         user = getUser(user.getOid());
         display("User after", user);
@@ -662,8 +623,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
     }
 
-    private PrismObject<UserType> setupUserAssignAccountDeletedShadowRecompute(final String TEST_NAME, String dummyResourceOid,
-            String dummyResourceName, String userName, String userFullName) throws Exception {
+    private PrismObject<UserType> setupUserAssignAccountDeletedShadowRecompute(
+            String dummyResourceOid, String dummyResourceName, String userName, String userFullName)
+            throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -702,7 +664,5 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         return user;
     }
-
-
 
 }

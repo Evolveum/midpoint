@@ -81,10 +81,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test100RecomputeElaine() throws Exception {
-        final String TEST_NAME = "test100RecomputeElaine";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -106,10 +104,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test110ChangeManagerAndRecomputeElaine() throws Exception {
-        final String TEST_NAME = "test110ChangeManagerAndRecomputeElaine";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -133,10 +129,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test120RestoreManagerAndRecomputeElaineAgain() throws Exception {
-        final String TEST_NAME = "test120RestoreManagerAndRecomputeElaineAgain";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignOrg(USER_ELAINE_OID, ORG_GOVERNOR_OFFICE_OID, null);
@@ -164,10 +158,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test140ChangeManagerAndRecomputeElaineAgain() throws Exception {
-        final String TEST_NAME = "test140ChangeManagerAndRecomputeElaineAgain";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
