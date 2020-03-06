@@ -10,6 +10,8 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,6 +47,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4, taskAfter.getResult());
 
@@ -53,7 +56,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
         assertEquals(syncInfo.getCountLinked(), 0);
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals(syncInfo.getCountUnmatchedAfter(), 1);     // this is the one that failed
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
@@ -61,18 +64,21 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 3);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 8);      // this is because LiveSync re-processes changes by default (FIXME)
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        dumpSynchronizationInformation(syncInfo);
+
+        // It's actually not much clear how these numbers are obtained. The task processes various (yet unprocessed) changes
+        // and stops after seeing third disabled account.
+        assertEquals(syncInfo.getCountUnmatched(), 3);
+        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals(syncInfo.getCountLinked(), 9);
+        assertEquals(syncInfo.getCountUnlinked(), 0);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4, taskAfter.getResult());
 
@@ -81,7 +87,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
         assertEquals(syncInfo.getCountLinked(), 4);     // this is because LiveSync re-processes changes by default (FIXME)
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals(syncInfo.getCountUnmatchedAfter(), 1);     // this is the one that failed
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), 8);    // this is because LiveSync re-processes changes by default (FIXME)
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);

@@ -406,10 +406,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isAdd() {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
             return true;
-        } else if (synchronizationPolicyDecision != null){
+        } else if (synchronizationPolicyDecision != null) {
             return false;
+        } else {
+            return ObjectDelta.isAdd(getPrimaryDelta()) || ObjectDelta.isAdd(getSecondaryDelta());
         }
-        return super.isAdd();
     }
 
     public boolean isModify() {
@@ -417,8 +418,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return true;
         } else if (synchronizationPolicyDecision != null) {
             return false;
+        } else {
+            return super.isModify();
         }
-        return super.isModify();
     }
 
     public boolean isDelete() {
@@ -426,11 +428,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return true;
         } else if (synchronizationPolicyDecision != null) {
             return false;
+        } else {
+            return ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(getPrimaryDelta()) || ObjectDelta.isDelete(getSecondaryDelta());
         }
-        if (syncDelta != null && syncDelta.isDelete()) {
-            return true;
-        }
-        return super.isDelete();
     }
 
     public ResourceType getResource() {

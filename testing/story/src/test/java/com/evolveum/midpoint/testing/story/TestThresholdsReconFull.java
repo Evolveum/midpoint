@@ -11,6 +11,10 @@ import static org.testng.Assert.assertNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -62,7 +66,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     @Test
-    public void test600changeTaskPolicyRule() throws Exception {
+    public void test600ChangeTaskPolicyRule() throws Exception {
         //WHEN
         Task task = createPlainTask();
         OperationResult result = task.getResult();
@@ -77,12 +81,12 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     @Test
-    public void test610testFullRecon() throws Exception {
+    public void test610TestFullRecon() throws Exception {
         OperationResult result = createOperationResult();
 
         //WHEN
         when();
-        OperationResult reconResult = waitForTaskResume(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, 20000);
         assertSuccess(reconResult);
 
         //THEN
@@ -95,7 +99,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     @Test
-    public void test611testFullRecon() throws Exception {
+    public void test611TestFullRecon() throws Exception {
         OperationResult result = createOperationResult();
 
         openDJController.delete("uid=user10,ou=People,dc=example,dc=com");
@@ -151,7 +155,7 @@ public class TestThresholdsReconFull extends TestThresholds {
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals(syncInfo.getCountUnmatchedAfter(), 1);  // There is 1 unmatched because it's recorded after "stop" policy rule triggered
         assertEquals(syncInfo.getCountDeleted(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
@@ -164,9 +168,6 @@ public class TestThresholdsReconFull extends TestThresholds {
 
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
@@ -179,7 +180,7 @@ public class TestThresholdsReconFull extends TestThresholds {
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals(syncInfo.getCountUnmatchedAfter(), 1);  // There is 1 unmatched because it's recorded after "stop" policy rule triggered
         assertEquals(syncInfo.getCountDeleted(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers() * 2);
         assertEquals(syncInfo.getCountUnlinked(), 0);
@@ -188,15 +189,21 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 1);
+        display("Iterative task information", IterativeTaskInformation.format(infoType));
 
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 3);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 14);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+        SynchronizationInformationType synchronizationInformation = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        dumpSynchronizationInformation(synchronizationInformation);
 
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatchedAfter(), 0);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 14);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+        assertEquals(synchronizationInformation.getCountUnmatched(), 0);
+        assertEquals(synchronizationInformation.getCountDeleted(), 0);
+        // 1. gibbs, 2. barbossa, 3. beckett (unchanged), 4. user1, 5. user2 (disabled), 6. user3 (tried to be disabled but failed because of the rule)
+        assertEquals(synchronizationInformation.getCountLinked(), 6);
+        assertEquals(synchronizationInformation.getCountUnlinked(), 0);
+
+        assertEquals(synchronizationInformation.getCountUnmatchedAfter(), 0);
+        assertEquals(synchronizationInformation.getCountDeleted(), 0);
+        assertEquals(synchronizationInformation.getCountLinked(), 6);
+        assertEquals(synchronizationInformation.getCountUnlinked(), 0);
     }
+
 }

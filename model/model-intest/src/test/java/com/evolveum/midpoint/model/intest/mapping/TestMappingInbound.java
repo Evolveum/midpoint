@@ -378,7 +378,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         display("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
 
         // Make sure we have steady state
-        waitForTaskResume(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
+        resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
         waitForSyncTaskNextRun();
 
         // THEN

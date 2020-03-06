@@ -10,6 +10,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 import java.io.File;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,14 +52,14 @@ public abstract class TestThresholds extends AbstractStoryTest {
     private static final String ROLE_POLICY_RULE_CREATE_OID = "00000000-role-0000-0000-999111111112";
 
     private static final File ROLE_POLICY_RULE_CHANGE_ACTIVATION_FILE = new File(TEST_DIR, "role-policy-rule-change-activation.xml");
-    protected static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
+    private static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
 
     private static final File TASK_IMPORT_BASE_USERS_FILE = new File(TEST_DIR, "task-opendj-import-base-users.xml");
     private static final String TASK_IMPORT_BASE_USERS_OID = "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d";
 
     private static final int TASK_IMPORT_TIMEOUT = 60000;
 
-    protected int getDefaultUsers() {
+    int getDefaultUsers() {
         return 6;
     }
 
@@ -88,6 +95,9 @@ public abstract class TestThresholds extends AbstractStoryTest {
         repoAddObjectFromFile(getTaskFile(), initResult);
     }
 
+    /**
+     * Imports base users in an auxiliary task ("import base users").
+     */
     @Test
     public void test001testImportBaseUsers() throws Exception {
         OperationResult result = createOperationResult();
@@ -127,14 +137,19 @@ public abstract class TestThresholds extends AbstractStoryTest {
         return super.getNumberOfUsers() + getDefaultUsers();
     }
 
+    /**
+     * Assigns the rule of "Stop after 4 created users" to the main task.
+     */
     @Test
-    public void test100assignPolicyRuleCreateToTask() throws Exception {
-        // WHEN
+    public void test100AssignCreationLimitToTask() throws Exception {
+
         Task task = createPlainTask();
         OperationResult result = task.getResult();
+
+        when();
         assignRole(TaskType.class, getTaskOid(), ROLE_POLICY_RULE_CREATE_OID, task, result);
 
-        //THEN
+        then();
         PrismObject<TaskType> taskAfter = getObject(TaskType.class, getTaskOid());
         display("Task after:", taskAfter);
         assertAssignments(taskAfter, 1);
@@ -143,20 +158,23 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     }
 
+    /**
+     * Runs the main task and checks if it stopped after processing expected number of users.
+     */
     @Test
-    public void test110importAccounts() throws Exception {
+    public void test110ImportAccounts() throws Exception {
         Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_FILE);
 
         assertUsers(getNumberOfUsers());
-        //WHEN
+
         when();
-        OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
         assertFailure(reconResult);
 
-        //THEN
+        then();
         assertUsers(getProcessedUsers() + getNumberOfUsers());
         assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
 
@@ -164,37 +182,52 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertSynchronizationStatisticsAfterImport(taskAfter);
     }
 
+    /**
+     * Adds more users. Runs the main task again and checks if it again stopped after processing expected number of users.
+     */
     @Test
-    public void test111importAccountsAgain() throws Exception {
+    public void test111ImportAccountsAgain() throws Exception {
         Task task = createPlainTask();
         OperationResult result = task.getResult();
 
+        given();
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_NEXT_FILE);
-
         assertUsers(getNumberOfUsers() + getProcessedUsers());
-        //WHEN
+        clearTaskOperationalStats(result);
+
         when();
-        OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
         assertFailure(reconResult);
 
-        //THEN
+        then();
         assertUsers(getProcessedUsers() * 2 + getNumberOfUsers());
         assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
 
         Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
         assertSynchronizationStatisticsAfterSecondImport(taskAfter);
-
     }
 
+    private void clearTaskOperationalStats(OperationResult result) throws SchemaException, ObjectAlreadyExistsException,
+            ObjectNotFoundException {
+        List<ItemDelta<?, ?>> modifications = deltaFor(TaskType.class)
+                .item(TaskType.F_OPERATION_STATS).replace()
+                .asItemDeltas();
+        repositoryService.modifyObject(TaskType.class, getTaskOid(), modifications, result);
+    }
+
+    /**
+     * Changes the rule to "Stop after having 2 users with changed activation/administrativeStatus".
+     */
     @Test
-    public void test500changeTaskPolicyRule() throws Exception {
-        //WHEN
+    public void test500AssignModificationLimitToTask() throws Exception {
         Task task = createPlainTask();
         OperationResult result = task.getResult();
+
+        when();
         unassignRole(TaskType.class, getTaskOid(), ROLE_POLICY_RULE_CREATE_OID, task, result);
         assignRole(TaskType.class, getTaskOid(), ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID, task, result);
 
-        //THEN
+        then();
         PrismObject<TaskType> taskAfter = getObject(TaskType.class, getTaskOid());
         display("Task after:", taskAfter);
         assertAssignments(taskAfter, 1);
@@ -202,24 +235,30 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
     }
 
+    /**
+     * Disables accounts for users1..6 on the resource. Expects to stop after processing 2 of them.
+     */
     @Test
-    public void test520changeActivationThreeAccounts() throws Exception {
+    public void test520ImportDisabledAccounts() throws Exception {
         OperationResult result = createOperationResult();
 
-        //GIVEN
-        openDJController.executeLdifChange(LDIF_CHANGE_ACTIVATION_FILE);
+        given();
+        openDJController.executeLdifChanges(LDIF_CHANGE_ACTIVATION_FILE);
+        clearTaskOperationalStats(result);
 
-        //WHEN
         when();
-        OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 20000);
+        OperationResult reconResult = resumeTaskAndWaitForNextFinish(getTaskOid(), false, 20000);
         assertFailure(reconResult);
 
-        //THEN
-
+        then();
         Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
 
         assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
 
         assertSynchronizationStatisticsActivation(taskAfter);
+    }
+
+    void dumpSynchronizationInformation(SynchronizationInformationType synchronizationInformation) {
+        display("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
     }
 }

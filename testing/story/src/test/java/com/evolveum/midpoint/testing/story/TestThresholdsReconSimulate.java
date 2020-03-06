@@ -49,15 +49,18 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         assertEquals(infoType.getTotalFailureCount(), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        dumpSynchronizationInformation(syncInfo);
 
+        // user4, user5, user6, user7, user8
         assertEquals(syncInfo.getCountUnmatched(), 5);
         assertEquals(syncInfo.getCountDeleted(), 0);
+        // jgibbs, hbarbossa, jbeckett, user1, user2, user3
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals(syncInfo.getCountUnmatchedAfter(), 5);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), 0);
+        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers());
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
     }
 
@@ -70,15 +73,18 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         assertEquals(infoType.getTotalFailureCount(), 1);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        dumpSynchronizationInformation(syncInfo);
 
+        // user4, user5, user6, user7, user8
         assertEquals(syncInfo.getCountUnmatched(), 5);
         assertEquals(syncInfo.getCountDeleted(), 0);
+        // jgibbs, hbarbossa, jbeckett, user1, user2, user3
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals(syncInfo.getCountUnmatchedAfter(), 5);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), 0);
+        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
     }
 
@@ -87,14 +93,19 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 1);
 
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 3);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        dumpSynchronizationInformation(syncInfo);
 
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatchedAfter(), 0);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+        assertEquals(syncInfo.getCountUnmatched(), 0);
+        assertEquals(syncInfo.getCountDeleted(), 0);
+        // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
+        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals(syncInfo.getCountUnlinked(), 0);
+
+        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals(syncInfo.getCountDeleted(), 0);
+        // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
+        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals(syncInfo.getCountUnlinked(), 0);
     }
 }

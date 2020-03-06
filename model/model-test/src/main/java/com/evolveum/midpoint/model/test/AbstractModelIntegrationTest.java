@@ -3519,7 +3519,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return result;
     }
 
-    protected OperationResult waitForTaskResume(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+    protected OperationResult resumeTaskAndWaitForNextFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskResume");
         Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
 
@@ -3569,7 +3569,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
             }
         };
-        IntegrationTestTools.waitFor("Waiting for task " + origTask + " resume", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+        IntegrationTestTools.waitFor("Waiting for resumed task " + origTask + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
 
         Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
         logger.debug("Final task:\n{}", freshTask.debugDump());

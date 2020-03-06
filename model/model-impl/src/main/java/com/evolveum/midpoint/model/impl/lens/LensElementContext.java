@@ -339,45 +339,25 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         pendingAssignmentPolicyStateModifications.computeIfAbsent(spec, k -> new ArrayList<>()).add(modification);
     }
 
-    public boolean isAdd() {
-        if (ObjectDelta.isAdd(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isAdd(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
-    }
+    public abstract boolean isAdd();
 
     public boolean isModify() {
-        if (ObjectDelta.isModify(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isModify(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
+        // TODO I'm not sure why isModify checks both primary and secondary deltas for focus context, while
+        //  isAdd and isDelete care only for the primary delta.
+        return ObjectDelta.isModify(getPrimaryDelta()) || ObjectDelta.isModify(getSecondaryDelta());
     }
 
-    public boolean isDelete() {
-        if (ObjectDelta.isDelete(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isDelete(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
-    }
+    public abstract boolean isDelete();
 
     @NotNull
     public SimpleOperationName getOperation() {
         if (isAdd()) {
             return SimpleOperationName.ADD;
-        }
-        if (isDelete()) {
+        } else if (isDelete()) {
             return SimpleOperationName.DELETE;
+        } else {
+            return SimpleOperationName.MODIFY;
         }
-        return SimpleOperationName.MODIFY;
     }
 
     @NotNull

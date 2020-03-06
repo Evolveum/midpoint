@@ -2882,8 +2882,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
     }
 
-    protected void removeGlobalTracingOverride() {
-        taskManager.removeGlobalTracingOverride();
+    protected void unsetGlobalTracingOverride() {
+        taskManager.unsetGlobalTracingOverride();
     }
 
     protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {

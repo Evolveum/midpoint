@@ -785,7 +785,7 @@ public interface TaskManager {
     void setGlobalTracingOverride(@NotNull Collection<TracingRootType> roots, @NotNull TracingProfileType profile);
 
     // EXPERIMENTAL
-    void removeGlobalTracingOverride();
+    void unsetGlobalTracingOverride();
 
     /**
      * @return true if we consider this node to be "up" (alive). This is determined by looking at operational state
