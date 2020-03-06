@@ -522,12 +522,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     //see git commit: 7052f9628a76815d27a119090a97ec57fbdebaec
     @Test
     public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
-        final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
-
         // GIVEN
-        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(RESOURCE_DUMMY_RED_OID,
-                RESOURCE_DUMMY_RED_NAME, USER_BFET_NAME, USER_BFET_FULLNAME);
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(
+                RESOURCE_DUMMY_RED_OID, RESOURCE_DUMMY_RED_NAME, USER_BFET_NAME, USER_BFET_FULLNAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         try {
@@ -547,7 +545,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // and again ...
 
-        task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        task = createPlainTask();
         result = task.getResult();
 
         try {
@@ -564,7 +562,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         user = getUser(user.getOid());
         display("User after", user);
         assertNoLinkedAccount(user);
-
     }
 
     /**

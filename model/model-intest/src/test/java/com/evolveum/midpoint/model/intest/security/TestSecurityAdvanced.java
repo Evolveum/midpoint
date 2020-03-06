@@ -159,7 +159,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -187,7 +186,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test080AutzJackEndUserPassword() throws Exception {
-        final String TEST_NAME = "test080AutzJackEndUserPassword";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -230,7 +228,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test100AutzJackPersonaManagement() throws Exception {
-        final String TEST_NAME = "test100AutzJackPersonaManagement";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
@@ -256,7 +253,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test102AutzLechuckPersonaManagement() throws Exception {
-        final String TEST_NAME = "test102AutzLechuckPersonaManagement";
         // GIVEN
         cleanupAutzTest(USER_LECHUCK_OID, 1);
         assignRole(USER_LECHUCK_OID, ROLE_PERSONA_MANAGEMENT_OID);
@@ -286,7 +282,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test110AutzJackPersonaAdmin() throws Exception {
-        final String TEST_NAME = "test110AutzJackAddPersonaAdmin";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
@@ -342,7 +337,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test120AutzJackDelagator() throws Exception {
-        final String TEST_NAME = "test120AutzJackDelagator";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);
@@ -449,7 +443,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test122AutzJackDelagatorValidity() throws Exception {
-        final String TEST_NAME = "test122AutzJackDelagatorValidity";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);
@@ -595,7 +588,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test124AutzJackDelagatorPlusValidity() throws Exception {
-        final String TEST_NAME = "test124AutzJackDelagatorPlusValidity";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_PLUS_OID);
@@ -750,7 +742,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test150AutzJackApproverUnassignRoles() throws Exception {
-        final String TEST_NAME = "test150AutzJackApproverUnassignRoles";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
@@ -794,7 +785,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test151AutzJackApproverUnassignRolesAndRead() throws Exception {
-        final String TEST_NAME = "test151AutzJackApproverUnassignRolesAndRead";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
@@ -836,7 +826,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test154AutzJackApproverRead() throws Exception {
-        final String TEST_NAME = "test154AutzJackApproverRead";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_BASIC_ITEMS_OID);
@@ -901,7 +890,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test155AutzJackApproverSelf() throws Exception {
-        final String TEST_NAME = "test155AutzJackApproverSelf";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
@@ -958,7 +946,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test157AutzJackReadRoleMembers() throws Exception {
-        final String TEST_NAME = "test157AutzJackReadRoleMembers";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_OID);
@@ -1010,7 +997,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test158AutzJackReadRoleMembersWrong() throws Exception {
-        final String TEST_NAME = "test158AutzJackReadRoleMembersWrong";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_WRONG_OID);
@@ -1062,7 +1048,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test159AutzJackReadRoleMembersNone() throws Exception {
-        final String TEST_NAME = "test159AutzJackReadRoleMembersNone";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_NONE_OID);
@@ -1164,7 +1149,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test200AutzJackModifyOrgunit() throws Exception {
-        final String TEST_NAME = "test200AutzJackModifyOrgunit";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
@@ -1224,7 +1208,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test202AutzJackModifyOrgunitAndAssignRole() throws Exception {
-        final String TEST_NAME = "test202AutzJackModifyOrgunitAndAssignRole";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
@@ -1298,7 +1281,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test220AutzJackRoleExpressionNoConstCenter() throws Exception {
-        final String TEST_NAME = "test220AutzJackRoleExpressionNoConstCenter";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EXPRESSION_READ_ROLES_OID);
@@ -1337,7 +1319,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test222AutzJackRoleExpressionConstCenterBusiness() throws Exception {
-        final String TEST_NAME = "test222AutzJackRoleExpressionConstCenterBusiness";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EXPRESSION_READ_ROLES_OID);
@@ -1379,7 +1360,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test230AttorneyCaribbeanUnlimited() throws Exception {
-        final String TEST_NAME = "test230AttorneyCaribbeanUnlimited";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID);
@@ -1452,7 +1432,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test232ManagerAttorneyNoOrg() throws Exception {
-        final String TEST_NAME = "test232ManagerAttorneyNoOrg";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
@@ -1501,7 +1480,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test234ManagerAttorneyRum() throws Exception {
-        final String TEST_NAME = "test234ManagerAttorneyRum";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
@@ -1567,7 +1545,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test235ManagerAttorneyRumRogersEntitled() throws Exception {
-        final String TEST_NAME = "test234ManagerAttorneyRum";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
@@ -1635,7 +1612,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test236ManagerAttorneyCaribbeanRum() throws Exception {
-        final String TEST_NAME = "test236ManagerAttorneyCaribbeanRum";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID);
@@ -1716,7 +1692,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test250AssignRequestableSelfOtherApporver() throws Exception {
-        final String TEST_NAME = "test250AssignRequestableSelfOtherApporver";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID);
@@ -1809,7 +1784,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test252AssignRequestableSelfOtherApporverEmptyDelta() throws Exception {
-        final String TEST_NAME = "test252AssignRequestableSelfOtherApporverEmptyDelta";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID);
@@ -1880,7 +1854,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test254AssignUnassignRequestableSelf() throws Exception {
-        final String TEST_NAME = "test254AssignUnassignRequestableSelf";
         // GIVENds
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
@@ -1916,7 +1889,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test256AssignUnassignRequestableSelfEmptyDelta() throws Exception {
-        final String TEST_NAME = "test256AssignUnassignRequestableSelfEmptyDelta";
         // GIVENds
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
@@ -1952,7 +1924,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test260AutzJackLimitedRoleAdministrator() throws Exception {
-        final String TEST_NAME = "test260AutzJackLimitedRoleAdministrator";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
@@ -2089,7 +2060,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test262AutzJackLimitedRoleAdministratorAndAssignApplicationRoles() throws Exception {
-        final String TEST_NAME = "test260AutzJackLimitedRoleAdministrator";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
@@ -2215,7 +2185,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test264AutzJackLimitedReadRoleAdministrator() throws Exception {
-        final String TEST_NAME = "test264AutzJackLimitedReadRoleAdministrator";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_OID);
@@ -2316,7 +2285,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test266AutzJackRoleAdministrator() throws Exception {
-        final String TEST_NAME = "test266AutzJackRoleAdministrator";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ROLE_ADMINISTRATOR_OID);
@@ -2373,7 +2341,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test270AutzJackModifyPolicyException() throws Exception {
-        final String TEST_NAME = "test270AutzJackModifyPolicyException";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_OID);
@@ -2430,7 +2397,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test272AutzJackModifyPolicyExceptionFirstRule() throws Exception {
-        final String TEST_NAME = "test272AutzJackModifyPolicyExceptionFirstRule";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_OID);
@@ -2530,7 +2496,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test280AutzJackModifyPolicyExceptionAndAssignOrg() throws Exception {
-        final String TEST_NAME = "test280AutzJackModifyPolicyExceptionAndAssignOrg";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
@@ -2566,7 +2531,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test282AutzJackModifyPolicyExceptionAndAssignOrgDeny() throws Exception {
-        final String TEST_NAME = "test282AutzJackModifyPolicyExceptionAndAssignOrgDeny";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
@@ -2599,7 +2563,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test283AutzJackModifyPolicyAssignOrg() throws Exception {
-        final String TEST_NAME = "test283AutzJackModifyPolicyAssignOrg";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_ORG_OID);
@@ -2642,7 +2605,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test300AutzJackExceptAssignment() throws Exception {
-        final String TEST_NAME = "test300AutzJackExceptAssignment";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_EXCEPT_ASSIGNMENT_OID);
@@ -2705,7 +2667,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     @Test
     public void test302AutzJackExceptAdministrativeStatus() throws Exception {
-        final String TEST_NAME = "test302AutzJackExceptAdministrativeStatus";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_OID);
@@ -2773,7 +2734,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test304AutzJackPropExceptAssignmentReadSomeModifySomeUser() throws Exception {
-        final String TEST_NAME = "test304AutzJackPropExceptAssignmentReadSomeModifySomeUser";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
@@ -2830,7 +2790,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test306AutzJackPropExceptAssignmentExceptAdministrativeStatus() throws Exception {
-        final String TEST_NAME = "test306AutzJackPropExceptAssignmentExceptAdministrativeStatus";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_OID);
@@ -2887,7 +2846,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test308AutzJackPropExceptAssignmentAssignApplicationRoles() throws Exception {
-        final String TEST_NAME = "test308AutzJackPropExceptAssignmentAssignApplicationRoles";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_APPLICATION_ROLES_OID);
@@ -2981,7 +2939,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test310AutzJackPropSubtypeDenyEscapingZoneOfControl() throws Exception {
-        final String TEST_NAME = "test310AutzJackPropSubtypeDenyEscapingZoneOfControl";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_SUBTYPE_OID);
@@ -3016,7 +2973,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test312AutzJackPropSubtypeAllowEscapingZoneOfControl() throws Exception {
-        final String TEST_NAME = "test312AutzJackPropSubtypeAllowEscapingZoneOfControl";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_SUBTYPE_ESCAPE_OID);
@@ -3102,7 +3058,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test330AutzJackEndUserWithPrivacy() throws Exception {
-        final String TEST_NAME = "test330AutzJackEndUserWithPrivacy";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assertNoDummyAccount(RESOURCE_DUMMY_VAULT_NAME, USER_GUYBRUSH_USERNAME);
@@ -3148,7 +3103,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test340AutzJackSuperUserAndExecRead() throws Exception {
-        final String TEST_NAME = "test340AutzJackSuperUserAndExecRead";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -3181,7 +3135,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test350AutzJackResourceRead() throws Exception {
-        final String TEST_NAME = "test350AutzJackResourceRead";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -3207,7 +3160,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
      */
     @Test
     public void test360AutzAdminResourceRead() throws Exception {
-        final String TEST_NAME = "test350AutzAdminResourceRead";
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
 
@@ -3286,10 +3238,13 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     }
 
     @Override
-    protected void cleanupAutzTest(String userOid, int expectedAssignments) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
+    protected void cleanupAutzTest(String userOid, int expectedAssignments)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException, IOException {
         super.cleanupAutzTest(userOid, expectedAssignments);
 
-        Task task = taskManager.createTaskInstance(TestSecurityAdvanced.class.getName() + ".cleanupAutzTest");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(userRumRogersOid, ROLE_ORDINARY_OID, task, result);
@@ -3299,14 +3254,16 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     }
 
-    private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids) throws Exception {
+    private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids)
+            throws Exception {
         PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
         rval.setRelation(SchemaConstants.ORG_DEPUTY);
         ObjectQuery query = queryFor(UserType.class).item(UserType.F_DELEGATED_REF).ref(rval).build();
         assertSearch(UserType.class, query, expectedDeputyOids);
     }
 
-    private void assertDeputySearchAssignmentTarget(String delegatorOid, String... expectedDeputyOids) throws Exception {
+    private void assertDeputySearchAssignmentTarget(
+            String delegatorOid, String... expectedDeputyOids) throws Exception {
         PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
         rval.setRelation(SchemaConstants.ORG_DEPUTY);
         ObjectQuery query = queryFor(UserType.class)
