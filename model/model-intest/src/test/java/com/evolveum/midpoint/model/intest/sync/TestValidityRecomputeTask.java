@@ -1412,10 +1412,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
     @Test
     public void test200ImportTriggerScannerTask() throws Exception {
-        final String TEST_NAME = "test200ImportTriggerScannerTask";
-
         // GIVEN
-        TestTriggerTask.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1828,7 +1825,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("User before", user);
         XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidFrom.clone();
-        start.add(XmlTypeConverter.createDuration(1*60*1000));
+        start.add(XmlTypeConverter.createDuration(60 * 1000));
         clock.override(start);
         display("Start", start);
 

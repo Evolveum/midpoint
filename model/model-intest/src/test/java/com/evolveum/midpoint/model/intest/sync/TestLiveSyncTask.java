@@ -77,15 +77,10 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 
     @Test
     public void test999DeletingNotUpdatedShadowDummyGreen() throws Exception {
-        final String TEST_NAME = "test800DeletingNotUpdatedShadowDummyGreen";
         String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
         String ACCOUNT_CAROL_DUMMY_USERNAME = "carol";
 
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 

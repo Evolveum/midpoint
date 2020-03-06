@@ -1213,7 +1213,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test800ImportValidityScannerTask";
 
         // GIVEN
-        TestValidityRecomputeTask.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

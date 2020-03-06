@@ -53,9 +53,6 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
-/**
- * @author semancik
- */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbac extends AbstractRbacTest {
@@ -242,7 +239,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        assertAssignedNoRole(userAfter, task, result);
+        assertAssignedNoRole(userAfter);
         assertRoleMembershipRef(userAfter);
         assertDelegatedRef(userAfter);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1674,7 +1671,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        assertNotAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
+        assertNotAssignedRole(userAfter, ROLE_WANNABE_OID, result);
         assertRoleMembershipRef(userAfter);
         assertDelegatedRef(userAfter);
 
@@ -2533,7 +2530,7 @@ public class TestRbac extends AbstractRbacTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
@@ -2641,7 +2638,7 @@ public class TestRbac extends AbstractRbacTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
@@ -2699,7 +2696,7 @@ public class TestRbac extends AbstractRbacTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         assertAssignees(ROLE_GOVERNOR_OID, 0);
@@ -2796,7 +2793,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
 
-        assertNotAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
+        assertNotAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID, result);
 
         assertHasNoOrg(userAfter);
     }

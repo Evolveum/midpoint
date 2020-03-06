@@ -168,7 +168,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         assertEquals("Wrong context state", ModelState.FINAL, context.getState());
         result.computeStatusIfUnknown();
         TestUtil.assertSuccess(result);
-        assertNotAssignedRole(getUser(userJackOid), getRoleOid(1), task, result);
+        assertNotAssignedRole(getUser(userJackOid), getRoleOid(1), result);
     }
 
     /**
@@ -388,7 +388,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                         checkAuditRecords(createResultMap(getRoleOid(1), WorkflowResult.APPROVED));
                         checkUserApprovers(userJackOid, Collections.singletonList(realApproverOid), result);
                     } else {
-                        assertNotAssignedRole(userJackOid, getRoleOid(1), opTask, result);
+                        assertNotAssignedRole(userJackOid, getRoleOid(1), result);
                     }
                 }
             }
@@ -534,7 +534,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                             } else {
                                 assertUserNoProperty(userJackOid, UserType.F_DESCRIPTION);
                             }
-                            assertNotAssignedRole(userJackOid, getRoleOid(4), opTask, result);
+                            assertNotAssignedRole(userJackOid, getRoleOid(4), result);
                         }
                         break;
                     case 1:
@@ -543,7 +543,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                     if (yes) {
                         assertAssignedRole(userJackOid, getRoleOid(number), result);
                     } else {
-                        assertNotAssignedRole(userJackOid, getRoleOid(number), opTask, result);
+                        assertNotAssignedRole(userJackOid, getRoleOid(number), result);
                     }
                     break;
 

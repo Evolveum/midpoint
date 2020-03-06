@@ -108,8 +108,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         waitForTaskFinish(TASK_IMPORT_BASE_USERS_OID, true, 30000);
 
-//        waitForTaskNextRun(TASK_IMPORT_BASE_USERS_OID, true, 20000, true);
-
         Task taskAfter = taskManager.getTaskWithResult(TASK_IMPORT_BASE_USERS_OID, result);
         display("Task after test001testImportBaseUsers:", taskAfter);
 

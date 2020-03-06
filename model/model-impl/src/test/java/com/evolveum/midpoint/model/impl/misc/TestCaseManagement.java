@@ -18,7 +18,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -29,10 +28,6 @@ import java.io.File;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * @author mederly
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
@@ -49,24 +44,19 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
 
-    private PrismObject<UserType> user1, user2;
-    private PrismObject<CaseType> case1, case2, case3;
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        user1 = repoAddObjectFromFile(USER1_FILE, initResult);
-        user2 = repoAddObjectFromFile(USER2_FILE, initResult);
-        case1 = repoAddObjectFromFile(CASE1_FILE, initResult);
-        case2 = repoAddObjectFromFile(CASE2_FILE, initResult);
-        case3 = repoAddObjectFromFile(CASE3_FILE, initResult);
+        repoAddObjectFromFile(USER1_FILE, initResult);
+        repoAddObjectFromFile(USER2_FILE, initResult);
+        repoAddObjectFromFile(CASE1_FILE, initResult);
+        repoAddObjectFromFile(CASE2_FILE, initResult);
+        repoAddObjectFromFile(CASE3_FILE, initResult);
     }
 
     @Test
     public void test100SearchCases() throws Exception {
-        final String TEST_NAME = "test100CreateCase";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         login(userAdministrator);
@@ -75,7 +65,5 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
         assertEquals(3, cases.size());
         SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, null, null, task, result);
         assertEquals(4, workItems.size());
-
     }
-
 }
