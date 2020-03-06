@@ -144,11 +144,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNotNull("no system config", systemConfiguration);
         List<ObjectPolicyConfigurationType> defaultObjectPolicyConfiguration = systemConfiguration.asObjectable().getDefaultObjectPolicyConfiguration();
         assertNotNull("No object policy", defaultObjectPolicyConfiguration);
-        assertEquals("Wrong object policy size", 6, defaultObjectPolicyConfiguration.size());       // last two are conflict resolution rules
+        assertEquals("Wrong object policy size", 7, defaultObjectPolicyConfiguration.size());       // last two are conflict resolution rules
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, null, USER_TEMPLATE_COMPLEX_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_MID_5892, USER_TEMPLATE_MID_5892.oid);
+        assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_MID_6045, USER_TEMPLATE_MID_6045.oid);
 
         assertRoles(getNumberOfRoles());
     }
@@ -253,7 +254,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Switch employeeType from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
-     * true. For the same role assignement value. So nothing should be changed.
+     * true. For the same role assignment value. So nothing should be changed.
      */
     @Test
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
@@ -3570,6 +3571,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     public void test990SpecialTimedMapping() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        clock.resetOverride();
 
         XMLGregorianCalendar firstTriggerTime = XmlTypeConverter.fromNow("PT1M");
 
