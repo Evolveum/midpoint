@@ -41,20 +41,16 @@ public class TestParseMetarole extends AbstractObjectParserTest<RoleType> {
 
     @Test
     public void testParseFileAsPCV() throws Exception {
-        displayTestTitle("testParseFileAsPCV");
         processParsingsPCV(null, null);
     }
 
     @Test
     public void testParseFileAsPO() throws Exception {
-        displayTestTitle("testParseFileAsPO");
         processParsingsPO(null, null, true);
     }
 
     @Test
     public void testParseRoundTripAsPCV() throws Exception{
-        displayTestTitle("testParseRoundTripAsPCV");
-
         processParsingsPCV(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
         processParsingsPCV(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
         processParsingsPCV(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2");        // misleading item name
@@ -64,8 +60,6 @@ public class TestParseMetarole extends AbstractObjectParserTest<RoleType> {
 
     @Test
     public void testParseRoundTripAsPO() throws Exception{
-        displayTestTitle("testParseRoundTripAsPO");
-
         processParsingsPO(v -> getPrismContext().serializerFor(language).serialize(v), "s0", true);
         processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1", false);
         processParsingsPO(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2", false);        // misleading item name

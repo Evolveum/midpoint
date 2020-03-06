@@ -21,8 +21,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
@@ -36,8 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestPageSystemConfiguration.class);
-
     private static final String MAIN_FORM = "mainPanel:mainForm";
     private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
     private static final String FORM_SAVE = "save";
@@ -47,7 +43,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
         super.initSystem(initTask, initResult);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
-        LOGGER.info("adding system config page");
+        logger.info("adding system config page");
         addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
     }
 
@@ -66,7 +62,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
         String des = "new description";
         formTester.setValue(FORM_INPUT_DESCRIPTION, des);
 
-        formTester = formTester.submit(FORM_SAVE);
+        formTester.submit(FORM_SAVE);
 
         Thread.sleep(5000);
 
@@ -77,7 +73,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     }
 
     private PageSystemConfiguration renderPage() {
-        LOGGER.info("render page system configuration");
+        logger.info("render page system configuration");
         PageParameters params = new PageParameters();
         PageSystemConfiguration pageAccount = tester.startPage(PageSystemConfiguration.class, params);
 

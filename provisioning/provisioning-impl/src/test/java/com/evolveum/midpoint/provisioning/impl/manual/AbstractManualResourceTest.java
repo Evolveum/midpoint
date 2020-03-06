@@ -160,7 +160,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
 
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
@@ -230,7 +230,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     @Test
     public void test004Configuration() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         // WHEN
         resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
@@ -299,7 +299,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     @Test
     public void test006Capabilities() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         // WHEN
         ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();

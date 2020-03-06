@@ -8,14 +8,13 @@
 package com.evolveum.midpoint.validator.test;
 
 import com.evolveum.midpoint.common.validator.LegacyValidator;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 
-
-// TODO testing: missing from suite, 3 tests failing - so what about that annotation? :-)
+@UnusedTestElement("3 tests failing, not in suite")
 public class UnknownNodeSkipSchemaValidationTest extends UnknownNodeValidationTest {
 
     @Override
     protected void customizeValidator(LegacyValidator validator) {
         validator.setValidateSchema(false);
     }
-
 }

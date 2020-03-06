@@ -6,20 +6,11 @@
  */
 package com.evolveum.midpoint.gui;
 
-import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import static org.testng.Assert.assertNotNull;
+
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
@@ -29,9 +20,17 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
-import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
-import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME;
-import static org.testng.Assert.assertNotNull;
+import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * @author Hiroyuki Wada
@@ -40,8 +39,6 @@ import static org.testng.Assert.assertNotNull;
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestPageOrg.class);
 
     private static final String MAIN_FORM = "mainPanel:mainForm";
     private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:originValueContainer:origValueWithButton:origValue:input";
@@ -52,7 +49,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         super.initSystem(initTask, initResult);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
-        LOGGER.info("adding system config page");
+        logger.info("adding system config page");
         addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
     }
 
@@ -67,13 +64,13 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, "newRole");
-        formTester = formTester.submit(FORM_SAVE);
+        formTester.submit(FORM_SAVE);
 
         Thread.sleep(5000);
 
         PrismObject<RoleType> newRole = findObjectByName(RoleType.class, "newRole");
         assertNotNull(newRole, "New role not created.");
-        LOGGER.info("created role: {}", newRole.debugDump());
+        logger.info("created role: {}", newRole.debugDump());
     }
 
     /**
@@ -134,7 +131,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     }
 
     private Page renderPage(Class<? extends Page> expectedRenderedPageClass, String oid) {
-        LOGGER.info("render page role");
+        logger.info("render page role");
         PageParameters params = new PageParameters();
         if (oid != null) {
             params.add(OnePageParameterEncoder.PARAMETER, oid);

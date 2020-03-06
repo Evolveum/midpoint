@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
@@ -31,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -40,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CleanupTest extends AbstractSpringTest {
+public class CleanupTest extends AbstractTaskManagerTest {
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 

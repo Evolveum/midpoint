@@ -32,8 +32,6 @@ public class TestOptimizingTriggerCreator extends AbstractInitializedModelIntegr
 
     @Test
     public void test100CreateThreeTriggers() throws Exception {
-        final String TEST_NAME = "test100CreateThreeTriggers";
-
         OptimizingTriggerCreator creator = libraryMidpointFunctions.getOptimizingTriggerCreator(60000, 2000);
         boolean first = creator.createForNamedUser(USER_JACK_USERNAME);
         boolean second = creator.createForNamedUser(USER_JACK_USERNAME);
@@ -48,9 +46,6 @@ public class TestOptimizingTriggerCreator extends AbstractInitializedModelIntegr
 
     @Test
     public void test110CreateTriggersWithUserDeletion() throws Exception {
-        final String TEST_NAME = "test110CreateTriggersWithUserDeletion";
-
-        TestTriggerTask.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -80,8 +75,6 @@ public class TestOptimizingTriggerCreator extends AbstractInitializedModelIntegr
 
     @Test
     public void test200CreateThreeTriggersByOid() throws Exception {
-        final String TEST_NAME = "test200CreateThreeTriggersByOid";
-
         OptimizingTriggerCreator creator = libraryMidpointFunctions.getOptimizingTriggerCreator(60000, 2000);
         boolean first = creator.createForObject(UserType.class, USER_BARBOSSA_OID);
         boolean second = creator.createForObject(UserType.class, USER_BARBOSSA_OID);

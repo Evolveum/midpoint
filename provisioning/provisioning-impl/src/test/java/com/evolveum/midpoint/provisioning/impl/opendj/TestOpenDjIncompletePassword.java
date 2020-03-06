@@ -16,8 +16,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -38,8 +36,6 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-incomplete-password.xml");
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjIncompletePassword.class);
-
     @Override
     protected File getResourceOpenDjFile() {
         return RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE;
@@ -47,8 +43,8 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
 
     @Override
     protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
-        assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(),
-                capPassword.isReadable() == Boolean.TRUE);
+        assertTrue("Wrong password capability readable flag: " + capPassword.isReadable(),
+                capPassword.isReadable());
     }
 
     @Override
@@ -62,10 +58,10 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
             return;
         }
         ProtectedStringType passwordValue = passwordType.getValue();
-        assertNull("Unexpected password value in "+provisioningShadow+": "+passwordValue, passwordValue);
+        assertNull("Unexpected password value in " + provisioningShadow + ": " + passwordValue, passwordValue);
 
         PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
         PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
-        assertTrue("Incomplete flag is NOT set for password value in "+provisioningShadow, valueProp.isIncomplete());
+        assertTrue("Incomplete flag is NOT set for password value in " + provisioningShadow, valueProp.isIncomplete());
     }
 }

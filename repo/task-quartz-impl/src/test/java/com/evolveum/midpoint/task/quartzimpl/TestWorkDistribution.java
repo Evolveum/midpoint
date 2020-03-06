@@ -6,6 +6,25 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.sortBucketsBySequentialNumber;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.annotation.PostConstruct;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -14,30 +33,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.annotation.PostConstruct;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.sortBucketsBySequentialNumber;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Tests basic features of work state management:
@@ -45,17 +45,15 @@ import static org.testng.AssertJUnit.*;
  * - allocation, completion, release of buckets
  * - allocation of buckets when some workers are suspended
  * - basic propagation of buckets into bucket-aware task handler
- *
+ * <p>
  * Both in coordinator-worker and standalone tasks.
  *
  * @author mederly
  */
 
-@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestWorkDistribution extends AbstractTaskManagerTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestWorkDistribution.class);
 
     public static final long DEFAULT_TIMEOUT = 30000L;
 

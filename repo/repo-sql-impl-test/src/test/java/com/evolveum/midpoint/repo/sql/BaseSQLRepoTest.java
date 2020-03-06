@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.hibernate.Session;
@@ -27,7 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.testng.AssertJUnit;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -56,22 +58,18 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author lazyman
- */
-public class BaseSQLRepoTest extends AbstractSpringTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(BaseSQLRepoTest.class);
+public class BaseSQLRepoTest extends AbstractSpringTest
+        implements OperationResultTestMixin {
 
     static final File FOLDER_BASE = new File("./src/test/resources");
 
@@ -113,7 +111,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest {
     protected boolean verbose = false;
 
     @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
+    public void prismContextForTestSuite() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
@@ -128,32 +126,15 @@ public class BaseSQLRepoTest extends AbstractSpringTest {
         this.factory = factory;
     }
 
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName() });
-    }
-
-    @AfterClass
-    public void afterClass() {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName() });
-    }
-
     private volatile boolean initSystemExecuted = false;
 
-    // TODO inttest: consider @PostConstruct like in AbstractIntegrationTest
-    @BeforeMethod
-    public void beforeMethod(Method method) throws Exception {
+    @PostConstruct
+    public void beforeMethod() throws Exception {
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
         }
         initSystemExecuted = true;
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        logger.info(">>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<",
-                getClass().getName(), method.getName());
-
         initSystem();
     }
 
@@ -167,11 +148,8 @@ public class BaseSQLRepoTest extends AbstractSpringTest {
             }
         } catch (Exception ex) {
             //it's ok
-            LOGGER.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
+            logger.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
         }
-
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
     }
 
     protected boolean isH2() {
@@ -218,15 +196,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest {
         PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
         assertSuccess(result);
         return object;
-    }
-
-    protected OperationResult createResult() {
-        return new OperationResult(contextName());
-    }
-
-    // TODO: merge with similar methods in AbstractIntegrationTest
-    protected <O extends ObjectType> void display(String message, PrismObject<O> object) {
-        System.out.println("\n" + message + "\n" + object.debugDump(1));
     }
 
     protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
@@ -327,8 +296,16 @@ public class BaseSQLRepoTest extends AbstractSpringTest {
         SearchResultList<PrismObject<UserType>> found = repositoryService
                 .searchObjects(UserType.class, query, null, result);
         if (verbose) {
-            PrismTestUtil.display("Found", found);
+            display("Found", found);
         }
         assertEquals("Wrong # of objects found", expectedCount, found.size());
+    }
+
+    protected void display(String title, DebugDumpable value) {
+        PrismTestUtil.display(title, value);
+    }
+
+    protected void display(String title, Object value) {
+        PrismTestUtil.display(title, value);
     }
 }

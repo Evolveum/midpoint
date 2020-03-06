@@ -25,7 +25,7 @@
         </s:parameter>
         <s:parameter>
             <s:name>relation</s:name>
-            <c:value xsi:type="xsd:anyURI">piracy:captain</c:value>
+            <c:value xsi:type="xsd:anyURI">http://midpoint.evolveum.com/xml/ns/samples/piracy/captain</c:value>
         </s:parameter>
     </s:action>
 </s:search>

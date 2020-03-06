@@ -9,7 +9,8 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>SystemConfiguration</name>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
     <logging>
@@ -393,6 +394,11 @@
 
     <roleManagement>
         <autoassignEnabled>false</autoassignEnabled>
+        <relations>
+            <relation>
+                <ref>piracy:captain</ref>
+            </relation>
+        </relations>
     </roleManagement>
 
     <mergeConfiguration>

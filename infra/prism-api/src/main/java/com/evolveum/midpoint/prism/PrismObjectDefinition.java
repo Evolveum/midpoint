@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 /**
- * @author mederly
+ * TODO
  */
 public interface PrismObjectDefinition<O extends Objectable> extends PrismContainerDefinition<O> {
 
@@ -39,4 +39,7 @@ public interface PrismObjectDefinition<O extends Objectable> extends PrismContai
 
     @Override
     PrismObjectValue<O> createValue();
+
+    @Override
+    MutablePrismObjectDefinition<O> toMutable();
 }

@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.validator.test;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,16 +26,13 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -49,7 +43,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  * @author Radovan Semancik
  */
-public class BasicValidatorTest extends AbstractUnitTest {
+public class BasicValidatorTest extends AbstractUnitTest
+        implements OperationResultTestMixin {
 
     public static final String BASE_PATH = "src/test/resources/validator/";
     private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
@@ -65,7 +60,7 @@ public class BasicValidatorTest extends AbstractUnitTest {
 
     @Test
     public void resource1Valid() throws Exception {
-        OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
+        OperationResult result = createOperationResult();
         EventHandler handler = new EventHandler() {
 
             @Override
@@ -82,9 +77,9 @@ public class BasicValidatorTest extends AbstractUnitTest {
                 object.checkConsistence();
 
                 PrismContainer<?> extensionContainer = object.getExtension();
-                PrismProperty<Integer> menProp = extensionContainer.findProperty(new ItemName("http://myself.me/schemas/whatever","menOnChest"));
+                PrismProperty<Integer> menProp = extensionContainer.findProperty(new ItemName("http://myself.me/schemas/whatever", "menOnChest"));
                 assertNotNull("No men on a dead man chest!", menProp);
-                assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getAnyRealValue());
+                assertEquals("Wrong number of men on a dead man chest", (Integer) 15, menProp.getAnyRealValue());
                 PrismPropertyDefinition menPropDef = menProp.getDefinition();
                 assertNotNull("Men on a dead man chest NOT defined", menPropDef);
                 assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INT, menPropDef.getTypeName());
@@ -104,7 +99,7 @@ public class BasicValidatorTest extends AbstractUnitTest {
 
     @Test
     public void handlerTest() throws Exception {
-        OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
+        OperationResult result = createOperationResult();
 
         final List<String> postMarshallHandledOids = new ArrayList<>();
         final List<String> preMarshallHandledOids = new ArrayList<>();
@@ -133,7 +128,7 @@ public class BasicValidatorTest extends AbstractUnitTest {
 
         };
 
-        validateFile("three-objects.xml",handler,result);
+        validateFile("three-objects.xml", handler, result);
 
         System.out.println(result.debugDump());
         AssertJUnit.assertTrue("Result is not success", result.isSuccess());
@@ -147,9 +142,9 @@ public class BasicValidatorTest extends AbstractUnitTest {
 
     @Test
     public void notWellFormed() throws Exception {
-        OperationResult result = new OperationResult(this.getClass().getName()+".notWellFormed");
+        OperationResult result = createOperationResult();
 
-        validateFile("not-well-formed.xml",result);
+        validateFile("not-well-formed.xml", result);
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
@@ -162,9 +157,9 @@ public class BasicValidatorTest extends AbstractUnitTest {
 
     @Test
     public void undeclaredPrefix() throws Exception {
-        OperationResult result = new OperationResult(this.getClass().getName()+".undeclaredPrefix");
+        OperationResult result = createOperationResult();
 
-        validateFile("undeclared-prefix.xml",result);
+        validateFile("undeclared-prefix.xml", result);
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
@@ -177,9 +172,9 @@ public class BasicValidatorTest extends AbstractUnitTest {
 
     @Test
     public void schemaViolation() throws Exception {
-        OperationResult result = new OperationResult(this.getClass().getName()+".schemaViolation");
+        OperationResult result = createOperationResult();
 
-        validateFile("three-users-schema-violation.xml",result);
+        validateFile("three-users-schema-violation.xml", result);
 
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
@@ -196,7 +191,7 @@ public class BasicValidatorTest extends AbstractUnitTest {
      */
     @Test
     public void testStopOnErrors() throws Exception {
-        OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
+        OperationResult result = createOperationResult();
 
         LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
         validator.setVerbose(false);
@@ -206,14 +201,14 @@ public class BasicValidatorTest extends AbstractUnitTest {
 
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
-        assertEquals(2,result.getSubresults().size());
+        assertEquals(2, result.getSubresults().size());
     }
 
     @Test
     public void noName() throws Exception {
-        OperationResult result = new OperationResult(this.getClass().getName()+".noName");
+        OperationResult result = createOperationResult();
 
-        validateFile("no-name.xml",result);
+        validateFile("no-name.xml", result);
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
@@ -223,12 +218,12 @@ public class BasicValidatorTest extends AbstractUnitTest {
     }
 
     private void validateFile(String filename, OperationResult result) throws FileNotFoundException {
-        validateFile(filename,(EventHandler) null,result);
+        validateFile(filename, (EventHandler) null, result);
     }
 
-    private void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
+    private void validateFile(String filename, EventHandler handler, OperationResult result) throws FileNotFoundException {
         LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
-        if (handler!=null) {
+        if (handler != null) {
             validator.setHandler(handler);
         }
         validator.setVerbose(false);

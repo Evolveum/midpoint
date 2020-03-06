@@ -69,8 +69,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
@@ -81,8 +79,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapTest.class);
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -125,7 +121,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
 
-    @Autowired(required = true)
+    @Autowired
     protected MatchingRuleRegistry matchingRuleRegistry;
 
     @Autowired
@@ -294,6 +290,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
         modelService.postInit(initResult);
 
+        // TODO what now? config is unused
         // to get profiling facilities (until better API is available)
 //        LoggingConfigurationManager.configure(
 //                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
@@ -685,7 +682,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
-        LOGGER.trace("LDAP search base={}, filter={}, scope={}, attributes={}",
+        logger.trace("LDAP search base={}, filter={}, scope={}, attributes={}",
                 baseDn, filter, scope, attributes);
 
         SearchRequest searchRequest = new SearchRequestImpl();
@@ -733,11 +730,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         int foundEntries = 0;
         while (cursor.next()) {
             Entry entryFound = cursor.get();
-            LOGGER.trace("Search-after-auth found: {}", entryFound);
+            logger.trace("Search-after-auth found: {}", entryFound);
             foundEntries++;
         }
         cursor.close();
-        LOGGER.debug("Search-after-auth found {} entries", foundEntries);
+        logger.debug("Search-after-auth found {} entries", foundEntries);
         ldapDisconnect(conn);
         if (foundEntries != 1) {
             throw new SecurityException("Cannot read my own entry (" + entry.getDn() + ")");
@@ -778,7 +775,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             throws LdapException, IOException {
         LdapNetworkConnection connection = ldapConnect();
         Entry entry = createGroupEntry(cn, description, memberDns);
-        LOGGER.trace("Adding LDAP entry:\n{}", entry);
+        logger.trace("Adding LDAP entry:\n{}", entry);
         connection.add(entry);
         display("Added LDAP group:" + entry);
         ldapDisconnect(connection);
@@ -886,7 +883,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             config.setBindDn(getLdapBindDn());
             config.setBindPassword(getLdapBindPassword());
         }
-        LOGGER.trace("LDAP connect to {}:{} as {}",
+        logger.trace("LDAP connect to {}:{} as {}",
                 config.getLdapHost(), config.getLdapPort(), config.getBindDn());
 
         if (useSsl()) {
@@ -912,7 +909,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         if (!connected) {
             AssertJUnit.fail("Cannot connect to LDAP server " + config.getLdapHost() + ":" + config.getLdapPort());
         }
-        LOGGER.trace("LDAP connected to {}:{}, executing bind as {}",
+        logger.trace("LDAP connected to {}:{}, executing bind as {}",
                 config.getLdapHost(), config.getLdapPort(), config.getBindDn());
         BindRequest bindRequest = new BindRequestImpl();
         bindRequest.setDn(new Dn(config.getBindDn()));
@@ -923,13 +920,13 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             ldapDisconnect(connection);
             throw new SecurityException("Bind as " + config.getBindDn() + " failed: " + bindResponse.getLdapResult().getDiagnosticMessage() + " (" + bindResponse.getLdapResult().getResultCode() + ")");
         }
-        LOGGER.trace("LDAP connected to {}:{}, bound as {}",
+        logger.trace("LDAP connected to {}:{}, bound as {}",
                 config.getLdapHost(), config.getLdapPort(), config.getBindDn());
         return connection;
     }
 
     protected void ldapDisconnect(LdapNetworkConnection connection) throws IOException {
-        LOGGER.trace("LDAP disconnect {}", connection);
+        logger.trace("LDAP disconnect {}", connection);
         connection.close();
     }
 

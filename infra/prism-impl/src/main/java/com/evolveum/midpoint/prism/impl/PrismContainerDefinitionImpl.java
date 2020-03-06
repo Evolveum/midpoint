@@ -233,6 +233,18 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return complexTypeDefinition.getDefinitions();
     }
 
+    @Override
+    public void checkMutable() {
+
+    }
+
+    @Override
+    public boolean isCompletelyDefined() {
+        ComplexTypeDefinition complexTypeDefinition = getComplexTypeDefinition();
+        return complexTypeDefinition != null && !complexTypeDefinition.isXsdAnyMarker();
+    }
+
+
     /**
      * Returns set of property definitions.
      * <p>

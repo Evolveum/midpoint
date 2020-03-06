@@ -107,7 +107,7 @@ public class TestLdap extends AbstractLongTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         //end profiling
         ProfilingDataManager.getInstance().printMapAfterTest();
         ProfilingDataManager.getInstance().stopProfilingAfterTest();
@@ -149,8 +149,6 @@ public class TestLdap extends AbstractLongTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         assertUsers(NUM_INITIAL_USERS);
     }
 
@@ -160,8 +158,6 @@ public class TestLdap extends AbstractLongTest {
      */
     @Test
     public void test200AssignRolePiratesToBarbossa() throws Exception {
-        final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -187,16 +183,13 @@ public class TestLdap extends AbstractLongTest {
      */
     @Test
     public void test202AssignLdapAccountToGuybrush() throws Exception {
-        final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         byte[] photoIn = Files.readAllBytes(Paths.get(DOT_JPG_FILENAME));
         display("Photo in", MiscUtil.binaryToHex(photoIn));
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result,
-                photoIn);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result, photoIn);
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
                .item(UserType.F_JPEG_PHOTO).retrieve()
@@ -245,8 +238,6 @@ public class TestLdap extends AbstractLongTest {
      */
     @Test
     public void test204AssignRolePiratesToGuybrush() throws Exception {
-        final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -275,8 +266,6 @@ public class TestLdap extends AbstractLongTest {
 
     @Test
     public void test400RenameLeChuckConflicting() throws Exception {
-        final String TEST_NAME = "test400RenameLeChuckConflicting";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -312,12 +301,8 @@ public class TestLdap extends AbstractLongTest {
 
     @Test
     public void test800BigLdapSearch() throws Exception {
-        final String TEST_NAME = "test800BigLdapSearch";
-
         // GIVEN
-
         assertUsers(NUM_INITIAL_USERS + 1);
-
         loadLdapEntries("a", NUM_LDAP_ENTRIES);
 
         Task task = getTestTask();
@@ -356,10 +341,7 @@ public class TestLdap extends AbstractLongTest {
 
     @Test
     public void test810BigImport() throws Exception {
-        final String TEST_NAME = "test810BigImport";
-
         // GIVEN
-
         assertUsers(NUM_INITIAL_USERS + 1);
 
         loadLdapEntries("u", NUM_LDAP_ENTRIES);
@@ -391,8 +373,6 @@ public class TestLdap extends AbstractLongTest {
 
     @Test
     public void test820BigReconciliation() throws Exception {
-        final String TEST_NAME = "test820BigReconciliation";
-
         // GIVEN
 
         Task task = getTestTask();
@@ -428,10 +408,7 @@ public class TestLdap extends AbstractLongTest {
 
     @Test
     public void test900DeleteShadows() throws Exception {
-        final String TEST_NAME = "test900DeleteShadows";
-
         // GIVEN
-
         Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
@@ -477,8 +454,6 @@ public class TestLdap extends AbstractLongTest {
 
     @Test
     public void test910DeleteAccounts() throws Exception {
-        final String TEST_NAME = "test910DeleteAccounts";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

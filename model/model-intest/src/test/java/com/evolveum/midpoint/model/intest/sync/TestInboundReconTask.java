@@ -26,10 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author semancik
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInboundReconTask extends AbstractInboundSyncTest {
@@ -64,12 +60,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 
     @Override
     public void test180NoChange() throws Exception {
-        final String TEST_NAME = "test180NoChange";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -107,12 +98,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 
     @Override
     public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
-        final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 

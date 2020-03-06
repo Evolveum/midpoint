@@ -14,27 +14,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.LocalizationTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -45,26 +43,23 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.common.LocalizationTestUtil;
 
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractScriptTest {
+public abstract class AbstractScriptTest extends AbstractUnitTest
+        implements OperationResultTestMixin {
 
     protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
     protected static final File BASE_TEST_DIR = new File("src/test/resources/expression");
@@ -73,7 +68,6 @@ public abstract class AbstractScriptTest {
 
     public static final String VAR_POISON = "poison";
     protected static final String RESULT_POISON_OK = "ALIVE";
-    protected static final String POISON_DRINK_ERROR_MESSAGE = "ALIVE";
 
     protected static final String RESULT_STRING_EXEC = "Hello world";
 
@@ -104,7 +98,7 @@ public abstract class AbstractScriptTest {
         localizationService = LocalizationTestUtil.getLocalizationService();
         evaluator = createEvaluator(prismContext, protector);
         String languageUrl = evaluator.getLanguageUrl();
-        System.out.println("Expression test for "+evaluator.getLanguageName()+": registering "+evaluator+" with URL "+languageUrl);
+        System.out.println("Expression test for " + evaluator.getLanguageName() + ": registering " + evaluator + " with URL " + languageUrl);
         scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
     }
 
@@ -118,14 +112,13 @@ public abstract class AbstractScriptTest {
 
     @Test
     public void testExpressionSimple() throws Exception {
-        evaluateAndAssertStringScalarExpresssion("expression-simple.xml",
+        evaluateAndAssertStringScalarExpression("expression-simple.xml",
                 "testExpressionSimple", null, "foobar");
     }
 
-
     @Test
     public void testExpressionStringVariables() throws Exception {
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-string-variables.xml",
                 "testExpressionStringVariables",
                 createVariables(
@@ -141,19 +134,17 @@ public abstract class AbstractScriptTest {
      */
     @Test
     public void testExpressionStringVariablesParallel() throws Exception {
-        final String TEST_NAME = "testExpressionStringVariablesParallel";
-
         // WHEN
 
         ParallelTestThread[] threads = TestUtil.multithread(
                 (threadIndex) -> {
 
-                    String foo = "FOO"+threadIndex;
-                    String bar = "BAR"+threadIndex;
+                    String foo = "FOO" + threadIndex;
+                    String bar = "BAR" + threadIndex;
 
-                    evaluateAndAssertStringScalarExpresssion(
+                    evaluateAndAssertStringScalarExpression(
                             "expression-string-variables.xml",
-                            "testExpressionStringVariablesParallel-"+threadIndex,
+                            "testExpressionStringVariablesParallel-" + threadIndex,
                             createVariables(
                                     "foo", foo, PrimitiveType.STRING,
                                     "bar", bar, PrimitiveType.STRING
@@ -167,33 +158,32 @@ public abstract class AbstractScriptTest {
 
     }
 
-
     @Test
     public void testExpressionObjectRefVariables() throws Exception {
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-objectref-variables.xml",
                 "testExpressionObjectRefVariables",
                 createVariables(
                         "foo", "Captain", String.class,
                         "jack",
-                            MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-                            // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
-                            prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
                 ),
                 "Captain emp1234");
     }
 
     @Test
     public void testExpressionObjectRefVariablesPolyString() throws Exception {
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-objectref-variables-polystring.xml",
                 "testExpressionObjectRefVariablesPolyString",
                 createVariables(
                         "foo", "Captain", PrimitiveType.STRING,
                         "jack",
-                            MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-                            // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
-                            prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
                 ),
                 "Captain Jack Sparrow");
     }
@@ -202,7 +192,7 @@ public abstract class AbstractScriptTest {
 
     @Test
     public void testUserGivenName() throws Exception {
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-user-given-name.xml",
                 "testUserGivenName",
                 createUserScriptVariables(),
@@ -211,7 +201,7 @@ public abstract class AbstractScriptTest {
 
     @Test
     public void testUserExtensionShip() throws Exception {
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-user-extension-ship.xml",
                 "testUserExtensionShip",
                 createUserScriptVariables(),
@@ -220,7 +210,7 @@ public abstract class AbstractScriptTest {
 
     @Test
     public void testUserExtensionShipPath() throws Exception {
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-user-extension-ship-path.xml",
                 "testUserExtensionShipPath",
                 createUserScriptVariables(),
@@ -229,7 +219,7 @@ public abstract class AbstractScriptTest {
 
     @Test
     public void testUserExtensionStringifyFullName() throws Exception {
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-user-stringify-full-name.xml",
                 "testUserExtensionStringifyFullName",
                 createUserScriptVariables(),
@@ -244,13 +234,13 @@ public abstract class AbstractScriptTest {
     private ExpressionVariables createUserScriptVariables() {
         return createVariables(
                 ExpressionConstants.VAR_USER,
-                    MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-                    // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
-                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class),
+                MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class),
                 ExpressionConstants.VAR_FOCUS,
-                    MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-                    // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
-                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
+                MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
     }
 
     // TODO: shadow + attributes
@@ -261,39 +251,39 @@ public abstract class AbstractScriptTest {
             return;
         }
 
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-root-node.xml",
                 "testRootNode",
                 createVariables(
                         null, // root node
-                            MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-                            prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)),
+                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)),
                 "Black Pearl");
     }
 
     @Test
     public void testExpressionList() throws Exception {
-        evaluateAndAssertStringListExpresssion(
+        evaluateAndAssertStringListExpression(
                 "expression-list.xml",
                 "testExpressionList",
                 createVariables(
                         "jack",
-                            MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-                            // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
-                            prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
                 ),
                 "Leaders", "Followers");
     }
 
     @Test
     public void testExpressionFunc() throws Exception {
-        evaluateAndAssertStringScalarExpresssion("expression-func.xml",
+        evaluateAndAssertStringScalarExpression("expression-func.xml",
                 "testExpressionFunc", null, "gulocka v jamocke");
     }
 
     @Test
     public void testExpressionFuncConcatName() throws Exception {
-        evaluateAndAssertStringScalarExpresssion("expression-func-concatname.xml",
+        evaluateAndAssertStringScalarExpression("expression-func-concatname.xml",
                 "testExpressionFuncConcatName", null, "Horatio Torquemada Marley");
     }
 
@@ -302,23 +292,30 @@ public abstract class AbstractScriptTest {
                 new File(getTestDir(), fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
     }
 
-    private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, ItemDefinition outputDefinition,
-            ExpressionVariables variables, String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition, shortDesc);
-        List<PrismPropertyValue<T>> resultValues = scriptExpression.evaluate(variables, null, false, shortDesc, null, result);
+    private <T> List<PrismPropertyValue<T>> evaluateExpression(
+            ScriptExpressionEvaluatorType scriptType, ItemDefinition<?> outputDefinition,
+            ExpressionVariables variables, String shortDesc, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
+        @SuppressWarnings("deprecation")
+        List<PrismPropertyValue<T>> resultValues =
+                scriptExpression.evaluate(variables, null, false, shortDesc, null, result);
         if (resultValues != null) {
-            for (PrismPropertyValue<T> resultVal: resultValues) {
+            for (PrismPropertyValue<T> resultVal : resultValues) {
                 if (resultVal.getParent() != null) {
-                    AssertJUnit.fail("Result value "+resultVal+" from expression "+scriptExpression+" has parent");
+                    AssertJUnit.fail("Result value " + resultVal + " from expression " + scriptExpression + " has parent");
                 }
             }
         }
         return resultValues;
     }
 
-    private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
+    private ScriptExpression createScriptExpression(
+            ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
         String language = expressionType.getLanguage();
-        ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(language), expressionType);
+        ScriptExpression expression = new ScriptExpression(
+                scriptExpressionfactory.getEvaluators().get(language), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
         expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
@@ -345,24 +342,23 @@ public abstract class AbstractScriptTest {
         return null;
     }
 
-    private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
-            ExpressionVariables variables, String shortDesc, OperationResult opResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        MutableItemDefinition outputDefinition = PrismTestUtil.getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, typeName);
+    private <T> List<PrismPropertyValue<T>> evaluateExpression(
+            ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
+            ExpressionVariables variables, String shortDesc, OperationResult opResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        MutableItemDefinition<?> outputDefinition = PrismTestUtil.getPrismContext()
+                .definitionFactory().createPropertyDefinition(PROPERTY_NAME, typeName);
         if (!scalar) {
             outputDefinition.setMaxOccurs(-1);
         }
         return evaluateExpression(scriptType, outputDefinition, variables, shortDesc, opResult);
     }
 
-    private <T> PrismPropertyValue<T> evaluateExpressionScalar(ScriptExpressionEvaluatorType scriptType, QName typeName,
-            ExpressionVariables variables, String shortDesc, OperationResult opResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<PrismPropertyValue<T>> expressionResultList = evaluateExpression(scriptType, typeName, true, variables, shortDesc, opResult);
-        return asScalar(expressionResultList, shortDesc);
-    }
-
-    private <T> PrismPropertyValue<T> asScalar(List<PrismPropertyValue<T>> expressionResultList, String shortDesc) {
+    private <T> PrismPropertyValue<T> asScalar(
+            List<PrismPropertyValue<T>> expressionResultList, String shortDesc) {
         if (expressionResultList.size() > 1) {
-            AssertJUnit.fail("Expression "+shortDesc+" produces a list of "+expressionResultList.size()+" while only expected a single value: "+expressionResultList);
+            AssertJUnit.fail("Expression " + shortDesc + " produces a list of " + expressionResultList.size() + " while only expected a single value: " + expressionResultList);
         }
         if (expressionResultList.isEmpty()) {
             return null;
@@ -370,44 +366,65 @@ public abstract class AbstractScriptTest {
         return expressionResultList.iterator().next();
     }
 
-    protected void evaluateAndAssertStringScalarExpresssion(String fileName, String testName, ExpressionVariables variables, String expectedValue) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
+    protected void evaluateAndAssertStringScalarExpression(
+            String fileName, String testName, ExpressionVariables variables, String expectedValue)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, testName, variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
-        assertNotNull("Expression "+testName+" resulted in null value (expected '"+expectedValue+"')", expressionResult);
-        assertEquals("Expression "+testName+" resulted in wrong value", expectedValue, expressionResult.getValue());
+        assertNotNull("Expression " + testName + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
+        assertEquals("Expression " + testName + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }
 
-    protected void evaluateAndAssertStringScalarExpresssionRestricted(String fileName, String testName, ExpressionVariables variables) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected void evaluateAndAssertStringScalarExpressionRestricted(
+            String fileName, String testName, ExpressionVariables variables)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, IOException,
+            ExpressionEvaluationException, ConfigurationException {
         try {
-            List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
-            AssertJUnit.fail("Expression "+testName+": unexpected success, result value: "+ expressionResultList);
+            List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, testName, variables);
+            AssertJUnit.fail("Expression " + testName + ": unexpected success, result value: " + expressionResultList);
         } catch (SecurityViolationException e) {
             System.out.println("Expected exception: " + e);
             LOGGER.debug("Expected exception", e);
         }
     }
 
-    private void evaluateAndAssertStringListExpresssion(String fileName, String testName, ExpressionVariables variables, String... expectedValues) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
-        TestUtil.assertSetEquals("Expression "+testName+" resulted in wrong values", PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
-    }
-    protected void evaluateAndAssertBooleanScalarExpresssion(String fileName, String testName, ExpressionVariables variables, Boolean expectedValue) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpresssion(fileName, testName, variables, true);
-        PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, testName);
-        assertNotNull("Expression "+testName+" resulted in null value (expected '"+expectedValue+"')", expressionResult);
-        assertEquals("Expression "+testName+" resulted in wrong value", expectedValue, expressionResult.getValue());
+    private void evaluateAndAssertStringListExpression(String fileName, String testName,
+            ExpressionVariables variables, String... expectedValues)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        List<PrismPropertyValue<String>> expressionResultList =
+                evaluateStringExpression(fileName, testName, variables);
+        TestUtil.assertSetEquals("Expression " + testName + " resulted in wrong values",
+                PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
     }
 
-    private List<PrismPropertyValue<String>> evaluateStringExpresssion(String fileName, String testName, ExpressionVariables variables, boolean scalar) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected void evaluateAndAssertBooleanScalarExpression(String fileName,
+            String testName, ExpressionVariables variables, Boolean expectedValue)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpression(fileName, testName, variables);
+        PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, testName);
+        assertNotNull("Expression " + testName + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
+        assertEquals("Expression " + testName + " resulted in wrong value", expectedValue, expressionResult.getValue());
+    }
+
+    private List<PrismPropertyValue<String>> evaluateStringExpression(
+            String fileName, String testName, ExpressionVariables variables)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
-        OperationResult opResult = new OperationResult(testName);
+        OperationResult opResult = createOperationResult();
 
         return evaluateExpression(scriptType, DOMUtil.XSD_STRING, true, variables, testName, opResult);
     }
 
-    private List<PrismPropertyValue<Boolean>> evaluateBooleanExpresssion(String fileName, String testName, ExpressionVariables variables, boolean scalar) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private List<PrismPropertyValue<Boolean>> evaluateBooleanExpression(
+            String fileName, String testName, ExpressionVariables variables)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
-        OperationResult opResult = new OperationResult(testName);
+        OperationResult opResult = createOperationResult();
 
         return evaluateExpression(scriptType, DOMUtil.XSD_BOOLEAN, true, variables, testName, opResult);
     }

@@ -210,7 +210,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     /**
@@ -237,7 +237,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         }
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -261,7 +261,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -285,7 +285,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -309,7 +309,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -333,7 +333,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -354,7 +354,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -375,7 +375,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -396,7 +396,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -417,7 +417,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     /**
@@ -453,7 +453,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     private Consumer<AssignmentType> getJudgeExceptionBlock(String excludedRoleName) {
@@ -484,7 +484,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -507,7 +507,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_APPROVER, task, result);
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -534,7 +534,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT, task, result);
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     /**
@@ -1760,7 +1760,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_OID, SchemaConstants.ORG_APPROVER, task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
@@ -1789,7 +1789,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID, SchemaConstants.ORG_DEFAULT, task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     // MID-5207

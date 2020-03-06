@@ -24,8 +24,6 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.testing.TestStatementInspector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Session;
@@ -50,8 +48,6 @@ import static org.testng.AssertJUnit.assertEquals;
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaUpdaterTest.class);
 
     private static final File DATA_FOLDER = new File("./src/test/resources/update");
 
@@ -1127,7 +1123,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
-        LOGGER.info("test280AddPhoto check");
+        logger.info("test280AddPhoto check");
         try (Session session = factory.openSession()) {
             RUser u = session.get(RUser.class, userOid);
 
@@ -1154,7 +1150,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
-        LOGGER.info("test290ReplacePhoto check");
+        logger.info("test290ReplacePhoto check");
         try (Session session = factory.openSession()) {
             RUser u = session.get(RUser.class, userOid);
 
@@ -1181,7 +1177,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
-        LOGGER.info("test300DeletePhoto check");
+        logger.info("test300DeletePhoto check");
         try (Session session = factory.openSession()) {
             RUser u = session.get(RUser.class, userOid);
 

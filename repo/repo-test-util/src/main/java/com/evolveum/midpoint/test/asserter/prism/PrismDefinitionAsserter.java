@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.test.asserter.prism;
 
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 
 /**
@@ -46,7 +46,7 @@ public abstract class PrismDefinitionAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public PrismDefinitionAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, definition);
+        PrismTestUtil.display(message, definition);
         return this;
     }
 }

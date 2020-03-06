@@ -24,6 +24,7 @@ public interface MidpointTestMixin {
     String TEST_OUT_SUFFIX = " ]======================================\n";
     String TEST_OUT_FOOTER_PREFIX = "====== ";
     String TEST_OUT_FOOTER_SUFFIX = "\n";
+
     String TEST_OUT_SECTION_PREFIX = "\n\n----- ";
     String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
     String TEST_LOG_SECTION_PREFIX = "----- ";
@@ -90,15 +91,33 @@ public interface MidpointTestMixin {
                 "Current test-method context MUST NOT be null");
     }
 
+    /**
+     * Displays test header with the test name.
+     * Not intended for tests classes, used by lifecycle methods in our test superclasses.
+     */
     default void displayTestTitle(String testTitle) {
         System.out.println(TEST_OUT_PREFIX + testTitle + TEST_OUT_SUFFIX);
         logger().info(TEST_LOG_PREFIX + testTitle + TEST_LOG_SUFFIX);
     }
 
-    default void displayDefaultTestFooter(String testTitle, ITestResult testResult) {
+    /**
+     * Displays test footer with the test name and test duration.
+     * Not intended for tests classes, used by lifecycle methods in our test superclasses.
+     */
+    default void displayTestFooter(String testTitle, ITestResult testResult) {
         long testMsDuration = testResult.getEndMillis() - testResult.getStartMillis();
         System.out.println(TEST_OUT_FOOTER_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
         logger().info(TEST_LOG_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_LOG_SUFFIX);
+    }
+
+    default void display(String text) {
+        System.out.println("\n*** " + text);
+        logger().debug("*** {}", text);
+    }
+
+    default void display(String title, String value) {
+        System.out.println("\n*** " + title + "\n" + value);
+        logger().debug("*** {}\n{}", title, value);
     }
 
     /**

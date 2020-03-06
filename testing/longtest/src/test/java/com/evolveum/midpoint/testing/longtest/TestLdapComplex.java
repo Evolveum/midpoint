@@ -7,11 +7,9 @@
 
 package com.evolveum.midpoint.testing.longtest;
 
-
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.Entry;
@@ -39,9 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Mix of various tests for issues that are difficult to replicate using dummy resources.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapComplex extends AbstractLongTest {
 
@@ -84,7 +81,6 @@ public class TestLdapComplex extends AbstractLongTest {
 
     private static final String INTENT_SECURITY = "security";
     private static final String OBJECTCLASS_USER_SECURITY_INFORMATION = "userSecurityInformation";
-
 
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
@@ -130,10 +126,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
     @Test
     public void test100BigImport() throws Exception {
-        final String TEST_NAME = "test100BigImport";
-
         // GIVEN
-
         loadLdapEntries("u", NUM_LDAP_ENTRIES);
 
         Task task = getTestTask();
@@ -150,14 +143,14 @@ public class TestLdapComplex extends AbstractLongTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
-        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+4, userCount);
+        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 4, userCount);
 
         assertUser("u1", task, result);
     }
@@ -171,8 +164,6 @@ public class TestLdapComplex extends AbstractLongTest {
 
     @Test(enabled = false)
     public void test120BigReconciliation() throws Exception {
-        final String TEST_NAME = "test120BigReconciliation";
-
         // GIVEN
 
         Task task = getTestTask();
@@ -180,8 +171,6 @@ public class TestLdapComplex extends AbstractLongTest {
 
         // WHEN
         when();
-        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
-
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
         reconciliationTaskHandler.launch(resource,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
@@ -192,14 +181,14 @@ public class TestLdapComplex extends AbstractLongTest {
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
-        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+4, userCount);
+        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 4, userCount);
 
         assertUser("u1", task, result);
     }
@@ -209,8 +198,6 @@ public class TestLdapComplex extends AbstractLongTest {
      */
     @Test
     public void test500GuybrushAssignSecurity() throws Exception {
-        final String TEST_NAME = "test500GuybrushAssignSecurity";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -239,8 +226,6 @@ public class TestLdapComplex extends AbstractLongTest {
      */
     @Test
     public void test502RuinGuybrushAccountAndReconcile() throws Exception {
-        final String TEST_NAME = "test502RuinGuybrushAccountAndReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -266,9 +251,5 @@ public class TestLdapComplex extends AbstractLongTest {
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("LDAP account after", entry);
         openDJController.assertHasObjectClass(entry, OBJECTCLASS_USER_SECURITY_INFORMATION);
-    }
-
-    private String toDn(String username) {
-        return "uid="+username+","+OPENDJ_PEOPLE_SUFFIX;
     }
 }

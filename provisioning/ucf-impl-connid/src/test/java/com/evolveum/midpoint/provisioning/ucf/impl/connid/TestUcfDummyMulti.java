@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,8 +37,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -55,19 +50,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestUcfDummyMulti.class);
-
     @Test
     public void test000PrismContextSanity() {
         SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
         PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
-        assertNotNull("ICFC schema not found in the context ("+SchemaConstants.NS_ICF_CONFIGURATION+")", schemaIcfc);
+        assertNotNull("ICFC schema not found in the context (" + SchemaConstants.NS_ICF_CONFIGURATION + ")", schemaIcfc);
         PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef =
-            schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-        assertNotNull("icfc:configurationProperties not found in icfc schema ("+
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+")", configurationPropertiesDef);
+                schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+        assertNotNull("icfc:configurationProperties not found in icfc schema (" +
+                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + ")", configurationPropertiesDef);
         PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
-        assertNotNull("ICFS schema not found in the context ("+SchemaConstants.NS_ICF_SCHEMA+")", schemaIcfs);
+        assertNotNull("ICFS schema not found in the context (" + SchemaConstants.NS_ICF_SCHEMA + ")", schemaIcfs);
     }
 
     @Test
@@ -116,8 +109,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         // THEN
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
-        assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" was not created", dummyAccount);
-        assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" has no username", dummyAccount.getName());
+        assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " was not created", dummyAccount);
+        assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " has no username", dummyAccount.getName());
 
     }
 
@@ -151,8 +144,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
         display("stats", opStat);
-        assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumActive());
-        assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumIdle());
+        assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
+        assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumIdle());
     }
 
     @Test
@@ -187,7 +180,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
                     cc.search(accountDefinition, null, handler, null, null, null, null, result);
                 } catch (CommunicationException | GenericFrameworkException | SchemaException
                         | SecurityViolationException | ObjectNotFoundException e) {
-                    LOGGER.error("Error in the search: {}", e.getMessage(), e);
+                    logger.error("Error in the search: {}", e.getMessage(), e);
                 }
             }
         });
@@ -199,8 +192,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
         display("stats (blocked)", opStat);
-        assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumActive());
-        assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumIdle());
+        assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumActive());
+        assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
         assertEquals("Unexpected number of search results", 0, searchResults.size());
 
@@ -215,8 +208,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         opStat = cc.getOperationalStatus();
         display("stats (final)", opStat);
-        assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumActive());
-        assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumIdle());
+        assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
+        assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumIdle());
 
         PrismObject<ShadowType> searchResult = searchResults.get(0);
         display("Search result", searchResult);
@@ -225,7 +218,6 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     @Test
     public void test210TwoBlockingSearches() throws Exception {
         // GIVEN
-
 
         final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         // Determine object class from the schema
@@ -263,7 +255,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
                     cc.search(accountDefinition, null, handler1, null, null, null, null, result1);
                 } catch (CommunicationException | GenericFrameworkException | SchemaException
                         | SecurityViolationException | ObjectNotFoundException e) {
-                    LOGGER.error("Error in the search: {}", e.getMessage(), e);
+                    logger.error("Error in the search: {}", e.getMessage(), e);
                 }
             }
         });
@@ -275,8 +267,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
         display("stats (blocked 1)", opStat);
-        assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumActive());
-        assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumIdle());
+        assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumActive());
+        assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
         assertEquals("Unexpected number of search results", 0, searchResults1.size());
 
@@ -288,7 +280,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
                     cc.search(accountDefinition, null, handler2, null, null, null, null, result2);
                 } catch (CommunicationException | GenericFrameworkException | SchemaException
                         | SecurityViolationException | ObjectNotFoundException e) {
-                    LOGGER.error("Error in the search: {}", e.getMessage(), e);
+                    logger.error("Error in the search: {}", e.getMessage(), e);
                 }
             }
         });
@@ -300,8 +292,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         opStat = cc.getOperationalStatus();
         display("stats (blocked 2)", opStat);
-        assertEquals("Wrong pool active", (Integer)2, opStat.getPoolStatusNumActive());
-        assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumIdle());
+        assertEquals("Wrong pool active", (Integer) 2, opStat.getPoolStatusNumActive());
+        assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
         assertEquals("Unexpected number of search results", 0, searchResults1.size());
 
@@ -318,8 +310,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         opStat = cc.getOperationalStatus();
         display("stats (final)", opStat);
-        assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumActive());
-        assertEquals("Wrong pool active", (Integer)2, opStat.getPoolStatusNumIdle());
+        assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
+        assertEquals("Wrong pool active", (Integer) 2, opStat.getPoolStatusNumIdle());
 
         PrismObject<ShadowType> searchResult1 = searchResults1.get(0);
         display("Search result 1", searchResult1);
@@ -329,12 +321,11 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     }
 
     private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
-        assertNotNull("No objectClass in shadow "+shadow, shadow.asObjectable().getObjectClass());
-        assertEquals("Wrong objectClass in shadow "+shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
+        assertNotNull("No objectClass in shadow " + shadow, shadow.asObjectable().getObjectClass());
+        assertEquals("Wrong objectClass in shadow " + shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-        assertNotNull("No attributes in shadow "+shadow, attributes);
-        assertFalse("Empty attributes in shadow "+shadow, attributes.isEmpty());
+        assertNotNull("No attributes in shadow " + shadow, attributes);
+        assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
     }
-
 
 }

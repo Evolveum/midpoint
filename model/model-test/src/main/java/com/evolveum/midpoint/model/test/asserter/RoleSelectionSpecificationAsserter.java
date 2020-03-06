@@ -8,8 +8,8 @@ package com.evolveum.midpoint.model.test.asserter;
 
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectFilterAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -75,7 +75,7 @@ public class RoleSelectionSpecificationAsserter<RA> extends AbstractAsserter<RA>
     }
 
     public RoleSelectionSpecificationAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, roleSelectionSpec);
+        PrismTestUtil.display(message, roleSelectionSpec);
         return this;
     }
 

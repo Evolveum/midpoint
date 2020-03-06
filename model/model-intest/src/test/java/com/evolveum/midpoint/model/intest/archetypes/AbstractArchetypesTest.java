@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.intest.archetypes;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;

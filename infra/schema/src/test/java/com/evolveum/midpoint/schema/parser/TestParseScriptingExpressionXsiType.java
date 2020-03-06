@@ -40,8 +40,6 @@ public class TestParseScriptingExpressionXsiType extends AbstractPropertyValuePa
 
     @Test
     public void testYamlSerialization() throws Exception {
-        displayTestTitle("testParseToXNode");
-
         String file = MiscUtil.readFile(getFile());
         System.out.println("Original text:\n" + file);
 

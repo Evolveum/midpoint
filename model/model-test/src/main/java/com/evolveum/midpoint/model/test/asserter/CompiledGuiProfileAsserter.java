@@ -13,7 +13,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 
 /**
@@ -89,7 +89,7 @@ public class CompiledGuiProfileAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public CompiledGuiProfileAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, compiledGuiProfile);
+        PrismTestUtil.display(message, compiledGuiProfile);
         return this;
     }
 

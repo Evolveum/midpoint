@@ -147,10 +147,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test100SuspendWhileIcfSync() throws Exception {
-        final String TEST_NAME = "test100SuspendWhileIcfSync";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -178,10 +175,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test105SuspendWhileIcfSyncImprecise() throws Exception {
-        final String TEST_NAME = "test105SuspendWhileIcfSyncImprecise";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -213,10 +207,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test110SuspendWhileProcessing() throws Exception {
-        final String TEST_NAME = "test110SuspendWhileProcessing";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -269,10 +260,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test115SuspendWhileProcessingImprecise() throws Exception {
-        final String TEST_NAME = "test115SuspendWhileProcessingImprecise";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -313,10 +301,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test120Batched() throws Exception {
-        final String TEST_NAME = "test120Batched";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -381,10 +366,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test125BatchedImprecise() throws Exception {
-        final String TEST_NAME = "test125BatchedImprecise";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -428,10 +410,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test130Error() throws Exception {
-        final String TEST_NAME = "test130Error";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -489,10 +468,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test135ErrorImprecise() throws Exception {
-        final String TEST_NAME = "test135ErrorImprecise";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -556,10 +532,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test140DryRun() throws Exception {
-        final String TEST_NAME = "test140DryRun";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -595,10 +568,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test150DryRunWithUpdate() throws Exception {
-        final String TEST_NAME = "test150DryRunWithUpdate";
-
         // GIVEN
-        AbstractSynchronizationStoryTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

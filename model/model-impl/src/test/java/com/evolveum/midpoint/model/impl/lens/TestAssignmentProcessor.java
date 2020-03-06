@@ -6,6 +6,17 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
+
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -15,7 +26,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -26,26 +36,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author semancik
- */
 public class TestAssignmentProcessor extends AbstractLensTest {
-
-    private static final ItemPath ATTRIBUTES_PARENT_PATH = ShadowType.F_ATTRIBUTES;
 
     @Autowired
     private AssignmentProcessor assignmentProcessor;
@@ -53,7 +44,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     @Autowired
     private Clock clock;
 
-    public TestAssignmentProcessor() throws JAXBException {
+    public TestAssignmentProcessor() {
         super();
     }
 
@@ -70,10 +61,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
      */
     @Test
     public void test001OutboundEmpty() throws Exception {
-        final String TEST_NAME = "test001OutboundEmpty";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -85,7 +74,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // THEN
         display("outbound processor result", result);
-//        assertSuccess("Outbound processor failed (result)", result);
 
         assertNull(context.getFocusContext().getPrimaryDelta());
         assertNull(context.getFocusContext().getSecondaryDelta());
@@ -94,10 +82,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Test
     public void test002ModifyUser() throws Exception {
-        final String TEST_NAME = "test002ModifyUser";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -136,7 +122,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-            accContext.getConstructionDeltaSetTriple();
+                accContext.getConstructionDeltaSetTriple();
         display("accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple);
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
@@ -156,10 +142,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Test
     public void test011AddAssignmentAddAccountDirect() throws Exception {
-        final String TEST_NAME = "test011AddAssignmentAddAccountDirect";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -197,10 +181,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Test
     public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws Exception {
-        final String TEST_NAME = "test012AddAssignmentAddAccountDirectAssignmentWithAttrs";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -240,7 +222,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-            accContext.getConstructionDeltaSetTriple();
+                accContext.getConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoZero(accountConstructionDeltaSetTriple);
@@ -267,9 +249,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Test
     public void test021AddAssignmentModifyAccountAssignment() throws Exception {
-        final String TEST_NAME = "test021AddAssignmentModifyAccountAssignment";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -308,7 +289,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-            accContext.getConstructionDeltaSetTriple();
+                accContext.getConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
 
@@ -360,10 +341,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Test
     public void test031DeleteAssignmentModifyAccount() throws Exception {
-        final String TEST_NAME = "test031DeleteAssignmentModifyAccount";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -406,9 +385,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
-
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-            accContext.getConstructionDeltaSetTriple();
+                accContext.getConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
 
@@ -444,58 +422,55 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
 
     @Test
-     public void test032ModifyUserLegalizeAccount() throws Exception {
-        final String TEST_NAME = "test032ModifyUserLegalizeAccount";
-
+    public void test032ModifyUserLegalizeAccount() throws Exception {
         // GIVEN
-            Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
-            OperationResult result = task.getResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-            repoAddObjectFromFile(USER_LARGO_FILE, result);
+        repoAddObjectFromFile(USER_LARGO_FILE, result);
 
-            LensContext<UserType> context = createUserLensContext();
-            fillContextWithUser(context, USER_LARGO_OID, result);
-            fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, task, result);
-            context.recompute();
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_LARGO_OID, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, task, result);
+        context.recompute();
 
-            ProjectionPolicyType accountSynchronizationSettings = new ProjectionPolicyType();
-            accountSynchronizationSettings.setLegalize(Boolean.TRUE);
-            accountSynchronizationSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
-            context.setAccountSynchronizationSettings(accountSynchronizationSettings);
+        ProjectionPolicyType accountSynchronizationSettings = new ProjectionPolicyType();
+        accountSynchronizationSettings.setLegalize(Boolean.TRUE);
+        accountSynchronizationSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
+        context.setAccountSynchronizationSettings(accountSynchronizationSettings);
 
-            assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, true);
+        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, true);
 
-            display("Input context", context);
+        display("Input context", context);
 
-            assertFocusModificationSanity(context);
+        assertFocusModificationSanity(context);
 
-            // WHEN
-            assignmentProcessor.processAssignments(context, getNow(), task, result);
+        // WHEN
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
-            context.recompute();
-            // THEN
-            display("Output context", context);
-            display("outbound processor result", result);
+        context.recompute();
+        // THEN
+        display("Output context", context);
+        display("outbound processor result", result);
 
-            assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
-            assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
-            assertNotNull("Expected assigment delta in secondary changes, but it does not exist.",
-                    ItemDeltaCollectionsUtil.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(),
-                    UserType.F_ASSIGNMENT));
-            assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+        assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
+        assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
+        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.",
+                ItemDeltaCollectionsUtil.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(),
+                        UserType.F_ASSIGNMENT));
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-            LensProjectionContext accContext = context.getProjectionContexts().iterator().next();
+        LensProjectionContext accContext = context.getProjectionContexts().iterator().next();
 
-            assertNoDecision(accContext);
-            assertLegal(accContext);
+        assertNoDecision(accContext);
+        assertLegal(accContext);
 
-        }
+    }
 
     @Test
     public void test100AddAssignmentWithConditionalMetarole() throws Exception {
-        final String TEST_NAME = "test100AddAssignmentWithConditionalMetarole";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -557,9 +532,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
      */
     @Test
     public void test102EnableConditionalMetarole() throws Exception {
-        final String TEST_NAME = "test102EnableConditionalMetarole";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -633,16 +607,15 @@ public class TestAssignmentProcessor extends AbstractLensTest {
      * any similar tests here; use TestPolicyRules instead. It contains better 'assume' methods for policies.
      * TODO move these ones as well
      * ===============================================================================================
-     *
+     * <p>
      * Checking approval policy rules.
      * Visitor has a generic metarole that has associated policy rule (approve-any-corp-role).
      * Generic metarole also induces metarole-sod-notifications that has "notify-exclusion-violations" rule.
      */
     @Test
     public void test200AssignVisitor() throws Exception {
-        final String TEST_NAME = "test200AssignVisitor";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -689,14 +662,13 @@ public class TestAssignmentProcessor extends AbstractLensTest {
      * Engineer has a generic metarole that provides these policy rules: approve-any-corp-rule, notify-exclusion-violations.
      * However, it induces an Employee role that has also this generic metarole. Moreover, it has "employee-excludes-contractor"
      * rule.
-     *
+     * <p>
      * First occurrence of the approval rule should have a trigger. Second one should be without a trigger.
      */
     @Test
     public void test210AssignEngineer() throws Exception {
-        final String TEST_NAME = "test210AssignEngineer";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -762,26 +734,26 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     private <T> void assertPlusAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
         PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
-        assertNotNull("No value construction for attribute "+attrName+" in plus set", vc);
+        assertNotNull("No value construction for attribute " + attrName + " in plus set", vc);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
-        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getPlusSet());
-        TestUtil.assertSetEquals("Attribute "+attrName+" value in plus set", actual, expectedValue);
+        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getPlusSet());
+        TestUtil.assertSetEquals("Attribute " + attrName + " value in plus set", actual, expectedValue);
     }
 
     private <T> void assertZeroAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
         PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
-        assertNotNull("No value construction for attribute "+attrName+" in zero set", vc);
+        assertNotNull("No value construction for attribute " + attrName + " in zero set", vc);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
-        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getZeroSet());
-        TestUtil.assertSetEquals("Attribute "+attrName+" value in zero set", actual, expectedValue);
+        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getZeroSet());
+        TestUtil.assertSetEquals("Attribute " + attrName + " value in zero set", actual, expectedValue);
     }
 
     private <T> void assertMinusAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
         PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
-        assertNotNull("No value construction for attribute "+attrName+" in minus set", vc);
+        assertNotNull("No value construction for attribute " + attrName + " in minus set", vc);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
-        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getMinusSet());
-        TestUtil.assertSetEquals("Attribute "+attrName+" value in minus set", actual, expectedValue);
+        Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getMinusSet());
+        TestUtil.assertSetEquals("Attribute " + attrName + " value in minus set", actual, expectedValue);
     }
 
     private void assertNoPlusAttributeValues(Construction accountConstruction, QName attrName) {
@@ -802,25 +774,24 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         PrismAsserts.assertTripleNoMinus(triple);
     }
 
-    private Object getSingleValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple,
-            Collection<? extends PrismPropertyValue<?>> set) {
-        Collection<?> values = getMultiValueFromDeltaSetTriple(triple,set);
-        assertEquals(1,values.size());
+    private Object getSingleValueFromDeltaSetTriple(Collection<? extends PrismPropertyValue<?>> set) {
+        Collection<?> values = getMultiValueFromDeltaSetTriple(set);
+        assertEquals(1, values.size());
         return values.iterator().next();
     }
 
-    private <T> Collection<T> getMultiValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple,
+    private <T> Collection<T> getMultiValueFromDeltaSetTriple(
             Collection<? extends PrismPropertyValue<?>> set) {
         Collection<T> vals = new ArrayList<>(set.size());
-        for (PrismPropertyValue<?> pval: set) {
-            vals.add((T)pval.getValue());
+        for (PrismPropertyValue<?> pval : set) {
+            vals.add((T) pval.getValue());
         }
         return vals;
     }
 
-    private void assertSetSize(String setName, Collection<PrismPropertyValue<Construction>> set,
-            int expectedSize) {
-        assertEquals("Unexpected number of value in "+setName+" set", expectedSize, set.size());
+    private void assertSetSize(
+            String setName, Collection<PrismPropertyValue<Construction>> set, int expectedSize) {
+        assertEquals("Unexpected number of value in " + setName + " set", expectedSize, set.size());
     }
 
     private Construction getZeroAccountConstruction(
@@ -829,8 +800,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
 
     private Construction getZeroAccountConstruction(
-        PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
-        String description) {
+            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
+            String description) {
         Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getZeroSet();
         return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "zero");
     }
@@ -861,10 +832,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     private Construction getAccountConstruction(PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
             String description, Collection<PrismPropertyValue<Construction>> set, String setName) {
-        for (PrismPropertyValue<Construction> constructionPVal: set) {
+        for (PrismPropertyValue<Construction> constructionPVal : set) {
             Construction accountConstruction = constructionPVal.getValue();
             if (description == null || description.equals(accountConstruction.getDescription())) {
-                assertNotNull("Null accountConstruction in "+setName+" set (description: '"+description+"')", accountConstruction);
+                assertNotNull("Null accountConstruction in " + setName + " set (description: '" + description + "')", accountConstruction);
                 return accountConstruction;
             }
         }
@@ -872,15 +843,18 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
 
     private void assertLegal(LensProjectionContext accContext) {
-        assertEquals("Expected projection "+accContext+" not legal", Boolean.TRUE, accContext.isLegal());
+        assertEquals("Expected projection " + accContext + " not legal", Boolean.TRUE, accContext.isLegal());
     }
 
     private void assertIllegal(LensProjectionContext accContext) {
-        assertEquals("Expected projection "+accContext+" not illegal", Boolean.FALSE, accContext.isLegal());
+        assertEquals("Expected projection " + accContext + " not illegal", Boolean.FALSE, accContext.isLegal());
     }
 
     private void assertNoDecision(LensProjectionContext accContext) {
-        assertNull("Projection "+accContext+" has decision "+accContext.getSynchronizationPolicyDecision()+" while not expecting any", accContext.getSynchronizationPolicyDecision());
+        assertNull(
+                "Projection " + accContext + " has decision "
+                        + accContext.getSynchronizationPolicyDecision() + " while not expecting any",
+                accContext.getSynchronizationPolicyDecision());
     }
 
     private XMLGregorianCalendar getNow() {

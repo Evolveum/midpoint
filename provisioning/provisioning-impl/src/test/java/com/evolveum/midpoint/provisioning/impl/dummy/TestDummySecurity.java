@@ -198,7 +198,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     @Test
     public void test300GetAccount() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
 
         // WHEN
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
@@ -220,7 +220,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     @Test
     public void test310SearchAllShadows() throws Exception {
         // GIVEN
-        OperationResult result = createOperationalResult();
+        OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);

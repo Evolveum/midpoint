@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContainerDefinitionImpl<O> implements
-        PrismObjectDefinition<O> {
+        MutablePrismObjectDefinition<O> {
     private static final long serialVersionUID = -8298581031956931008L;
 
     public PrismObjectDefinitionImpl(QName elementName, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext,
@@ -149,4 +149,9 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
         return "object";
     }
 
+    @Override
+    public MutablePrismObjectDefinition<O> toMutable() {
+        checkMutableOnExposing();
+        return this;
+    }
 }

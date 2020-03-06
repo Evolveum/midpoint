@@ -129,13 +129,13 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
     @Override
     protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType objectType, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
 
-        String relation = "";
+        String relation;
 
         if (relations == null || relations.isEmpty()) {
             QName defaultRelation = prismContext.getDefaultRelation() != null ?
                     prismContext.getDefaultRelation() : RelationTypes.MEMBER.getRelation();
                     relation = QNameUtil.qNameToUri(defaultRelation);
-        } else if(relations.size() > 1){
+        } else if (relations.size() > 1) {
             throw new IllegalArgumentException("Couldn't use relation as multivalue parameter");
         } else {
             relation = relations.iterator().next();

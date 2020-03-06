@@ -11,9 +11,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+
 import org.testng.AssertJUnit;
 
 import javax.xml.namespace.QName;
@@ -127,7 +128,7 @@ public class ObjectFilterAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ObjectFilterAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, filter);
+        PrismTestUtil.display(message, filter);
         return this;
     }
 

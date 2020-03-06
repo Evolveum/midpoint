@@ -6,13 +6,13 @@
   -->
 
 <role oid="00000000-role-0000-0000-999111111223">
-    <name>Metarole stop on activation change (3)</name>
+    <name>Metarole stop on activation change (2)</name>
     <inducement>
         <policyRule>
             <name>Change activation</name>
             <policyConstraints>
                 <modification>
-                    <operation>add</operation>
+                    <operation>modify</operation>
                     <item>activation/administrativeStatus</item>
                 </modification>
             </policyConstraints>

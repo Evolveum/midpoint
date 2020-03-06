@@ -7,16 +7,12 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
-
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.DirectoryException;
@@ -26,7 +22,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -40,34 +35,22 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Testing dependencies:
  * There are two meta-roles for orgs.
  * Org Metarole contains two inducements, one for creating organizationalUnit (intent=ou) and one for creating groupOfUniqueNames (intent=group) in ldap.
  * group depends on ou (since it is created in ou)
- *
+ * <p>
  * Org Metarole VIP is very similar it also contains two inducements, one for creating (intent=ou-vip) and one for creating groupOfUniqueNames (intent=group-vip) in ldap.
  * group-vip depends on ou-cip (since it is created in ou-vip)
  *
  * @author michael gruber
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapTest extends AbstractStoryTest {
 
@@ -107,9 +90,7 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
             PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
-        ObjectDelta<OrgType> userDelta = prismContext.deltaFactory().object().createModifyDelta(orgOid, modifications, OrgType.class
-        );
-        return userDelta;
+        return prismContext.deltaFactory().object().createModifyDelta(orgOid, modifications, OrgType.class);
     }
 
     protected void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result)
@@ -140,6 +121,7 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
 
     // TODO: maybe a replacement for MidpointAsserts.assertNotAssigned()
     // it can be used not only for user
+    @UnusedTestElement
     protected <F extends FocusType> void assertNotAssigned(PrismObject<F> focus, String targetOid, QName refType) {
         F focusType = focus.asObjectable();
         for (AssignmentType assignmentType : focusType.getAssignment()) {
@@ -155,12 +137,16 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
         }
     }
 
-    protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorInstances(int expectedConnectorInstances)
+            throws NumberFormatException, SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         assertLdapConnectorInstances(expectedConnectorInstances, expectedConnectorInstances);
     }
 
-    protected void assertLdapConnectorInstances(int expectedConnectorInstancesMin, int expectedConnectorInstancesMax) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        TestLdapSyncMassive.class.getName();
+    protected void assertLdapConnectorInstances(
+            int expectedConnectorInstancesMin, int expectedConnectorInstancesMax)
+            throws NumberFormatException, SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(getLdapResourceOid(), task, result);
@@ -173,17 +159,16 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
         int actualConnectorInstances = stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive();
 
         if (actualConnectorInstances < expectedConnectorInstancesMin) {
-            fail("Number of LDAP connector instances too low: "+actualConnectorInstances+", expected at least "+expectedConnectorInstancesMin);
+            fail("Number of LDAP connector instances too low: " + actualConnectorInstances + ", expected at least " + expectedConnectorInstancesMin);
         }
         if (actualConnectorInstances > expectedConnectorInstancesMax) {
-            fail("Number of LDAP connector instances too high: "+actualConnectorInstances+", expected at most "+expectedConnectorInstancesMax);
+            fail("Number of LDAP connector instances too high: " + actualConnectorInstances + ", expected at most " + expectedConnectorInstancesMax);
         }
     }
 
-
     protected void assertLdapAccounts(int expectedNumber) throws DirectoryException {
-        List<? extends Entry> entries = openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON);
-        assertEquals("Wrong number of LDAP accounts ("+OBJECTCLASS_INETORGPERSON+")", expectedNumber, entries.size());
+        List<? extends Entry> entries = openDJController.search("objectclass=" + OBJECTCLASS_INETORGPERSON);
+        assertEquals("Wrong number of LDAP accounts (" + OBJECTCLASS_INETORGPERSON + ")", expectedNumber, entries.size());
     }
 
     protected int getNumberOfLdapAccounts() {
@@ -191,7 +176,7 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
     }
 
     protected Entry getLdapEntryByUid(String uid) throws DirectoryException {
-        return openDJController.searchSingle("uid="+uid);
+        return openDJController.searchSingle("uid=" + uid);
     }
 
     protected void assertCn(Entry entry, String expectedValue) {

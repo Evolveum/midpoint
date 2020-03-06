@@ -45,7 +45,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     public void finishTestContext(ITestResult testResult) {
         SimpleMidpointTestContext context = SimpleMidpointTestContext.get();
         SimpleMidpointTestContext.destroy();
-        displayDefaultTestFooter(context.getTestName(), testResult);
+        displayTestFooter(context.getTestName(), testResult);
     }
 
     @Override

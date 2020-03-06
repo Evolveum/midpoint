@@ -5553,7 +5553,7 @@
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.target</a:displayName>
                             <a:help>AssignmentType.target.help</a:help>
-                            <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                            <a:objectReferenceTargetType>tns:AssignmentHolderType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>

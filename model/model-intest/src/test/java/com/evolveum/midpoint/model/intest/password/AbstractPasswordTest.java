@@ -267,7 +267,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
 
         // GIVEN
-        AbstractPasswordTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -611,7 +610,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // GIVEN
-        AbstractPasswordTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -749,7 +747,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     @Test
     public void test132ModifyAccountBlackJackPasswordBad() throws Exception {
         // GIVEN
-        AbstractPasswordTest.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();

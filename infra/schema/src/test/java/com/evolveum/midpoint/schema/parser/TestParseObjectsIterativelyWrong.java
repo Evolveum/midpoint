@@ -37,7 +37,6 @@ public class TestParseObjectsIterativelyWrong extends AbstractParserTest {
 
     @Test
     public void testParse() throws Exception {
-        displayTestTitle("testParse");
         PrismContext prismContext = getPrismContext();
 
         PrismParser parser = prismContext.parserFor(getFile());

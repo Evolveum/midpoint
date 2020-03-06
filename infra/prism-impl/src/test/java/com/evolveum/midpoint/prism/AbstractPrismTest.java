@@ -50,10 +50,6 @@ public class AbstractPrismTest extends AbstractUnitTest {
         PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
     }
 
-    protected void display(String title, String value) {
-        PrismTestUtil.display(title, value);
-    }
-
     protected void display(String title, DebugDumpable value) {
         PrismTestUtil.display(title, value);
     }

@@ -11,23 +11,18 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -54,13 +49,8 @@ public class TestEmpty extends AbstractIntegrationTest {
     protected static final String USER_JACK_USERNAME = "jack";
     protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestEmpty.class);
-
-    @Autowired(required=true)
+    @Autowired
     private MidPointPrincipalManagerMock userProfileService;
-
-    @Autowired(required = true)
-    private Clock clock;
 
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
@@ -80,8 +70,6 @@ public class TestEmpty extends AbstractIntegrationTest {
 
     @Test
     public void test020GuiProfiledPrincipalManagerMockUsername() throws Exception {
-        final String TEST_NAME = "test020GuiProfiledPrincipalManagerMockUsername";
-
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
         assertPrincipalJack(principal);
     }
@@ -91,9 +79,7 @@ public class TestEmpty extends AbstractIntegrationTest {
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getName().getOrig());
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getUsername());
         FocusType user = principal.getFocus();
-        assertNotNull("No user in principal",user);
+        assertNotNull("No user in principal", user);
         assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
     }
-
-
 }

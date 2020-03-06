@@ -33,11 +33,7 @@
     <module name="TreeWalker">
 
         <module name="ConstantName"/>
-        <module name="LocalFinalVariableName">
-            <!-- mostly due to TEST_NAME used a lot in the tests -->
-            <!-- Maybe we need to change that to lowercase convention later -->
-            <property name="format" value="^[a-zA-Z0-9_]+$"/>
-        </module>
+        <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
         <module name="MethodName"/>

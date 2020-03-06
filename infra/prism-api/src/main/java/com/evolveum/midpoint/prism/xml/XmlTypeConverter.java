@@ -266,9 +266,7 @@ public class XmlTypeConverter {
         Field field;
         try {
             field = enumValue.getClass().getField(fieldName);
-        } catch (SecurityException e) {
-            throw new IllegalArgumentException("Error getting field from "+enumValue, e);
-        } catch (NoSuchFieldException e) {
+        } catch (SecurityException | NoSuchFieldException e) {
             throw new IllegalArgumentException("Error getting field from "+enumValue, e);
         }
         XmlEnumValue annotation = field.getAnnotation(XmlEnumValue.class);

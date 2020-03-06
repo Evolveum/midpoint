@@ -8,8 +8,8 @@ package com.evolveum.midpoint.test.asserter.refinedschema;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.ComplexTypeDefinitionAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -61,7 +61,7 @@ public class ObjectClassComplexTypeDefinitionAsserter<RA> extends ComplexTypeDef
     }
 
     public ObjectClassComplexTypeDefinitionAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, getComplexTypeDefinition());
+        PrismTestUtil.display(message, getComplexTypeDefinition());
         return this;
     }
 }

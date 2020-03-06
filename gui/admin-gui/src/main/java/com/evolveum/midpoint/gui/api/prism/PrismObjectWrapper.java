@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.prism;
 
-import java.util.List;
-
 import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

@@ -93,7 +93,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         OperationResult result = getTestOperationResult();
 
         assignRole(userJackOid, ROLE_E1_OID, task, result);                // should start approval process
-        assertNotAssignedRole(userJackOid, ROLE_E1_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_E1_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         WorkItemId.of(workItem);
@@ -193,7 +193,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         assignRole(userJackOid, ROLE_E2_OID, task, result);                // should start approval process
 
         // THEN
-        assertNotAssignedRole(userJackOid, ROLE_E2_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_E2_OID, result);
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work items", workItems);

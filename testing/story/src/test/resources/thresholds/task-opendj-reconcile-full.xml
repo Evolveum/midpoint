@@ -10,18 +10,17 @@
 
 <task oid="20335c7c-838f-11e8-93a6-4b1dd0ab58e4"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <!-- Task printable name -->
     <name>Reconciliation Full: Dummy</name>
 
     <extension>
-        <syncext:objectclass>ri:inetOrgPerson</syncext:objectclass>
-        <syncext:kind>account</syncext:kind>
-        <syncext:intent>default</syncext:intent>
+        <mext:objectclass>ri:inetOrgPerson</mext:objectclass>
+        <mext:kind>account</mext:kind>
+        <mext:intent>default</mext:intent>
     </extension>
 
     <taskIdentifier>20335c7c-838f-11e8-93a6-4b1dd0ab58e4</taskIdentifier>

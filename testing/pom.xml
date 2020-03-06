@@ -25,11 +25,20 @@
         <module>sanity</module>
         <!--
         The following modules skip tests by default, but we ALWAYS want to build the sources.
-        Tests are run in "long" CI builds, skip=false semantic is used.
+        That's why we don't want to add modules optionally based on profile.
+
+        Tests for selected modules are run in "long" CI build, see "extratest" profile lower.
+        Tests for a single module can be enabled by a property - skipXyTests=false semantic is used.
+        (I'd like to use "runXyTests", but that would require more POM code, sorry.)
+
         See each POM for property controlling the tests - typically for "module-name" it's:
         -Dskip<ModuleName>Tests=false (default value is true)
         We try to avoid repeating "tests" in the property name, check its exact spelling in POMs.
-        If skip is set to false, values of skipTests/skipITs are not applied for these modules.
+
+        If "skipXyTests" is set to false, property "skipTests" from command line is ignored
+        Property "skipITs" still works, but it doesn't make sense to use it as it goes against
+        the instruction to run the extra tests.
+        All extra tests are run by failsafe, so they are considered integration tests.
         -->
         <module>conntest</module>
         <module>longtest</module>
@@ -59,6 +68,14 @@
         <profile>
             <id>extratest</id>
             <properties>
+                <!--
+                NOTE: To disable normal tests from default build (mvn clean install), we use
+                "skipTest" element - this repeats our intent from parent POM.
+                IT IS IMPORTANT to use this element to flip it back to "false" in POMs below.
+                If we use element "skip" and set it to false, skipTests is still "true" and the
+                whole testing is skipped. It's not necessary to define "skip" element, but it's
+                super-important to use "skipTests" consistently. Don't get burned like me.
+                -->
                 <skipTests>true</skipTests>
                 <!-- Conntests are not ready to run in "long" build yet. -->
                 <!--<skipConnTests>false</skipConnTests>-->

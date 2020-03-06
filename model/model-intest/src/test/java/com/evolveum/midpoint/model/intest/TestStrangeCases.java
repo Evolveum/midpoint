@@ -6,6 +6,29 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRaw;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createTolerateRawData;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.*;
@@ -30,40 +53,11 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.FileInputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRaw;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createTolerateRawData;
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author semancik
- *
- */
 @SuppressWarnings({ "SimplifiedTestNGAssertion", "SameParameterValue" })
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
@@ -122,7 +116,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     private static final File SYSTEM_CONFIGURATION_STRANGE_FILE = new File(TEST_DIR, "system-configuration-strange.xml");
 
     private static final XMLGregorianCalendar USER_DEGHOULASH_FUNERAL_TIMESTAMP =
-                                XmlTypeConverter.createXMLGregorianCalendar(1771, 1, 2, 11, 22, 33);
+            XmlTypeConverter.createXMLGregorianCalendar(1771, 1, 2, 11, 22, 33);
 
     private static final File TREASURE_ISLAND_FILE = new File(TEST_DIR, "treasure-island.txt");
 
@@ -172,12 +166,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
      * Make sure we can log in as administrator. There are some problems in the
      * system configuration (e.g. unknown collection). But this should not profibit
      * login.
-     *
+     * <p>
      * Note: this will probably die even before it gets to this test. Test class
      * initialization won't work if administrator cannot log in. But initialization
      * code may change in the future. Therefore it is better to have also an explicit
      * test for this.
-     *
+     * <p>
      * MID-5328
      */
     @Test
@@ -223,9 +217,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     /**
      * Stupid: see Idiot
      * Idiot: see Stupid
-     *
+     * <p>
      * In this case the assignment loop is broken after few attempts.
-     *
+     * <p>
      * MID-3652
      */
     @Test
@@ -280,10 +274,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         try {
-             // WHEN
-             modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
+            // WHEN
+            modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 
-             AssertJUnit.fail("Unexpected executeChanges success");
+            AssertJUnit.fail("Unexpected executeChanges success");
         } catch (ObjectAlreadyExistsException e) {
             // This is expected
             display("Expected exception", e);
@@ -339,7 +333,6 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDeltaOperation<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
         assertEquals("Wrong number of execution deltas", 0, auditExecution0Deltas.size());
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-
 
         //TODO: enable after fixing the above mentioned problem in ProjectionValueProcessor
 //        // Strictly speaking, there should be just 2 records, not 3.
@@ -825,7 +818,6 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         searchDeGhoulash(PIRACY_FUNERAL_TIMESTAMP, USER_DEGHOULASH_FUNERAL_TIMESTAMP);
     }
 
-
     private <T> void searchDeGhoulash(QName propName, T propValue) throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -934,9 +926,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     /**
      * Stupid: see Idiot
      * Idiot: see Stupid
-     *
+     * <p>
      * In this case the assignment loop is broken after few attempts.
-     *
+     * <p>
      * MID-3652
      */
     @Test
@@ -963,9 +955,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     /**
      * Stupid: see Idiot
      * Idiot: see Stupid
-     *
+     * <p>
      * In this case the assignment loop is broken after few attempts.
-     *
+     * <p>
      * MID-3652
      */
     @Test
@@ -1055,7 +1047,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("result", result);
         TestUtil.assertPartialError(result);
         String message = result.getMessage();
-        TestUtil.assertMessageContains(message, "role:"+ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+        TestUtil.assertMessageContains(message, "role:" + ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
         TestUtil.assertMessageContains(message, "Bad resourceRef in construction");
         TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
 
@@ -1082,7 +1074,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("result", result);
         TestUtil.assertPartialError(result);
         String message = result.getMessage();
-        TestUtil.assertMessageContains(message, "role:"+ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+        TestUtil.assertMessageContains(message, "role:" + ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
         TestUtil.assertMessageContains(message, "Bad resourceRef in construction");
         TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
 
@@ -1155,7 +1147,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("result", result);
         TestUtil.assertPartialError(result);
         String message = result.getMessage();
-        TestUtil.assertMessageContains(message, "role:"+ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+        TestUtil.assertMessageContains(message, "role:" + ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_OID);
         TestUtil.assertMessageContains(message, "Bad resourceRef in construction metarole");
         TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
     }
@@ -1200,7 +1192,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("Tasks", objects);
         assertEquals("Unexpected number of tasks", 1, objects.size());
         boolean found = false;
-        for (PrismObject<TaskType> object: objects) {
+        for (PrismObject<TaskType> object : objects) {
             if (object.getOid().equals(TASK_MOCK_JACK_OID)) {
                 found = true;
             }
@@ -1250,7 +1242,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("Tasks", objects);
         assertEquals("Unexpected number of tastsk", 1, objects.size());
         PrismObject<TaskType> jackTask = null;
-        for (PrismObject<TaskType> object: objects) {
+        for (PrismObject<TaskType> object : objects) {
             if (object.getOid().equals(TASK_MOCK_JACK_OID)) {
                 jackTask = object;
             }
@@ -1294,7 +1286,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         assertCaseAfter(CASE_APPROVAL_OID)
-            .name()
+                .name()
                 .assertOrig("Assigning role \"Manager\" to user \"vera\"");
 
     }
@@ -1306,9 +1298,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.assertSetEquals("Wrong allowedValues in mark", MiscUtil.getValuesFromDisplayableValues(markDef.getAllowedValues()),
-                "pegLeg","noEye","hook","tatoo","scar","bravery");
+                "pegLeg", "noEye", "hook", "tatoo", "scar", "bravery");
 
-        for (DisplayableValue<String> disp: markDef.getAllowedValues()) {
+        for (DisplayableValue<String> disp : markDef.getAllowedValues()) {
             if (disp.getValue().equals("pegLeg")) {
                 assertEquals("Wrong pegLeg label", "Peg Leg", disp.getLabel());
             }
@@ -1418,7 +1410,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     /**
      * Read guybrush again.
      * The operation should fail, because the raw mode itself does not allow raw data (except for some objects).
-     *
+     * <p>
      * TODO reconsider this eventually, and change the test
      */
     @Test
@@ -1441,8 +1433,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     /**
      * Read guybrush again.
      * The operation should fail, because of the plain mode.
-     *
-      * TODO reconsider this eventually, and change the test
+     * <p>
+     * TODO reconsider this eventually, and change the test
      */
     @Test
     public void test524ShipReadBadPlain() {
@@ -1532,7 +1524,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
      * Set attribute that is not in the schema directly into dummy resource.
      * Get that account. Make sure that the operations does not die.
      */
-    @Test(enabled=false) // MID-2880
+    @Test(enabled = false) // MID-2880
     public void test610GetAccountGuybrushRogueAttribute() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -1557,25 +1549,24 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, USER_GUYBRUSH_USERNAME, "rogue", "habakuk");
     }
 
-
-    @SafeVarargs
-    private final <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
+    private <O extends ObjectType, T> void assertExtension(
+            PrismObject<O> object, QName propName, T... expectedValues) {
         PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
-        assertNotNull("No extension container in "+object, extensionContainer);
+        assertNotNull("No extension container in " + object, extensionContainer);
         PrismProperty<T> extensionProperty = extensionContainer.findProperty(ItemName.fromQName(propName));
-        assertNotNull("No extension property "+propName+" in "+object, extensionProperty);
-        PrismAsserts.assertPropertyValues("Values of extension property "+propName, extensionProperty.getValues(), expectedValues);
+        assertNotNull("No extension property " + propName + " in " + object, extensionProperty);
+        PrismAsserts.assertPropertyValues("Values of extension property " + propName, extensionProperty.getValues(), expectedValues);
     }
 
     /**
      * Break the user in the repo by inserting accountRef that points nowhere.
      */
     private void addBrokenAccountRef(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        OperationResult result = new OperationResult(TestStrangeCases.class.getName() + ".addBrokenAccountRef");
+        OperationResult result = createOperationResult("addBrokenAccountRef");
 
         Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().reference().createModificationAddCollection(UserType.class,
                 UserType.F_LINK_REF, NON_EXISTENT_ACCOUNT_OID);
-        repositoryService.modifyObject(UserType.class, userOid, modifications , result);
+        repositoryService.modifyObject(UserType.class, userOid, modifications, result);
 
         assertSuccess(result);
     }

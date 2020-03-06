@@ -9,16 +9,11 @@ package com.evolveum.midpoint.model.intest.manual;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 /**
  * @author semancik
  *
  */
 public class CsvDisablingBackingStore extends CsvBackingStore {
-
-    private static final Trace LOGGER = TraceManager.getTrace(CsvDisablingBackingStore.class);
 
     public CsvDisablingBackingStore() {
         super();
@@ -31,6 +26,4 @@ public class CsvDisablingBackingStore extends CsvBackingStore {
     protected void deprovisionInCsv(String username) throws IOException {
         disableInCsv(username);
     }
-
-
 }

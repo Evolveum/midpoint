@@ -124,7 +124,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_JIRA_OID);
         display("Service magazine after", service);
         assertNotNull("No magazine service", service);
-        assertAssignedResource(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
+        assertAssignedResource(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, result);
 
         assertNoLinkedAccount(service);
     }
@@ -257,7 +257,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_GITHUB_OID);
         display("Service github after", service);
         assertNotNull("No github service", service);
-        assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
+        assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, result);
 
         assertNoLinkedAccount(service);
     }
@@ -285,7 +285,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         PrismObject<ServiceType> serviceGithubAfter = getObject(ServiceType.class, SERVICE_GITHUB_OID);
         display("Service github after", serviceGithubAfter);
         assertNotNull("No github service", serviceGithubAfter);
-        assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
+        assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, result);
         PrismAsserts.assertPropertyValue(serviceGithubAfter, ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
         assertLinks(serviceGithubAfter, 1);
 

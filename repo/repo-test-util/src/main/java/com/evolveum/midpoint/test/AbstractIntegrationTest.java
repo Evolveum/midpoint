@@ -120,7 +120,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * @author Radovan Semancik
  */
 @Listeners({ CurrentTestResultHolder.class })
-public abstract class AbstractIntegrationTest extends AbstractSpringTest {
+public abstract class AbstractIntegrationTest extends AbstractSpringTest
+        implements OperationResultTestMixin {
 
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
@@ -290,7 +291,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         MidpointTestContextWithTask context = MidpointTestContextWithTask.get();
         MidpointTestContextWithTask.destroy(); // let's destroy it before anything else in this method
 
-        displayDefaultTestFooter(context.getTestName(), testResult);
+        displayTestFooter(context.getTestName(), testResult);
 
         Task task = context.getTask();
         if (task != null) {
@@ -395,20 +396,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
      */
     protected OperationResult createSubresult(String subresultSuffix) {
         return getTestOperationResult().createSubresult(getTestNameShort() + "." + subresultSuffix);
-    }
-
-    /**
-     * Creates new {@link OperationResult} with name equal to {@link #contextName()}.
-     */
-    protected OperationResult createOperationalResult() {
-        return new OperationResult(contextName());
-    }
-
-    /**
-     * Creates new {@link OperationResult} with name prefixed by {@link #contextName()}.
-     */
-    protected OperationResult createOperationalResult(String nameSuffix) {
-        return new OperationResult(contextName() + "." + nameSuffix);
     }
 
     /**
@@ -753,7 +740,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         List<ObjectPolicyConfigurationType> current = new ArrayList<>();
         List<ObjectPolicyConfigurationType> currentForTasks = new ArrayList<>();
-        final ConflictResolutionActionType ACTION_FOR_TASKS = ConflictResolutionActionType.NONE;
+        final ConflictResolutionActionType actionForTasks = ConflictResolutionActionType.NONE;
         for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
             if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
                 current.add(c);
@@ -773,11 +760,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
                     .deleteRealValues(current)
                     .asItemDelta());
         }
-        if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != ACTION_FOR_TASKS) {
+        if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != actionForTasks) {
             ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType(prismContext)
                     .type(TaskType.COMPLEX_TYPE)
                     .beginConflictResolution()
-                    .action(ACTION_FOR_TASKS)
+                    .action(actionForTasks)
                     .end();
             itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
                     .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
@@ -1824,12 +1811,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         return prismContext.parseObject(file);
     }
 
-    protected void displayCleanup(String testName) {
-        TestUtil.displayCleanup(testName);
+    protected void displayCleanup() {
+        TestUtil.displayCleanup(getTestNameShort());
     }
 
-    protected void displaySkip(String testName) {
-        TestUtil.displaySkip(testName);
+    protected void displaySkip() {
+        TestUtil.displaySkip(getTestNameShort());
     }
 
     /**
@@ -1839,10 +1826,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     @SuppressWarnings("unused")
     protected void displayHEREHERE() {
         IntegrationTestTools.display("HEREHERE");
-    }
-
-    protected void display(String str) {
-        IntegrationTestTools.display(str);
     }
 
     public static void display(String message, SearchResultEntry response) {
@@ -1889,16 +1872,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         IntegrationTestTools.display(title, elements);
     }
 
-    public static void display(String title, DebugDumpable dumpable) {
-        IntegrationTestTools.display(title, dumpable);
+    public void display(String title, DebugDumpable dumpable) {
+        PrismTestUtil.display(title, dumpable);
     }
 
-    public static void display(String title, String value) {
-        IntegrationTestTools.display(title, value);
-    }
-
-    public static void display(String title, Object value) {
-        IntegrationTestTools.display(title, value);
+    public void display(String title, Object value) {
+        PrismTestUtil.display(title, value);
     }
 
     public static void display(String title, Containerable value) {
@@ -1983,8 +1962,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         task.setTracingProfile(profile);
     }
 
-    protected static final String TEST_METHOD_TRACING_FILENAME_PATTERN = "trace %{timestamp} %{operationNameShort} %{milliseconds}";
-    protected static final String DEFAULT_TRACING_FILENAME_PATTERN = "trace %{timestamp} %{testNameShort} %{operationNameShort} %{focusName} %{milliseconds}";
+    protected static final String TEST_METHOD_TRACING_FILENAME_PATTERN =
+            "trace %{timestamp} %{operationNameShort} %{milliseconds}";
+    protected static final String DEFAULT_TRACING_FILENAME_PATTERN =
+            "trace %{timestamp} %{testNameShort} %{operationNameShort} %{focusName} %{milliseconds}";
 
     protected TracingProfileType createModelLoggingTracingProfile() {
         return createDefaultTracingProfile()
@@ -2901,8 +2882,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
         taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
     }
 
-    protected void removeGlobalTracingOverride() {
-        taskManager.removeGlobalTracingOverride();
+    protected void unsetGlobalTracingOverride() {
+        taskManager.unsetGlobalTracingOverride();
     }
 
     protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {

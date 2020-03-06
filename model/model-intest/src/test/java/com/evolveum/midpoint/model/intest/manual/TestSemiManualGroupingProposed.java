@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.intest.manual;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
@@ -52,9 +51,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     private static final String USER_BIGMOUTH_NAME = "BIGMOUTH";
     private static final String USER_BIGMOUTH_FULLNAME = "Shouty Bigmouth";
 
-    private String userBigmouthOid;
     private String accountBigmouthOid;
-    private String bigmouthLastCaseOid;
 
     @Override
     protected File getResourceFile() {
@@ -75,8 +72,6 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 
     @Test
     public void test020ResourcesSanity() throws Exception {
-        final String TEST_NAME = "test020ResourcesSanity";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -87,14 +82,15 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         ObjectQuery query = prismContext.queryFor(ResourceType.class)
             .item("extension","provisioning").eq("propagated")
             .build();
-        SearchResultList<PrismObject<ResourceType>> propagatedResources = repositoryService.searchObjects(ResourceType.class, query, null, result);
+        SearchResultList<PrismObject<ResourceType>> propagatedResources =
+                repositoryService.searchObjects(ResourceType.class, query, null, result);
         display("Propagated resources", propagatedResources.size() + ": " + propagatedResources);
         assertEquals("Unexpected number of propagated resources", 1, propagatedResources.size());
     }
 
     @Override
     protected void assertNewPropagationTask() throws Exception {
-        OperationResult result = new OperationResult("assertNewPropagationTask");
+        OperationResult result = createOperationResult("assertNewPropagationTask");
         PrismObject<TaskType> propTask = repositoryService.getObject(TaskType.class, getPropagationTaskOid(), null, result);
         display("Propagation task (new)", propTask);
         SearchFilterType filterType = propTask.asObjectable().getObjectRef().getFilter();
@@ -118,13 +114,12 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
      */
     @Test
     public void test500AssignBigmouthRoleOne() throws Exception {
-        final String TEST_NAME = "test500AssignBigmouthRoleOne";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_BIGMOUTH_NAME, USER_BIGMOUTH_FULLNAME, true);
-        userBigmouthOid = addObject(userBefore);
+        String userBigmouthOid = addObject(userBefore);
         display("User before", userBefore);
 
         // WHEN
@@ -134,7 +129,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         // THEN
         then();
         display("result", result);
-        bigmouthLastCaseOid = assertInProgress(result);
+        assertInProgress(result);
 
         PrismObject<UserType> userAfter = getUser(userBigmouthOid);
         display("User after", userAfter);
@@ -166,7 +161,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         assertShadowActivationAdministrativeStatusFromCache(shadowModel, ActivationStatusType.ENABLED);
         assertShadowExists(shadowModel, false);
         assertNoShadowPassword(shadowModel);
-        PendingOperationType pendingOperationType = assertSinglePendingOperation(shadowModel, null, null, executionStage);
+        assertSinglePendingOperation(shadowModel, null, null, executionStage);
     }
 
     /**
@@ -174,7 +169,6 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
      */
     @Test
     public void test502RunPropagation() throws Exception {
-        final String TEST_NAME = "test502RunPropagation";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

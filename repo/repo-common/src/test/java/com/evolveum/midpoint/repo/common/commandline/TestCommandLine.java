@@ -58,7 +58,7 @@ public class TestCommandLine extends AbstractIntegrationTest {
         final String TEST_NAME = "test100PlainExecuteEcho";
 
         if (!isOsUnix()) {
-            displaySkip(TEST_NAME);
+            displaySkip();
             return;
         }
 
@@ -82,7 +82,7 @@ public class TestCommandLine extends AbstractIntegrationTest {
         final String TEST_NAME = "test110RedirExecuteEcho";
 
         if (!isOsUnix()) {
-            displaySkip(TEST_NAME);
+            displaySkip();
             return;
         }
 

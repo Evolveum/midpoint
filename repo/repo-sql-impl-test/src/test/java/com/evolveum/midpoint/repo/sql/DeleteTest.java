@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -33,13 +31,11 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DeleteTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DeleteTest.class);
-
     @Test
     public void delete001() throws Exception {
         final File file = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!file.exists()) {
-            LOGGER.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
+            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
                     new Object[]{file.getPath()});
             return;
         }
@@ -50,13 +46,13 @@ public class DeleteTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("Delete Test");
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            LOGGER.info("Adding object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Adding object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
             oids.add(repositoryService.addObject(object, null, result));
         }
 
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            LOGGER.info("Deleting object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Deleting object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
 
             repositoryService.deleteObject(object.getCompileTimeClass(), oids.get(i), result);
         }
@@ -90,21 +86,17 @@ public class DeleteTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertTrue(result.isSuccess());
 
-        Session session = getFactory().openSession();
-        try {
-            Query query = session.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
+        try (Session session = getFactory().openSession()) {
+            Query<?> query = session.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
             query.setParameter(1, oid);
 
             Number count = (Number) query.uniqueResult();
             AssertJUnit.assertEquals(count.longValue(), 0L);
-        } finally {
-            session.close();
         }
     }
 
     @Test
     public void test100DeleteObjects() throws Exception {
-//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         OperationResult result = new OperationResult("add objects");
 

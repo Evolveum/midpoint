@@ -6,6 +6,25 @@
  */
 package com.evolveum.midpoint.model.intest.scripting;
 
+import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+import org.testng.collections.Sets;
+
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PipelineItem;
@@ -38,30 +57,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-import org.testng.collections.Sets;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.singleton;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest {
 
@@ -69,7 +69,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final String DOT_CLASS = TestScriptingBasic.class.getName() + ".";
     private static final File LOG_FILE = new File(TEST_DIR, "log.xml");
     private static final File SEARCH_FOR_USERS_FILE = new File(TEST_DIR, "search-for-users.xml");
     private static final File SEARCH_FOR_USERS_WITH_EXPRESSIONS_FILE = new File(TEST_DIR, "search-for-users-with-expressions.xml");
@@ -146,8 +145,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test100EmptySequence() throws Exception {
-        final String TEST_NAME = "test100EmptySequence";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -165,8 +162,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test110EmptyPipeline() throws Exception {
-        final String TEST_NAME = "test110EmptyPipeline";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -184,10 +179,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test112Echo() throws Exception {
-        final String TEST_NAME = "test112Echo";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ExecuteScriptType executeScript = parseRealValue(ECHO_FILE);
 
@@ -203,11 +196,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // TODO check correct serialization
     }
 
-
     @Test
     public void test120Log() throws Exception {
-        final String TEST_NAME = "test120Log";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -239,8 +229,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test200SearchUser() throws Exception {
-        final String TEST_NAME = "test200SearchUser";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -254,13 +242,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals(2, output.getFinalOutput().getData().size());
-        //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
     }
 
     @Test
     public void test202SearchUserWithExpressions() throws Exception {
-        final String TEST_NAME = "test202SearchUserWithExpressions";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -285,8 +270,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test205SearchForResources() throws Exception {
-        final String TEST_NAME = "test205SearchForResources";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -304,8 +287,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test206SearchForRoles() throws Exception {
-        final String TEST_NAME = "test206SearchForRoles";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -318,13 +299,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        //assertEquals(9, output.getData().size());
     }
 
     @Test
     public void test210SearchForShadows() throws Exception {
-        final String TEST_NAME = "test210SearchForShadows";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -343,8 +321,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test215SearchForShadowsNoFetch() throws Exception {
-        final String TEST_NAME = "test215SearchForShadowsNoFetch";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -363,8 +339,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test220SearchForUsersAccounts() throws Exception {
-        final String TEST_NAME = "test220SearchForUsersAccounts";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -383,8 +357,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test225SearchForUsersAccountsNoFetch() throws Exception {
-        final String TEST_NAME = "test225SearchForUsersAccountsNoFetch";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -403,8 +375,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test300DisableJack() throws Exception {
-        final String TEST_NAME = "test300DisableJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -424,8 +394,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test310EnableJack() throws Exception {
-        final String TEST_NAME = "test310EnableJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -445,8 +413,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test320DeleteAndAddJack() throws Exception {
-        final String TEST_NAME = "test320DeleteAndAddJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -466,8 +432,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test330ModifyJack() throws Exception {
-        final String TEST_NAME = "test330ModifyJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -487,8 +451,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test340ModifyJackBack() throws Exception {
-        final String TEST_NAME = "test340ModifyJackBack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -508,8 +470,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test350RecomputeJack() throws Exception {
-        final String TEST_NAME = "test350RecomputeJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -528,8 +488,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test360AssignToJack() throws Exception {
-        final String TEST_NAME = "test360AssignToJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -552,10 +510,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test370AssignToJackInBackground() throws Exception {
-        final String TEST_NAME = "test370AssignToJackInBackground";
-
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+        OperationResult result = getTestOperationResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_JACK_2_FILE);
 
         // WHEN
@@ -576,10 +532,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Deprecated
     @Test
     public void test380DisableJackInBackgroundSimple() throws Exception {
-        final String TEST_NAME = "test380DisableJackInBackgroundSimple";
-
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         Task task = taskManager.createTaskInstance();
@@ -601,8 +555,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test390AssignToWill() throws Exception {
-        final String TEST_NAME = "test390AssignToWill";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -623,8 +575,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test391UnassignFromWill() throws Exception {
-        final String TEST_NAME = "test391UnassignFromJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -647,8 +597,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test392UnassignFromWill2() throws Exception {
-        final String TEST_NAME = "test392UnassignFromWill2";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -671,8 +619,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test393UnassignFromWill3() throws Exception {
-        final String TEST_NAME = "test393UnassignFromWill3";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -695,26 +641,12 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test394AssignToWill2() throws Exception {
-        final String TEST_NAME = "test394AssignToWill2";
-
         // GIVEN
-        QName customRelation = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "piracy:captain");
+        QName customRelation = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "captain");
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_2_FILE);
-
-        PrismObject<SystemConfigurationType> systemConfig = repositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
-        RoleManagementConfigurationType roleManagement = systemConfig.asObjectable().getRoleManagement();
-        PrismContainerValue<RoleManagementConfigurationType> oldValue = systemConfig.asObjectable().getRoleManagement().asPrismContainerValue();
-        roleManagement.beginRelations().beginRelation().setRef(customRelation);
-        Collection<? extends ItemDelta> modifications = new ArrayList<>();
-        ContainerDelta<RoleManagementConfigurationType> deleteDelta = prismContext.deltaFactory().container().createModificationReplace(SystemConfigurationType.F_ROLE_MANAGEMENT,
-                SystemConfigurationType.class, oldValue.clone());
-        ((Collection)modifications).add(deleteDelta);
-        modifySystemObjectInRepo(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
@@ -731,17 +663,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test400PurgeSchema() throws Exception {
-        final String TEST_NAME = "test400PurgeSchema";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(PURGE_DUMMY_BLACK_SCHEMA_FILE);
-
-//        ResourceType dummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_BLACK_OID, null, task, result).asObjectable();
-//        IntegrationTestTools.display("dummy resource before purge schema", dummy.asPrismObject());
-//        IntegrationTestTools.display("elements: " + dummy.getSchema().getDefinition().getAny().get(0).getElementsByTagName("*").getLength());
-//        IntegrationTestTools.display("schema as XML: " + DOMUtil.printDom(dummy.getSchema().getDefinition().getAny().get(0)));
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
@@ -752,21 +677,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
         assertEquals(1, output.getFinalOutput().getData().size());
 
-//        dummy = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_BLACK_OID, null, result).asObjectable();
-//        IntegrationTestTools.display("dummy resource from repo", dummy.asPrismObject());
-//        IntegrationTestTools.display("elements: " + dummy.getSchema().getDefinition().getAny().get(0).getElementsByTagName("*").getLength());
-//        IntegrationTestTools.display("schema as XML: " + DOMUtil.printDom(dummy.getSchema().getDefinition().getAny().get(0)));
-
         //AssertJUnit.assertNull("Schema is still present", dummy.getSchema());
         // actually, schema gets downloaded just after purging it
         assertEquals("Purged schema information from resource:10000000-0000-0000-0000-000000000305(Dummy Resource Black)\n", output.getConsoleOutput());
     }
 
-
     @Test
     public void test410TestResource() throws Exception {
-        final String TEST_NAME = "test410TestResource";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -787,8 +704,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test420NotificationAboutJack() throws Exception {
-        final String TEST_NAME = "test420NotificationAboutJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -814,8 +729,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test430NotificationAboutJackType2() throws Exception {
-        final String TEST_NAME = "test430NotificationAboutJackType2";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -846,8 +759,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test500ScriptingUsers() throws Exception {
-        final String TEST_NAME = "test500ScriptingUsers";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -877,8 +788,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test505ScriptingUsersInBackground() throws Exception {
-        final String TEST_NAME = "test505ScriptingUsersInBackground";
-
         // GIVEN
         Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
@@ -921,8 +830,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test507ScriptingUsersInBackgroundAssign() throws Exception {
-        final String TEST_NAME = "test507ScriptingUsersInBackgroundAssign";
-
         // GIVEN
         Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
@@ -959,8 +866,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test510GeneratePasswords() throws Exception {
-        final String TEST_NAME = "test510GeneratePasswords";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -974,7 +879,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
                 .add(itemFactory().createReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
                 .asItemDeltas();
         modifySystemObjectInRepo(SecurityPolicyType.class, SECURITY_POLICY_OID, itemDeltas, result);
-
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
@@ -1000,10 +904,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test520GeneratePasswordsFullInput() throws Exception {
-        final String TEST_NAME = "test520GeneratePasswordsFullInput";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_2_FILE);
 
@@ -1025,10 +927,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test530GeneratePasswordsReally() throws Exception {
-        final String TEST_NAME = "test530GeneratePasswordsReally";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_3_FILE);
 
@@ -1066,8 +966,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test540SearchUserResolveNamesForRoleMembershipRef() throws Exception {
-        final String TEST_NAME = "test540SearchUserResolveNamesForRoleMembershipRef";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1091,8 +989,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test545SearchUserResolveRoleMembershipRef() throws Exception {
-        final String TEST_NAME = "test545SearchUserResolveRoleMembershipRef";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1116,10 +1012,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test550UseVariables() throws Exception {
-        final String TEST_NAME = "test550UseVariables";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ExecuteScriptType executeScript = parseRealValue(USE_VARIABLES_FILE);
 
@@ -1146,8 +1040,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test560StartTaskFromTemplate() throws Exception {
-        final String TEST_NAME = "test560StartTaskFromTemplate";
-
         // GIVEN
         Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
@@ -1194,8 +1086,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test570IterativeScriptingTask() throws Exception {
-        final String TEST_NAME = "test570IterativeScriptingTask";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1215,8 +1105,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test(enabled = false)      // probably obsolete
     public void test575ResumeTask() throws Exception {
-        final String TEST_NAME = "test570ResumeTask";
-
         // GIVEN
         Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
@@ -1248,10 +1136,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     // MID-5359
     @Test
     public void test600ModifyJackPasswordInBackground() throws Exception {
-        final String TEST_NAME = "test600ModifyJackPasswordInBackground";
-
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+        OperationResult result = getTestOperationResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(MODIFY_JACK_PASSWORD_FILE);
 
         prepareNotifications();
@@ -1282,10 +1168,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     // MID-5359
     @Test
     public void test610ModifyJackPasswordImportingTask() throws Exception {
-        final String TEST_NAME = "test610ModifyJackPasswordImportingTask";
-
         // GIVEN
-        Task opTask = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+        Task opTask = getTestTask();
         opTask.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = opTask.getResult();
 
@@ -1320,10 +1204,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     // not using scripting as such, but related... MID-5359
     @Test
     public void test620ModifyJackPasswordViaExecuteChangesAsynchronously() throws Exception {
-        final String TEST_NAME = "test620ModifyJackPasswordViaExecuteChangesAsynchronously";
-
         // GIVEN
-        Task opTask = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+        Task opTask = getTestTask();
         opTask.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = opTask.getResult();
 

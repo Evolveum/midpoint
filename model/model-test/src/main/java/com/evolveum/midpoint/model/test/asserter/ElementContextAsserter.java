@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.test.asserter;
 import static org.testng.AssertJUnit.assertNull;
 
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
@@ -98,7 +98,7 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
     }
 
     public ElementContextAsserter<C,O,RA> display(String message) {
-        IntegrationTestTools.display(message, elementContext);
+        PrismTestUtil.display(message, elementContext);
         return this;
     }
 }

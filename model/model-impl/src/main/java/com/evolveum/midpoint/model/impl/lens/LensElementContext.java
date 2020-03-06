@@ -259,11 +259,36 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
+        modifyOrCreatePrimaryDelta(
+                delta -> delta.swallow(itemDelta),
+                () -> {
+                    ObjectDelta<O> newPrimaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+                    newPrimaryDelta.setOid(oid);
+                    newPrimaryDelta.addModification(itemDelta);
+                    return newPrimaryDelta;
+                });
+    }
+
+    @FunctionalInterface
+    private interface DeltaModifier<O extends Objectable> {
+        void modify(ObjectDelta<O> delta) throws SchemaException;
+    }
+
+    @FunctionalInterface
+    private interface DeltaCreator<O extends Objectable> {
+        ObjectDelta<O> create() throws SchemaException;
+    }
+
+    private void modifyOrCreatePrimaryDelta(DeltaModifier<O> modifier, DeltaCreator<O> creator) throws SchemaException {
         if (primaryDelta == null) {
-            primaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
-            primaryDelta.setOid(oid);
+            primaryDelta = creator.create();
+        } else if (!primaryDelta.isImmutable()) {
+            modifier.modify(primaryDelta);
+        } else {
+            primaryDelta = primaryDelta.clone();
+            modifier.modify(primaryDelta);
+            primaryDelta.freeze();
         }
-        primaryDelta.swallow(itemDelta);
     }
 
     public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
@@ -314,45 +339,25 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         pendingAssignmentPolicyStateModifications.computeIfAbsent(spec, k -> new ArrayList<>()).add(modification);
     }
 
-    public boolean isAdd() {
-        if (ObjectDelta.isAdd(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isAdd(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
-    }
+    public abstract boolean isAdd();
 
     public boolean isModify() {
-        if (ObjectDelta.isModify(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isModify(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
+        // TODO I'm not sure why isModify checks both primary and secondary deltas for focus context, while
+        //  isAdd and isDelete care only for the primary delta.
+        return ObjectDelta.isModify(getPrimaryDelta()) || ObjectDelta.isModify(getSecondaryDelta());
     }
 
-    public boolean isDelete() {
-        if (ObjectDelta.isDelete(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isDelete(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
-    }
+    public abstract boolean isDelete();
 
     @NotNull
     public SimpleOperationName getOperation() {
         if (isAdd()) {
             return SimpleOperationName.ADD;
-        }
-        if (isDelete()) {
+        } else if (isDelete()) {
             return SimpleOperationName.DELETE;
+        } else {
+            return SimpleOperationName.MODIFY;
         }
-        return SimpleOperationName.MODIFY;
     }
 
     @NotNull

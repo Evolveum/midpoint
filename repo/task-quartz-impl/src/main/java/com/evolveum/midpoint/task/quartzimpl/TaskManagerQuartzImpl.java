@@ -2633,7 +2633,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @Override
-    public void removeGlobalTracingOverride() {
+    public void unsetGlobalTracingOverride() {
         globalTracingOverride = null;
     }
 

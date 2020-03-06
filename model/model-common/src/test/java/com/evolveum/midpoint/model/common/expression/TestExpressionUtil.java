@@ -167,24 +167,31 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     }
 
-    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <T> T resolvePath(String path, final String exprShortDesc)
+            throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ExpressionVariables variables = createVariables();
-        return resolvePath(path, variables, TEST_NAME);
+        return resolvePath(path, variables, exprShortDesc);
     }
 
-    private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <T> T resolvePathOdo(String path, final String exprShortDesc)
+            throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ExpressionVariables variables = createVariablesOdo();
-        return resolvePath(path, variables, TEST_NAME);
+        return resolvePath(path, variables, exprShortDesc);
     }
 
-    private <T> T resolvePath(String path, ExpressionVariables variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
+    private <T> T resolvePath(String path, ExpressionVariables variables, String exprShortDesc)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createOperationResult();
         ItemPath itemPath = toItemPath(path);
 
         // WHEN
         ObjectResolver objectResolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
-        Object resolved = ExpressionUtil.resolvePathGetValue(itemPath, variables, false, null, objectResolver,
-                PrismTestUtil.getPrismContext(), TEST_NAME, new NullTaskImpl(), result);
+        Object resolved = ExpressionUtil.resolvePathGetValue(
+                itemPath, variables, false, null, objectResolver,
+                PrismTestUtil.getPrismContext(), exprShortDesc, new NullTaskImpl(), result);
 
         // THEN
         IntegrationTestTools.display("Resolved", resolved);

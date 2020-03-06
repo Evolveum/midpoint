@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.model.intest.async;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.IOUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -15,23 +26,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.io.IOUtils;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
- *  Tests async updates using Grouper JSON messages.
- *
- *  Currently uses caching.
+ * Tests async updates using Grouper JSON messages.
+ * <p>
+ * Currently uses caching.
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrationTest {
 
@@ -75,15 +76,10 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
         TestUtil.assertSuccess(testResultGrouper);
-    }
-
-    private Task createTestTask(String TEST_NAME) {
-        TestAsyncUpdateGrouperJson.class.getName();
-        return getTestTask();
     }
 
     /**
@@ -91,8 +87,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test100AddAnderson() throws Exception {
-        final String TEST_NAME = "test100AddAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -113,15 +108,15 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
-                        .resolveTarget()
-                            .display()
-                            .assertKind(ShadowKindType.ACCOUNT)
-    //                        .assertIntent(GROUPER_USER_INTENT)
-                            .assertResource(RESOURCE_GROUPER_OID)
-                            .end()
-                        .end()
-                    .end()
+                .single()
+                .resolveTarget()
+                .display()
+                .assertKind(ShadowKindType.ACCOUNT)
+                //                        .assertIntent(GROUPER_USER_INTENT)
+                .assertResource(RESOURCE_GROUPER_OID)
+                .end()
+                .end()
+                .end()
                 .assertOrganizationalUnits();
     }
 
@@ -137,8 +132,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test110AddAlumniAndStaff() throws Exception {
-        final String TEST_NAME = "test110AddAlumniAndStaff";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -160,22 +154,22 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertOrgByName(ALUMNI_NAME, "after")
                 .displayWithProjections()
                 .links()
-                    .single()
-                    .resolveTarget()
-                        .display()
-                        .assertKind(ShadowKindType.ENTITLEMENT)
+                .single()
+                .resolveTarget()
+                .display()
+                .assertKind(ShadowKindType.ENTITLEMENT)
 //                        .assertIntent(GROUPER_GROUP_INTENT)
-                        .assertResource(RESOURCE_GROUPER_OID);
+                .assertResource(RESOURCE_GROUPER_OID);
 
         assertOrgByName(STAFF_NAME, "after")
                 .displayWithProjections()
                 .links()
-                    .single()
-                    .resolveTarget()
-                        .display()
-                        .assertKind(ShadowKindType.ENTITLEMENT)
+                .single()
+                .resolveTarget()
+                .display()
+                .assertKind(ShadowKindType.ENTITLEMENT)
 //                        .assertIntent(GROUPER_GROUP_INTENT)
-                        .assertResource(RESOURCE_GROUPER_OID);
+                .assertResource(RESOURCE_GROUPER_OID);
     }
 
     /**
@@ -183,8 +177,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test200AddAlumniForAnderson() throws Exception {
-        final String TEST_NAME = "test200AddAlumniForAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -205,15 +198,15 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
-                        .resolveTarget()
-                            .assertKind(ShadowKindType.ACCOUNT)
-            //                            .assertIntent(GROUPER_USER_INTENT)
-                            .assertResource(RESOURCE_GROUPER_OID)
-                            .display("shadow after")
-                            .end()
-                        .end()
-                    .end()
+                .single()
+                .resolveTarget()
+                .assertKind(ShadowKindType.ACCOUNT)
+                //                            .assertIntent(GROUPER_USER_INTENT)
+                .assertResource(RESOURCE_GROUPER_OID)
+                .display("shadow after")
+                .end()
+                .end()
+                .end()
                 .assertOrganizationalUnits(ALUMNI_NAME);
     }
 
@@ -222,8 +215,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test210AddStaffForAnderson() throws Exception {
-        final String TEST_NAME = "test210AddStaffForAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -244,15 +236,15 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
-                        .resolveTarget()
-                            .display("shadow after")
-                            .assertKind(ShadowKindType.ACCOUNT)
+                .single()
+                .resolveTarget()
+                .display("shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
                 //                            .assertIntent(GROUPER_USER_INTENT)
-                            .assertResource(RESOURCE_GROUPER_OID)
-                            .end()
-                        .end()
-                    .end()
+                .assertResource(RESOURCE_GROUPER_OID)
+                .end()
+                .end()
+                .end()
                 .assertOrganizationalUnits(ALUMNI_NAME, STAFF_NAME);
     }
 
@@ -261,8 +253,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test220AddAlumniForLewis() throws Exception {
-        final String TEST_NAME = "test220AddAlumniForLewis";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -283,15 +274,15 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertUserAfterByUsername(JLEWIS685_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
-                        .resolveTarget()
-                            .display("shadow after")
-                            .assertKind(ShadowKindType.ACCOUNT)
+                .single()
+                .resolveTarget()
+                .display("shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
                 //                            .assertIntent(GROUPER_USER_INTENT)
-                            .assertResource(RESOURCE_GROUPER_OID)
-                            .end()
-                        .end()
-                    .end()
+                .assertResource(RESOURCE_GROUPER_OID)
+                .end()
+                .end()
+                .end()
                 .assertOrganizationalUnits(ALUMNI_NAME);
     }
 
@@ -300,8 +291,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test230AddLewis() throws Exception {
-        final String TEST_NAME = "test230AddLewis";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -322,15 +312,15 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertUserAfterByUsername(JLEWIS685_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
-                        .resolveTarget()
-                            .display("shadow after")
-                            .assertKind(ShadowKindType.ACCOUNT)
+                .single()
+                .resolveTarget()
+                .display("shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
                 //                            .assertIntent(GROUPER_USER_INTENT)
-                            .assertResource(RESOURCE_GROUPER_OID)
-                            .end()
-                        .end()
-                    .end()
+                .assertResource(RESOURCE_GROUPER_OID)
+                .end()
+                .end()
+                .end()
                 .assertOrganizationalUnits(ALUMNI_NAME);
     }
 
@@ -339,8 +329,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test240AddStaffForAnderson() throws Exception {
-        final String TEST_NAME = "test240AddStaffForAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -361,15 +350,15 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
-                        .resolveTarget()
-                            .display("shadow after")
-                            .assertKind(ShadowKindType.ACCOUNT)
+                .single()
+                .resolveTarget()
+                .display("shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
                 //                            .assertIntent(GROUPER_USER_INTENT)
-                            .assertResource(RESOURCE_GROUPER_OID)
-                            .end()
-                        .end()
-                    .end()
+                .assertResource(RESOURCE_GROUPER_OID)
+                .end()
+                .end()
+                .end()
                 .assertOrganizationalUnits(ALUMNI_NAME, STAFF_NAME);
     }
 
@@ -378,8 +367,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test250DeleteAlumniForAnderson() throws Exception {
-        final String TEST_NAME = "test250DeleteAlumniForAnderson";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -400,15 +388,15 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         assertUserAfterByUsername(BANDERSON_USERNAME)
                 .displayWithProjections()
                 .links()
-                    .single()
-                        .resolveTarget()
-                            .display("shadow after")
-                            .assertKind(ShadowKindType.ACCOUNT)
+                .single()
+                .resolveTarget()
+                .display("shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
                 //                            .assertIntent(GROUPER_USER_INTENT)
-                            .assertResource(RESOURCE_GROUPER_OID)
-                            .end()
-                        .end()
-                    .end()
+                .assertResource(RESOURCE_GROUPER_OID)
+                .end()
+                .end()
+                .end()
                 .assertOrganizationalUnits(STAFF_NAME);
     }
 
@@ -417,8 +405,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test310DeleteStaff() throws Exception {
-        final String TEST_NAME = "test310DeleteStaff";
-        Task task = createTestTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
