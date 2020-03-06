@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -1696,7 +1695,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
          * UniformItemPath.EMPTY_PATH =
          * UniformItemPathImpl.EMPTY_PATH =
          */
-        System.out.println("UniformItemPath.EMPTY_PATH = " + UniformItemPath.EMPTY_PATH);
-        System.out.println("UniformItemPathImpl.EMPTY_PATH = " + UniformItemPathImpl.EMPTY_PATH);
+        System.out.println("UniformItemPath.EMPTY_PATH = " + UniformItemPath.empty());
     }
 }

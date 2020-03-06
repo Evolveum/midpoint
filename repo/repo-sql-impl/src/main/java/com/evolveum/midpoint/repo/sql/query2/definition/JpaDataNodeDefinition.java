@@ -94,11 +94,6 @@ public abstract class JpaDataNodeDefinition implements DebugDumpable, Visitable 
 
     protected abstract String getDebugDumpClassName();
 
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     public String getShortInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append(getDebugDumpClassName()).append(':').append(getJpaClassName());

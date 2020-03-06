@@ -78,14 +78,6 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
         }
 
         /* (non-Javadoc)
-         * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
-         */
-        @Override
-        public String debugDump() {
-            return debugDump(0);
-        }
-
-        /* (non-Javadoc)
          * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
          */
         @Override

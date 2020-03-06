@@ -6,14 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,6 +21,9 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -31,14 +31,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -49,9 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * fake dummy connector. Test upgrades and downgrades of connector version.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTest {
 
@@ -85,8 +77,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Test
     public void test010ListConnectors() throws Exception {
-        final String TEST_NAME = "test010ListConnectors";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -100,7 +90,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.assertSuccess("getObject result", result);
 
         assertEquals("Unexpected number of connectors", 12, connectors.size());
-        for(PrismObject<ConnectorType> connector: connectors) {
+        for (PrismObject<ConnectorType> connector : connectors) {
             display("Connector", connector);
             ConnectorType connectorType = connector.asObjectable();
             if (CONNECTOR_DUMMY_TYPE.equals(connectorType.getConnectorType())) {
@@ -122,8 +112,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Test
     public void test020ImportFakeResource() throws Exception {
-        final String TEST_NAME = "test020ImportFakeResource";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -146,24 +134,19 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Test
     public void test021TestFakeResource() throws Exception {
-        final String TEST_NAME = "test021TestFakeResource";
-
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task);
 
         // THEN
-         display("testResource result", testResult);
+        display("testResource result", testResult);
         TestUtil.assertSuccess("testResource result", testResult);
     }
 
     @Test
     public void test022ListAccountsFakeResource() throws Exception {
-        final String TEST_NAME = "test022ListAccountsFakeResource";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -173,16 +156,14 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
         // THEN
         result.computeStatus();
-         display("listAccounts result", result);
+        display("listAccounts result", result);
         TestUtil.assertSuccess("listAccounts result", result);
 
-        assertEquals("Unexpected number of accounts: "+accounts, 1, accounts.size());
+        assertEquals("Unexpected number of accounts: " + accounts, 1, accounts.size());
     }
 
     @Test
     public void test030ImportDummyResource() throws Exception {
-        final String TEST_NAME = "test030ImportDummyResource";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -205,24 +186,19 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Test
     public void test031TestDummyResource() throws Exception {
-        final String TEST_NAME = "test031TestDummyResource";
-
         // GIVEN
         Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
 
         // THEN
-         display("testResource result", testResult);
+        display("testResource result", testResult);
         TestUtil.assertSuccess("testResource result", testResult);
     }
 
     @Test
     public void test032ListAccountsDummyResource() throws Exception {
-        final String TEST_NAME = "test032ListAccountsDummyResource";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -233,7 +209,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         // THEN
         assertSuccess(result);
 
-        assertEquals("Unexpected number of accounts: "+accounts, 3, accounts.size());
+        assertEquals("Unexpected number of accounts: " + accounts, 3, accounts.size());
     }
 
     /**
@@ -242,8 +218,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
      */
     @Test
     public void test100UpgradeModelAddDelete() throws Exception {
-        final String TEST_NAME = "test100UpgradeModelAddDelete";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -270,14 +244,11 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         // THEN
         assertSuccess(result);
 
-        assertUpgrade(TEST_NAME, dummyResourceModelBefore);
+        assertUpgrade(dummyResourceModelBefore);
     }
-
 
     @Test
     public void test150DowngradeModelAddDelete() throws Exception {
-        final String TEST_NAME = "test150DowngradeModelAddDelete";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -305,8 +276,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Test
     public void test200UpgradeModelReplace() throws Exception {
-        final String TEST_NAME = "test200UpgradeModelReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -326,14 +295,11 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         // THEN
         assertSuccess("executeChanges result", result);
 
-        assertUpgrade(TEST_NAME, dummyResourceModelBefore);
+        assertUpgrade(dummyResourceModelBefore);
     }
-
 
     @Test
     public void test250DowngradeModelReplace() throws Exception {
-        final String TEST_NAME = "test250DowngradeModelReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -358,8 +324,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Test
     public void test300UpgradeRawAddDelete() throws Exception {
-        final String TEST_NAME = "test300UpgradeRawAddDelete";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -384,14 +348,11 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         // THEN
         assertSuccess(result);
 
-        assertUpgrade(TEST_NAME, dummyResourceModelBefore);
+        assertUpgrade(dummyResourceModelBefore);
     }
-
 
     @Test
     public void test350DowngradeRawAddDelete() throws Exception {
-        final String TEST_NAME = "test350DowngradeRawAddDelete";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -416,7 +377,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
         // THEN
         result.computeStatus();
-         display("executeChanges result", result);
+        display("executeChanges result", result);
         TestUtil.assertSuccess("executeChanges result", result);
 
         assertDowngrade(dummyResourceModelBefore);
@@ -424,8 +385,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Test
     public void test400UpgradeRawReplace() throws Exception {
-        final String TEST_NAME = "test400UpgradeRawReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -447,17 +406,14 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
         // THEN
         result.computeStatus();
-         display("executeChanges result", result);
+        display("executeChanges result", result);
         TestUtil.assertSuccess("executeChanges result", result);
 
-        assertUpgrade(TEST_NAME, dummyResourceModelBefore);
+        assertUpgrade(dummyResourceModelBefore);
     }
-
 
     @Test
     public void test450DowngradeRawReplace() throws Exception {
-        final String TEST_NAME = "test450DowngradeRawReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -482,8 +438,8 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         assertDowngrade(dummyResourceModelBefore);
     }
 
-    private void assertUpgrade(final String TEST_NAME, PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".assertUpgrade");
+    private void assertUpgrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+        Task task = createPlainTask("assertUpgrade");
         OperationResult result = task.getResult();
 
         // Check if the changes went well in the repo
@@ -494,7 +450,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         assertEquals("Wrong connectorRef in fake resource (repo)", connectorDummyOid,
                 repoResource.asObjectable().getConnectorRef().getOid());
 
-        display("HEREHERE: "+TEST_NAME);
+        displayHEREHERE();
         // Check if resource view of the model has changed as well
         resourceDummyFake = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, task, result);
         display("Upgraded fake resource (model)", resourceDummyFake);
@@ -511,9 +467,9 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         dummyResourceModelAfter.asObjectable().setFetchResult(null);
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(dummyResourceModelBefore, dummyResourceModelAfter);
         display("Dummy resource diff", dummyResourceDiff);
-        assertTrue("Ha! Someone touched the other resource! Off with his head! diff:"+dummyResourceDiff, dummyResourceDiff.isEmpty());
+        assertTrue("Ha! Someone touched the other resource! Off with his head! diff:" + dummyResourceDiff, dummyResourceDiff.isEmpty());
 
-        testResources(3,3);
+        testResources(3, 3);
     }
 
     private void assertDowngrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
@@ -541,9 +497,9 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         dummyResourceModelAfter.asObjectable().setFetchResult(null);
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(dummyResourceModelBefore, dummyResourceModelAfter);
         display("Dummy resource diff", dummyResourceDiff);
-        assertTrue("Ha! Someone touched the other resource! Off with his head! diff:"+dummyResourceDiff, dummyResourceDiff.isEmpty());
+        assertTrue("Ha! Someone touched the other resource! Off with his head! diff:" + dummyResourceDiff, dummyResourceDiff.isEmpty());
 
-        testResources(3,1);
+        testResources(3, 1);
     }
 
     private void testResources(int numDummyAccounts, int numFakeAccounts) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -553,11 +509,11 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         purgeResourceSchema(RESOURCE_DUMMY_FAKE_OID);
 
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task);
-         display("testResource fake result", testResult);
+        display("testResource fake result", testResult);
         TestUtil.assertSuccess("testResource fake result", testResult);
 
         testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
-         display("testResource dummy result", testResult);
+        display("testResource dummy result", testResult);
         TestUtil.assertSuccess("testResource dummy result", testResult);
 
         assertResourceAccounts(resourceDummy, numDummyAccounts);
@@ -573,12 +529,10 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
         // THEN
         result.computeStatus();
-         display("listAccounts result "+resource, result);
-        TestUtil.assertSuccess("listAccounts result "+resource, result);
+        display("listAccounts result " + resource, result);
+        TestUtil.assertSuccess("listAccounts result " + resource, result);
 
-        assertEquals("Unexpected number of accounts on "+resource+": "+accounts, numAccounts, accounts.size());
+        assertEquals("Unexpected number of accounts on " + resource + ": " + accounts, numAccounts, accounts.size());
     }
-
-
 
 }

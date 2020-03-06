@@ -76,22 +76,22 @@ public class LocalNodeManager {
 
             createQuartzDbSchema(configuration);
 
-            final String MY_DS = "myDS";
-            quartzProperties.put("org.quartz.jobStore.dataSource", MY_DS);
+            final String myDs = "myDS";
+            quartzProperties.put("org.quartz.jobStore.dataSource", myDs);
             if (configuration.isUseRepositoryConnectionProvider()) {
                 DataSourceFactory dataSourceFactory = (DataSourceFactory) taskManager.getBeanFactory().getBean("dataSourceFactory");
                 int index = (int) (Math.random() * Integer.MAX_VALUE);
                 RepositoryConnectionProvider.DATA_SOURCES.put(index, dataSourceFactory.getDataSource());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".connectionProvider.class", RepositoryConnectionProvider.class.getName());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".dataSourceIndex", String.valueOf(index));
+                quartzProperties.put("org.quartz.dataSource."+myDs+".connectionProvider.class", RepositoryConnectionProvider.class.getName());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".dataSourceIndex", String.valueOf(index));
             } else if (configuration.getDataSource() != null) {
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".jndiURL", configuration.getDataSource());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".jndiURL", configuration.getDataSource());
             } else {
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".provider", "hikaricp");
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".driver", configuration.getJdbcDriver());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".URL", configuration.getJdbcUrl());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".user", configuration.getJdbcUser());
-                quartzProperties.put("org.quartz.dataSource."+MY_DS+".password", configuration.getJdbcPassword());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".provider", "hikaricp");
+                quartzProperties.put("org.quartz.dataSource."+myDs+".driver", configuration.getJdbcDriver());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".URL", configuration.getJdbcUrl());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".user", configuration.getJdbcUser());
+                quartzProperties.put("org.quartz.dataSource."+myDs+".password", configuration.getJdbcPassword());
             }
 
             quartzProperties.put("org.quartz.jobStore.isClustered", configuration.isClustered() ? "true" : "false");

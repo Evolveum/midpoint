@@ -40,8 +40,8 @@ public class TestPath extends AbstractPrismTest {
      */
     @Test
     public void testEmptyPath() {
-        System.out.println("UniformItemPath.EMPTY_PATH = " + UniformItemPath.EMPTY_PATH);
-        System.out.println("UniformItemPathImpl.EMPTY_PATH = " + UniformItemPathImpl.EMPTY_PATH);
+        System.out.println("UniformItemPath.empty() = " + UniformItemPath.empty());
+        assertNotNull(UniformItemPath.empty());
     }
 
     @Test

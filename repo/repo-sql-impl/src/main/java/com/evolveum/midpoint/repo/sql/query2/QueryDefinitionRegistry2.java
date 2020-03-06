@@ -142,11 +142,6 @@ public final class QueryDefinitionRegistry2 implements DebugDumpable {
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder builder = new StringBuilder();
         DebugUtil.indentDebugDump(builder, indent);

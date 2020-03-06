@@ -41,9 +41,14 @@
     Extra test run with custom JVM args (we have 16g on CI server, but it works without args too),
     runs just under 900 tests, skips distribution and any common unit/IT tests (~1h50m):
     mvn clean install -P extratest,-dist -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
+    (Skipping of default tests is managed by "extratest" profile.)
 
     Extra test run for a single module, -D property matches the module in -pl:
     mvn clean install -DskipConnTests=false -pl testing/conntest
+
+    Running a single IT test class in one module from the "extra" set with output to stdout:
+    mvn integration-test -DskipConnTests=false -DredirectTestOutputToFile=false -pl testing/conntest -Dit.test=TestAdLdapChimera
+    Note usage of "it.test" property (for failsafe), not just "test" (for surefire).
 
     Full build with extra tests for a single module, "-DskipTests" suppresses other default tests:
     mvn clean install -P -dist -DskipTests -DskipStoryTests=false

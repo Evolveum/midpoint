@@ -6,19 +6,13 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -29,22 +23,20 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestTolerantAttributes extends AbstractInitializedModelIntegrationTest {
-
 
     public static final File TEST_DIR = new File("src/test/resources/tolerant");
 
@@ -57,7 +49,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     public void test100ModifyUserAddAccount() throws Exception {
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test100ModifyUserAddAccount");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -70,7 +62,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
                 .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
@@ -111,7 +103,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
         // Check account in dummy resource
         assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
-     }
+    }
 
     /**
      * We are trying to add value to the resource (through a mapping). This value matches
@@ -120,8 +112,6 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
      */
     @Test
     public void test101ModifyAddAttributesIntolerantPattern() throws Exception {
-        final String TEST_NAME = "test101ModifyAddAttributesIntolerantPattern";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -133,7 +123,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
                 UserType.F_DESCRIPTION, getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION),
                 "This value will be not added");
         userDelta.addModification(propertyDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
         // WHEN
         when();
@@ -165,150 +155,148 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     }
 
     @Test
-    public void test102modifyAddAttributeTolerantPattern() throws Exception{
+    public void test102modifyAddAttributeTolerantPattern() throws Exception {
 
         // GIVEN
-            Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test102modifyAddAttributeTolerantPattern");
-            OperationResult result = task.getResult();
-            assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-            ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-                    .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
-            PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationAddProperty(UserType.F_DESCRIPTION, getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION), "res-thiIsOk");
-            userDelta.addModification(propertyDelta);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+                .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationAddProperty(UserType.F_DESCRIPTION, getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION), "res-thiIsOk");
+        userDelta.addModification(propertyDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
-            modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
-            result.computeStatus();
-            TestUtil.assertSuccess(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-         // Check value in "quote attribute"
-            PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-            assertUserJack(userJack);
-            UserType userJackType = userJack.asObjectable();
-            assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-            ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-            accountOid = accountRefType.getOid();
-            assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-            PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-            assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
-            assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+        // Check value in "quote attribute"
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
+        accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
-            // Check shadow
-            PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-            assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+        // Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-            // Check account
-            PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-            assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-            // Check account in dummy resource
-            assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
+        // Check account in dummy resource
+        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
 
-            // Check value of quote attribute
-            assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "quote", "res-thiIsOk");
+        // Check value of quote attribute
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "quote", "res-thiIsOk");
     }
 
     @Test
-    public void test103modifyReplaceAttributeIntolerant() throws Exception{
+    public void test103modifyReplaceAttributeIntolerant() throws Exception {
 
         // GIVEN
-            Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test103modifyReplaceAttributeIntolerant");
-            OperationResult result = task.getResult();
-            assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-            ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-                    .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
-            PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, getUserDefinition(), "gossip-thiIsNotOk");
-            userDelta.addModification(propertyDelta);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+                .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, getUserDefinition(), "gossip-thiIsNotOk");
+        userDelta.addModification(propertyDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
-            modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
-            result.computeStatus();
-            TestUtil.assertSuccess(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-         // Check value in "quote attribute"
-            PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        // Check value in "quote attribute"
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 //            assertUserJack(userJack);
-            UserType userJackType = userJack.asObjectable();
-            assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-            ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-            accountOid = accountRefType.getOid();
-            assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-            PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-            assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
-            assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
+        accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
-            // Check shadow
-            PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-            assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+        // Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-            // Check account
-            PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-            assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-            // Check account in dummy resource
-            assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
+        // Check account in dummy resource
+        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
 
-            // Check value of drink attribute
-            assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "gossip", null);
+        // Check value of drink attribute
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "gossip", null);
     }
 
     @Test
-    public void test104modifyReplaceAttributeTolerantPattern() throws Exception{
+    public void test104modifyReplaceAttributeTolerantPattern() throws Exception {
 
         // GIVEN
-            Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test104modifyReplaceAttributeTolerantPattern");
-            OperationResult result = task.getResult();
-            assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-            ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-                    .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
-            ItemPath drinkItemPath = ItemPath.create(new QName(getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME).getNamespace(), "drink"));
-            PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, getUserDefinition(), "thiIsOk");
-            userDelta.addModification(propertyDelta);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+                .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        ItemPath drinkItemPath = ItemPath.create(new QName(getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME).getNamespace(), "drink"));
+        PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, getUserDefinition(), "thiIsOk");
+        userDelta.addModification(propertyDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
-            modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
-            result.computeStatus();
-            TestUtil.assertSuccess(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-         // Check value in "quote attribute"
-            PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        // Check value in "quote attribute"
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 //            assertUserJack(userJack);
-            UserType userJackType = userJack.asObjectable();
-            assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-            ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-            accountOid = accountRefType.getOid();
-            assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-            PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-            assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
-            assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
+        accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
-            // Check shadow
-            PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-            assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+        // Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-            // Check account
-            PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-            assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-            // Check account in dummy resource
-            assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
+        // Check account in dummy resource
+        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
 
-            // Check value of drink attribute
-            assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "gossip", "thiIsOk");
+        // Check value of drink attribute
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "gossip", "thiIsOk");
     }
 
     @Test
     public void test105ModifyAddNonTolerantAttribute() throws Exception {
-        final String TEST_NAME = "test105ModifyAddNonTolerantAttribute";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test105modifyAddNonTolerantAttribute");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -319,7 +307,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         assertNotNull("null definition for drink attribute ", accountDefinition.findPropertyDefinition(drinkItemPath));
         PropertyDelta propertyDelta = prismContext.deltaFactory().property().createModificationAddProperty(drinkItemPath, accountDefinition.findPropertyDefinition(drinkItemPath), "This should be ignored");
         userDelta.addModification(propertyDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
         // WHEN
         when();
@@ -329,6 +317,4 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         then();
         assertPartialError(result);
     }
-
-
 }
