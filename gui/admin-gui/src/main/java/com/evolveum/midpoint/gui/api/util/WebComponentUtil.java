@@ -1399,7 +1399,7 @@ public final class WebComponentUtil {
         }
 
         String displayName = getDisplayName(object, translate, localizationService);
-        return displayName != null ? displayName : getName(object, translate, localizationService);
+        return StringUtils.isNotEmpty(displayName) ? displayName : getName(object, translate, localizationService);
     }
 
     public static String getDisplayNameOrName(ObjectReferenceType ref) {
