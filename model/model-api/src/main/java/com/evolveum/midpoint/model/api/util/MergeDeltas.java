@@ -97,11 +97,6 @@ public class MergeDeltas<O extends ObjectType> implements DebugDumpable, Seriali
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
