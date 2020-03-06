@@ -740,7 +740,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         List<ObjectPolicyConfigurationType> current = new ArrayList<>();
         List<ObjectPolicyConfigurationType> currentForTasks = new ArrayList<>();
-        final ConflictResolutionActionType ACTION_FOR_TASKS = ConflictResolutionActionType.NONE;
+        final ConflictResolutionActionType actionForTasks = ConflictResolutionActionType.NONE;
         for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
             if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
                 current.add(c);
@@ -760,11 +760,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     .deleteRealValues(current)
                     .asItemDelta());
         }
-        if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != ACTION_FOR_TASKS) {
+        if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != actionForTasks) {
             ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType(prismContext)
                     .type(TaskType.COMPLEX_TYPE)
                     .beginConflictResolution()
-                    .action(ACTION_FOR_TASKS)
+                    .action(actionForTasks)
                     .end();
             itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
                     .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
