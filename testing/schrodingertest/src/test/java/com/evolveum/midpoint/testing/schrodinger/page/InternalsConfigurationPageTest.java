@@ -34,7 +34,7 @@ public class InternalsConfigurationPageTest extends TestBase {
     }
 
     @Test
-    public void changeTime() {
+    public void test001changeTime() {
         ClockTab clockTab = configPage.clockTab();
 
         clockTab.changeTime("5/15/2099", "10", "30", ClockTab.AmOrPmChoice.PM);
@@ -51,7 +51,7 @@ public class InternalsConfigurationPageTest extends TestBase {
     }
 
     @Test
-    public void resetTime() {
+    public void test010resetTime() {
         ClockTab clockTab = configPage.clockTab();
 
         clockTab.resetTime();

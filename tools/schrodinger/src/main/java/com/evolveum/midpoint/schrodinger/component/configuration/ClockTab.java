@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.configuration;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
@@ -36,9 +37,11 @@ public class ClockTab extends Component<InternalsConfigurationPage> {
 
         SelenideElement hoursEle = findHours();
         hoursEle.doubleClick();
+        hoursEle.doubleClick();
         hoursEle.sendKeys(hours);
 
         SelenideElement minutesEle = findMinutes();
+        minutesEle.doubleClick();
         minutesEle.doubleClick();
         minutesEle.sendKeys(minutes);
 

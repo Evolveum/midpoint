@@ -57,4 +57,9 @@
             <class name="com.evolveum.midpoint.testing.schrodinger.page.QueryPlaygroundPageTest"/>
         </classes>
     </test>
+    <test name="Schrodinger.page.InternalsConfigurationPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.InternalsConfigurationPageTest"/>
+        </classes>
+    </test>
 </suite>
