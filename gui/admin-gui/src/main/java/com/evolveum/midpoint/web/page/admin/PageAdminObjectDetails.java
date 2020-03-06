@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -18,6 +15,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -25,15 +23,18 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -44,6 +45,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
@@ -1013,4 +1015,71 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
     }
 
+    //TODO moved from PageAdminFocus.. maybe we need PageAssignmentHolderDetails?
+    @Override
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
+
+        if (previewRequested) {
+            finishPreviewProcessing(target, result);
+            return;
+        }
+        if (result.isSuccess() && getDelta() != null  && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
+            Session.get().setLocale(WebModelServiceUtils.getLocale());
+            LOGGER.debug("Using {} as locale", getLocale());
+            WebSession.get().getClientInfo().getProperties().
+                    setTimeZone(WebModelServiceUtils.getTimezone());
+            LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
+        }
+        boolean focusAddAttempted = getDelta() != null && getDelta().isAdd();
+        boolean focusAddSucceeded = focusAddAttempted && StringUtils.isNotEmpty(getDelta().getOid());
+
+        // we don't want to allow resuming editing if a new focal object was created (on second 'save' there would be a conflict with itself)
+        // and also in case of partial errors, like those related to projections (many deltas would be already executed, and this could cause problems on second 'save').
+        boolean canContinueEditing = !focusAddSucceeded && result.isFatalError();
+
+        boolean canExitPage;
+        if (returningFromAsync) {
+            canExitPage = getProgressPanel().isAllSuccess() || result.isInProgress() || result.isHandledError(); // if there's at least a warning in the progress table, we would like to keep the table open
+        } else {
+            canExitPage = !canContinueEditing;                            // no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
+        }
+
+        if (!isKeepDisplayingResults() && canExitPage) {
+            showResult(result);
+            redirectBack();
+        } else {
+            if (returningFromAsync) {
+                getProgressPanel().showBackButton(target);
+                getProgressPanel().hideAbortButton(target);
+            }
+            showResult(result);
+            target.add(getFeedbackPanel());
+
+            if (canContinueEditing) {
+                getProgressPanel().hideBackButton(target);
+                getProgressPanel().showContinueEditingButton(target);
+            }
+        }
+    }
+
+    private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
+        getMainPanel().setVisible(true);
+        getProgressPanel().hide();
+        getProgressPanel().hideAbortButton(target);
+        getProgressPanel().hideBackButton(target);
+        getProgressPanel().hideContinueEditingButton(target);
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+
+        Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap = new LinkedHashMap<>();
+        modelContextMap.put(getObjectWrapper().getObject(), getProgressPanel().getPreviewResult());
+
+        processAdditionalFocalObjectsForPreview(modelContextMap);
+
+        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+    }
+
+    protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap){
+    }
 }

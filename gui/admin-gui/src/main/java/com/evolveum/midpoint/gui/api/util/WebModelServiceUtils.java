@@ -584,80 +584,84 @@ public class WebModelServiceUtils {
         return principal.getOid();
     }
 
-    public static Locale getLocale() {
-        return getLocale(null);
-    }
+//    public static Locale getLocale() {
+//        return getLocale(null);
+//    }
 
-    public static Locale getLocale(FocusType focus) {
+    public static <F extends FocusType> Locale getLocale() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        Locale locale = null;
-        if (principal != null) {
-            if (focus == null) {
-                PrismObject<? extends FocusType> focusPrismObject = principal.getFocus().asPrismObject();
-                focus = focusPrismObject == null ? null : focusPrismObject.asObjectable();
-            }
-            if (focus != null && focus.getPreferredLanguage() != null &&
-                    !focus.getPreferredLanguage().trim().equals("")) {
-                try {
-                    locale = LocaleUtils.toLocale(focus.getPreferredLanguage());
-                } catch (Exception ex) {
-                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-                }
-            }
-            if (locale != null && MidPointApplication.containsLocale(locale)) {
-                return locale;
-            } else {
-                String userLocale = focus != null ? focus.getLocale() : null;
-                try {
-                    locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
-                } catch (Exception ex) {
-                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-                }
-                if (locale != null && MidPointApplication.containsLocale(locale)) {
-                    return locale;
-                } else {
-                    //session in tests is null
-                        if (ThreadContext.getSession() == null) {
-                            return MidPointApplication.getDefaultLocale();
-                        }
-
-                        locale = Session.get().getLocale();
-                    if (locale == null || !MidPointApplication.containsLocale(locale)) {
-                        //default locale for web application
-                        return MidPointApplication.getDefaultLocale();
-                    }
-                    return locale;
-                }
-            }
+        if (principal == null) {
+            return MidPointApplication.getDefaultLocale();
         }
+
+        Locale locale = null;
+
+        F focus = (F) principal.getFocus();
+        if (focus == null) {
+            return MidPointApplication.getDefaultLocale();
+        }
+//        if (principal != null) {
+////            if (focus == null) {
+//                PrismObject<? extends FocusType> focusPrismObject = principal.getFocus().asPrismObject();
+//               FocusType focus = focusPrismObject == null ? null : focusPrismObject.asObjectable();
+////            }
+        String prefLang = focus.getPreferredLanguage();
+        if (StringUtils.isBlank(prefLang)) {
+            prefLang = focus.getLocale();
+        }
+
+        try {
+            locale = LocaleUtils.toLocale(prefLang);
+        } catch (Exception ex) {
+            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+        }
+
+        if (locale == null) {
+            if (ThreadContext.getSession() == null) {
+                return MidPointApplication.getDefaultLocale();
+            }
+
+            locale = Session.get().getLocale();
+        }
+
+        if (MidPointApplication.containsLocale(locale)) {
+            return locale;
+        }
+
         return MidPointApplication.getDefaultLocale();
     }
 
+//    public static TimeZone getTimezone() {
+//        return getTimezone(null);
+//    }
+
     public static TimeZone getTimezone() {
-        return getTimezone(null);
-    }
-
-    public static TimeZone getTimezone(FocusType focus) {
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (principal != null && focus == null) {
-            focus = principal.getFocus();
-        }
-        String timeZone;
 
-        if (focus != null && StringUtils.isNotEmpty(focus.getTimezone())) {
-            timeZone = focus.getTimezone();
-        } else {
-            timeZone = principal != null && principal.getCompiledGuiProfile() != null ?
-                    principal.getCompiledGuiProfile().getDefaultTimezone() : "";
+        if (principal == null) {
+            return null;
         }
+
+        FocusType focus = principal.getFocus();
+
+        String timeZone;
+        if (focus == null || StringUtils.isEmpty(focus.getTimezone())) {
+            timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
+        } else {
+            timeZone = focus.getTimezone();
+        }
+
+        if (timeZone == null) {
+            return null;
+        }
+
         try {
-            if (timeZone != null) {
-                return TimeZone.getTimeZone(timeZone);
-            }
+            return TimeZone.getTimeZone(timeZone);
         } catch (Exception ex){
             LOGGER.debug("Error occurred while getting user time zone, " + ex.getMessage());
+            return null;
         }
-        return null;
+
     }
 
     public static Task createSimpleTask(String operation, PrismObject<? extends FocusType> owner, TaskManager manager) {

@@ -582,15 +582,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     protected Class<? extends Page> getRestartResponsePage() {
         return PageTasks.class;
     }
-
-    @Override
-    public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
-        if (!isKeepDisplayingResults()) {
-            showResult(result);
-            redirectBack();
-        }
-    }
-
+    
     @Override
     public void continueEditing(AjaxRequestTarget target) {
 
