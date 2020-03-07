@@ -176,9 +176,9 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                     ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
 
             List<ItemWrapper<?,?,?,?>> items = new ArrayList<>();
-            for (RefinedAssociationDefinition refinedAssocationDefinition: refinedAssociationDefinitions) {
+            for (RefinedAssociationDefinition refinedAssociationDefinition: refinedAssociationDefinitions) {
                 MutablePrismReferenceDefinition shadowRefDef = prismContext
-                        .definitionFactory().createReferenceDefinition(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE);
+                        .definitionFactory().createReferenceDefinition(refinedAssociationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE);
                 shadowRefDef.toMutable().setMaxOccurs(-1);
                 shadowRefDef.setTargetTypeName(ShadowType.COMPLEX_TYPE);
                 PrismReference shadowAss = shadowRefDef.instantiate();
@@ -186,7 +186,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                 for (PrismContainerValue<C> associationValue : association.getValues()) {
                     if (association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class)) {
                         ShadowAssociationType shadowAssociation = (ShadowAssociationType)associationValue.asContainerable();
-                        if (shadowAssociation.getName().equals(refinedAssocationDefinition.getName())) {
+                        if (shadowAssociation.getName().equals(refinedAssociationDefinition.getName())) {
                             itemPath = associationValue.getPath();
                             shadowAss.add(associationValue.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
                         }
@@ -197,9 +197,9 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                     itemPath = ShadowType.F_ASSOCIATION;
                 }
 
-                String displayName = refinedAssocationDefinition.getDisplayName();
+                String displayName = refinedAssociationDefinition.getDisplayName();
                 if (StringUtils.isBlank(displayName)) {
-                    displayName = refinedAssocationDefinition.getName().getLocalPart();
+                    displayName = refinedAssociationDefinition.getName().getLocalPart();
                 }
 
                 ShadowAssociationReferenceWrapperImpl item = new ShadowAssociationReferenceWrapperImpl(shadowValueWrapper, shadowAss,
@@ -221,7 +221,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                     refValues.add(refValue);
                 }
                 item.getValues().addAll((Collection)refValues);
-                item.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssocationDefinition,
+                item.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssociationDefinition,
                         prismContext, resource.getOid()));
 //                item.setReadOnly(true);
 
