@@ -21,12 +21,7 @@ import com.evolveum.midpoint.report.impl.ReportWebService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -60,16 +55,12 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     }
 
     @Test
-      public void test000Sanity() throws Exception {
-          final String TEST_NAME = "test000Sanity";
-
+    public void test000Sanity() {
         assertNotNull("No web service", reportWebService);
     }
 
     @Test
     public void test100ProcessReportUserList() throws Exception {
-        final String TEST_NAME = "test100ProcessReportUserList";
-
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
 
@@ -79,15 +70,13 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
 
         // THEN
         then();
-        display("Returned user list ("+userList.getObject().size()+" objects)", userList);
+        display("Returned user list (" + userList.getObject().size() + " objects)", userList);
 
         assertUserList(userList);
     }
 
     @Test
-    public void test110ProcessReportUserListNoReportOid() throws Exception {
-        final String TEST_NAME = "test110ProcessReportUserListNoReportOid";
-
+    public void test110ProcessReportUserListNoReportOid() {
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
 
@@ -107,9 +96,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     }
 
     @Test
-    public void test112ProcessReportUserListInvalidReportOid() throws Exception {
-        final String TEST_NAME = "test112ProcessReportUserListInvalidReportOid";
-
+    public void test112ProcessReportUserListInvalidReportOid() {
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
 
@@ -133,8 +120,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
      */
     @Test
     public void test115ProcessReportUserListUnauthorizedReader() throws Exception {
-        final String TEST_NAME = "test115ProcessReportUserListUnauthorizedReader";
-
         login(USER_READER_USERNAME);
 
         String query = createAllQueryString(UserType.class);
@@ -162,8 +147,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
      */
     @Test
     public void test116ProcessReportUserListUnauthorizedRunner() throws Exception {
-        final String TEST_NAME = "test116ProcessReportUserListUnauthorizedRunner";
-
         login(USER_RUNNER_USERNAME);
 
         String query = createAllQueryString(UserType.class);
@@ -191,8 +174,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
      */
     @Test
     public void test119ProcessReportUserListReaderRunner() throws Exception {
-        final String TEST_NAME = "test119ProcessReportUserListReaderRunner";
-
         login(USER_READER_RUNNER_USERNAME);
 
         String query = createAllQueryString(UserType.class);
@@ -211,7 +192,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
 
         // THEN
         then();
-        display("Returned user list ("+userList.getObject().size()+" objects)", userList);
+        display("Returned user list (" + userList.getObject().size() + " objects)", userList);
 
         assertUserList(userList);
     }
@@ -219,22 +200,20 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     // TODO: test that violates safe profile
 
     private String createAllQueryString(Class<?> type) {
-        return "<filter><type><type>"+type.getSimpleName()+"</type></type></filter>";
+        return "<filter><type><type>" + type.getSimpleName() + "</type></type></filter>";
     }
 
     private RemoteReportParametersType createReportParameters() {
-        RemoteReportParametersType parameters = new RemoteReportParametersType();
-        return parameters;
+        return new RemoteReportParametersType();
     }
 
     private void assertUserList(ObjectListType userList) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
-        display("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());
+        display("Current users in midPoint (" + currentUsers.size() + " users)", currentUsers.toString());
 
         assertEquals("Unexpected number of returned objects", currentUsers.size(), userList.getObject().size());
     }
-
 
 }

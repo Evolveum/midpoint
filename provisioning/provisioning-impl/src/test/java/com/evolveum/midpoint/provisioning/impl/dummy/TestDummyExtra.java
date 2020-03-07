@@ -90,7 +90,7 @@ public class TestDummyExtra extends TestDummy {
         Collection<RefinedAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
         RefinedAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
-        assertNotNull("No definitin for crew assocation", crewAssociationDef);
+        assertNotNull("No definition for crew association", crewAssociationDef);
     }
 
     @Override
@@ -104,7 +104,6 @@ public class TestDummyExtra extends TestDummy {
 
     @Test
     public void test400AddAccountElizabeth() throws Exception {
-        final String TEST_NAME = "test400AddAccountElizabeth";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -115,8 +114,6 @@ public class TestDummyExtra extends TestDummy {
 
         display("Adding shadow", account);
 
-        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
@@ -124,8 +121,6 @@ public class TestDummyExtra extends TestDummy {
         // THEN
         then();
         assertSuccess(result);
-
-        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 
         assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
 
@@ -135,8 +130,6 @@ public class TestDummyExtra extends TestDummy {
 
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_ELIZABETH_OID, null, task, result);
-
-        XMLGregorianCalendar tsAfterRead = clock.currentTimeXMLGregorianCalendar();
 
         display("Account will from provisioning", accountProvisioning);
 
@@ -238,7 +231,6 @@ public class TestDummyExtra extends TestDummy {
 
     @Test
     public void test499DeleteAccountElizabeth() throws Exception {
-        final String TEST_NAME = "test499DeleteAccountElizabeth";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

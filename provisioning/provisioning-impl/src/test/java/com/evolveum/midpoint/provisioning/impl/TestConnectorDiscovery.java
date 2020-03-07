@@ -47,9 +47,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
      */
     @Test
     public void test001Connectors() throws Exception {
-        final String TEST_NAME = "test001Connectors";
-
-        OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         when();
@@ -91,9 +89,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 
     @Test
     public void testSearchConnectorSimple() throws SchemaException {
-        final String TEST_NAME = "testSearchConnectorSimple";
-        OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         PrismObject<ConnectorType> ldapConnector = findConnectorByType(IntegrationTestTools.LDAP_CONNECTOR_TYPE, result);
         assertEquals("Type does not match", IntegrationTestTools.LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
