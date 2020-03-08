@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.*;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -28,18 +28,17 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * This is testing the DEPRECATED functions of model API. It should be removed once the functions are phased out.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestModelCrudService extends AbstractInitializedModelIntegrationTest {
 
@@ -54,15 +53,13 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     private static String accountOid;
 
-    @Autowired(required = true)
+    @Autowired
     protected ModelCrudService modelCrudService;
 
     @Test
     public void test050AddResource() throws Exception {
-        final String TEST_NAME = "test050AddResource";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -85,16 +82,14 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        final String TEST_NAME = "test100ModifyUserAddAccount";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
@@ -102,7 +97,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         modifications.add(accountDelta);
 
         // WHEN
-        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
+        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
         // THEN
         // Check accountRef
@@ -140,14 +135,14 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         account.setOid(accountOid);
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
         modifications.add(accountDelta);
 
         // WHEN
-        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
+        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
         // THEN
         // Check accountRef
@@ -158,8 +153,8 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
         // Check is shadow is gone
         try {
-            PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-            AssertJUnit.fail("Shadow "+accountOid+" still exists");
+            repositoryService.getObject(ShadowType.class, accountOid, null, result);
+            AssertJUnit.fail("Shadow " + accountOid + " still exists");
         } catch (ObjectNotFoundException e) {
             // This is OK
         }
@@ -208,12 +203,12 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
         modifications.add(accountDelta);
 
         // WHEN
-        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
+        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
         // THEN
         // Check accountRef
@@ -233,8 +228,6 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
     }
 
-
-
     @Test
     public void test128ModifyUserDeleteAccountRef() throws Exception {
 
@@ -245,14 +238,14 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
         modifications.add(accountDelta);
 
         // WHEN
-        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
+        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -308,7 +301,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         addAccountLinkRef(user, new File(TEST_CONTRACT_DIR, "account-blackbeard-dummy.xml"));
 
         // WHEN
-        modelCrudService.addObject(user , null, task, result);
+        modelCrudService.addObject(user, null, task, result);
 
         // THEN
         // Check accountRef
@@ -331,7 +324,6 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDefaultDummyAccount("blackbeard", "Edward Teach", true);
     }
 
-
     @Test
     public void test210AddUserMorganWithAssignment() throws Exception {
 
@@ -343,7 +335,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-morgan-assignment-dummy.xml"));
 
         // WHEN
-        modelCrudService.addObject(user , null, task, result);
+        modelCrudService.addObject(user, null, task, result);
 
         // THEN
         // Check accountRef

@@ -6,16 +6,11 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -62,19 +57,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy
@@ -169,10 +153,9 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
     }
 
-
     /**
      * This should be the very first test that works with the resource.
-     *
+     * <p>
      * The original repository object does not have resource schema. The schema
      * should be generated from the resource on the first use. This is the test
      * that executes testResource and checks whether the schema was generated.
@@ -334,14 +317,13 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
      * MID-4472, MID-4174
      */
     @Test
-    public void test030ResourceStatciSchemaResourceAndConnectorCaching() throws Exception {
-        resourceStatciSchemaResourceAndConnectorCaching("test030ResourceStatciSchemaResourceAndConnectorCaching");
+    public void test030ResourceStaticSchemaResourceAndConnectorCaching() throws Exception {
+        resourceStaticSchemaResourceAndConnectorCaching();
     }
 
-    public void resourceStatciSchemaResourceAndConnectorCaching(final String TEST_NAME) throws Exception {
-
+    private void resourceStaticSchemaResourceAndConnectorCaching() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // re-read the resource before tests so we have a clean slate, e.g. configuration properly parsed (no raw elements)
         resourceStaticSchema = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result);
@@ -407,7 +389,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         resourceAgain.asObjectable().setFetchResult(null);
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(resourceStaticSchema, resourceAgain);
         display("Dummy resource diff", dummyResourceDiff);
-        assertTrue("The resource read again is not the same as the original. diff:"+dummyResourceDiff, dummyResourceDiff.isEmpty());
+        assertTrue("The resource read again is not the same as the original. diff:" + dummyResourceDiff, dummyResourceDiff.isEmpty());
 
         // Now we stick our nose deep inside the provisioning impl. But we need
         // to make sure that the
@@ -436,7 +418,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     @Test
     public void test040ReAddResourceStaticSchema() throws Exception {
-        final String TEST_NAME = "test040ReAddResourceStaticSchema";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -476,14 +457,13 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
      * MID-4472, MID-4174
      */
     @Test
-    public void test044ResourceStatciSchemaResourceAndConnectorCachingAgain() throws Exception {
-        resourceStatciSchemaResourceAndConnectorCaching("test044ResourceStatciSchemaResourceAndConnectorCachingAgain");
+    public void test044ResourceStaticSchemaResourceAndConnectorCachingAgain() throws Exception {
+        resourceStaticSchemaResourceAndConnectorCaching();
     }
-
 
     /**
      * This should be the very first test that works with the resource.
-     *
+     * <p>
      * The original repository object does not have resource schema. The schema
      * should be generated from the resource on the first use. This is the test
      * that executes testResource and checks whether the schema was generated.
@@ -565,12 +545,12 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     private void assertStaticSchemaSanity(ResourceSchema resorceSchema) {
         ResourceType resourceType = resourceStaticSchema.asObjectable();
-        assertNotNull("No resource schema in "+resourceType, resorceSchema);
+        assertNotNull("No resource schema in " + resourceType, resorceSchema);
         QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
         ObjectClassComplexTypeDefinition accountDefinition = resorceSchema.findObjectClassDefinition(objectClassQname);
-        assertNotNull("No object class definition for "+objectClassQname+" in resource schema", accountDefinition);
+        assertNotNull("No object class definition for " + objectClassQname + " in resource schema", accountDefinition);
         ObjectClassComplexTypeDefinition accountDef1 = resorceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-        assertTrue("Mismatched account definition: "+accountDefinition+" <-> "+accountDef1, accountDefinition == accountDef1);
+        assertTrue("Mismatched account definition: " + accountDefinition + " <-> " + accountDef1, accountDefinition == accountDef1);
 
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
         assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());
@@ -582,24 +562,23 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertNotNull("Null identifiers for " + objectClassQname, identifiers);
         assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 
-
         ResourceAttributeDefinition uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
-        assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
-        assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not an identifier",uidAttributeDefinition.isPrimaryIdentifier(accountDefinition));
-        assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not in identifiers list",identifiers.contains(uidAttributeDefinition));
-        assertEquals("Wrong displayName for attribute "+SchemaTestConstants.ICFS_UID, "Modified ConnId UID", uidAttributeDefinition.getDisplayName());
-        assertEquals("Wrong displayOrder for attribute "+SchemaTestConstants.ICFS_UID, (Integer)100, uidAttributeDefinition.getDisplayOrder());
+        assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not an identifier", uidAttributeDefinition.isPrimaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_UID + " in not in identifiers list", identifiers.contains(uidAttributeDefinition));
+        assertEquals("Wrong displayName for attribute " + SchemaTestConstants.ICFS_UID, "Modified ConnId UID", uidAttributeDefinition.getDisplayName());
+        assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_UID, (Integer) 100, uidAttributeDefinition.getDisplayOrder());
 
         Collection<? extends ResourceAttributeDefinition> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
         assertNotNull("Null secondary identifiers for " + objectClassQname, secondaryIdentifiers);
         assertFalse("Empty secondary identifiers for " + objectClassQname, secondaryIdentifiers.isEmpty());
 
         ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
-        assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);
-        assertTrue("Attribute "+SchemaTestConstants.ICFS_NAME+" in not an identifier",nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
-        assertTrue("Attribute "+SchemaTestConstants.ICFS_NAME+" in not in identifiers list",secondaryIdentifiers.contains(nameAttributeDefinition));
-        assertEquals("Wrong displayName for attribute "+SchemaTestConstants.ICFS_NAME, "Modified ConnId Name", nameAttributeDefinition.getDisplayName());
-        assertEquals("Wrong displayOrder for attribute "+SchemaTestConstants.ICFS_NAME, (Integer)110, nameAttributeDefinition.getDisplayOrder());
+        assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not an identifier", nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
+        assertTrue("Attribute " + SchemaTestConstants.ICFS_NAME + " in not in identifiers list", secondaryIdentifiers.contains(nameAttributeDefinition));
+        assertEquals("Wrong displayName for attribute " + SchemaTestConstants.ICFS_NAME, "Modified ConnId Name", nameAttributeDefinition.getDisplayName());
+        assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_NAME, (Integer) 110, nameAttributeDefinition.getDisplayOrder());
 
         assertNotNull("Null identifiers in account", accountDef1.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef1.getPrimaryIdentifiers().isEmpty());
@@ -614,11 +593,11 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
         assertFalse("UID has create", uidDef.canAdd());
-        assertFalse("UID has update",uidDef.canModify());
-        assertTrue("No UID read",uidDef.canRead());
+        assertFalse("UID has update", uidDef.canModify());
+        assertTrue("No UID read", uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef1.getPrimaryIdentifiers().contains(uidDef));
-        assertEquals("Wrong refined displayName for attribute "+SchemaTestConstants.ICFS_UID, "Modified ConnId UID", uidDef.getDisplayName());
-        assertEquals("Wrong refined displayOrder for attribute "+SchemaTestConstants.ICFS_UID, (Integer)100, uidDef.getDisplayOrder());
+        assertEquals("Wrong refined displayName for attribute " + SchemaTestConstants.ICFS_UID, "Modified ConnId UID", uidDef.getDisplayName());
+        assertEquals("Wrong refined displayOrder for attribute " + SchemaTestConstants.ICFS_UID, (Integer) 100, uidDef.getDisplayOrder());
 
         ResourceAttributeDefinition nameDef = accountDef1
                 .findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
@@ -626,13 +605,13 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
         assertTrue("No NAME create", nameDef.canAdd());
-        assertTrue("No NAME update",nameDef.canModify());
-        assertTrue("No NAME read",nameDef.canRead());
+        assertTrue("No NAME update", nameDef.canModify());
+        assertTrue("No NAME read", nameDef.canRead());
         assertTrue("NAME definition not in identifiers", accountDef1.getSecondaryIdentifiers().contains(nameDef));
-        assertEquals("Wrong refined displayName for attribute "+SchemaTestConstants.ICFS_NAME, "Modified ConnId Name", nameDef.getDisplayName());
-        assertEquals("Wrong refined displayOrder for attribute "+SchemaTestConstants.ICFS_NAME, (Integer)110, nameDef.getDisplayOrder());
+        assertEquals("Wrong refined displayName for attribute " + SchemaTestConstants.ICFS_NAME, "Modified ConnId Name", nameDef.getDisplayName());
+        assertEquals("Wrong refined displayOrder for attribute " + SchemaTestConstants.ICFS_NAME, (Integer) 110, nameDef.getDisplayOrder());
 
-        assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
+        assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
 
         // ACCOUNT
         ObjectClassComplexTypeDefinition accountDef = resorceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -645,7 +624,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertTrue("No fullname create", fullnameDef.canAdd());
         assertTrue("No fullname update", fullnameDef.canModify());
         assertTrue("No fullname read", fullnameDef.canRead());
-        assertTrue("Wrong displayOrder for attribute fullName: "+fullnameDef.getDisplayOrder(),
+        assertTrue("Wrong displayOrder for attribute fullName: " + fullnameDef.getDisplayOrder(),
                 fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250 || fullnameDef.getDisplayOrder() == 260);
 
         // GROUP
@@ -660,21 +639,19 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertTrue("No members update", membersDef.canModify());
         assertTrue("No members read", membersDef.canRead());
 
-        assertEquals("Unexpected number of schema definitions in "+dummyResourceSchemalessCtl.getName()+" dummy resource", dummyResourceStaticSchema.getNumberOfObjectclasses(), resorceSchema.getDefinitions().size());
+        assertEquals("Unexpected number of schema definitions in " + dummyResourceSchemalessCtl.getName() + " dummy resource", dummyResourceStaticSchema.getNumberOfObjectclasses(), resorceSchema.getDefinitions().size());
 
-        for (Definition def: resorceSchema.getDefinitions()) {
+        for (Definition def : resorceSchema.getDefinitions()) {
             if (def instanceof RefinedObjectClassDefinition) {
-                AssertJUnit.fail("Refined definition sneaked into resource schema of "+dummyResourceSchemalessCtl.getName()+" dummy resource: "+def);
+                AssertJUnit.fail("Refined definition sneaked into resource schema of " + dummyResourceSchemalessCtl.getName() + " dummy resource: " + def);
             }
         }
     }
 
     @Test
     public void test107Capabilities() throws Exception {
-        final String TEST_NAME = "test107Capabilities";
-
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         when();
@@ -753,19 +730,16 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result)
                 .asObjectable();
         PrismAsserts.assertEqualsPolyString("Wrong name", "will", accountType.getName());
-//        assertEquals("will", accountType.getName());
 
         ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, null, result).asObjectable();
         display("account from provisioning", provisioningAccountType);
         PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
-//        assertEquals("will", provisioningAccountType.getName());
 
         assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
                 provisioningAccountType, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
         // Check if the account was created in the dummy resource
-
         DummyAccount dummyAccount = dummyResourceStaticSchema.getAccountByUsername("will");
         assertNotNull("No dummy account", dummyAccount);
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
@@ -779,7 +753,5 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         display("Repository shadow", shadowFromRepo.debugDump());
 
         ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
-
     }
-
 }

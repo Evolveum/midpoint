@@ -402,9 +402,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test020ImportTask() throws Exception {
-        final String TEST_NAME = "test020ImportTask";
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(IMPORT_TASK_FILE_NAME, false));
 
@@ -446,9 +445,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test030ImportResource() throws Exception {
-        final String TEST_NAME = "test030ImportResource";
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(RESOURCE_DUMMY_FILE_NAME, true));
 
@@ -496,9 +494,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test031ReimportResource() throws Exception {
-        final String TEST_NAME = "test031ReimportResource";
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(RESOURCE_DUMMY_CHANGED_FILE_NAME, false));
 
@@ -550,9 +547,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test032ImportResourceOidAndFilter() throws Exception {
-        final String TEST_NAME = "test032ImportResourceOidAndFilter";
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(RESOURCE_DERBY_FILE_NAME, false));
 
@@ -603,9 +599,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
      */
     @Test
     public void test033ImportResourceDummyRuntime() throws Exception {
-        final String TEST_NAME = "test033ImportResourceDummyRuntime";
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(RESOURCE_DUMMY_RUNTIME_FILE_NAME, false));
 

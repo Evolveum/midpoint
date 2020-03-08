@@ -26,10 +26,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author semancik
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMerge extends AbstractInitializedModelIntegrationTest {
@@ -69,8 +65,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         display("Jack before", userJackBefore);
 
@@ -96,9 +90,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test100MergeJackGuybrushPreviewDelta() throws Exception {
-        final String TEST_NAME = "test100MergeJackGuybrushPreviewDelta";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -158,9 +150,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test102MergeJackGuybrushPreviewObject() throws Exception {
-        final String TEST_NAME = "test102MergeJackGuybrushPreviewObject";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -208,9 +198,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110MergeGuybrushJackPreviewDelta() throws Exception {
-        final String TEST_NAME = "test110MergeGuybrushJackPreviewDelta";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
@@ -267,9 +255,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test112MergeGuybrushJackPreviewObject() throws Exception {
-        final String TEST_NAME = "test112MergeGuybrushJackPreviewObject";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -314,9 +300,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test200MergeJackGuybrushExpressionPreviewDelta() throws Exception {
-        final String TEST_NAME = "test200MergeJackGuybrushExpressionPreviewDelta";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -366,9 +350,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test202MergeJackGuybrushExpressionPreviewObject() throws Exception {
-        final String TEST_NAME = "test202MergeJackGuybrushExpressionPreviewObject";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -416,9 +398,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test300MergeJackGuybrushPreviewDeltaDefaultSpecific() throws Exception {
-        final String TEST_NAME = "test300MergeJackGuybrushPreviewDeltaDefaultSpecific";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -478,9 +458,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test500MergeJackGuybrush() throws Exception {
-        final String TEST_NAME = "test500MergeJackGuybrush";
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

@@ -18,7 +18,7 @@ import java.util.*;
  * @author semancik
  *
  */
-public class UniformItemPathImpl implements UniformItemPath {
+class UniformItemPathImpl implements UniformItemPath {
 
     public static final UniformItemPathImpl EMPTY_PATH = UniformItemPathImpl.createEmpty();
 
@@ -39,20 +39,6 @@ public class UniformItemPathImpl implements UniformItemPath {
             return (UniformItemPathImpl) itemPath;
         } else {
             return new UniformItemPathImpl(itemPath);
-        }
-    }
-
-    public static ItemPathSegment createSegment(QName qname, boolean variable) {
-        if (ParentPathSegment.QNAME.equals(qname)) {
-            return new ParentPathSegment();
-        } else if (ObjectReferencePathSegment.QNAME.equals(qname)) {
-            return new ObjectReferencePathSegment();
-        } else if (IdentifierPathSegment.QNAME.equals(qname)) {
-            return new IdentifierPathSegment();
-        } else if (variable) {
-            return new VariableItemPathSegment(qname);
-        } else {
-            return new NameItemPathSegment(qname);
         }
     }
 
@@ -216,7 +202,7 @@ public class UniformItemPathImpl implements UniformItemPath {
     }
 
     private void add(QName qname) {
-        this.segments.add(createSegment(qname, false));
+        this.segments.add(UniformItemPath.createSegment(qname, false));
     }
 
     private void add(ItemPathSegment segment) {
@@ -425,5 +411,9 @@ public class UniformItemPathImpl implements UniformItemPath {
         StringBuilder sb = new StringBuilder();
         shortDump(sb);
         return sb.toString();
+    }
+
+    static UniformItemPath create(Object... segments) {
+        return new UniformItemPathImpl(segments);
     }
 }

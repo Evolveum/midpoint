@@ -68,8 +68,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
     @Test
     public void test001getUserSelfBySomebody() {
-        final String TEST_NAME = "test001getUserSelfBySomebody";
-
         WebClient client = prepareClient(USER_SOMEBODY_OID);
         client.path("/self/");
 
@@ -91,8 +89,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
     @Test
     public void test002getUserSelfByEgoist() {
-        final String TEST_NAME = "test002getUserSelfByEgoist";
-
         WebClient client = prepareClient(USER_EGOIST_OID);
         client.path("/self/");
 
@@ -118,8 +114,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
      */
     @Test
     public void test003getUserAdministratorByEgoist() {
-        final String TEST_NAME = "test003getUserAdministratorByEgoist";
-
         WebClient client = prepareClient(USER_EGOIST_OID);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -141,8 +135,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
      */
     @Test
     public void test004getUserSelfByHead() {
-        final String TEST_NAME = "test004getUserSelfByHead";
-
         WebClient client = prepareClient(null);
         client.path("/self");
 
@@ -168,8 +160,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
      */
     @Test
     public void test005getUserSelfByProxyHead() {
-        final String TEST_NAME = "test005getUserSelfByProxyHead";
-
         WebClient client = prepareClient(USER_HEAD_OID);
         client.path("/self");
 

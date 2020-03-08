@@ -3105,15 +3105,16 @@ public final class WebComponentUtil {
         return StreamSupport.stream(array.spliterator(), true).allMatch(o -> o == null);
     }
 
-    public static ObjectFilter createAssociationShadowRefFilter(RefinedAssociationDefinition refinedAssocationDefinition, PrismContext prismContext,
-                                                                String resourceOid){
+    public static ObjectFilter createAssociationShadowRefFilter(
+            RefinedAssociationDefinition refinedAssociationDefinition,
+            PrismContext prismContext, String resourceOid) {
         S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
         List<ObjectFilter> orFilterClauses = new ArrayList<>();
-        refinedAssocationDefinition.getIntents()
+        refinedAssociationDefinition.getIntents()
                 .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
         OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
-        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
+        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
         filter.addCondition(intentFilter);
         return filter;

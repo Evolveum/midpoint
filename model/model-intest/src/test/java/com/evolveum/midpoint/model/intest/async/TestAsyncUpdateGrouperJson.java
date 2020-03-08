@@ -75,7 +75,6 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         Task task = getTestTask();
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);

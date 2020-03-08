@@ -63,11 +63,6 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
         return parentDataItem;
     }
 
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     @SuppressWarnings("unused")
     public String debugDumpNoParent() {
         return debugDump(0, false);

@@ -24,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -57,8 +56,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
-        final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -93,8 +90,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test102RecomputeUserJack() throws Exception {
-        final String TEST_NAME = "test102RecomputeUserJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -112,8 +107,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test103ReconcileUserJack() throws Exception {
-        final String TEST_NAME = "test103ReconcileUserJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -131,8 +124,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test104RecomputeJackAdminPersona() throws Exception {
-        final String TEST_NAME = "test104RecomputeJackAdminPersona";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -150,8 +141,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test105ReconcileJackAdminPersona() throws Exception {
-        final String TEST_NAME = "test105ReconcileJackAdminPersona";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -186,8 +175,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test120ModifyJackGivenName() throws Exception {
-        final String TEST_NAME = "test120ModifyJackGivenName";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -223,8 +210,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test140ModifyUserJackPassword() throws Exception {
-        final String TEST_NAME = "test140ModifyUserJackPassword";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -257,8 +242,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test142ModifyPersonaPassword() throws Exception {
-        final String TEST_NAME = "test142ModifyPersonaPassword";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -297,8 +280,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test145ModifyPersonaPasswordBack() throws Exception {
-        final String TEST_NAME = "test145ModifyPersonaPasswordBack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -331,14 +312,12 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     }
 
 
-    // TODO: assign some accouts/roles to user and persona, make sure they are independent
+    // TODO: assign some accounts/roles to user and persona, make sure they are independent
 
     // TODO: independent change in the persona
 
     @Test
     public void test199UnassignRolePersonaAdminFromJack() throws Exception {
-        final String TEST_NAME = "test199UnassignRolePersonaAdminFromJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

@@ -70,7 +70,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
             String userName = (String) script.getParams().get("midpoint_usercn");
             String idPath = (String) script.getParams().get("midpoint_idpath");
             String tempPath = (String) script.getParams().get("midpoint_temppath");
-            LOGGER.trace("userName {} idPath {} tempPath {}", userName, idPath, tempPath);
+            logger.trace("userName {} idPath {} tempPath {}", userName, idPath, tempPath);
             if (!idPath.contains(userName)) {
                 AssertJUnit.fail("Expected that idPath will contain userName [idPath: " + idPath + ", userName " + userName + "]");
             }
@@ -97,7 +97,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
             String userName = (String) script.getParams().get("midpoint_usercn");
             String idPath = (String) script.getParams().get("midpoint_idpath");
             String tempPath = (String) script.getParams().get("midpoint_temppath");
-            LOGGER.trace("userName {} idPath {} tempPath {}", userName, idPath, tempPath);
+            logger.trace("userName {} idPath {} tempPath {}", userName, idPath, tempPath);
             if (!idPath.contains(userName)) {
                 AssertJUnit.fail("Expected that idPath will contain userName [idPath: " + idPath + ", userName " + userName + "]");
             }
@@ -110,9 +110,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test003testReconcileScriptsAddUserAction() throws Exception {
-        final String TEST_NAME = "test003testReconcileScriptsAddUserAction";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
         OperationResult parentResult = createOperationResult();
 
         ShadowType shadow = parseObjectType(new File(ACCOUNT_BEFORE_SCRIPT_FILENAME), ShadowType.class);
@@ -140,7 +138,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
             String userName = (String) script.getParams().get("midpoint_usercn");
             String idPath = (String) script.getParams().get("midpoint_idpath");
             String tempPath = (String) script.getParams().get("midpoint_temppath");
-            LOGGER.trace("userName {} idPath {} tempPath {}", userName, idPath, tempPath);
+            logger.trace("userName {} idPath {} tempPath {}", userName, idPath, tempPath);
             if (!idPath.contains(userName)) {
                 AssertJUnit.fail("Expected that idPath will contain userName [idPath: " + idPath + ", userName " + userName + "]");
             }

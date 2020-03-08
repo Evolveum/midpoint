@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.model.intest.rbac.TestRbac;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -74,7 +73,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     private static final String GROUP_DUMMY_FOOLS_NAME = "FoOlS";
 
-    @Autowired(required = true)
+    @Autowired
     protected MatchingRuleRegistry matchingRuleRegistry;
 
     private MatchingRule<String> caseIgnoreMatchingRule;
@@ -100,17 +99,13 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME="test000Sanity";
-
         assertShadows(5);
     }
 
     @Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
-        final String TEST_NAME="test131ModifyUserJackAssignAccount";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_UPCASE_OID, null, true);
@@ -159,11 +154,9 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test133SeachAccountShadows() throws Exception {
-        final String TEST_NAME="test133SeachAccountShadows";
-
+    public void test133SearchAccountShadows() throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_UPCASE_OID,
@@ -213,10 +206,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test139ModifyUserJackUnassignAccount() throws Exception {
-        final String TEST_NAME = "test139ModifyUserJackUnassignAccount";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -252,9 +243,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test150JackAssignRoleX() throws Exception {
-        final String TEST_NAME = "test150JackAssignRoleX";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -298,9 +287,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test152GetJack() throws Exception {
-        final String TEST_NAME = "test152GetJack";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -339,9 +326,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test159JackUnAssignRoleX() throws Exception {
-        final String TEST_NAME = "test159JackUnAssignRoleX";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -370,9 +355,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test160JackAssignRoleBasic() throws Exception {
-        final String TEST_NAME = "test160JackAssignRoleBasic";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -418,9 +401,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test161JackAssignRoleJoker() throws Exception {
-        final String TEST_NAME = "test161JackAssignRoleJoker";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -470,9 +451,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test165JackUnAssignRoleJoker() throws Exception {
-        final String TEST_NAME = "test165JackUnAssignRoleJoker";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -518,9 +497,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test169JackUnAssignRoleBasic() throws Exception {
-        final String TEST_NAME = "test169JackUnAssignRoleBasic";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -552,9 +529,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test170JackAssignRoleJoker() throws Exception {
-        final String TEST_NAME = "test170JackAssignRoleJoker";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -599,9 +574,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test179JackUnAssignRoleJoker() throws Exception {
-        final String TEST_NAME = "test179JackUnAssignRoleJoker";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -641,9 +614,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test200GuybrushAssignRoleFools() throws Exception {
-        final String TEST_NAME = "test200GuybrushAssignRoleFools";
-
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertShadows(5);

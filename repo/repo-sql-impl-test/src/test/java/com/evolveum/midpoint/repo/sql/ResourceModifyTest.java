@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ResourceModifyTest extends BaseSQLRepoTest {
 
@@ -59,11 +59,8 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test010AddResource() throws Exception {
-        final String TEST_NAME = "test010AddResource";
-        logger.info("===[ {} ]===", TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
+        OperationResult result = createOperationResult();
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_FILE);
 
         // WHEN
@@ -81,33 +78,24 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test020SingleDescriptionModify() throws Exception {
-        final String TEST_NAME = "test020SingleDescriptionModify";
-        logger.info("===[ {} ]===", TEST_NAME);
-
-        OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
+        OperationResult result = createOperationResult();
         singleModify(descriptionAnt, -1, result);
     }
 
     @Test
     public void test030DescriptionModifySequence() throws Exception {
-        final String TEST_NAME = "test030DescriptionModifySequence";
-        logger.info("===[ {} ]===", TEST_NAME);
+        OperationResult result = createOperationResult();
 
-        OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
-
-        for(int i=0; i <= MAX_SEQUENCE_ITERATIONS; i++) {
+        for (int i = 0; i <= MAX_SEQUENCE_ITERATIONS; i++) {
             singleModify(descriptionAnt, i, result);
         }
     }
 
     @Test
     public void test040RadomModifySequence() throws Exception {
-        final String TEST_NAME = "test040RadomModifySequence";
-        logger.info("===[ {} ]===", TEST_NAME);
+        OperationResult result = createOperationResult();
 
-        OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
-
-        for(int i=0; i <= MAX_RANDOM_SEQUENCE_ITERATIONS; i++) {
+        for (int i = 0; i <= MAX_RANDOM_SEQUENCE_ITERATIONS; i++) {
             singleRandomModify(i, result);
         }
     }
@@ -121,8 +109,8 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     private void singleModify(CarefulAnt<ResourceType> ant, int iteration, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
         // GIVEN
-        ItemDelta<?,?> itemDelta = ant.createDelta(iteration);
-        Collection<? extends ItemDelta<?,?>> modifications = MiscSchemaUtil.createCollection(itemDelta);
+        ItemDelta<?, ?> itemDelta = ant.createDelta(iteration);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(itemDelta);
 
         System.out.println("itemDelta: " + itemDelta.debugDump());
 
@@ -133,9 +121,8 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
         PrismObject<ResourceType> resourceAfter = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
         SqlRepoTestUtil.assertVersionProgress(lastVersion, resourceAfter.getVersion());
         lastVersion = resourceAfter.getVersion();
-        System.out.println("Version: "+lastVersion);
+        System.out.println("Version: " + lastVersion);
 
         ant.assertModification(resourceAfter, iteration);
     }
-
 }
