@@ -699,6 +699,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     //region Task-level actions
+    //TODO unify with TaskOperationUtils
     private void suspendTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
         List<TaskType> selectedTasks = getSelectedTasks(target, selectedTask);
         if (selectedTasks == null) {

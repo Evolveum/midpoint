@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -146,6 +147,10 @@ public class MemberOperationsHelper {
         Task operationalTask = pageBase.createSimpleTask(getTaskName(RECOMPUTE_OPERATION, scope));
         OperationResult parentResult = operationalTask.getResult();
         try {
+            operationalTask.getClonedTaskObject().asObjectable().getAssignment()
+                    .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, pageBase.getPrismContext()));
+            operationalTask.getClonedTaskObject().asObjectable().getArchetypeRef()
+                    .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE));
             return WebComponentUtil.createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
                     null, parentResult, pageBase);
         } catch (SchemaException e) {
@@ -409,8 +414,10 @@ public class MemberOperationsHelper {
         try {
             Task executableTask = WebComponentUtil.createMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
             if (executableTask != null) {
-                //TODO iterative bulk task archetype
-//                executableTask.getClonedTaskObject().asObjectable().getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE))
+                executableTask.getUpdatedTaskObject().asObjectable().getAssignment()
+                        .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ObjectTypes.ARCHETYPE, modelServiceLocator.getPrismContext()));
+                executableTask.getUpdatedTaskObject().asObjectable().getArchetypeRef()
+                        .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ObjectTypes.ARCHETYPE));
                 WebComponentUtil.executeMemberOperation(executableTask, parentResult, modelServiceLocator);
             }
         } catch (SchemaException e) {
