@@ -25,11 +25,13 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -994,7 +996,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
                 Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(true),
                         getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
-                return task.getClonedTaskObject();
+                if (task == null) {
+                    return null;
+                }
+                PrismObject<TaskType> recomputeTask = task.getClonedTaskObject();
+                TaskType recomputeTaskType = recomputeTask.asObjectable();
+                recomputeTaskType.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
+                return recomputeTask;
             }
 
             @Override

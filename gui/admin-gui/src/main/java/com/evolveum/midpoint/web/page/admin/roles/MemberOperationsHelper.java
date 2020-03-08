@@ -143,7 +143,18 @@ public class MemberOperationsHelper {
 
     public static <R extends AbstractRoleType> Task createRecomputeMembersTask(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
-        return createRecomputeOrDeleteMembersTask(pageBase, scope, query, target, "recompute", RECOMPUTE_OPERATION);
+        Task operationalTask = pageBase.createSimpleTask(getTaskName(RECOMPUTE_OPERATION, scope));
+        OperationResult parentResult = operationalTask.getResult();
+        try {
+            return WebComponentUtil.createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
+                    null, parentResult, pageBase);
+        } catch (SchemaException e) {
+            parentResult.recordFatalError(parentResult.getOperation(), e);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Failed to execute operation " + parentResult.getOperation(), e);
+            target.add(pageBase.getFeedbackPanel());
+        }
+        return null;
     }
 
     private static <R extends AbstractRoleType> Task createRecomputeOrDeleteMembersTask(PageBase pageBase, QueryScope scope,

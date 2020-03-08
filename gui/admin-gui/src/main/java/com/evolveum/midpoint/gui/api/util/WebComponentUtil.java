@@ -746,6 +746,56 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static Task createRecomputeMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
+            Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
+
+        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+        operationalTask.setOwner(owner.getFocus().asPrismObject());
+
+        operationalTask.setBinding(TaskBinding.LOOSE);
+        operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+        operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
+        ScheduleType schedule = new ScheduleType();
+        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+        operationalTask.makeSingle(schedule);
+        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
+
+        PrismPropertyDefinition propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        PrismProperty<QueryType> queryProperty = propertyDefQuery.instantiate();
+        QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
+        queryProperty.setRealValue(queryType);
+        operationalTask.addExtensionProperty(queryProperty);
+
+        PrismPropertyDefinition propertyDefType = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        PrismProperty<QName> typeProperty = propertyDefType.instantiate();
+        typeProperty.setRealValue(type);
+        operationalTask.addExtensionProperty(typeProperty);
+
+        if (option != null) {
+            PrismPropertyDefinition propertyDefOption = pageBase.getPrismContext().getSchemaRegistry()
+                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
+            PrismProperty<SelectorQualifiedGetOptionsType> optionProperty = propertyDefOption.instantiate();
+            optionProperty.setRealValue(MiscSchemaUtil.optionsToOptionsType(option));
+            operationalTask.addExtensionProperty(optionProperty);
+        }
+
+        try {
+            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.RECOMPUTE.getUrl(),
+                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
+            operationalTask.setHandlerUri(ModelPublicConstants.RECOMPUTE_HANDLER_URI);
+            return operationalTask;
+        } catch (ObjectNotFoundException | SchemaException
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | SecurityViolationException e) {
+            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
+        }
+        return null;
+    }
+
+
     public static void executeMemberOperation(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
 
         OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
