@@ -855,7 +855,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             protected void onUpdate(AjaxRequestTarget target) {
                 refreshAll(target);
-            };
+            }
 
         });
 

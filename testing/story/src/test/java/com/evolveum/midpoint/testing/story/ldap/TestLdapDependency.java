@@ -450,7 +450,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
             if (LDAP_OU_VIP_INTENT.equals(intent)) search = "ou="+orgName+"-vip";
         }
         Entry objEntry = openDJController.searchSingle(search);
-        assertNotNull("No LDAP entry for "+orgName, objEntry);;
+        assertNotNull("No LDAP entry for "+orgName, objEntry);
         display("LDAP entry kind " +kind + " inten " + intent +" ldapObj", objEntry);
 
         if (kind.equals(ShadowKindType.ENTITLEMENT)){

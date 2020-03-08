@@ -144,7 +144,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 
             public boolean isVisible() {
                 return getResetPasswordPolicy().getResetMethod() == ResetMethod.SECURITY_QUESTIONS;
-            };
+            }
         });
 
         WebMarkupContainer emailContainer = new WebMarkupContainer(ID_EMAIL_CONTAINER);
@@ -161,7 +161,7 @@ public class PageForgotPassword extends PageRegistrationBase {
             public boolean isVisible() {
                 ResetMethod resetMethod = getResetPasswordPolicy().getResetMethod();
                 return resetMethod == ResetMethod.SECURITY_QUESTIONS || resetMethod == ResetMethod.MAIL;
-            };
+            }
         });
 
     }

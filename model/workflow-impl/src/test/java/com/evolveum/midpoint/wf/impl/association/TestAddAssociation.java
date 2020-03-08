@@ -360,7 +360,7 @@ public class TestAddAssociation extends AbstractWfTest {
         void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                 OperationResult result) throws Exception { }
         boolean decideOnApproval(CaseType subcase, ApprovalContextType wfContext) throws Exception { return true; }
-        String getObjectOid(CaseType task, OperationResult result) throws SchemaException { return null; };
+        String getObjectOid(CaseType task, OperationResult result) throws SchemaException { return null; }
         boolean removeAssignmentsBeforeTest() { return true; }
     }
 

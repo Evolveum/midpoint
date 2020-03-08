@@ -80,7 +80,7 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
                             public void yesPerformed(AjaxRequestTarget target) {
                                 getPageBase().getCounterManager().removeCounter(counter);
                                 target.add(InternalsCountersPanel.this);
-                            };
+                            }
                         };
                         getPageBase().showMainPopup(confirmPanel, target);
                         target.add(InternalsCountersPanel.this);

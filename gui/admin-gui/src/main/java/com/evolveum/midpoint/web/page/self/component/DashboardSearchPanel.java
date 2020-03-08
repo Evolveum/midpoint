@@ -99,7 +99,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
             public IModel<?> getBody() {
                 return searchTypes.get(selectedSearchType);
-            };
+            }
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {

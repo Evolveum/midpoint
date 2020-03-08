@@ -62,7 +62,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel, IModel<Boolean> selected) {
                     super.onUpdateRow(target, table, rowModel, selected);
                     onUpdateCheckbox(target, rowModel);
-                };
+                }
 
                 @Override
                 protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {

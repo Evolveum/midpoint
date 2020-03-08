@@ -490,7 +490,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(allowTransitive);
 
         addAjaxOnUpdateBehavior(body);
-    };
+    }
 
     private void addPrivilegesPanel(WebMarkupContainer body){
         privilegesNames = getPrivilegesNamesList();

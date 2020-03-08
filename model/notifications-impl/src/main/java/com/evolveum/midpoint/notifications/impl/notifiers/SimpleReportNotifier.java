@@ -138,6 +138,6 @@ public class SimpleReportNotifier extends GeneralNotifier {
 
     protected String getContentType() {
         return "text/html";
-    };
+    }
 
 }
