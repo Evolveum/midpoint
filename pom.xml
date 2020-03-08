@@ -146,7 +146,6 @@
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
-        <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
         <cxf.version>3.3.1</cxf.version>
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
@@ -566,11 +565,6 @@
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
                 <version>${commons.lang.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons.lang3.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
