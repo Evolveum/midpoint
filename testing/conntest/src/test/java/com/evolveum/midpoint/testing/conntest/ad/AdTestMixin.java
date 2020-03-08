@@ -28,6 +28,9 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+/**
+ * Mixin providing common methods/utilities for Active Directory (AD) related tests.
+ */
 public interface AdTestMixin extends MidpointTestMixin {
 
     String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
