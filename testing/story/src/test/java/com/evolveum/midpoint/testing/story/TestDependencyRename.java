@@ -42,7 +42,6 @@ public class TestDependencyRename extends AbstractStoryTest {
     protected static final File RESOURCE_DUMMY_PHONEBOOK_FILE = new File(TEST_DIR, "resource-dummy-phonebook.xml");
     protected static final String RESOURCE_DUMMY_PHONEBOOK_ID = "phonebook";
     protected static final String RESOURCE_DUMMY_PHONEBOOK_OID = "10000000-0000-0000-0000-000000000001";
-    protected static final String RESOURCE_DUMMY_PHONEBOOK_NAMESPACE = MidPointConstants.NS_RI;
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
@@ -76,7 +75,7 @@ public class TestDependencyRename extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -102,8 +101,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_PHONEBOOK_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -116,8 +114,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 
     @Test
     public void test100AddUserHerman() throws Exception {
-        final String TEST_NAME = "test100AddUserHerman";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUserDefinition().instantiate();
@@ -146,8 +143,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 
     @Test
     public void test110HermanAssignRoleBasic() throws Exception {
-        final String TEST_NAME = "test110HermanAssignRoleBasic";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
