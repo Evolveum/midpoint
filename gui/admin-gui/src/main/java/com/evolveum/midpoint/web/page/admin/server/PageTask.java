@@ -1,7 +1,17 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
+
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
@@ -65,6 +75,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private static final transient Trace LOGGER = TraceManager.getTrace(PageTask.class);
     private static final String DOT_CLASS = PageTask.class.getName() + ".";
     protected static final String OPERATION_EXECUTE_TASK_CHANGES = DOT_CLASS + "executeTaskChanges";
+    private static final String OPERATION_LOAD_REPORT_OUTPUT = DOT_CLASS + "loadReport";
 
     private static final int REFRESH_INTERVAL = 2000;
 
@@ -124,101 +135,20 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     protected void initOperationalButtons(RepeatingView repeatingView) {
         super.initOperationalButtons(repeatingView);
-        AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                String taskOid = getObjectWrapper().getOid();
-                OperationResult result = TaskOperationUtils.suspendPerformed(getTaskService(), Collections.singletonList(taskOid), PageTask.this);
-                afterOperation(target, result);
-            }
-        };
-        suspend.add(new VisibleBehaviour(() -> WebComponentUtil.canSuspendTask(getTask(), PageTask.this)));
-        suspend.add(AttributeAppender.append("class", "btn-danger"));
-        repeatingView.add(suspend);
 
-        AjaxButton resume = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.resume")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                String oid = getObjectWrapper().getOid();
-                OperationResult result = TaskOperationUtils.resumePerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
-                afterOperation(target, result);
-            }
-        };
-        resume.add(AttributeAppender.append("class", "btn-primary"));
-        resume.add(new VisibleBehaviour(() -> WebComponentUtil.canResumeTask(getTask(), PageTask.this)));
-        repeatingView.add(resume);
+        createSuspendButton(repeatingView);
+        createResumeButton(repeatingView);
+        createRunNowButton(repeatingView);
 
-        AjaxButton runNow = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.runNow")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                String oid = getObjectWrapper().getOid();
-                refreshEnabled = Boolean.TRUE;
-                OperationResult result = TaskOperationUtils.runNowPerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
-                afterOperation(target, result);
-            }
-        };
-        runNow.add(AttributeAppender.append("class", "btn-success"));
-        runNow.add(new VisibleBehaviour(() -> WebComponentUtil.canRunNowTask(getTask(), PageTask.this)));
-        repeatingView.add(runNow);
+        createManageLivesyncTokenButton(repeatingView);
+        createDownloadReportButton(repeatingView);
+        createCleanupPerformanceButton(repeatingView);
+        createCleanupResultsButton(repeatingView);
 
-        AjaxIconButton refreshNow = new AjaxIconButton(repeatingView.newChildId(), new Model<>("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
+        createRefreshNowIconButton(repeatingView);
+        createResumePauseButton(repeatingView);
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                refresh(target);
-            }
-        };
-        refreshNow.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        repeatingView.add(refreshNow);
 
-        AjaxIconButton resumePauseRefreshing = new AjaxIconButton(repeatingView.newChildId(), (IModel<String>) this::createResumePauseButton, createStringResource("autoRefreshPanel.resumeRefreshing")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                refreshEnabled = !isRefreshEnabled();
-                refresh(target);
-            }
-        };
-        resumePauseRefreshing.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
-        repeatingView.add(resumePauseRefreshing);
-
-        AjaxIconButton cleanupPerformance = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
-                createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                try {
-                    getObjectWrapper().findProperty(ItemPath.create(TaskType.F_OPERATION_STATS,
-                            OperationStatsType.F_ENVIRONMENTAL_PERFORMANCE_INFORMATION)).getValue().setRealValue(null);
-                } catch (SchemaException e){
-                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
-                }
-                saveTaskChanges();
-                refresh(target);
-            }
-        };
-        cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
-        cleanupPerformance.add(new VisibleBehaviour(this::isNotRunning));
-        repeatingView.add(cleanupPerformance);
-
-        AjaxIconButton cleanupResults = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
-                createStringResource("operationalButtonsPanel.cleanupResults")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                try {
-                    getObjectWrapper().findProperty(TaskType.F_RESULT).getValue().setRealValue(null);
-                    getObjectWrapper().findProperty(TaskType.F_RESULT_STATUS).getValue().setRealValue(null);
-                } catch (SchemaException e){
-                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
-                }
-                saveTaskChanges();
-                refresh(target);
-            }
-        };
-        cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
-        cleanupResults.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
-        repeatingView.add(cleanupResults);
 
 //        AjaxIconButton cleanupErrors = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
 //        createStringResource("operationalButtonsPanel.cleanupErrors")) {
@@ -240,21 +170,250 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     }
 
-    private void saveTaskChanges(){
-        OperationResult result = new OperationResult(OPERATION_EXECUTE_TASK_CHANGES);
-        Task task = createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
+    private void createSuspendButton(RepeatingView repeatingView) {
+        AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                String taskOid = getObjectWrapper().getOid();
+                OperationResult result = TaskOperationUtils.suspendPerformed(getTaskService(), Collections.singletonList(taskOid), PageTask.this);
+                afterOperation(target, result);
+            }
+        };
+        suspend.add(new VisibleBehaviour(() -> WebComponentUtil.canSuspendTask(getTask(), PageTask.this)));
+        suspend.add(AttributeAppender.append("class", "btn-danger"));
+        repeatingView.add(suspend);
+    }
+
+    private void createResumeButton(RepeatingView repeatingView) {
+        AjaxButton resume = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.resume")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                String oid = getObjectWrapper().getOid();
+                OperationResult result = TaskOperationUtils.resumePerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
+                afterOperation(target, result);
+            }
+        };
+        resume.add(AttributeAppender.append("class", "btn-primary"));
+        resume.add(new VisibleBehaviour(() -> WebComponentUtil.canResumeTask(getTask(), PageTask.this)));
+        repeatingView.add(resume);
+    }
+
+    private void createRunNowButton(RepeatingView repeatingView) {
+        AjaxButton runNow = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.runNow")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                String oid = getObjectWrapper().getOid();
+                refreshEnabled = Boolean.TRUE;
+                OperationResult result = TaskOperationUtils.runNowPerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
+                afterOperation(target, result);
+            }
+        };
+        runNow.add(AttributeAppender.append("class", "btn-success"));
+        runNow.add(new VisibleBehaviour(() -> WebComponentUtil.canRunNowTask(getTask(), PageTask.this)));
+        repeatingView.add(runNow);
+    }
+
+    private void createManageLivesyncTokenButton(RepeatingView repeatingView) {
+        AjaxButton manageLivesyncToken = new AjaxButton(repeatingView.newChildId(), createStringResource("PageTask.livesync.token")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                LivesyncTokenEditorPanel tokenEditor = new LivesyncTokenEditorPanel(PageTask.this.getMainPopupBodyId(), getObjectModel()) {
+
+                    @Override
+                    protected void saveTokenPerformed(ObjectDelta<TaskType> tokenDelta, AjaxRequestTarget target) {
+                        saveTaskChanges(target, tokenDelta);
+                    }
+                };
+                tokenEditor.setOutputMarkupId(true);
+                PageTask.this.showMainPopup(tokenEditor, ajaxRequestTarget);
+            }
+        };
+        manageLivesyncToken.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isLiveSync(getTask()) && isNotRunning();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isNotRunning();
+            }
+        });
+        manageLivesyncToken.add(AttributeAppender.append("class", "btn-default"));
+        manageLivesyncToken.setOutputMarkupId(true);
+        repeatingView.add(manageLivesyncToken);
+    }
+
+    private void createDownloadReportButton(RepeatingView repeatingView) {
+        final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected InputStream initStream() {
+                ReportOutputType reportObject = getReportOutput();
+                if (reportObject != null) {
+                    return PageCreatedReports.createReport(reportObject, this, PageTask.this);
+                } else {
+                    return null;
+                }
+            }
+
+
+            @Override
+            public String getFileName() {
+                ReportOutputType reportObject = getReportOutput();
+                return PageCreatedReports.getReportFileName(reportObject);
+            }
+        };
+        add(ajaxDownloadBehavior);
+
+        AjaxButton download = new AjaxButton(repeatingView.newChildId(), createStringResource("PageTask.download.report")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ajaxDownloadBehavior.initiate(target);
+            }
+        };
+        download.add(new VisibleBehaviour(() -> isDownloadReportVisible()));
+        download.add(AttributeAppender.append("class", "btn-primary"));
+        repeatingView.add(download);
+    }
+
+    private boolean isDownloadReportVisible() {
+        return WebComponentUtil.isReport(getTask())
+                && getReportOutputProperty() != null;
+    }
+
+    private ReportOutputType getReportOutput() {
+        PrismProperty<String> reportOutput = getReportOutputProperty();
+        if (reportOutput == null) {
+            return null;
+        }
+
+        String reportOutputOid = reportOutput.getRealValue();
+        if (reportOutputOid == null) {
+            return null;
+        }
+
+        Task opTask = createSimpleTask(OPERATION_LOAD_REPORT_OUTPUT);
+        OperationResult result = opTask.getResult();
+
+        PrismObject<ReportOutputType> report = WebModelServiceUtils.loadObject(ReportOutputType.class, reportOutputOid, this, opTask, result);
+        if (report == null) {
+            return null;
+        }
+        result.computeStatusIfUnknown();
+        showResult(result, false);
+
+        return report.asObjectable();
+
+    }
+
+    private PrismProperty<String> getReportOutputProperty() {
+        PrismObject<TaskType> task = getTask().asPrismObject();
+        return task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
+    }
+
+    private void createRefreshNowIconButton(RepeatingView repeatingView) {
+        AjaxIconButton refreshNow = new AjaxIconButton(repeatingView.newChildId(), new Model<>("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                refresh(target);
+            }
+        };
+        refreshNow.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(refreshNow);
+    }
+
+    private void createResumePauseButton(RepeatingView repeatingView) {
+        AjaxIconButton resumePauseRefreshing = new AjaxIconButton(repeatingView.newChildId(), (IModel<String>) this::createResumePauseButtonLabel, createStringResource("autoRefreshPanel.resumeRefreshing")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                refreshEnabled = !isRefreshEnabled();
+                refresh(target);
+            }
+        };
+        resumePauseRefreshing.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        repeatingView.add(resumePauseRefreshing);
+    }
+
+    private void createCleanupPerformanceButton(RepeatingView repeatingView) {
+        AjaxIconButton cleanupPerformance = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
+                createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                try {
+                    getObjectWrapper().findProperty(ItemPath.create(TaskType.F_OPERATION_STATS,
+                            OperationStatsType.F_ENVIRONMENTAL_PERFORMANCE_INFORMATION)).getValue().setRealValue(null);
+                } catch (SchemaException e){
+                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                }
+                saveTaskChanges(target);
+            }
+        };
+        cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        cleanupPerformance.add(new VisibleBehaviour(this::isNotRunning));
+        repeatingView.add(cleanupPerformance);
+    }
+
+    private void createCleanupResultsButton(RepeatingView repeatingView) {
+        AjaxIconButton cleanupResults = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
+                createStringResource("operationalButtonsPanel.cleanupResults")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                try {
+                    getObjectWrapper().findProperty(TaskType.F_RESULT).getValue().setRealValue(null);
+                    getObjectWrapper().findProperty(TaskType.F_RESULT_STATUS).getValue().setRealValue(null);
+                } catch (SchemaException e){
+                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                }
+                saveTaskChanges(target);
+                refresh(target);
+            }
+        };
+        cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
+        cleanupResults.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        repeatingView.add(cleanupResults);
+    }
+
+    private void saveTaskChanges(AjaxRequestTarget target) {
         try {
             ObjectDelta<TaskType> taskDelta = getObjectWrapper().getObjectDelta();
-            if (!taskDelta.isEmpty()) {
-                taskDelta.revive(getPrismContext());
-                getModelService().executeChanges(MiscUtil.createCollection(taskDelta), null, task, result);
-                result.computeStatus();
-                getObjectModel().reset();
-            }
-        } catch (Exception e) {
-            LOGGER.error("Cannot save tasks changes: {}", e.getMessage());
+            saveTaskChanges(target, taskDelta);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get task delta.", e);
+            getSession().error("Cannot save changes, there were problems with computing changes: " + e.getMessage());
+            target.add(getFeedbackPanel());
         }
-        showResult(result);
+    }
+
+    private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta){
+        if (taskDelta.isEmpty()) {
+            getSession().warn("Nothing to save, no changes were made.");
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_EXECUTE_TASK_CHANGES);
+        Task task = createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
+
+        try {
+            taskDelta.revive(getPrismContext()); //do we need revive here?
+            getModelService().executeChanges(MiscUtil.createCollection(taskDelta), null, task, result);
+            result.computeStatus();
+            getObjectModel().reset();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot save tasks changes", e);
+            result.recordFatalError("Cannot save tasks changes, " + e.getMessage(), e);
+        }
+//        showResult(result);
+        afterOperation(target, result);
     }
 
     public void saveAndRunPerformed(AjaxRequestTarget target) {
@@ -306,7 +465,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
     }
 
-    private String createResumePauseButton() {
+    private String createResumePauseButtonLabel() {
         if (isRefreshEnabled()) {
             return "fa fa-pause";
         }
@@ -354,6 +513,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     public void refresh(AjaxRequestTarget target) {
 
+        getObjectModel().reset();
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
         target.add(getFeedbackPanel());

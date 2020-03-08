@@ -21479,7 +21479,14 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000504">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_LIVE_SYNCH_TASK"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_LIVE_SYNC_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000507">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

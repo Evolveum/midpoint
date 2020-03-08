@@ -689,6 +689,48 @@ public final class WebComponentUtil {
         return task != null && TaskCategory.WORKFLOW.equals(task.getCategory());
     }
 
+    public static boolean isReconciliation(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK);
+    }
+
+    public static boolean isRecomputation(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK);
+    }
+
+    public static boolean isReport(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK);
+    }
+
+    public static boolean isImport(TaskType task){
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK);
+    }
+
+    public static boolean isLiveSync(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK);
+    }
+
+    private static boolean isArchetypedTask(TaskType taskType, SystemObjectsType archetype) {
+        ObjectReferenceType archetypeRef = getArchetypeReference(taskType);
+        if (archetypeRef == null){
+            return false;
+        }
+        return archetype.value().equals(archetypeRef.getOid());
+    }
+
+    private static ObjectReferenceType getArchetypeReference(TaskType task) {
+        ObjectReferenceType archetypeRef = null;
+        if (task.getAssignment() == null || task.getAssignment().size() == 0) {
+            return archetypeRef;
+        }
+        for (AssignmentType assignment : task.getAssignment()) {
+            if (StringUtils.isNotEmpty(assignment.getTargetRef().getOid())
+                    && assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                archetypeRef = assignment.getTargetRef();
+            }
+        }
+        return archetypeRef;
+    }
+
     public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result )
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException{

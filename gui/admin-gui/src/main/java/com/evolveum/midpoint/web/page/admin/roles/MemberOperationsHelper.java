@@ -409,6 +409,8 @@ public class MemberOperationsHelper {
         try {
             Task executableTask = WebComponentUtil.createMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
             if (executableTask != null) {
+                //TODO iterative bulk task archetype
+//                executableTask.getClonedTaskObject().asObjectable().getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE))
                 WebComponentUtil.executeMemberOperation(executableTask, parentResult, modelServiceLocator);
             }
         } catch (SchemaException e) {
