@@ -1,66 +1,50 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.*;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.Page;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.time.Duration;
-
-import javax.xml.namespace.QName;
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
         urls = {
@@ -82,11 +66,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private static final String DOT_CLASS = PageTask.class.getName() + ".";
     protected static final String OPERATION_EXECUTE_TASK_CHANGES = DOT_CLASS + "executeTaskChanges";
 
-    private static final int REFRESH_INTERVAL_IF_RUNNING = 2000;
-    private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
-    private static final int REFRESH_INTERVAL_IF_SUSPENDED = 2000;
-    private static final int REFRESH_INTERVAL_IF_WAITING = 2000;
-    private static final int REFRESH_INTERVAL_IF_CLOSED = 2000;
+    private static final int REFRESH_INTERVAL = 2000;
 
     private Boolean refreshEnabled;
 
@@ -136,19 +116,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 .build();
     }
 
-    @Override
-    protected void initLayout() {
-        super.initLayout();
-
-    }
-
     private void afterOperation(AjaxRequestTarget target, OperationResult result) {
         showResult(result);
         getObjectModel().reset();
         refresh(target);
     }
-
-
 
     protected void initOperationalButtons(RepeatingView repeatingView) {
         super.initOperationalButtons(repeatingView);
@@ -204,7 +176,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             @Override
             public void onClick(AjaxRequestTarget target) {
                 refreshEnabled = !isRefreshEnabled();
-//                getModelObject().setEnabled(!getModelObject().isEnabled());
                 refresh(target);
             }
         };
@@ -263,7 +234,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
         setOutputMarkupId(true);
 
-        final Label status = new Label(repeatingView.newChildId(), () -> createRefreshingLabel());
+        final Label status = new Label(repeatingView.newChildId(), this::createRefreshingLabel);
         status.setOutputMarkupId(true);
         repeatingView.add(status);
 
@@ -276,7 +247,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             ObjectDelta<TaskType> taskDelta = getObjectWrapper().getObjectDelta();
             if (!taskDelta.isEmpty()) {
                 taskDelta.revive(getPrismContext());
-                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(taskDelta), null, task, result);
+                getModelService().executeChanges(MiscUtil.createCollection(taskDelta), null, task, result);
                 result.computeStatus();
                 getObjectModel().reset();
             }
@@ -285,6 +256,47 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
         showResult(result);
     }
+
+    public void saveAndRunPerformed(AjaxRequestTarget target) {
+        PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
+        try {
+            PrismPropertyWrapper<TaskExecutionStatusType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
+            executionStatus.getValue().setRealValue(TaskExecutionStatusType.RUNNABLE);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error while setting task execution status", e);
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        if (!checkScheduleFilledForReccurentTask(taskWrapper)) {
+            getSession().error("Cannot run recurring task without setting scheduling for it.");
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        super.savePerformed(target);
+    }
+
+    private boolean checkScheduleFilledForReccurentTask(PrismObjectWrapper<TaskType> taskWrapper) {
+        PrismObject<TaskType> task = taskWrapper.getObject();
+
+        PrismProperty<TaskRecurrenceType> recurrenceType = task.findProperty(ItemPath.create(TaskType.F_RECURRENCE));
+        if (recurrenceType == null) {
+            return true;
+        }
+
+        TaskRecurrenceType recurenceValue = recurrenceType.getRealValue();
+        if (recurenceValue == null || TaskRecurrenceType.SINGLE ==  recurenceValue) {
+            return true;
+        }
+
+        ScheduleType schedule = task.asObjectable().getSchedule();
+        //if schedule is not set and task is recurring, show warning.
+        return schedule.getCronLikePattern() != null || schedule.getEarliestStartTime() != null
+                || schedule.getInterval() != null || schedule.getLatestFinishTime() != null
+                || schedule.getLatestStartTime() != null || schedule.getMisfireAction() != null;
+    }
+
 
     private String createRefreshingLabel() {
         if (isRefreshEnabled()) {
@@ -318,263 +330,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
-
-        return new AbstractObjectMainPanel<TaskType>(id, getObjectModel(), this) {
-
-            @Override
-            protected boolean getOptionsPanelVisibility() {
-                return false;
-            }
-
-            @Override
-            protected List<ITab> createTabs(PageAdminObjectDetails<TaskType> parentPage) {
-                List<ITab> tabs = new ArrayList<>();
-                TaskTabsVisibility taskTabsVisibility = new TaskTabsVisibility();
-                taskTabsVisibility.computeAll(PageTask.this, getObjectWrapper());
-
-                ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isBasicVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.basic.title"), basicTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
-                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler);
-                    }
-                });
-
-                ObjectTabVisibleBehavior<TaskType> scheduleTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isSchedulingVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.schedule.title"), scheduleTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler);
-                    }
-                });
-
-                ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isWorkManagementVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler);
-                    }
-                });
-
-                ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isCleanupPolicyVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.cleanupPolicies.title"), cleanupPoliciesTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)), visibilityHandler);
-                    }
-                });
-
-                ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isSubtasksAndThreadsVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.subtasks.title"), subtasksTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new TaskSubtasksAndThreadsTabPanel(panelId, getObjectModel());
-                    }
-
-                });
-
-                ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isInternalPerformanceVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.operationStats.title"), operationStatsAndInternalPerfTabsVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new TaskOperationStatisticsPanel(panelId, getObjectModel());
-                    }
-
-                });
-
-                ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isEnvironmentalPerformanceVisible();
-                    }
-                };
-                tabs.add(new PanelTab(parentPage.createStringResource("pageTask.environmentalPerformance.title"), envPerfTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new TaskPerformanceTabPanel(panelId, getObjectModel());
-                    }
-
-                });
-
-                ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isOperationVisible();
-                    }
-                };
-                tabs.add(new PanelTab(parentPage.createStringResource("pageTaskEdit.operation"), operationTabVisibility) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return new TaskOperationTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_MODEL_OPERATION_CONTEXT));
-                            }
-                });
-
-                tabs.add(new PanelTab(createStringResource("pageTask.internalPerformance.title"), operationStatsAndInternalPerfTabsVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
-                    }
-                });
-
-                ObjectTabVisibleBehavior<TaskType> resultTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isResultVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.result.title"), resultTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new TaskResultTabPanel(panelId, getObjectModel());
-                    }
-                });
-
-
-                ObjectTabVisibleBehavior<TaskType> errorsTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                        (Model.of(getObjectWrapper().getObject()), "", PageTask.this){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible(){
-                        return taskTabsVisibility.isErrorsVisible();
-                    }
-                };
-                tabs.add(new PanelTab(createStringResource("pageTask.errors.title"), errorsTabVisibility) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new TaskErrorsTabPanel(panelId, getObjectModel());
-                    }
-                });
-
-                return tabs;
-            }
-        };
+        return new TaskMainPanel(id, getObjectModel(), this);
     }
 
-
-
-    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler) {
-            try {
-                ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
-                        .visibilityHandler(visibilityHandler)
-                        .editabilityHandler(getTaskEditabilityHandler())
-                        .showOnTopLevel(true);
-                Panel panel = initItemPanel(id, typeName, model, builder.build());
-                return panel;
-            } catch (SchemaException e) {
-                LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);
-                getSession().error("Cannot create panel for " + typeName); // TODO opertion result? localization?
-            }
-
-            return null;
-    }
-
-    private ItemVisibility getBasicTabVisibility(ItemPath path) {
-        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
-        return ItemVisibility.AUTO;
-    }
-
-    private ItemEditabilityHandler getTaskEditabilityHandler(){
-        ItemEditabilityHandler editableHandler = wrapper -> !WebComponentUtil.isRunningTask(getTask());
-        return editableHandler;
-    }
-
-    private TaskType getTask(){
+    TaskType getTask(){
         return getObjectWrapper().getObject().asObjectable();
     }
 
@@ -582,61 +341,23 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     protected Class<? extends Page> getRestartResponsePage() {
         return PageTasks.class;
     }
-    
+
     @Override
     public void continueEditing(AjaxRequestTarget target) {
 
     }
 
     @Override
-    protected List<? extends Behavior> getAdditionalOperationalButtonPanelBehaviors(){
-        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onPostProcessTarget(AjaxRequestTarget target) {
-                refresh(target);
-            }
-
-            @Override
-            protected boolean shouldTrigger() {
-                PageTask.this.getObjectModel().reset();
-                return isRefreshEnabled();
-            }
-        };
-        return Collections.singletonList(behavior);
-    }
-
-    @Override
     public int getRefreshInterval() {
-        TaskType task = getTask();
-        TaskDtoExecutionStatus exec = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
-        if (exec == null) {
-            return REFRESH_INTERVAL_IF_CLOSED;
-        }
-        switch (exec) {
-            case RUNNING:
-            case SUSPENDING: return REFRESH_INTERVAL_IF_RUNNING;
-            case RUNNABLE:return REFRESH_INTERVAL_IF_RUNNABLE;
-            case SUSPENDED: return REFRESH_INTERVAL_IF_SUSPENDED;
-            case WAITING: return REFRESH_INTERVAL_IF_WAITING;
-            case CLOSED: return REFRESH_INTERVAL_IF_CLOSED;
-        }
-        return REFRESH_INTERVAL_IF_RUNNABLE;
-    }
-
-    @Override
-    public Component getRefreshingBehaviorParent() {
-        return null; //nothing to do, this method will be removed
+        return REFRESH_INTERVAL;
     }
 
     public void refresh(AjaxRequestTarget target) {
 
-//        getObjectModel().reset();
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
         target.add(getFeedbackPanel());
-        target.add(getMainPanel());
+//        target.add(getMainPanel());
 
         for (Component component : getMainPanel().getTabbedPanel()) {
             if (component instanceof TaskTabPanel) {

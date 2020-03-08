@@ -475,6 +475,7 @@
                 </container>
                 <container>
                     <displayOrder>910</displayOrder>
+                    <visibility>hidden</visibility>
                     <display>
                         <label>Operational attributes (progress)</label>
                     </display>
@@ -488,7 +489,7 @@
                         <c:path>stalledSince</c:path>
                     </item>
                 </container>
-               
+
             </objectDetailsPage>
         </objectDetails>
     </adminGuiConfiguration>

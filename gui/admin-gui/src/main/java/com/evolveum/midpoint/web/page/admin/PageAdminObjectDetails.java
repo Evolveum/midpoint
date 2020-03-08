@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
@@ -37,6 +38,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -85,21 +87,16 @@ import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
  * @author semancik
  */
 public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageAdmin
-        implements ProgressReportingAwarePage {
+        implements ProgressReportingAwarePage, Refreshable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageAdminObjectDetails.class.getName() + ".";
 
-    public static final String PARAM_RETURN_PAGE = "returnPage";
-
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
-    private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
-    private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
     protected static final String OPERATION_SAVE = DOT_CLASS + "save";
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
-    protected static final String OPERATION_EXECUTE_CHANGES = DOT_CLASS + "executeChangesTask";
     protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
     protected static final String OPERATION_LOAD_FILTERED_ARCHETYPES = DOT_CLASS + "loadFilteredArchetypes";
 
@@ -261,7 +258,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             @Override
             protected PrismObjectWrapper<O> load() {
                 PrismObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
-//                wrapper.sort();
                 return wrapper;
             }
         };
@@ -350,17 +346,40 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 initOperationalButtons(repeatingView);
             }
         };
-        if (getAdditionalOperationalButtonPanelBehaviors() != null && !getAdditionalOperationalButtonPanelBehaviors().isEmpty()){
-            getAdditionalOperationalButtonPanelBehaviors().forEach(this::add);
-        }
+
         opButtonPanel.setOutputMarkupId(true);
         opButtonPanel.add(new VisibleBehaviour(() -> isEditingFocus() && opButtonPanel.buttonsExist()));
+
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
+
+        opButtonPanel.add(behavior);
+
         add(opButtonPanel);
     }
 
-    protected List<? extends Behavior> getAdditionalOperationalButtonPanelBehaviors(){
-        return new ArrayList<>();
-    }
+    public boolean isRefreshEnabled() {
+        return false;
+   }
+
+    public void refresh(AjaxRequestTarget target) {
+
+   }
+
+   public int getRefreshInterval() {
+        return 30;
+   }
 
     protected void initOperationalButtons(RepeatingView repeatingView){
         if (getObjectArchetypeRef() != null) {
@@ -662,24 +681,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected abstract Class<? extends Page> getRestartResponsePage();
 
-    public Object findParam(String param, String oid, OperationResult result) {
-
-        Object object = null;
-
-        for (OperationResult subResult : result.getSubresults()) {
-            if (subResult != null && subResult.getParams() != null) {
-                if (subResult.getParams().get(param) != null
-                        && subResult.getParams().get(OperationResult.PARAM_OID) != null
-                        && subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
-                    return subResult.getParams().get(param);
-                }
-                object = findParam(param, oid, subResult);
-
-            }
-        }
-        return object;
-    }
-
     // TODO put this into correct place
     protected boolean previewRequested;
 
@@ -972,14 +973,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     public List<ObjectFormType> getObjectFormTypes() {
-        Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
-        OperationResult result = task.getResult();
-        CompiledGuiProfile adminGuiConfiguration;
-        try {
-            adminGuiConfiguration = getModelInteractionService().getCompiledGuiProfile(task, result);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
-        }
+        CompiledGuiProfile adminGuiConfiguration = getCompiledGuiProfile();
         ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
         if (objectFormsType == null) {
             return null;

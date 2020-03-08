@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -347,6 +349,10 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     @Override
     public boolean isVisible(PrismContainerValueWrapper parent, ItemVisibilityHandler visibilityHandler) {
 
+        if (isVirtual() && getVisibleOverwrite() != null && UserInterfaceElementVisibilityType.HIDDEN == getVisibleOverwrite()) {
+            return false;
+        }
+
         if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
             return (getParent() != null && getParent().isShowMetadata());
         }
@@ -354,11 +360,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
         // pretend that object is always expanded. it is becasue all other containers are children of it
         // and it can influence visibility behavior on different tabs.
         boolean parentExpanded = parent instanceof PrismObjectValueWrapper ? true : parent.isExpanded();
-        return isVisibleByVisibilityHandler(parentExpanded
-
-
-
-                , visibilityHandler);
+        return isVisibleByVisibilityHandler(parentExpanded, visibilityHandler);
     }
 
     @Override
