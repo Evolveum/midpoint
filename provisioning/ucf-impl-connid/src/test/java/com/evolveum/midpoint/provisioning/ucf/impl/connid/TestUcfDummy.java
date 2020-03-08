@@ -122,7 +122,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
      */
     @Test
     public void test010ListConnectors() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
         Set<ConnectorType> connectors = connectorFactory.listConnectors(null, result);
 
         System.out.println("---------------------------------------------------------------------");
@@ -149,8 +149,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
-        OperationResult result = createResult();
-        PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+        OperationResult result = createOperationResult();
+        PrismContainerValue<ConnectorConfigurationType> configContainer =
+                resourceType.getConnectorConfiguration().asPrismContainerValue();
         display("Configuration container", configContainer);
 
         // WHEN
@@ -171,7 +172,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertNotNull("null operational status", operationalStatus);
 
         assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
-        assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
+        assertNull("Wrong poolConfigMinSize", operationalStatus.getPoolConfigMinSize());
         assertEquals("Wrong poolConfigMaxSize", (Integer) 10, operationalStatus.getPoolConfigMaxSize());
         assertEquals("Wrong poolConfigMinIdle", (Integer) 1, operationalStatus.getPoolConfigMinIdle());
         assertEquals("Wrong poolConfigMaxIdle", (Integer) 10, operationalStatus.getPoolConfigMaxIdle());
@@ -183,14 +184,15 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test030ResourceSchema() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
 
-        PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+        PrismContainerValue<ConnectorConfigurationType> configContainer =
+                resourceType.getConnectorConfiguration().asPrismContainerValue();
         display("Configuration container", configContainer);
         //ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
         cc.configure(configContainer, null, result);
@@ -219,14 +221,15 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test031ResourceSchemaAccountObjectClass() throws Exception {
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
 
-        PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+        PrismContainerValue<ConnectorConfigurationType> configContainer =
+                resourceType.getConnectorConfiguration().asPrismContainerValue();
         display("Configuration container", configContainer);
         List<QName> objectClassesToGenerate = new ArrayList<>();
         QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
@@ -256,7 +259,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertNotNull("null operational status", operationalStatus);
 
         assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
-        assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
+        assertNull("Wrong poolConfigMinSize", operationalStatus.getPoolConfigMinSize());
         assertEquals("Wrong poolConfigMaxSize", (Integer) 10, operationalStatus.getPoolConfigMaxSize());
         assertEquals("Wrong poolConfigMinIdle", (Integer) 1, operationalStatus.getPoolConfigMinIdle());
         assertEquals("Wrong poolConfigMaxIdle", (Integer) 10, operationalStatus.getPoolConfigMaxIdle());
@@ -268,9 +271,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test040AddAccount() throws Exception {
-        final String TEST_NAME = "test040AddAccount";
-
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         ShadowType shadowType = new ShadowType();
@@ -315,7 +316,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
             }
         };
 
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         // WHEN
         cc.search(accountDefinition, null, handler, null, null, null, null, result);
@@ -334,10 +335,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test100FetchEmptyChanges() throws Exception {
-        final String TEST_NAME = "test100FetchEmptyChanges";
-
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
-        ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+        OperationResult result = createOperationResult();
+        ObjectClassComplexTypeDefinition accountDefinition =
+                resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
         // WHEN
         PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
@@ -361,9 +361,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test101FetchAddChange() throws Exception {
-        final String TEST_NAME = "test101FetchAddChange";
-
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
         PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
@@ -396,10 +394,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test500SelfTest() {
-        final String TEST_NAME = "test500SelfTest";
-
         // GIVEN
-        OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+        OperationResult testResult = createOperationResult();
 
         // WHEN
         connectorFactoryIcfImpl.selfTest(testResult);
@@ -409,5 +405,4 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         IntegrationTestTools.display(testResult);
         TestUtil.assertSuccess(testResult);
     }
-
 }

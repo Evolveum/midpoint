@@ -303,9 +303,7 @@ public class TestAddAssociation extends AbstractWfTest {
      */
     @Test
     public void test100AddJackToGuests() throws Exception {
-        final String TEST_NAME = "test100AddJackToGuests";
-
-        Task modelTask = taskManager.createTaskInstance(TEST_NAME);
+        Task modelTask = getTestTask();
         OperationResult result = createOperationResult();
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 

@@ -70,8 +70,9 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
                 "dummy",
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
-        OperationResult result = createResult();
-        PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+        OperationResult result = createOperationResult();
+        PrismContainerValue<ConnectorConfigurationType> configContainer =
+                resourceType.getConnectorConfiguration().asPrismContainerValue();
         display("Configuration container", configContainer);
 
         // WHEN
@@ -87,9 +88,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     @Test
     public void test100AddAccount() throws Exception {
-        final String TEST_NAME = "test100AddAccount";
-
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         ShadowType shadowType = new ShadowType();
@@ -134,7 +133,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             }
         };
 
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         // WHEN
         cc.search(accountDefinition, null, handler, null, null, null, null, result);
@@ -152,7 +151,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     public void test200BlockingSearch() throws Exception {
         // GIVEN
 
-        OperationResult result = createResult();
+        OperationResult result = createOperationResult();
 
         final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         // Determine object class from the schema
@@ -222,7 +221,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         // Determine object class from the schema
 
-        OperationResult result1 = createResult();
+        OperationResult result1 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
         final ShadowResultHandler handler1 = new ShadowResultHandler() {
             @Override
@@ -233,7 +232,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             }
         };
 
-        OperationResult result2 = createResult();
+        OperationResult result2 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
         final ShadowResultHandler handler2 = new ShadowResultHandler() {
             @Override

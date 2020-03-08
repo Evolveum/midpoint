@@ -46,16 +46,12 @@ public class TestPartitioning extends AbstractTaskManagerTest {
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
 
-    private static String taskFilename(String testName, String subId) {
-        return "src/test/resources/partitioning/task-" + testNumber(testName) + "-" + subId + ".xml";
+    private String taskFilename(String subId) {
+        return "src/test/resources/partitioning/task-" + getTestNumber() + "-" + subId + ".xml";
     }
 
-    private static String taskOid(String testName, String subId) {
-        return "44444444-2222-2222-8888-" + testNumber(testName) + subId + "00000000";
-    }
-
-    private static String testNumber(String test) {
-        return test.substring(4, 7);
+    private String taskOid(String subId) {
+        return "44444444-2222-2222-8888-" + getTestNumber() + subId + "00000000";
     }
 
     @Test
@@ -66,14 +62,13 @@ public class TestPartitioning extends AbstractTaskManagerTest {
 
     @Test
     public void test100DurableRecurring() throws Exception {
-        final String TEST_NAME = "test100DurableRecurring";
-        OperationResult result = createResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
-        addObjectFromFile(taskFilename(TEST_NAME, "m"));
+        addObjectFromFile(taskFilename("m"));
 
         // THEN
-        String masterTaskOid = taskOid(TEST_NAME, "m");
+        String masterTaskOid = taskOid("m");
         try {
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
