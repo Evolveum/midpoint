@@ -10,18 +10,22 @@
 <wicket:panel>
     <span class="text-danger" wicket:id="feedback" />
     <div wicket:id="shadowRefValueContainer">
-        <div class="col-md-2" ><wicket:message key="AssociationExpressionValuePanel.shadorRefFilter" /></div>
-        <div class="col-md-10" wicket:id="multiShadowRefPanel" />
+        <div class="prism-properties">
+            <div class="row prism-property">
+                <div class="col-md-3 prism-property-label" ><wicket:message key="AssociationExpressionValuePanel.shadorRefFilter" /></div>
+                <div class="col-md-9 prism-property-value" wicket:id="multiShadowRefPanel" />
+            </div>
+        </div>
     </div>
     <div wicket:id="associationTargetSearchContainer">
         <div class="prism-properties">
             <div class="row prism-property">
-                <div class="col-xs-2"><wicket:message key="ExpressionValuePanel.path" /></div>
-                <div class="col-xs-10" wicket:id="targetSearchPathInput" />
+                <div class="col-md-3 prism-property-label"><wicket:message key="ExpressionValuePanel.path" /></div>
+                <div class="col-md-8 prism-property-value" wicket:id="targetSearchPathInput" />
             </div>
             <div class="row prism-property">
-                <div class="col-xs-2"><wicket:message key="ExpressionValuePanel.value" /></div>
-                <div class="col-xs-10" wicket:id="targetSearchValueInput" />
+                <div class="col-md-3 prism-property-label"><wicket:message key="ExpressionValuePanel.value" /></div>
+                <div class="col-md-8 prism-property-value" wicket:id="targetSearchValueInput" />
             </div>
         </div>
     </div>

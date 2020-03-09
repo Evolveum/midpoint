@@ -79,16 +79,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
-//    private ItemVisibilityHandler visibilityHandler;
-//    private ItemEditabilityHandler editabilityHandler;
-
     private ItemPanelSettings settings;
 
     public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model);
         this.settings = settings;
-//        this.visibilityHandler = visibilityHandler;
-//        this.editabilityHandler = editabilityHandler;
     }
 
     @Override
