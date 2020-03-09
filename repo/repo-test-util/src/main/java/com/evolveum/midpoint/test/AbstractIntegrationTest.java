@@ -343,6 +343,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     /**
      * Returns default pre-created test-method-scoped {@link Task}.
+     * This fails if test-method context is not available.
      */
     protected Task getTestTask() {
         return MidpointTestContextWithTask.get().getTask();
@@ -350,10 +351,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     /**
      * Creates new {@link Task} with operation name prefixed with {@link #contextName()}.
-     * For most tests this should be unnecessary and the default test-method-scoped task
+     * For many tests this is not necessary and the default test-method-scoped task
      * that can be obtained with {@link #getTestTask()} should be enough.
-     * Even for multi-threaded tests we may not need the whole task - instead
-     * {@link #createSubresult(String)} should suffice.
+     * If more tasks are needed this method creates plain task without customization, see
+     * also {@link #createTask} for customized task.
+     * <p>
+     * This is useful for multi-threaded tests where we need local task.
+     * It is recommended to include method name and/or other info into parameter as only
+     * the current class name will be available as default contextual information - even
+     * this may be name of a inner class (e.g. anonymous runnable).
      */
     protected Task createPlainTask(String operationName) {
         String rootOpName = operationName != null

@@ -209,15 +209,17 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         accountMorganOid = null;
 
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
-                    OperationResult localResult = task.getResult().createSubresult("thread-" + i);
+                    Task localTask = createTask(testName + "-thread-" + i);
+                    OperationResult localResult = localTask.getResult();
 
                     ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
 
                     try {
                         String thisAccountMorganOid = provisioningService.addObject(
-                                account.asPrismObject(), null, null, task, localResult);
+                                account.asPrismObject(), null, null, localTask, localResult);
                         successCounter.click();
 
                         synchronized (dummyResource) {
@@ -298,9 +300,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // WHEN
         when();
 
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
-                    OperationResult localResult = task.getResult().createSubresult("thread-" + i);
+                    Task localTask = createTask(testName + "-thread-" + i);
+                    OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
@@ -312,7 +316,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     ObjectDelta<ShadowType> delta = deltaProducer.run();
                     display("ObjectDelta", delta);
 
-                    provisioningService.modifyObject(ShadowType.class, accountMorganOid, delta.getModifications(), null, null, task, localResult);
+                    provisioningService.modifyObject(ShadowType.class, accountMorganOid, delta.getModifications(), null, null, localTask, localResult);
 
                     localResult.computeStatus();
                     display("Thread " + Thread.currentThread().getName() + " DONE, result", localResult);
@@ -353,16 +357,17 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // WHEN
         when();
 
-        Task task = getTestTask();
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
-                    OperationResult localResult = task.getResult().createSubresult("thread-" + i);
+                    Task localTask = createTask(testName + "-thread-" + i);
+                    OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
 
                     try {
                         display("Thread " + Thread.currentThread().getName() + " START");
-                        provisioningService.deleteObject(ShadowType.class, accountMorganOid, null, null, task, localResult);
+                        provisioningService.deleteObject(ShadowType.class, accountMorganOid, null, null, localTask, localResult);
                         localResult.computeStatus();
                         display("Thread " + Thread.currentThread().getName() + " DONE, result", localResult);
                         if (localResult.isSuccess()) {
@@ -412,11 +417,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // WHEN
         when();
 
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
-                    OperationResult localResult = task.getResult().createSubresult("thread-" + i);
-
-                    RepositoryCache.enter(cacheConfigurationManager);
+                    Task localTask = createTask(testName + "-thread-" + i);
+                    OperationResult localResult = localTask.getResult();
 
                     randomDelay(CONCURRENT_TEST_MAX_START_DELAY_SLOW);
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
@@ -424,7 +429,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     ShadowType account = parseObjectType(ACCOUNT_ELIZABETH_FILE, ShadowType.class);
 
                     try {
-                        accountElizabethOid = provisioningService.addObject(account.asPrismObject(), null, null, task, localResult);
+                        accountElizabethOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
                         successCounter.click();
                     } catch (ObjectAlreadyExistsException e) {
                         // this is expected ... sometimes
@@ -495,13 +500,16 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         rememberDummyResourceWriteOperationCount(null);
 
         when();
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
-                    OperationResult localResult = task.getResult().createSubresult("thread-" + i);
+                    Task localTask = createTask(testName + "-thread-" + i);
+                    OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
-                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
+                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(
+                            ShadowType.class, accountElizabethOid, null, localResult);
 
                     randomDelay(CONCURRENT_TEST_MAX_START_DELAY_SLOW);
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
@@ -509,7 +517,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     ObjectDelta<ShadowType> delta = deltaProducer.run();
                     display("ObjectDelta", delta);
 
-                    provisioningService.modifyObject(ShadowType.class, accountElizabethOid, delta.getModifications(), null, null, task, localResult);
+                    provisioningService.modifyObject(ShadowType.class, accountElizabethOid,
+                            delta.getModifications(), null, null, localTask, localResult);
 
                     localResult.computeStatus();
                     display("Thread " + Thread.currentThread().getName() + " DONE, result", localResult);
@@ -550,10 +559,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // WHEN
         when();
 
-        Task task = getTestTask();
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
-                    OperationResult localResult = task.getResult().createSubresult("thread-" + i);
+                    Task localTask = createTask(testName + "-thread-" + i);
+                    OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
@@ -564,7 +574,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                     try {
                         display("Thread " + Thread.currentThread().getName() + " START");
-                        provisioningService.deleteObject(ShadowType.class, accountElizabethOid, null, null, task, localResult);
+                        provisioningService.deleteObject(ShadowType.class, accountElizabethOid, null, null, localTask, localResult);
                         localResult.computeStatus();
                         display("Thread " + Thread.currentThread().getName() + " DONE, result", localResult);
                         if (localResult.isSuccess()) {
@@ -625,11 +635,17 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         dummyResource.setOperationDelayRange(0);
         dummyResource.setSyncSearchHandlerStart(true);
 
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
+                    Task localTask = createTask(testName + "-thread-" + i);
+                    OperationResult localResult = localTask.getResult();
+
                     ObjectQuery query = createGroupNameQuery(GROUP_SCUM_NAME);
 
-                    SearchResultList<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+                    SearchResultList<PrismObject<ShadowType>> foundObjects =
+                            provisioningService.searchObjects(
+                                    ShadowType.class, query, null, localTask, localResult);
                     assertEquals("Unexpected number of shadows found: " + foundObjects, 1, foundObjects.size());
                     successCounter.click();
 
@@ -723,6 +739,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         long t0 = System.currentTimeMillis();
         MutableBoolean readFinished = new MutableBoolean();
 
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (threadIndex) -> {
 
@@ -740,7 +757,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                     } else if (threadIndex == CONCURRENT_TEST_THREAD_COUNT_HIGH / 2) {
                         for (int i = 0; /* neverending */ ; i++) {
-                            Task localTask = createPlainTask("test-" + i);
+                            Task localTask = createPlainTask(testName + "-test-thread-" + i);
                             OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, localTask);
 
                             logger.debug("PAR: TESTing " + threadIndex + "." + i);
@@ -763,7 +780,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                         try {
                             // TODO: why is the constant MESS_RESOURCE_ITERATIONS used for operations?
                             for (int i = 0; i < MESS_RESOURCE_ITERATIONS; i++) {
-                                Task localTask = createPlainTask("op-" + i);
+                                Task localTask = createPlainTask(testName + "-op-thread-" + i);
                                 OperationResult localResult = localTask.getResult();
 
                                 logger.debug("PAR: OPing " + threadIndex + "." + i);
@@ -771,7 +788,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                                 Object out = doResourceOperation(task, localResult);
 
                                 localResult.computeStatus();
-                                display("PAR: OPed " + threadIndex + "." + i + ": " + out.toString() + ": " + localResult.getStatus());
+                                display("PAR: OPed " + threadIndex + "." + i + ": " + out + ": " + localResult.getStatus());
 
                                 if (localResult.getStatus() != OperationResultStatus.SUCCESS) {
                                     display("Failed read result", localResult);
