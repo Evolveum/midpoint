@@ -7,11 +7,8 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -126,6 +123,7 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
             @Override
             public ObjectQuery getQuery() {
                 try {
+                    // TODO this seems to throw now checked exception (see unused throws lower)
                     return createQuery();
                 } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
                         | ConfigurationException | SecurityViolationException e) {
@@ -141,7 +139,7 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
     protected abstract Class<C> getType();
 
     protected void setDefaultSorting(ContainerListDataProvider<C> provider){
-        //should be overridded if needed
+        //should be overridden if needed
     }
 
     public long getItemsPerPage() {

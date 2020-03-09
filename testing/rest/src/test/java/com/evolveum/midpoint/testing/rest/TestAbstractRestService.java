@@ -8,8 +8,6 @@ package com.evolveum.midpoint.testing.rest;
 
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,15 +17,12 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.task.api.Task;
-
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -39,6 +34,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -54,18 +50,18 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 public abstract class TestAbstractRestService extends RestServiceInitializer {
 
-//    protected static final File BASE_DIR = new File("src/test/resources");
+    //    protected static final File BASE_DIR = new File("src/test/resources");
     protected static final File BASE_REQ_DIR = new File("src/test/resources/req/");
 
     // REST, reader and adder authorization
-     public static final String USER_DARTHADDER_FILE = "user-darthadder";
-     public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
-     public static final String USER_DARTHADDER_USERNAME = "darthadder";
-     public static final String USER_DARTHADDER_PASSWORD = "Iamy0urUncle";
+    public static final String USER_DARTHADDER_FILE = "user-darthadder";
+    public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
+    public static final String USER_DARTHADDER_USERNAME = "darthadder";
+    public static final String USER_DARTHADDER_PASSWORD = "Iamy0urUncle";
 
-     // Authorizations, but no password
-     public static final String USER_NOPASSWORD_FILE = "user-nopassword";
-     public static final String USER_NOPASSWORD_USERNAME = "nopassword";
+    // Authorizations, but no password
+    public static final String USER_NOPASSWORD_FILE = "user-nopassword";
+    public static final String USER_NOPASSWORD_USERNAME = "nopassword";
 
     public static final String ROLE_ADDER_FILE = "role-adder";
 
@@ -123,14 +119,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     private static final String MODIFICATION_FORCE_PASSWORD_CHANGE = "modification-force-password-change";
     private static final String EXECUTE_CREDENTIAL_RESET = "execute-credential-reset";
 
-
     protected abstract File getRepoFile(String fileBaseName);
     protected abstract File getRequestFile(String fileBaseName);
 
     private static final String NS_SECURITY_QUESTION_ANSWER = "http://midpoint.evolveum.com/xml/ns/public/security/question-2";
     public static final String QUESTION_ID = QNameUtil.qNameToUri(new QName(NS_SECURITY_QUESTION_ANSWER, "q001"));
-
-
 
     public TestAbstractRestService() {
         super();
@@ -138,8 +131,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test001GetUserAdministrator() {
-        final String TEST_NAME = "test001GetUserAdministrator";
-
         WebClient client = prepareClient();
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -161,8 +152,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test002GetNonExistingUser() {
-        final String TEST_NAME = "test002GetNonExistingUser";
-
         WebClient client = prepareClient();
         client.path("/users/12345");
 
@@ -185,8 +174,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test003GetNoAuthHeaders() {
-        final String TEST_NAME = "test003GetNoAuthHeaders";
-
         WebClient client = prepareClient(null, null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -205,8 +192,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test004GetAuthBadUsernameNullPassword() {
-        final String TEST_NAME = "test004GetAuthBadUsernameNullPassword";
-
         WebClient client = prepareClient("NoSUCHuser", null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -225,8 +210,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test005GetAuthBadUsernameEmptyPassword() {
-        final String TEST_NAME = "test005GetAuthBadUsernameEmptyPassword";
-
         WebClient client = prepareClient("NoSUCHuser", "");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -245,8 +228,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test006GetAuthBadUsernameBadPassword() {
-        final String TEST_NAME = "test006GetAuthBadUsernameBadPassword";
-
         WebClient client = prepareClient("NoSUCHuser", "NoSuchPassword");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -265,8 +246,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test007GetAuthNoPassword() {
-        final String TEST_NAME = "test007GetAuthNoPassword";
-
         WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -285,8 +264,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test016GetAuthBadPassword() {
-        final String TEST_NAME = "test016GetAuthBadPassword";
-
         WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "forgot");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -305,8 +282,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test017GetUnauthorizedUser() {
-        final String TEST_NAME = "test017GetUnauthorizedUser";
-
         WebClient client = prepareClient(USER_NOBODY_USERNAME, USER_NOBODY_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -325,8 +300,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test018GetUserAdministratorByCyclops() {
-        final String TEST_NAME = "test018GetUserAdministratorByCyclops";
-
         WebClient client = prepareClient(USER_CYCLOPS_USERNAME, USER_CYCLOPS_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -345,8 +318,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test019GetUserAdministratorBySomebody() {
-        final String TEST_NAME = "test019GetUserAdministratorBySomebody";
-
         WebClient client = prepareClient(USER_SOMEBODY_USERNAME, USER_SOMEBODY_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -369,9 +340,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test102AddUserTemplate() throws Exception {
-        final String TEST_NAME = "test102AddUserTemplate";
-
+    public void test102AddUserTemplate() {
         WebClient client = prepareClient();
         client.path("/objectTemplates/");
 
@@ -392,9 +361,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test103AddUserBadTargetCollection() throws Exception {
-        final String TEST_NAME = "test103AddUserBadTargetCollection";
-
+    public void test103AddUserBadTargetCollection() {
         WebClient client = prepareClient();
         client.path("/objectTemplates");
 
@@ -419,8 +386,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test104AddAccountRawResourceDoesNotExist() throws Exception {
-        final String TEST_NAME = "test104AddAccountRaw";
-
         WebClient client = prepareClient();
         client.path("/shadows");
         client.query("options", "raw");
@@ -437,7 +402,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 240);
         OperationResult addResult = traceResponse(response);
         assertNotNull("Expected operation result in the response, but nothing in the body", addResult);
-        assertEquals("Unexpected status of the operation result. Expected "+ OperationResultStatus.HANDLED_ERROR + ", but was " + addResult.getStatus(), addResult.getStatus(), OperationResultStatus.HANDLED_ERROR);
+        assertEquals("Unexpected status of the operation result. Expected " + OperationResultStatus.HANDLED_ERROR + ", but was " + addResult.getStatus(), addResult.getStatus(), OperationResultStatus.HANDLED_ERROR);
 
         OperationResult parentResult = new OperationResult("get");
         try {
@@ -458,9 +423,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test120AddRoleAdder() throws Exception {
-        final String TEST_NAME = "test120AddRoleAdder";
-
+    public void test120AddRoleAdder() {
         WebClient client = prepareClient();
         client.path("/roles");
 
@@ -480,9 +443,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test121AddUserDarthAdder() throws Exception {
-        final String TEST_NAME = "test121AddUserDarthAdder";
-
+    public void test121AddUserDarthAdder() {
         WebClient client = prepareClient();
         client.path("/users");
 
@@ -502,9 +463,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test122AddRoleModifierAsDarthAdder() throws Exception {
-        final String TEST_NAME = "test122AddRoleModifierAsDarthAdder";
-
+    public void test122AddRoleModifierAsDarthAdder() {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/roles");
 
@@ -525,10 +484,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test123DarthAdderAssignModifierHimself() throws Exception {
-        final String TEST_NAME = "test123DarthAdderAssignModifierHimself";
-
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
-        client.path("/users/"+USER_DARTHADDER_OID);
+        client.path("/users/" + USER_DARTHADDER_OID);
 
         getDummyAuditService().clear();
 
@@ -551,10 +508,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test124DarthAdderAssignModifierByAdministrator() throws Exception {
-        final String TEST_NAME = "test124DarthAdderAssignModifierByAdministrator";
-
         WebClient client = prepareClient();
-        client.path("/users/"+USER_DARTHADDER_OID);
+        client.path("/users/" + USER_DARTHADDER_OID);
 
         getDummyAuditService().clear();
 
@@ -577,10 +532,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test130DarthAdderDisableHimself() throws Exception {
-        final String TEST_NAME = "test130DarthAdderDisableHimself";
-
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
-        client.path("/users/"+USER_DARTHADDER_OID);
+        client.path("/users/" + USER_DARTHADDER_OID);
 
         getDummyAuditService().clear();
 
@@ -603,8 +556,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test131GetUserAdministratorByDarthAdder() {
-        final String TEST_NAME = "test131GetUserAdministratorByDarthAdder";
-
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -624,10 +575,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test132DarthAdderEnableByAdministrator() throws Exception {
-        final String TEST_NAME = "test132DarthAdderEnableByAdministrator";
-
         WebClient client = prepareClient();
-        client.path("/users/"+USER_DARTHADDER_OID);
+        client.path("/users/" + USER_DARTHADDER_OID);
 
         getDummyAuditService().clear();
 
@@ -650,8 +599,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test133GetUserAdministratorByDarthAdder() {
-        final String TEST_NAME = "test133GetUserAdministratorByDarthAdder";
-
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -672,9 +619,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test135AddUserNopasswordAsDarthAdder() throws Exception {
-        final String TEST_NAME = "test135AddUserNopasswordAsDarthAdder";
-
+    public void test135AddUserNopasswordAsDarthAdder() {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users");
 
@@ -695,8 +640,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test140GetUserAdministratorByNopassword() {
-        final String TEST_NAME = "test140GetUserAdministratorByNopassword";
-
         WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -716,8 +659,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test141GetUserAdministratorByNopasswordBadPassword() {
-        final String TEST_NAME = "test140GetUserAdministratorByNopassword";
-
         WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, "bad");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
@@ -737,8 +678,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test200searchAllUsers() {
-        final String TEST_NAME = "test200searchAllUsers";
-
         WebClient client = prepareClient();
         client.path("/users/search");
 
@@ -758,9 +697,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test401AddUserTemplateOverwrite() throws Exception {
-        final String TEST_NAME = "test401AddUserTemplateOverwrite";
-
+    public void test401AddUserTemplateOverwrite() {
         WebClient client = prepareClient();
         client.path("/objectTemplates");
         client.query("options", "overwrite");
@@ -792,9 +729,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
      * MID-4899
      */
     @Test
-    public void test410AddFunctionLibraryHello() throws Exception {
-        final String TEST_NAME = "test410AddFunctionLibraryHello";
-
+    public void test410AddFunctionLibraryHello() {
         WebClient client = prepareClient();
         client.path("/functionLibraries");
         client.query("options", "overwrite");
@@ -824,8 +759,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test412GetFunctionLibraryHello() {
-        final String TEST_NAME = "test412GetFunctionLibraryHello";
-
         WebClient client = prepareClient();
         client.path("/functionLibraries/" + FUNCTION_LIBRARY_HELLO_OID);
 
@@ -852,9 +785,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test501generateValue() throws Exception {
-        final String TEST_NAME = "test501generateValue";
-
+    public void test501generateValue() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
 
@@ -876,9 +807,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test502generateValueBadPath() throws Exception {
-        final String TEST_NAME = "test502generateValueBadPath";
-
+    public void test502generateValueBadPath() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
 
@@ -898,9 +827,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test503generateValueExecute() throws Exception {
-        final String TEST_NAME = "test503generateValueExecute";
-
+    public void test503generateValueExecute() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
 
@@ -925,11 +852,9 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test504checkGeneratedValue() throws Exception {
-        final String TEST_NAME = "test503generateValueExecute";
-
+    public void test504checkGeneratedValue() {
         WebClient client = prepareClient();
-        client.path("/users/" + USER_DARTHADDER_OID );
+        client.path("/users/" + USER_DARTHADDER_OID);
 
         getDummyAuditService().clear();
 
@@ -946,9 +871,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test505generatePasswordExecute() throws Exception {
-        final String TEST_NAME = "test505generatePasswordExecute";
-
+    public void test505generatePasswordExecute() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
 
@@ -972,9 +895,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test506generateHonorificPrefixNameExecute() throws Exception {
-        final String TEST_NAME = "test506generateHonorificPrefixNameExecute";
-
+    public void test506generateHonorificPrefixNameExecute() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
 
@@ -998,11 +919,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         //TODO assert changed items
     }
 
-    private OperationResult traceResponse(Response response) throws SchemaException {
+    private OperationResult traceResponse(Response response) {
         return traceResponse(response, false);
     }
 
-    private OperationResult traceResponse(Response response, boolean assertMessages) throws SchemaException {
+    private OperationResult traceResponse(Response response, boolean assertMessages) {
         if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
             LOGGER.info("coverting result");
             OperationResultType result = response.readEntity(OperationResultType.class);
@@ -1036,11 +957,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         LOGGER.info("localizable message: " + localizableMessage);
     }
 
-
     @Test
-    public void test510validateValueExplicit() throws Exception {
-        final String TEST_NAME = "test510validateValueExplicit";
-
+    public void test510validateValueExplicit() {
         WebClient client = prepareClient();
         client.path("/rpc/validate");
 
@@ -1062,9 +980,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test511validateValueExplicitConflict() throws Exception {
-        final String TEST_NAME = "test511validateValueExplicitConflict";
-
+    public void test511validateValueExplicitConflict() {
         WebClient client = prepareClient();
         client.path("/rpc/validate");
 
@@ -1079,16 +995,13 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
-
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
-    public void test512validateValueImplicitSingle() throws Exception {
-        final String TEST_NAME = "test512validateValueImplicitSingle";
-
+    public void test512validateValueImplicitSingle() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
@@ -1102,16 +1015,13 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
-    public void test513validateValueImplicitMulti() throws Exception {
-        final String TEST_NAME = "test513validateValueImplicitMulti";
-
+    public void test513validateValueImplicitMulti() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
@@ -1132,9 +1042,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test514validateValueImplicitMultiConflict() throws Exception {
-        final String TEST_NAME = "test514validateValueImplicitMultiConflict";
-
+    public void test514validateValueImplicitMultiConflict() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
@@ -1154,11 +1062,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
 
-
     @Test
-    public void test515validatePasswordHistoryConflict() throws Exception {
-        final String TEST_NAME = "test515validatePasswordHistoryConflict";
-
+    public void test515validatePasswordHistoryConflict() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
@@ -1180,9 +1085,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test516validateValueExplicitNoValuePolicy() throws Exception {
-        final String TEST_NAME = "test516validateValueExplicitNoValuePolicy";
-
+    public void test516validateValueExplicitNoValuePolicy() {
         WebClient client = prepareClient();
         client.path("/rpc/validate");
 
@@ -1204,9 +1107,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test517generateValueExplicit() throws Exception {
-        final String TEST_NAME = "test517generateValueExplicit";
-
+    public void test517generateValueExplicit() {
         WebClient client = prepareClient();
         client.path("/rpc/generate");
 
@@ -1229,8 +1130,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test518validateValueImplicitPassword() throws Exception {
-        final String TEST_NAME = "test518validateValueImplicitPassword";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<SecurityPolicyType> secPolicyNoHistory = parseObject(SECURITY_POLICY_NO_HISTORY);
@@ -1253,8 +1152,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
             display("Audit", getDummyAuditService());
             getDummyAuditService().assertRecords(2);
             getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
-        }catch (Exception ex) {
-            throw ex;
         } finally {
             PrismObject<SecurityPolicyType> secPolicy = parseObject(SECURITY_POLICY);
             addObject(secPolicy, ModelExecuteOptions.createOverwrite(), task, result);
@@ -1263,8 +1160,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test520GeneratePasswordsUsingScripting() throws Exception {
-        final String TEST_NAME = "test520GeneratePasswordsUsingScripting";
-
         WebClient client = prepareClient();
         client.path("/rpc/executeScript");
 
@@ -1317,8 +1212,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test530ModifyValidToUsingScripting() throws Exception {
-        final String TEST_NAME = "test530ModifyValidToUsingScripting";
-
         WebClient client = prepareClient();
         client.path("/rpc/executeScript");
 
@@ -1449,8 +1342,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
      */
     @Test
     public void test600ModifySecurityQuestionReplaceAnswerId1Existing() throws Exception {
-        final String TEST_NAME = "test600ModifySecurityQuestionReplaceAnswerId1Existing";
-
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
@@ -1493,8 +1384,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
      */
     @Test
     public void test602ModifySecurityQuestionReplaceTwoAnswersExisting() throws Exception {
-        final String TEST_NAME = "test602ModifySecurityQuestionReplaceTwoAnswersExisting";
-
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
@@ -1529,8 +1418,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
      */
     @Test
     public void test604ModifySecurityQuestionReplaceNoAnswer() throws Exception {
-        final String TEST_NAME = "test604ModifySecurityQuestionReplaceNoAnswer";
-
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
@@ -1565,8 +1452,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
      */
     @Test
     public void test606ModifySecurityQuestionReplaceAnswer() throws Exception {
-        final String TEST_NAME = "test606ModifySecurityQuestionReplaceAnswer";
-
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
@@ -1597,9 +1482,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test607validateSecurityAnswerCheckExpressionFail() throws Exception {
-        final String TEST_NAME = "test607validateSecurityAnswerCheckExpressionFail";
-
+    public void test607validateSecurityAnswerCheckExpressionFail() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
@@ -1614,16 +1497,13 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
-
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
-    public void test608validateSecurityAnswerCheckExpression() throws Exception {
-        final String TEST_NAME = "test607validateSecurityAnswerCheckExpression";
-
+    public void test608validateSecurityAnswerCheckExpression() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
@@ -1636,7 +1516,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
-
 
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
@@ -1671,7 +1550,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Unexpected security question 001 answer in " + userType, expectedAnswer001, decrypted);
     }
 
-    private void assertSecurityQuestionNoAnswer(UserType userType) throws EncryptionException {
+    private void assertSecurityQuestionNoAnswer(UserType userType) {
         CredentialsType credentials = userType.getCredentials();
         assertNotNull("No credentials in user. Something is wrong.", credentials);
         SecurityQuestionsCredentialsType securityQuestions = credentials.getSecurityQuestions();
@@ -1682,21 +1561,19 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     private void assertSecurityQuestionAnswer(List<SecurityQuestionAnswerType> secQuestionAnswers,
             String anwerUriLocalPart, String expectedAnswer) throws EncryptionException {
-        for (SecurityQuestionAnswerType secQuestionAnswer: secQuestionAnswers) {
+        for (SecurityQuestionAnswerType secQuestionAnswer : secQuestionAnswers) {
             if (secQuestionAnswer.getQuestionIdentifier().equals(QNameUtil.qNameToUri(
                     new QName(NS_SECURITY_QUESTION_ANSWER, anwerUriLocalPart)))) {
                 String decrypted = getPrismContext().getDefaultProtector().decryptString(secQuestionAnswer.getQuestionAnswer());
-                assertEquals("Unexpected security question "+anwerUriLocalPart+" answer", expectedAnswer, decrypted);
+                assertEquals("Unexpected security question " + anwerUriLocalPart + " answer", expectedAnswer, decrypted);
                 return;
             }
         }
-        AssertJUnit.fail("Security question answer "+anwerUriLocalPart+" not found");
+        AssertJUnit.fail("Security question answer " + anwerUriLocalPart + " not found");
     }
 
     @Test
-    public void test610ModifyPasswordForceChange() throws Exception {
-        final String TEST_NAME = "test610ModifyPasswordForceChange";
-
+    public void test610ModifyPasswordForceChange() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
@@ -1710,7 +1587,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         traceResponse(response);
 
         assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
-
 
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
@@ -1735,8 +1611,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test
     public void test612ResetPassword() throws Exception {
-        final String TEST_NAME = "test612ResetPassword";
-
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/credential");
 
@@ -1753,7 +1627,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         traceResponse(response);
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
-
 
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
@@ -1782,8 +1655,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test650SuspendNonExistingTask() {
-        final String TEST_NAME = "test650SuspendNonExistingTask";
-
         WebClient client = prepareClient();
         client.path("/tasks/123456/suspend");
 
@@ -1798,8 +1669,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test652SuspendWrongObject() {
-        final String TEST_NAME = "test652SuspendWrongObject";
-
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002/suspend");
 
@@ -1814,8 +1683,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test660ResumeNonExistingTask() {
-        final String TEST_NAME = "test660ResumeNonExistingTask";
-
         WebClient client = prepareClient();
         client.path("/tasks/123456/resume");
 
@@ -1830,8 +1697,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test662ResumeWrongObject() {
-        final String TEST_NAME = "test662ResumeWrongObject";
-
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002/resume");
 
@@ -1846,8 +1711,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test670ScheduleNonExistingTask() {
-        final String TEST_NAME = "test670ScheduleNonExistingTask";
-
         WebClient client = prepareClient();
         client.path("/tasks/123456/run");
 
@@ -1862,8 +1725,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test672ScheduleWrongObject() {
-        final String TEST_NAME = "test672ScheduleWrongObject";
-
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002/run");
 
@@ -1878,8 +1739,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test680DeleteNonExistingTask() {
-        final String TEST_NAME = "test680DeleteNonExistingTask";
-
         WebClient client = prepareClient();
         client.path("/tasks/123456");
 
@@ -1894,8 +1753,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     @Test // MID-4928
     public void test682DeleteWrongObject() {
-        final String TEST_NAME = "test682DeleteWrongObject";
-
         WebClient client = prepareClient();
         client.path("/tasks/00000000-0000-0000-0000-000000000002");
 
@@ -1908,16 +1765,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
     }
 
-
-
-
     private WebClient prepareClient() {
         return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
-    }
-
-    private void assertNoEmptyResponse(Response response) {
-        String respBody = response.readEntity(String.class);
-        assertTrue("Unexpected reposponse: "+respBody, StringUtils.isBlank(respBody));
     }
 
     private void displayResponse(Response response) {

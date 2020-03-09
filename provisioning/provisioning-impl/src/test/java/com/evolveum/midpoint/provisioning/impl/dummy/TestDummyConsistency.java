@@ -105,7 +105,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test050AddAccountWill() throws Exception {
-        final String TEST_NAME = "test050AddAccountWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -164,7 +163,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     @Test
     public void test100AddAccountMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test100AddAccountMorganCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -229,7 +227,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test104RefreshAccountMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test104RefreshAccountMorganCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -260,7 +257,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test105GetForceRefreshAccountMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test105GetForceRefreshAccountMorganCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -299,7 +295,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test106RefreshAccountMorganCommunicationFailureRetry() throws Exception {
-        final String TEST_NAME = "test106RefreshAccountMorganCommunicationFailureRetry";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -338,7 +333,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test108RefreshAccountMorganCommunicationFailureRetryAgain() throws Exception {
-        final String TEST_NAME = "test108RefreshAccountMorganCommunicationFailureRetryAgain";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -465,7 +459,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test109RefreshAccountMorganDead() throws Exception {
-        final String TEST_NAME = "test109RefreshAccountMorganDead";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -496,7 +489,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test110AddAccountMorganAgainCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test110AddAccountMorganAgainCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -536,7 +528,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test114RefreshAccountMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test114RefreshAccountMorganCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -569,7 +560,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test116RefreshAccountMorganRetrySuccess() throws Exception {
-        final String TEST_NAME = "test116RefreshAccountMorganRetrySuccess";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -604,8 +594,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     @Test
     public void test120ModifyMorganFullNameCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test120ModifyMorganFullNameCommunicationFailure";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -641,7 +629,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test124RefreshAccountMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test124RefreshAccountMorganCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -672,7 +659,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test126RefreshAccountMorganCommunicationFailureRetry() throws Exception {
-        final String TEST_NAME = "test126RefreshAccountMorganCommunicationFailureRetry";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -711,7 +697,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test128RefreshAccountMorganCommunicationFailureRetryAgain() throws Exception {
-        final String TEST_NAME = "test128RefreshAccountMorganCommunicationFailureRetryAgain";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -747,7 +732,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test129RefreshAccountMorganFailed() throws Exception {
-        final String TEST_NAME = "test129RefreshAccountMorganFailed";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -775,8 +759,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     @Test
     public void test130ModifyMorganFullNameAgainCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test130ModifyMorganFullNameAgainCommunicationFailure";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -813,7 +795,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test132GetAccountMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test132GetAccountMorganCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -848,7 +829,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test(enabled = false) // MID-4796
     public void test133GetAccountMorganStalenessZeroCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test133GetAccountMorganStalenessZeroCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -888,7 +868,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test134GetAccountMorganForceRefreshRetryCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test134GetAccountMorganForceRefreshRetryCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -922,7 +901,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test136RefreshAccountMorganRetrySuccess() throws Exception {
-        final String TEST_NAME = "test136RefreshAccountMorganRetrySuccess";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -957,8 +935,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     @Test
     public void test170DeleteMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test170DeleteMorganCommunicationFailure";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -993,7 +969,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test174RefreshAccountMorganCommunicationFailure() throws Exception {
-        final String TEST_NAME = "test174RefreshAccountMorganCommunicationFailure";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1024,7 +999,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test176RefreshAccountMorganCommunicationFailureRetry() throws Exception {
-        final String TEST_NAME = "test176RefreshAccountMorganCommunicationFailureRetry";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1063,7 +1037,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test178RefreshAccountMorganCommunicationFailureRetryAgain() throws Exception {
-        final String TEST_NAME = "test178RefreshAccountMorganCommunicationFailureRetryAgain";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1098,7 +1071,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test179RefreshAccountMorganFailed() throws Exception {
-        final String TEST_NAME = "test179RefreshAccountMorganFailed";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1126,8 +1098,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     @Test
     public void test180DeleteMorganCommunicationFailureAgain() throws Exception {
-        final String TEST_NAME = "test180DeleteMorganCommunicationFailureAgain";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -1163,7 +1133,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test186RefreshAccountMorganRetrySuccess() throws Exception {
-        final String TEST_NAME = "test186RefreshAccountMorganRetrySuccess";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1205,7 +1174,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test190AccountMorganDeadExpireOperation() throws Exception {
-        final String TEST_NAME = "test190AccountMorganDeadExpireOperation";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1290,7 +1258,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test192AccountMorganSecondDeadExpireOperation() throws Exception {
-        final String TEST_NAME = "test192AccountMorganSecondDeadExpireOperation";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1359,7 +1326,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test194AccountMorganDeadExpireShadow() throws Exception {
-        final String TEST_NAME = "test194AccountMorganDeadExpireShadow";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1395,7 +1361,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test196AccountMorganSecondDeadExpireShadow() throws Exception {
-        final String TEST_NAME = "test196AccountMorganSecondDeadExpireShadow";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1432,7 +1397,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test800AddAccountMorganAlreadyExists() throws Exception {
-        final String TEST_NAME = "test800AddAccountMorganAlreadyExists";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1513,7 +1477,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test802AddAccountMorganAlreadyExistsAgain() throws Exception {
-        final String TEST_NAME = "test802AddAccountMorganAlreadyExistsAgain";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1599,7 +1562,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     @Test
     public void test804AddAccountElizabeth() throws Exception {
-        final String TEST_NAME = "test804AddAccountElizabeth";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1632,7 +1594,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test806RenameAccountElizabethAlreadyExists() throws Exception {
-        final String TEST_NAME = "test806RenameAccountElizabethAlreadyExists";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1713,7 +1674,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test808RenameAccountElizabethAlreadyExistsAgain() throws Exception {
-        final String TEST_NAME = "test808RenameAccountElizabethAlreadyExistsAgain";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1807,7 +1767,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test810GetAccountMorganNotFound() throws Exception {
-        final String TEST_NAME = "test810GetAccountMorganNotFound";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1875,7 +1834,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test812ModifyAccountWillNotFound() throws Exception {
-        final String TEST_NAME = "test812ModifyAccountWillNotFound";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1949,7 +1907,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test814DeleteAccountElizabethNotFound() throws Exception {
-        final String TEST_NAME = "test814DeleteAccountElizabethNotFound";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2014,7 +1971,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test816AddAccountElizabethAfterDeathAlreadyExists() throws Exception {
-        final String TEST_NAME = "test816AddAccountElizabethAfterDeathAlreadyExists";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2083,7 +2039,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test900GetAccountMurrayPending() throws Exception {
-        final String TEST_NAME = "test900GetAccountMurrayPending";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2694,7 +2649,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
         // @formatter:off
-        ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+        ShadowAsserter<?> shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
         shadowAsserter
             .display()
             .pendingOperations()
@@ -2793,7 +2748,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
-    private void assertDeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
+    private void assertDeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
@@ -2803,7 +2758,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                     .resultStatus(OperationResultStatusType.SUCCESS)
@@ -2837,7 +2792,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertSize(2)
                 .end()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                     .resultStatus(OperationResultStatusType.SUCCESS)

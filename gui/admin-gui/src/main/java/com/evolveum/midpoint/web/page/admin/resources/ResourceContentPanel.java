@@ -326,7 +326,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
         initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
-        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, SystemObjectsType.ARCHETYPE_LIVE_SYNCH_TASK.value());
+        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
 
         initCustomLayout();
     }
@@ -525,7 +525,7 @@ public abstract class ResourceContentPanel extends Panel {
 
     protected void initCustomLayout() {
         // Nothing to do, for subclass extension
-    };
+    }
 
     protected ObjectQuery createQuery() {
         ObjectQuery baseQuery = null;

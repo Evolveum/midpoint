@@ -689,6 +689,48 @@ public final class WebComponentUtil {
         return task != null && TaskCategory.WORKFLOW.equals(task.getCategory());
     }
 
+    public static boolean isReconciliation(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK);
+    }
+
+    public static boolean isRecomputation(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK);
+    }
+
+    public static boolean isReport(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK);
+    }
+
+    public static boolean isImport(TaskType task){
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK);
+    }
+
+    public static boolean isLiveSync(TaskType task) {
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK);
+    }
+
+    private static boolean isArchetypedTask(TaskType taskType, SystemObjectsType archetype) {
+        ObjectReferenceType archetypeRef = getArchetypeReference(taskType);
+        if (archetypeRef == null){
+            return false;
+        }
+        return archetype.value().equals(archetypeRef.getOid());
+    }
+
+    private static ObjectReferenceType getArchetypeReference(TaskType task) {
+        ObjectReferenceType archetypeRef = null;
+        if (task.getAssignment() == null || task.getAssignment().size() == 0) {
+            return archetypeRef;
+        }
+        for (AssignmentType assignment : task.getAssignment()) {
+            if (StringUtils.isNotEmpty(assignment.getTargetRef().getOid())
+                    && assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                archetypeRef = assignment.getTargetRef();
+            }
+        }
+        return archetypeRef;
+    }
+
     public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result )
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException{
@@ -745,6 +787,56 @@ public final class WebComponentUtil {
         }
         return null;
     }
+
+    public static Task createRecomputeMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
+            Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
+
+        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+        operationalTask.setOwner(owner.getFocus().asPrismObject());
+
+        operationalTask.setBinding(TaskBinding.LOOSE);
+        operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+        operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
+        ScheduleType schedule = new ScheduleType();
+        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+        operationalTask.makeSingle(schedule);
+        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
+
+        PrismPropertyDefinition propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        PrismProperty<QueryType> queryProperty = propertyDefQuery.instantiate();
+        QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
+        queryProperty.setRealValue(queryType);
+        operationalTask.addExtensionProperty(queryProperty);
+
+        PrismPropertyDefinition propertyDefType = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        PrismProperty<QName> typeProperty = propertyDefType.instantiate();
+        typeProperty.setRealValue(type);
+        operationalTask.addExtensionProperty(typeProperty);
+
+        if (option != null) {
+            PrismPropertyDefinition propertyDefOption = pageBase.getPrismContext().getSchemaRegistry()
+                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
+            PrismProperty<SelectorQualifiedGetOptionsType> optionProperty = propertyDefOption.instantiate();
+            optionProperty.setRealValue(MiscSchemaUtil.optionsToOptionsType(option));
+            operationalTask.addExtensionProperty(optionProperty);
+        }
+
+        try {
+            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.RECOMPUTE.getUrl(),
+                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
+            operationalTask.setHandlerUri(ModelPublicConstants.RECOMPUTE_HANDLER_URI);
+            return operationalTask;
+        } catch (ObjectNotFoundException | SchemaException
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | SecurityViolationException e) {
+            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
+        }
+        return null;
+    }
+
 
     public static void executeMemberOperation(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
 
@@ -3013,15 +3105,16 @@ public final class WebComponentUtil {
         return StreamSupport.stream(array.spliterator(), true).allMatch(o -> o == null);
     }
 
-    public static ObjectFilter createAssociationShadowRefFilter(RefinedAssociationDefinition refinedAssocationDefinition, PrismContext prismContext,
-                                                                String resourceOid){
+    public static ObjectFilter createAssociationShadowRefFilter(
+            RefinedAssociationDefinition refinedAssociationDefinition,
+            PrismContext prismContext, String resourceOid) {
         S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
         List<ObjectFilter> orFilterClauses = new ArrayList<>();
-        refinedAssocationDefinition.getIntents()
+        refinedAssociationDefinition.getIntents()
                 .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
         OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
-        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
+        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
         filter.addCondition(intentFilter);
         return filter;

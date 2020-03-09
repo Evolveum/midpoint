@@ -35,10 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Radovan Semancik
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestArchetypes extends AbstractArchetypesTest {
@@ -125,11 +121,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test020SanityJack() throws Exception {
-        final String TEST_NAME = "test020SanityJack";
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         PrismObject<UserType> user = assertUserBefore(USER_JACK_OID)
             .assertFullName(USER_JACK_FULL_NAME)
             .getObject();
@@ -139,8 +130,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test050AddArchetypeTest() throws Exception {
-        final String TEST_NAME = "test050AddArchetypeTest";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -158,8 +147,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test060AddArchetypesAndRoles() throws Exception {
-        final String TEST_NAME = "test060AddArchetypesAndRoles";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -197,8 +184,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test070AssignGuybrushUserAdministrator() throws Exception {
-        final String TEST_NAME = "test070AssignGuybrushUserAdministrator";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -216,8 +201,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test100AssignJackArchetypeEmployee() throws Exception {
-        final String TEST_NAME = "test100AssignJackArchetypeEmployee";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -259,8 +242,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test102SearchEmployeeArchetypeRef() throws Exception {
-        final String TEST_NAME = "test102SearchEmployeeArchetypeRef";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -296,8 +277,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test104GetGuybryshCompiledGuiProfile() throws Exception {
-        final String TEST_NAME = "test104GetGuybryshCompiledGuiProfile";
-
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
@@ -361,8 +340,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test109UnassignJackArchetypeEmployee() throws Exception {
-        final String TEST_NAME = "test109UnassignJackArchetypeEmployee";
-
         loginAdministrator();
 
         Task task = getTestTask();
@@ -395,8 +372,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test110AssignJackRoleEmployeeBase() throws Exception {
-        final String TEST_NAME = "test110AssignJackRoleEmployeeBase";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -450,8 +425,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test115UnassignJackRoleEmployeeBase() throws Exception {
-        final String TEST_NAME = "test115UnassignJackRoleEmployeeBase";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -493,8 +466,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test120AssignJackArchetypeTest() throws Exception {
-        final String TEST_NAME = "test120AssignJackArchetypeTest";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -528,8 +499,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test129UnassignJackArchetypeTest() throws Exception {
-        final String TEST_NAME = "test129UnassignJackArchetypeTest";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -559,8 +528,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test130AssignJackArchetypeContractor() throws Exception {
-        final String TEST_NAME = "test130AssignJackArchetypeContractor";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -591,8 +558,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test132JackContractorRecompute() throws Exception {
-        final String TEST_NAME = "test132JackContractorRecompute";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -624,8 +589,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test135UnassignJackArchetypeContractor() throws Exception {
-        final String TEST_NAME = "test135UnassignJackArchetypeContractor";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -658,8 +621,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test137JackEmpnoAndRecompute() throws Exception {
-        final String TEST_NAME = "test137JackEmpnoAndRecompute";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -694,8 +655,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test140AddMeathookContractor() throws Exception {
-        final String TEST_NAME = "test140AddMeathookContractor";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -728,8 +687,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test150AddWannabe() throws Exception {
-        final String TEST_NAME = "test150AddWannabe";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -763,8 +720,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test160AddSelfMadeMan() throws Exception {
-        final String TEST_NAME = "test160AddSelfMadeMan";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -796,8 +751,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      */
     @Test
     public void test162AddFraudster() throws Exception {
-        final String TEST_NAME = "test162AddFraudster";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -825,8 +778,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test200AssignJackBarbossaArchetypeEmployee() throws Exception {
-        final String TEST_NAME = "test200AssignJackBarbossaArchetypeEmployee";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -850,8 +801,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test202GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
-        final String TEST_NAME = "test202GetGuybryshCompiledGuiProfileActiveEmployeesView";
-
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
@@ -886,8 +835,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test203DisableBarbossa() throws Exception {
-        final String TEST_NAME = "test203DisableBarbossa";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -910,8 +857,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test205GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
-        final String TEST_NAME = "test205GetGuybryshCompiledGuiProfileActiveEmployeesView";
-
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
@@ -946,8 +891,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     @Test
     public void test300jackAssignArchetypeRaw() throws Exception {
-        final String TEST_NAME = "test300jackAssignArchetypeRaw";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

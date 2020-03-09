@@ -270,16 +270,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
         PrismObjectWrapper objectWrapper = getParent().findObjectWrapper();
         if (objectWrapper == null) {
-            LOGGER.trace("No object wraper foung. Skipping virtual items.");
+            LOGGER.trace("No object wrapper found. Skipping virtual items.");
             return nonContainers;
         }
 
         for (VirtualContainerItemSpecificationType virtualItem : getVirtualItems()) {
-            if (objectWrapper == null) {
-                //should not happen, if happens it means something veeery strange happened
-                continue;
-            }
-
             try {
                 ItemPath virtualItemPath = getVirtualItemPath(virtualItem);
                 ItemWrapper itemWrapper = objectWrapper.findItem(virtualItemPath, ItemWrapper.class);
@@ -292,15 +287,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                     continue;
                 }
 
-                ((List)nonContainers).add(itemWrapper);
+                if (checkContainerInclusion(itemWrapper)) {
+                    ((List)nonContainers).add(itemWrapper);
+                }
             } catch (SchemaException e) {
                 LOGGER.error("Cannot find wrapper with path {}, error occured {}", virtualItem, e.getMessage(), e);
             }
-
-
         }
-
         return nonContainers;
+    }
+
+    public boolean checkContainerInclusion(ItemWrapper<?, ?, ?, ?> itemWrapper) {
+        return true;
     }
 
     private ItemPath getVirtualItemPath(VirtualContainerItemSpecificationType virtualItem) throws SchemaException {

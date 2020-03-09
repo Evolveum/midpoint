@@ -67,10 +67,11 @@ public class TestOpenDjDumber extends TestOpenDj {
     protected void assertTimestamp(String attrName, Object timestampValue) {
         if (!(timestampValue instanceof String)) {
             fail("Wrong type of "+attrName+", expected String but was "+timestampValue.getClass());
+        } else {
+            String str = (String) timestampValue;
+            assertTrue("Timestamp " + attrName + " does not start with 2: " + str, str.startsWith("2"));
+            assertTrue("Timestamp " + attrName + " does not end with Z: " + str, str.endsWith("Z"));
         }
-        String str = (String)timestampValue;
-        assertTrue("Timestamp "+attrName+" does not start with 2: "+str, str.startsWith("2"));
-        assertTrue("Timestamp "+attrName+" does not end with Z: "+str, str.endsWith("Z"));
     }
 
     /**
@@ -79,8 +80,6 @@ public class TestOpenDjDumber extends TestOpenDj {
     @Test
     @Override
     public void test489DeleteOuSuperWithSub() throws Exception {
-        final String TEST_NAME = "test489DeleteOuSuperWithSub";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

@@ -7,40 +7,26 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnableBehaviour {
     private static final long serialVersionUID = 1L;
-
-    private static final String OPERATION_LOAD_GUI_CONFIGURATION = ObjectTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
 
     private IModel<PrismObject<O>> objectModel;
     private String uiAuthorizationUrl;
@@ -52,14 +38,6 @@ public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnabl
         this.pageBase = pageBase;
     }
 
-    private ModelInteractionService getModelInteractionService() {
-        return ((MidPointApplication) MidPointApplication.get()).getModelInteractionService();
-    }
-
-    private TaskManager getTaskManager() {
-        return ((MidPointApplication) MidPointApplication.get()).getTaskManager();
-    }
-
     @Override
     public boolean isVisible() {
         PrismObject<O> object = objectModel.getObject();
@@ -67,16 +45,7 @@ public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnabl
             return true;
         }
 
-        Task task = WebModelServiceUtils.createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION,
-                SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), getTaskManager());
-        OperationResult result = task.getResult();
-
-        CompiledGuiProfile config;
-        try {
-            config = getModelInteractionService().getCompiledGuiProfile(task, result);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            throw new SystemException("Cannot load GUI configuration: " + e.getMessage(), e);
-        }
+        CompiledGuiProfile config = pageBase.getCompiledGuiProfile();
 
         // find all object form definitions for specified type, if there is none we'll show all default tabs
         List<ObjectFormType> forms = findObjectForm(config, object);
@@ -135,9 +104,7 @@ public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnabl
         RoleRelationObjectSpecificationType roleRelation = form.getRoleRelation();
         if (roleRelation != null) {
             List<QName> subjectRelations = roleRelation.getSubjectRelation();
-            if (!pageBase.hasSubjectRoleRelation(object.getOid(), subjectRelations)) {
-                return false;
-            }
+            return pageBase.hasSubjectRoleRelation(object.getOid(), subjectRelations);
         }
         // TODO: roleRelation
         return true;

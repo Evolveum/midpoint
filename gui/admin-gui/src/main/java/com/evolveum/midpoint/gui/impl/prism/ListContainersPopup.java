@@ -98,7 +98,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 
                     protected boolean getLabelVisible() {
                         return false;
-                    };
+                    }
 
                 };
                 checkFormGroup.getCheck().add(new EmptyOnChangeAjaxFormUpdatingBehavior());

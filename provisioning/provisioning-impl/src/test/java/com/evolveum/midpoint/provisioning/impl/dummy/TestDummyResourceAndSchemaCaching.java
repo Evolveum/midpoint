@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -21,6 +19,10 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -33,21 +35,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * The test of Provisioning service on the API level. It checks proper caching of resource and schemas.
- *
+ * <p>
  * The test is using dummy resource for speed and flexibility.
  *
  * @author Radovan Semancik
@@ -58,10 +53,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
     @Test
     public void test010GetResource() throws Exception {
-        final String TEST_NAME = "test010GetResource";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // Check that there is no schema before test (pre-condition)
         PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
@@ -127,10 +120,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
     @Test
     public void test011GetResourceAgain() throws Exception {
-        final String TEST_NAME = "test011GetResourceAgain";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
@@ -197,10 +188,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
      */
     @Test
     public void test012AddAccountGetResource() throws Exception {
-        final String TEST_NAME = "test012AddAccountGetResource";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         addAccount(ACCOUNT_WILL_FILE);
@@ -239,10 +228,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
     @Test
     public void test013GetResourceNoFetch() throws Exception {
-        final String TEST_NAME = "test013GetResourceNoFetch";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createNoFetchCollection();
 
@@ -305,17 +292,14 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertConnectorInstanceUnchanged(resourceProvisioning);
     }
 
-
     /**
      * Change something that is not important. The cached resource should be refreshed, the schema re-parsed
      * but the connector should still be cached.
      */
     @Test
     public void test020ModifyAndGetResource() throws Exception {
-        final String TEST_NAME = "test020ModifyAndGetResource";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Change something that's not that important
@@ -324,7 +308,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
-                ResourceType.F_PROJECTION, projectionPolicyType);
+                        ResourceType.F_PROJECTION, projectionPolicyType);
 
         // WHEN
         provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), null, null, task, result);
@@ -373,10 +357,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
      */
     @Test
     public void test022GetAccountGetResource() throws Exception {
-        final String TEST_NAME = "test012AddAccountGetResource";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         getAccount(ACCOUNT_WILL_OID);
@@ -417,16 +399,14 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     /**
      * Change resource directly in repo. This simulates the change done by other node. The connector cache should
      * be refreshed.
-     *
+     * <p>
      * Change something that is not important. The cached resource should be refreshed, the schema re-parsed
      * but the connector should still be cached.
      */
     @Test
     public void test023ModifyRepoAndGetResource() throws Exception {
-        final String TEST_NAME = "test023ModifyRepoAndGetResource";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Change something that's not that important
@@ -435,7 +415,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
-                ResourceType.F_PROJECTION, projectionPolicyType);
+                        ResourceType.F_PROJECTION, projectionPolicyType);
 
         // WHEN
         repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), result);
@@ -484,17 +464,15 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
      */
     @Test
     public void test030ModifyConnectorConfigAndGetResource() throws Exception {
-        final String TEST_NAME = "test030ModifyConnectorConfigAndGetResource";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Change part of connector configuration. We change quite a useless part. But midPoint does not know that
         // it is useless and need to re-initialize the connector
         Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
         PropertyDelta<String> uselessStringDelta = createUselessStringDelta("patlama chamalalija paprtala");
-        ((Collection)modifications).add(uselessStringDelta);
+        ((Collection) modifications).add(uselessStringDelta);
 
         // WHEN
         provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, modifications, null, null, task, result);
@@ -508,23 +486,21 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     /**
      * Change part of connector configuration. Change it directly in repo to simulate change
      * from another midPoint node.
-     *
+     * <p>
      * The cached resource should be refreshed, the schema re-parsed.
      * The connector also needs to re-initialized.
      */
     @Test
     public void test031ModifyConnectorConfigRepoAndGetResource() throws Exception {
-        final String TEST_NAME = "test031ModifyConnectorConfigRepoAndGetResource";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Change part of connector configuration. We change quite a useless part. But midPoint does not know that
         // it is useless and need to re-initialize the connector
         Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
         PropertyDelta<String> uselessStringDelta = createUselessStringDelta("Rudolfovo Tajemstvi");
-        ((Collection)modifications).add(uselessStringDelta);
+        ((Collection) modifications).add(uselessStringDelta);
 
         // WHEN
         repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, modifications, result);
@@ -538,10 +514,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
     @Test
     public void test900DeleteResource() throws Exception {
-        final String TEST_NAME = "test900DeleteResource";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -653,5 +627,4 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         TestUtil.assertSuccess(result);
         return account;
     }
-
 }

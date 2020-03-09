@@ -53,8 +53,6 @@ import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -69,10 +67,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
- *
  */
 @SuppressWarnings("SpellCheckingInspection")
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
@@ -206,11 +203,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Create an account that midPoint does not know about yet
         getDummyResourceController().addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
         getDummyResource().getAccountByUsername(USER_RAPP_USERNAME)
-                    .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
+                .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
 
         dummyResourceCtlLime.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
         dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME)
-                    .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
+                .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
         dummyResourceCtlLime.addAccount(ACCOUNT_RUM_NAME, "Rum Rogers");
         dummyResourceCtlLime.addAccount(ACCOUNT_MURRAY_NAME, "Murray");
 
@@ -391,15 +388,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(task, "task after")
                 .display()
                 .synchronizationInformation()
-                    .assertUnmatched( 1, 0)
-                    .assertUnlinked( 1, 0)
-                    .assertLinked( 3, 5)
-                    .assertProtected( 2, 2)
-                    .assertTotal(7, 7)
-                    .end()
+                .assertUnmatched(1, 0)
+                .assertUnlinked(1, 0)
+                .assertLinked(3, 5)
+                .assertProtected(2, 2)
+                .assertTotal(7, 7)
+                .end()
                 .iterativeTaskInformation()
-                    .assertTotalCounts(7, 0)
-                    .end()
+                .assertTotalCounts(7, 0)
+                .end()
                 .assertProgress(7);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
@@ -466,13 +463,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(task, "task after")
                 .display()
                 .synchronizationInformation()
-                    .assertLinked( 5, 5)
-                    .assertProtected( 2, 2)
-                    .assertTotal(7, 7)
+                .assertLinked(5, 5)
+                .assertProtected(2, 2)
+                .assertTotal(7, 7)
                 .end()
                 .iterativeTaskInformation()
-                    .assertTotalCounts(7, 0)
-                    .end()
+                .assertTotalCounts(7, 0)
+                .end()
                 .assertProgress(7);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
@@ -548,13 +545,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(task, "task after")
                 .display()
                 .synchronizationInformation()
-                    .assertUnmatched( 2, 0)
-                    .assertUnlinked( 1, 0)
-                    .assertLinked( 0, 3)
-                    .assertTotal(3, 3)
+                .assertUnmatched(2, 0)
+                .assertUnlinked(1, 0)
+                .assertLinked(0, 3)
+                .assertTotal(3, 3)
                 .end()
                 .iterativeTaskInformation()
-                    .assertTotalCounts(3, 0)
+                .assertTotalCounts(3, 0)
                 .end()
                 .assertProgress(3);
 
@@ -780,7 +777,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Quote is tolerant. The extra values should stay as it is
         guybrushDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "I want to be a pirate!");
 
-
         // Calypso is protected, this should not reconcile
         DummyAccount calypsoDummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         calypsoDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
@@ -807,12 +803,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(taskAfter, "task after")
                 .display()
                 .synchronizationInformation()
-                    .assertLinked( 5, 5)
-                    .assertProtected( 2, 2)
-                    .assertTotal(7, 7)
+                .assertLinked(5, 5)
+                .assertProtected(2, 2)
+                .assertTotal(7, 7)
                 .end()
                 .iterativeTaskInformation()
-                    .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
+                .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
                 .end()
                 .assertProgress(7);         // or should be 9?
 
@@ -1068,12 +1064,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(taskAfter, "task after")
                 .display()
                 .synchronizationInformation()
-                    .assertLinked( 5, 5)
-                    .assertProtected( 2, 2)
-                    .assertTotal(7, 7)
+                .assertLinked(5, 5)
+                .assertProtected(2, 2)
+                .assertTotal(7, 7)
                 .end()
                 .iterativeTaskInformation()
-                    .assertTotalCounts(8, 1)
+                .assertTotalCounts(8, 1)
                 .end()
                 .assertProgress(7);         // or should be 9?
 
@@ -1239,14 +1235,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(taskAfter, "task after")
                 .display()
                 .synchronizationInformation()
-                    .assertUnmatched(1, 0)
-                    .assertLinked( 4, 5)
-                    .assertDeleted(1, 1)
-                    .assertProtected( 2, 2)
-                    .assertTotal(8, 8)
+                .assertUnmatched(1, 0)
+                .assertLinked(4, 5)
+                .assertDeleted(1, 1)
+                .assertProtected(2, 2)
+                .assertTotal(8, 8)
                 .end()
                 .iterativeTaskInformation()
-                    .assertTotalCounts(10, 0)
+                .assertTotalCounts(10, 0)
                 .end()
                 .assertProgress(8);         // or should be 10?
 
@@ -1263,7 +1259,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME); // not deleted. reaction=unlink
 
         assertRepoShadow(hermanShadowOid)
-            .assertTombstone();
+                .assertTombstone();
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1396,7 +1392,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
                 "Calypso");
 
-
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
         display("Dummy resource (azure)", dummyResourceAzure.debugDump());
@@ -1445,7 +1440,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
-
 
         // Otis
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
@@ -1528,7 +1522,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 "Calypso");
 
         assertRepoShadow(otisShadow.getOid())
-            .assertTombstone();
+                .assertTombstone();
 
         assertShadows(17);
 
@@ -1546,8 +1540,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test330ReconcileDummyAzureAddAccountRapp() throws Exception {
-        final String TEST_NAME = "test330ReconcileDummyAzureAddAccountRapp";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1598,7 +1590,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Elaine");
 
-      //Checking password policy
+        //Checking password policy
         PrismObject<UserType> userRapp = findUserByUsername(USER_RAPP_USERNAME);
         assertNotNull("No user Rapp", userRapp);
         UserType userTypeRapp = userRapp.asObjectable();
@@ -1615,13 +1607,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         }
 
         assertNotNull("No clear text password", stringPassword);
-        assertTrue("Rapp's password is supposed to contain letter a: "+stringPassword, stringPassword.contains("a"));
-
+        assertTrue("Rapp's password is supposed to contain letter a: " + stringPassword, stringPassword.contains("a"));
 
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE.oid);
 
-        boolean isPasswordValid = valuePolicyProcessor.validateValue(stringPassword, passwordPolicy.asObjectable(),
-                createUserOriginResolver(userRapp), TEST_NAME, task, result);
+        boolean isPasswordValid = valuePolicyProcessor.validateValue(
+                stringPassword, passwordPolicy.asObjectable(),
+                createUserOriginResolver(userRapp), getTestNameShort(), task, result);
         assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);
 
         // These are protected accounts, they should not be imported
@@ -1662,7 +1654,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userRappDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, USER_RAPP_OID,
-                UserType.F_ORGANIZATIONAL_UNIT, createPolyString("The six feet under crew"));
+                        UserType.F_ORGANIZATIONAL_UNIT, createPolyString("The six feet under crew"));
         repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 
         userRappBefore = getUser(USER_RAPP_OID);
@@ -1792,7 +1784,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
-
     @Test
     public void test339ReconcileDummyAzureDeleteRapp() throws Exception {
         // GIVEN
@@ -1856,7 +1847,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 "Calypso");
 
         assertRepoShadow(rappShadow.getOid())
-            .assertTombstone();
+                .assertTombstone();
 
         assertShadows(19);
 
@@ -1867,7 +1858,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // deleting linkRef
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
-
 
     @Test
     public void test400ReconcileDummyLimeAddAccount() throws Exception {
@@ -1967,7 +1957,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Dummy resource (lime)", dummyResourceLime.debugDump());
     }
-
 
     @Test
     public void test402ReconcileDummyLimeKateOnlyGrog() throws Exception {
@@ -2580,7 +2569,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, prismContext)
                         .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
                         ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
-                              .contains("s")
+                        .contains("s")
                         .build();
 
         // WHEN
@@ -2608,7 +2597,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-     // WHEN
+        // WHEN
         when();
         importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS.file);
 
@@ -2633,7 +2622,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult opExecResult = opExecResults.get(0);
         TestUtil.assertSuccess(opExecResult);
         assertEquals("Wrong exec operation count", 18, opExecResult.getCount());
-        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
 
         assertUsers(getNumberOfUsers() + 12);
 
@@ -2677,7 +2666,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult opExecResult = opExecResults.get(0);
         TestUtil.assertSuccess(opExecResult);
         assertEquals("Wrong exec operation count", 15, opExecResult.getCount());
-        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
 
         assertUsers(getNumberOfUsers() + 12);
 
@@ -2692,7 +2681,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
             count.increment();
-            display("Found",shadow);
+            display("Found", shadow);
             return true;
         };
         Collection<SelectorOptions<GetOperationOptions>> options = null;
@@ -2700,7 +2689,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         }
         modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
-        assertEquals("Unexpected number of search results (raw="+raw+")", expected, count.getValue());
+        assertEquals("Unexpected number of search results (raw=" + raw + ")", expected, count.getValue());
     }
 
     private void assertImportAuditModifications(int expectedModifications) {
@@ -2708,26 +2697,26 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 
-        int i=0;
+        int i = 0;
         int modifications = 0;
-        for (; i < (auditRecords.size() - 1); i+=2) {
+        for (; i < (auditRecords.size() - 1); i += 2) {
             AuditEventRecord requestRecord = auditRecords.get(i);
-            assertNotNull("No request audit record ("+i+")", requestRecord);
-            assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
+            assertNotNull("No request audit record (" + i + ")", requestRecord);
+            assertEquals("Got this instead of request audit record (" + i + "): " + requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
             Collection<ObjectDeltaOperation<? extends ObjectType>> requestDeltas = requestRecord.getDeltas();
-            assertTrue("Unexpected delta in request audit record "+requestRecord, requestDeltas == null ||
+            assertTrue("Unexpected delta in request audit record " + requestRecord, requestDeltas == null ||
                     requestDeltas.isEmpty() || (requestDeltas.size() == 1 && requestDeltas.iterator().next().getObjectDelta().isAdd()));
 
-            AuditEventRecord executionRecord = auditRecords.get(i+1);
-            assertNotNull("No execution audit record ("+i+")", executionRecord);
-            assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
+            AuditEventRecord executionRecord = auditRecords.get(i + 1);
+            assertNotNull("No execution audit record (" + i + ")", executionRecord);
+            assertEquals("Got this instead of execution audit record (" + i + "): " + executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
 
-            assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
+            assertTrue("Empty deltas in execution audit record " + executionRecord, executionRecord.getDeltas() != null && !executionRecord.getDeltas().isEmpty());
             modifications++;
 
             // check next records
             while (i < (auditRecords.size() - 2)) {
-                AuditEventRecord nextRecord = auditRecords.get(i+2);
+                AuditEventRecord nextRecord = auditRecords.get(i + 2);
                 if (nextRecord.getEventStage() == AuditEventStage.EXECUTION) {
                     // more than one execution record is OK
                     i++;
@@ -2749,7 +2738,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Record from some other task, skip it
         auditRecords.removeIf(record -> record.getTaskOid() != null && !record.getTaskOid().equals(taskOid));
 
-        int i=0;
+        int i = 0;
         while (i < (auditRecords.size() - 1)) {
             AuditEventRecord reconStartRecord = auditRecords.get(i);
             if (reconStartRecord.getEventType() == AuditEventType.EXECUTE_CHANGES_RAW) {
@@ -2757,9 +2746,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 continue;
             }
             assertNotNull("No reconStartRecord audit record", reconStartRecord);
-            assertEquals("Wrong stage in reconStartRecord audit record: "+reconStartRecord, AuditEventStage.REQUEST, reconStartRecord.getEventStage());
-            assertEquals("Wrong type in reconStartRecord audit record: "+reconStartRecord, AuditEventType.RECONCILIATION, reconStartRecord.getEventType());
-            assertTrue("Unexpected delta in reconStartRecord audit record "+reconStartRecord, reconStartRecord.getDeltas() == null || reconStartRecord.getDeltas().isEmpty());
+            assertEquals("Wrong stage in reconStartRecord audit record: " + reconStartRecord, AuditEventStage.REQUEST, reconStartRecord.getEventStage());
+            assertEquals("Wrong type in reconStartRecord audit record: " + reconStartRecord, AuditEventType.RECONCILIATION, reconStartRecord.getEventType());
+            assertTrue("Unexpected delta in reconStartRecord audit record " + reconStartRecord, reconStartRecord.getDeltas() == null || reconStartRecord.getDeltas().isEmpty());
             i++;
             break;
         }
@@ -2767,7 +2756,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         int modifications = 0;
         for (; i < (auditRecords.size() - 1); ) {
             AuditEventRecord record = auditRecords.get(i);
-            assertNotNull("No request audit record ("+i+")", record);
+            assertNotNull("No request audit record (" + i + ")", record);
             i++;
 
             if (record.getEventStage() == AuditEventStage.EXECUTION && record.getEventType() == AuditEventType.RECONCILIATION) {
@@ -2790,25 +2779,25 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         AuditEventRecord reconStopRecord = auditRecords.get(i);
         assertNotNull("No reconStopRecord audit record", reconStopRecord);
-        assertEquals("Wrong stage in reconStopRecord audit record: "+reconStopRecord, AuditEventStage.EXECUTION, reconStopRecord.getEventStage());
-        assertEquals("Wrong type in reconStopRecord audit record: "+reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
-        assertTrue("Unexpected delta in reconStopRecord audit record "+reconStopRecord, reconStopRecord.getDeltas() == null || reconStopRecord.getDeltas().isEmpty());
+        assertEquals("Wrong stage in reconStopRecord audit record: " + reconStopRecord, AuditEventStage.EXECUTION, reconStopRecord.getEventStage());
+        assertEquals("Wrong type in reconStopRecord audit record: " + reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
+        assertTrue("Unexpected delta in reconStopRecord audit record " + reconStopRecord, reconStopRecord.getDeltas() == null || reconStopRecord.getDeltas().isEmpty());
     }
 
     private void assertNoImporterUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = findUserByUsername(username);
-        assertNull("User "+username+" sneaked in", user);
+        assertNull("User " + username + " sneaked in", user);
     }
 
     private void assertImportedUserByOid(String userOid, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(userOid);
-        assertNotNull("No user "+userOid, user);
+        assertNotNull("No user " + userOid, user);
         assertImportedUser(user, resourceOids);
     }
 
     private PrismObject<UserType> assertImportedUserByUsername(String username, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = findUserByUsername(username);
-        assertNotNull("No user "+username, user);
+        assertNotNull("No user " + username, user);
         assertImportedUser(user, resourceOids);
         return user;
     }
@@ -2816,7 +2805,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         display("Imported user", user);
         assertLinks(user, resourceOids.length);
-        for (String resourceOid: resourceOids) {
+        for (String resourceOid : resourceOids) {
             assertAccount(user, resourceOid);
         }
         assertAdministrativeStatusEnabled(user);

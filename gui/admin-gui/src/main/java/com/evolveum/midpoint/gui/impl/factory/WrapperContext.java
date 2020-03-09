@@ -76,7 +76,7 @@ public class WrapperContext {
 
     public void setCreateIfEmpty(boolean createIfEmpty) {
         this.createIfEmpty = createIfEmpty;
-    };
+    }
 
     public Boolean getReadOnly() {
         return readOnly;

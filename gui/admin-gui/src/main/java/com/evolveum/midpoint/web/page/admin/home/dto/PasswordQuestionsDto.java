@@ -29,7 +29,7 @@ public class PasswordQuestionsDto implements Serializable{
     }*/
     public PasswordQuestionsDto(){
 
-    };
+    }
 
     public PasswordQuestionsDto(String passwQuestion, String passAnswer){
         this.passwQuestion = passwQuestion;

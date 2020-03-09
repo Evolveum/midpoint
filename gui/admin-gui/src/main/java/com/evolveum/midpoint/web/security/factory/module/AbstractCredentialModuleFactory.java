@@ -102,7 +102,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         }
 
         return getObjectObjectPostProcessor().postProcess(createProvider(usedPolicy));
-    };
+    }
 
     protected abstract ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, C configuration);
 

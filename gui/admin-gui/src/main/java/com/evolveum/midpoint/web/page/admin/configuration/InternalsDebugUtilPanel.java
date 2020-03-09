@@ -63,7 +63,7 @@ public class InternalsDebugUtilPanel extends BasePanel<InternalsConfigDto>{
             }
         };
         form.add(update);
-    };
+    }
 
      private void updateDebugPerformed(AjaxRequestTarget target){
             getModelObject().saveDebugUtil();

@@ -112,7 +112,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             public boolean isVisible() {
                 return oldPasswordVisible;
-            };
+            }
         });
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(model, MyPasswordsDto.F_PASSWORD));

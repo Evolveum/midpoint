@@ -6,46 +6,52 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.*;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-
-import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.*;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.test.ObjectSource;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest {
 
@@ -55,10 +61,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     protected static final File RESOURCE_DUMMY_LEMON_FILE = new File(TEST_DIR, "resource-dummy-lemon.xml");
     protected static final String RESOURCE_DUMMY_LEMON_OID = "10000000-0000-0000-0000-000000000504";
     protected static final String RESOURCE_DUMMY_LEMON_NAME = "lemon";
-    protected static final String RESOURCE_DUMMY_LEMON_NAMESPACE = MidPointConstants.NS_RI;
-
-    private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
-    private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
 
     static final File USER_ROGERS_FILE = new File(TEST_DIR, "user-rogers.xml");
     static final File ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE = new File(TEST_DIR, "account-rogers-dummy-default.xml");
@@ -80,34 +82,30 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test100ModifyUserAddAccountBundle() throws Exception {
-        final String TEST_NAME = "test100ModifyUserAddAccountBundle";
-
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         ObjectSource<PrismObject<ShadowType>> accountSource = () -> {
             try {
                 return PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
             } catch (SchemaException | IOException e) {
-                throw new IllegalStateException(e.getMessage(),e);
+                throw new IllegalStateException(e.getMessage(), e);
             }
         };
 
         ObjectChecker<ModelContext<UserType>> checker = modelContext -> assertAddAccount(modelContext, false);
 
-        modifyUserAddAccountImplicit(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountExplicit(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSame(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSameReverse(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqual(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqualReverse(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitNotEqual(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitNotEqualReverse(TEST_NAME, accountSource, checker);
+        modifyUserAddAccountImplicit(accountSource, checker);
+        modifyUserAddAccountExplicit(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitSame(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitSameReverse(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitEqual(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitNotEqual(accountSource);
+        modifyUserAddAccountImplicitExplicitNotEqualReverse(accountSource);
     }
 
     @Test
     public void test101ModifyUserAddAccountNoAttributesBundle() throws Exception {
-        final String TEST_NAME = "test101ModifyUserAddAccountNoAttributesBundle";
-
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         ObjectSource<PrismObject<ShadowType>> accountSource = new ObjectSource<PrismObject<ShadowType>>() {
@@ -117,8 +115,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                     PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
                     account.removeContainer(ShadowType.F_ATTRIBUTES);
                     return account;
-                } catch (SchemaException|IOException e) {
-                    throw new IllegalStateException(e.getMessage(),e);
+                } catch (SchemaException | IOException e) {
+                    throw new IllegalStateException(e.getMessage(), e);
                 }
             }
         };
@@ -130,22 +128,20 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
             }
         };
 
-        modifyUserAddAccountImplicit(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountExplicit(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSame(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitSameReverse(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqual(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitEqualReverse(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitNotEqual(TEST_NAME, accountSource, checker);
-        modifyUserAddAccountImplicitExplicitNotEqualReverse(TEST_NAME, accountSource, checker);
+        modifyUserAddAccountImplicit(accountSource, checker);
+        modifyUserAddAccountExplicit(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitSame(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitSameReverse(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitEqual(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checker);
+        modifyUserAddAccountImplicitExplicitNotEqual(accountSource);
+        modifyUserAddAccountImplicitExplicitNotEqualReverse(accountSource);
     }
 
-    private void modifyUserAddAccountImplicit(String bundleName, ObjectSource<PrismObject<ShadowType>> accountSource,
+    private void modifyUserAddAccountImplicit(ObjectSource<PrismObject<ShadowType>> accountSource,
             ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "Implicit";
-
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountImplicit");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -161,12 +157,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         doPreview(deltas, checker, task, result);
     }
 
-    private void modifyUserAddAccountExplicit(String bundleName, ObjectSource<PrismObject<ShadowType>> accountSource,
+    private void modifyUserAddAccountExplicit(ObjectSource<PrismObject<ShadowType>> accountSource,
             ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "Explicit";
-
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountExplicit");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -179,12 +173,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         doPreview(deltas, checker, task, result);
     }
 
-    private void modifyUserAddAccountImplicitExplicitSame(String bundleName,
-            ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "ImplicitExplicitSame";
-
+    private void modifyUserAddAccountImplicitExplicitSame(
+            ObjectSource<PrismObject<ShadowType>> accountSource,
+            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountImplicitExplicitSame");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -201,12 +194,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         doPreview(deltas, checker, task, result);
     }
 
-    private void modifyUserAddAccountImplicitExplicitSameReverse(String bundleName,
-            ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "ImplicitExplicitSameReverse";
-
+    private void modifyUserAddAccountImplicitExplicitSameReverse(
+            ObjectSource<PrismObject<ShadowType>> accountSource,
+            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountImplicitExplicitSameReverse");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -223,12 +215,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         doPreview(deltas, checker, task, result);
     }
 
-    private void modifyUserAddAccountImplicitExplicitEqual(String bundleName,
-            ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "ImplicitExplicitEqual";
-
+    private void modifyUserAddAccountImplicitExplicitEqual(
+            ObjectSource<PrismObject<ShadowType>> accountSource,
+            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountImplicitExplicitEqual");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -245,12 +236,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         doPreview(deltas, checker, task, result);
     }
 
-    private void modifyUserAddAccountImplicitExplicitEqualReverse(String bundleName,
-            ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "ImplicitExplicitEqualReverse";
-
+    private void modifyUserAddAccountImplicitExplicitEqualReverse(
+            ObjectSource<PrismObject<ShadowType>> accountSource,
+            ObjectChecker<ModelContext<UserType>> checker) throws Exception {
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountImplicitExplicitEqualReverse");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -267,12 +257,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         doPreview(deltas, checker, task, result);
     }
 
-    private void modifyUserAddAccountImplicitExplicitNotEqual(String bundleName,
-            ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "ImplicitExplicitNotEqual";
-
+    private void modifyUserAddAccountImplicitExplicitNotEqual(
+            ObjectSource<PrismObject<ShadowType>> accountSource) throws Exception {
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountImplicitExplicitNotEqual");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -291,12 +279,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         doPreviewFail(deltas, task, result);
     }
 
-    private void modifyUserAddAccountImplicitExplicitNotEqualReverse(String bundleName,
-            ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
-        final String TEST_NAME = bundleName + "ImplicitExplicitNotEqualReverse";
-
+    private void modifyUserAddAccountImplicitExplicitNotEqualReverse(
+            ObjectSource<PrismObject<ShadowType>> accountSource) throws Exception {
         // GIVEN
-        Task task = getTestTask();
+        Task task = createPlainTask("modifyUserAddAccountImplicitExplicitNotEqualReverse");
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -317,8 +303,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     private void doPreview(Collection<ObjectDelta<? extends ObjectType>> deltas,
             ObjectChecker<ModelContext<UserType>> checker, Task task, OperationResult result)
-                    throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-                    ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         display("Input deltas: ", deltas);
 
         // WHEN
@@ -331,15 +317,16 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertSuccess(result);
     }
 
-    private void doPreviewFail(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
-                    throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-                    ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void doPreviewFail(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+            throws PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
         display("Input deltas: ", deltas);
 
         try {
             // WHEN
-            ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
-
+            modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
             AssertJUnit.fail("Expected exception, but it haven't come");
         } catch (SchemaException e) {
             // This is expected
@@ -355,7 +342,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
         assertSideEffectiveDeltasOnly(focusContext.getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -393,8 +380,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test130GetCompiledGuiProfile() throws Exception {
-        final String TEST_NAME = "test130GetCompiledGuiProfile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -406,11 +391,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertSuccess(result);
 
         assertCompiledGuiProfile(compiledGuiProfile)
-            .assertAdditionalMenuLinks(0)
-            .assertUserDashboardLinks(1)
-            .assertObjectForms(1)
-            .assertUserDashboardWidgets(0)
-            .assertObjectCollectionViews(3);
+                .assertAdditionalMenuLinks(0)
+                .assertUserDashboardLinks(1)
+                .assertObjectForms(1)
+                .assertUserDashboardWidgets(0)
+                .assertObjectCollectionViews(3);
 
         RichHyperlinkType link = compiledGuiProfile.getUserDashboardLink().get(0);
         assertEquals("Bad link label", "Foo", link.getLabel());
@@ -421,8 +406,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test150GetGuybrushRefinedObjectClassDef() throws Exception {
-        final String TEST_NAME = "test150GetGuybrushRefinedObjectClassDef";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -445,8 +428,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test200ModifyUserGuybrushDeleteAccount() throws Exception {
-        final String TEST_NAME = "test200ModifyUserGuybrushDeleteAccount";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -477,7 +458,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
         assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -494,8 +475,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test210GuybrushAddAccount() throws Exception {
-        final String TEST_NAME = "test210GuybrushAddAccount";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -544,8 +523,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test212ModifyUserAddAccountRef() throws Exception {
-        final String TEST_NAME = "test212ModifyUserAddAccountRef";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -573,9 +550,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -589,7 +565,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertEquals("Unexpected size of account secondary delta: "+accountSecondaryDelta, 2, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected size of account secondary delta: " + accountSecondaryDelta, 2, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME), "rum");
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
@@ -601,8 +577,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test220PreviewJackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test220PreviewJackAssignRolePirate";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -628,8 +602,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test221PreviewJackAssignRolePirateReconcile() throws Exception {
-        final String TEST_NAME = "test221PreviewJackAssignRolePirateReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -637,7 +609,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         assertUserBefore(USER_JACK_OID)
                 .links()
-                    .assertNone();
+                .assertNone();
 
         ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_JACK_OID,
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
@@ -654,7 +626,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertPreviewJackAssignRolePirate(modelContext);
     }
 
-    private void assertPreviewJackAssignRolePirate(ModelContext<UserType> modelContext) throws Exception {
+    private void assertPreviewJackAssignRolePirate(ModelContext<UserType> modelContext) {
         display("Preview context", modelContext);
         assertNotNull("Null model context", modelContext);
 
@@ -731,17 +703,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test230GuybrushAssignAccountDummy() throws Exception {
-        final String TEST_NAME = "test230GuybrushAssignAccountDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_GUYBRUSH_OID,
+        createAssignmentAssignmentHolderDelta(UserType.class, USER_GUYBRUSH_OID,
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
-
-        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions.createReconcile();
 
         // WHEN
         when();
@@ -755,7 +724,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         accountGuybrushOid = assertUserAfter(USER_GUYBRUSH_OID)
                 .singleLink()
-                    .getOid();
+                .getOid();
 
         DummyAccount dummyAccount = assertDummyAccount(null, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("Dummy account after", dummyAccount);
@@ -768,8 +737,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test231PreviewGuybrushModifyAccountFullName() throws Exception {
-        final String TEST_NAME = "test231PreviewGuybrushModifyAccountFullName";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -820,8 +787,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test232PreviewGuybrushModifyAccountShip() throws Exception {
-        final String TEST_NAME = "test232PreviewGuybrushModifyAccountShip";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -871,8 +836,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test233PreviewGuybrushAddRolePirate() throws Exception {
-        final String TEST_NAME = "test233PreviewGuybrushAddRolePirate";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -937,8 +900,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test234PreviewGuybrushAddRolePirateRecon() throws Exception {
-        final String TEST_NAME = "test234PreviewGuybrushAddRolePirateRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1005,8 +966,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test236PreviewGuybrushAddRoleSailor() throws Exception {
-        final String TEST_NAME = "test236PreviewGuybrushAddRoleSailor";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1058,8 +1017,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test238PreviewGuybrushAddRoleSailorOwner() throws Exception {
-        final String TEST_NAME = "test238PreviewGuybrushAddRoleSailorOwner";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1095,8 +1052,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test239GuybrushUnAssignAccountDummy() throws Exception {
-        final String TEST_NAME = "test239GuybrushUnAssignAccountDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1120,8 +1075,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test240GuybrushAssignAccountDummyRelative() throws Exception {
-        final String TEST_NAME = "test240GuybrushAssignAccountDummyRelative";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1148,8 +1101,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test242PreviewGuybrushAddRolePirateRelative() throws Exception {
-        final String TEST_NAME = "test242PreviewGuybrushAddRolePirateRelative";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1215,8 +1166,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test244PreviewGuybrushAddRolePirateRelativeRecon() throws Exception {
-        final String TEST_NAME = "test244PreviewGuybrushAddRolePirateRelativeRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1279,8 +1228,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test249GuybrushUnAssignAccountDummyRelative() throws Exception {
-        final String TEST_NAME = "test249GuybrushUnAssignAccountDummyRelative";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1297,7 +1244,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         assertNoDummyAccount(RESOURCE_DUMMY_RELATIVE_NAME, USER_GUYBRUSH_USERNAME);
     }
-
 
     private <T> void assertAccountDefaultDummyAttributeModify(ObjectDelta<ShadowType> accountDelta,
             String attrName,
@@ -1317,13 +1263,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
             ItemPath itemPath,
             T[] expectedOldValues, T[] expectedAddValues, T[] expectedDeleteValues, T[] expectedReplaceValues) {
         PropertyDelta<T> attrDelta = accountDelta.findPropertyDelta(itemPath);
-        assertNotNull("No delta for "+itemPath+" in "+accountDelta, attrDelta);
+        assertNotNull("No delta for " + itemPath + " in " + accountDelta, attrDelta);
         PrismAsserts.assertPropertyDelta(attrDelta, expectedOldValues, expectedAddValues, expectedDeleteValues, expectedReplaceValues);
     }
 
     // MAPPING TESTS
     // following tests mostly check correct functions of mappings
-
 
     // the test3xx is testing mappings with default dummy resource. It has NORMAL mappings.
 
@@ -1332,8 +1277,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test300ModifyElaineAccountDummyReplace() throws Exception {
-        final String TEST_NAME = "test300ModifyElaineAccountDummyReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1357,9 +1300,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -1379,7 +1321,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 "Elaine Threepwood");
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta: "+accountSecondaryDelta, accountSecondaryDelta);
+        assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
     }
 
     /**
@@ -1387,8 +1329,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test301ModifyElaineAccountDummyDeleteAdd() throws Exception {
-        final String TEST_NAME = "test301ModifyElaineAccountDummyDeleteAdd";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1414,9 +1354,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -1437,7 +1376,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Marley");
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta: "+accountSecondaryDelta, accountSecondaryDelta);
+        assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
     }
 
     /**
@@ -1447,8 +1386,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test400ModifyElaineAccountDummyRedReplace() throws Exception {
-        final String TEST_NAME = "test400ModifyElaineAccountDummyRedReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1465,7 +1402,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 
         // THEN
-         then();
+        then();
         display("Preview context", modelContext);
         assertPartialError(result);
     }
@@ -1477,8 +1414,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test401ModifyElaineAccountDummyRedDeleteAdd() throws Exception {
-        final String TEST_NAME = "test401ModifyElaineAccountDummyRedDeleteAdd";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1498,8 +1433,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Preview context", modelContext);
 
         // THEN
-         then();
-         assertPartialError(result);
+        then();
+        assertPartialError(result);
     }
 
     // the test5xx is testing mappings with blue dummy resource. It has WEAK mappings.
@@ -1509,8 +1444,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test500ModifyElaineAccountDummyBlueReplace() throws Exception {
-        final String TEST_NAME = "test500ModifyElaineAccountDummyBlueReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1534,7 +1467,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
         ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
@@ -1556,7 +1489,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 "Elaine Threepwood");
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta: "+accountSecondaryDelta, accountSecondaryDelta);
+        assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
     }
 
     /**
@@ -1564,8 +1497,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test501ModifyElaineAccountDummyBlueDeleteAdd() throws Exception {
-        final String TEST_NAME = "test501ModifyElaineAccountDummyBlueDeleteAdd";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1593,7 +1524,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
         ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
@@ -1618,17 +1549,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 "Elaine Marley");
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta: "+accountSecondaryDelta, accountSecondaryDelta);
+        assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
     }
-
 
     /**
      * Changing USER fullName (replace delta), no account changes.
      */
     @Test
     public void test600ModifyElaineUserDummyReplace() throws Exception {
-        final String TEST_NAME = "test600ModifyElaineUserDummyReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1655,7 +1583,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
         ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-        assertNotNull("No focus primary delta: "+userPrimaryDelta, userPrimaryDelta);
+        assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
         PrismAsserts.assertModifications(userPrimaryDelta, 1);
         PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 
@@ -1719,8 +1647,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test610ModifyElaineUserAccountDummyReplace() throws Exception {
-        final String TEST_NAME = "test610ModifyElaineUserAccountDummyReplace";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1758,7 +1684,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
         ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-        assertNotNull("No focus primary delta: "+userPrimaryDelta, userPrimaryDelta);
+        assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
         PrismAsserts.assertModifications(userPrimaryDelta, 1);
         PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 
@@ -1783,7 +1709,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 "Elaine LeChuck");
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta: "+accountSecondaryDelta, accountSecondaryDelta);
+        assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
 
         // RED dummy resource: strong mappings
         accContext = modelContext.findProjectionContext(
@@ -1822,8 +1748,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test620AddUserCapsize() throws Exception {
-        final String TEST_NAME = "test620AddUserCapsize";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1912,8 +1836,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     // testing multiple resources with dependencies (dummy -> dummy lemon)
     @Test
     public void test630AddUserRogers() throws Exception {
-        final String TEST_NAME = "test630AddUserRogers";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1938,7 +1860,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
         ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-        assertNotNull("No focus primary delta: "+userPrimaryDelta, userPrimaryDelta);
+        assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
         PrismAsserts.assertIsAdd(userPrimaryDelta);
 
         ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
@@ -2009,8 +1931,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test700DisableElaineAccountTwoResources() throws Exception {
-        final String TEST_NAME = "test700DisableElaineAccountTwoResources";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2035,7 +1955,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
-        assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+        assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
         ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
@@ -2085,8 +2005,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      */
     @Test
     public void test710PreviewGuybrushHavingRoleSailorOwner() throws Exception {
-        final String TEST_NAME = "test710PreviewGuybrushHavingRoleSailorOwner";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2120,6 +2038,5 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
         assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
     }
-
 
 }

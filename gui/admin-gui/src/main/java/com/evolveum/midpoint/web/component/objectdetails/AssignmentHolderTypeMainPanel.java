@@ -32,8 +32,6 @@ import java.util.List;
 public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> extends AbstractObjectMainPanel<AHT>{
     private static final long serialVersionUID = 1L;
 
-    private AssignmentHolderTypeAssignmentsTabPanel assignmentsTabPanel = null;
-
     public AssignmentHolderTypeMainPanel(String id, LoadableModel<PrismObjectWrapper<AHT>> objectModel,
                                          PageAdminObjectDetails<AHT> parentPage) {
         super(id, objectModel, parentPage);
@@ -63,7 +61,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeAssignmentsTabPanel<AHT>(panelId, getMainForm(), getObjectModel(), parentPage){
+                        return new AssignmentHolderTypeAssignmentsTabPanel<AHT>(panelId, getMainForm(), getObjectModel()){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -83,20 +81,14 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
     }
 
     protected IModel<PrismObject<AHT>> unwrapModel() {
-        return new IModel<PrismObject<AHT>>() {
-
-            @Override
-            public PrismObject<AHT> getObject() {
-                return getObjectWrapper().getObject();
-            }
-        };
+        return (IModel<PrismObject<AHT>>) () -> getObjectWrapper().getObject();
     }
 
-    protected ObjectTabVisibleBehavior getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, PageAdminObjectDetails<AHT> parentPage){
+    protected ObjectTabVisibleBehavior<AHT> getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, PageAdminObjectDetails<AHT> parentPage){
         if (isFocusHistoryPage()){
-            return new HistoryPageTabVisibleBehavior<AHT>(unwrapModel(), authUrl, isVisibleOnHistoryPage, parentPage);
+            return new HistoryPageTabVisibleBehavior<>(unwrapModel(), authUrl, isVisibleOnHistoryPage, parentPage);
         } else {
-            return new ObjectTabVisibleBehavior<AHT>(unwrapModel(), authUrl, parentPage);
+            return new ObjectTabVisibleBehavior<>(unwrapModel(), authUrl, parentPage);
         }
     }
 

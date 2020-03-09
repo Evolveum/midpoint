@@ -83,7 +83,7 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
             }
         };
         form.add(update);
-    };
+    }
 
     private void updateTraces(AjaxRequestTarget target){
         for (Entry<String, Boolean> entry: tracesMap.entrySet()) {

@@ -185,6 +185,10 @@ public class XmlTypeConverter {
         return xmlCal != null ? new Date(xmlCal.toGregorianCalendar().getTimeInMillis()) : null;
     }
 
+    public static XMLGregorianCalendar fromNow(String timeSpec) {
+        return fromNow(XmlTypeConverter.createDuration(timeSpec));
+    }
+
     public static XMLGregorianCalendar fromNow(Duration duration) {
         XMLGregorianCalendar rv = createXMLGregorianCalendar(System.currentTimeMillis());
         rv.add(duration);

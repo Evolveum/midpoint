@@ -43,7 +43,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Orgstruct test with a meta-role and focus mappings.
  *
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -139,9 +138,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
     @Test
     public void test800JackAssignScummBar() throws Exception {
-        final String TEST_NAME = "test800JackAssignScummBar";
-
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         addObject(USER_JACK_FILE);
 
@@ -166,9 +163,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
     @Test
     public void test802JackAssignOrganized() throws Exception {
-        final String TEST_NAME = "test802JackAssignOrganized";
-
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -194,9 +189,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
     @Test
     public void test804JackUnAssignOrganized() throws Exception {
-        final String TEST_NAME = "test804JackUnAssignOrganized";
-
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -221,9 +214,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
     @Test
     public void test809JackUnassignScummBar() throws Exception {
-        final String TEST_NAME = "test809JackUnassignScummBar";
-
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -247,9 +238,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
      */
     @Test
     public void test810JackAssignScummBarOrganized() throws Exception {
-        final String TEST_NAME = "test810JackAssignScummBarOrganized";
-
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Precondition
@@ -282,9 +271,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
     @Test
     public void test890AddFictionalOrg() throws Exception {
-        final String TEST_NAME = "test890AddFictionalOrg";
-
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

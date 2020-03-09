@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 /**
  * @author katka
@@ -34,6 +35,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 
     String debugDump(int indent);
 
+    void setVisibleOverwrite(UserInterfaceElementVisibilityType visible);
     boolean isVisible(PrismContainerValueWrapper parentContainer, ItemVisibilityHandler visibilityHandler);
 
     boolean checkRequired(PageBase pageBase);

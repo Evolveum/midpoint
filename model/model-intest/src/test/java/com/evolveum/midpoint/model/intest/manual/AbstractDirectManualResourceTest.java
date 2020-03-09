@@ -118,7 +118,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test220ModifyUserWillDisable() throws Exception {
-        final String TEST_NAME = "test220ModifyUserWillDisable";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -195,7 +194,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
-        final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -283,7 +281,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test240CloseDisableCaseAndReadAccountWill() throws Exception {
-        final String TEST_NAME = "test240CloseDisableCaseAndReadAccountWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -373,7 +370,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test250RecomputeWillAfter5min() throws Exception {
-        final String TEST_NAME = "test250RecomputeWillAfter5min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -460,7 +456,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test252UpdateBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test252UpdateBackingStoreAndGetAccountWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -518,7 +513,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test260ClosePasswordChangeCaseAndRecomputeWill() throws Exception {
-        final String TEST_NAME = "test260ClosePasswordChangeCaseAndRecomputeWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -622,7 +616,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test270RecomputeWillAfter7min() throws Exception {
-        final String TEST_NAME = "test130RefreshAccountWillAfter7min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -720,7 +713,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -778,7 +770,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test274RecomputeWillAfter22min() throws Exception {
-        final String TEST_NAME = "test292RecomputeWillAfter22min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -863,7 +854,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test280RecomputeWillAfter27min() throws Exception {
-        final String TEST_NAME = "test280RecomputeWillAfter27min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -936,7 +926,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test290RecomputeWillAfter32min() throws Exception {
-        final String TEST_NAME = "test290RecomputeWillAfter32min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -998,7 +987,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test300UnassignAccountWill() throws Exception {
-        final String TEST_NAME = "test300UnassignAccountWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1074,7 +1062,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test302RecomputeWill() throws Exception {
-        final String TEST_NAME = "test302RecomputeWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1144,7 +1131,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test310CloseCaseAndReconcileWill() throws Exception {
-        final String TEST_NAME = "test310CloseCaseAndReconcileWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1209,7 +1195,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test320RecomputeWillAfter5min() throws Exception {
-        final String TEST_NAME = "test320RecomputeWillAfter5min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1262,7 +1247,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test330UpdateBackingStoreAndRecomputeWill() throws Exception {
-        final String TEST_NAME = "test330UpdateBackingStoreAndRecomputeWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1325,7 +1309,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test340RecomputeWillAfter25min() throws Exception {
-        final String TEST_NAME = "test340RecomputeWillAfter25min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1366,7 +1349,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test342RecomputeWillAfter35min() throws Exception {
-        final String TEST_NAME = "test342RecomputeWillAfter35min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1404,7 +1386,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test344RecomputeWillAfter165min() throws Exception {
-        final String TEST_NAME = "test344RecomputeWillAfter165min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1467,7 +1448,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test510UnassignWillRoleOne() throws Exception {
-        final String TEST_NAME = "test510UnassignWillRoleOne";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1537,7 +1517,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test512ReconcileWill() throws Exception {
-        final String TEST_NAME = "test512ReconcileWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1607,7 +1586,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test515CloseCasesAndReconcileWill() throws Exception {
-        final String TEST_NAME = "test515CloseCasesAndReconcileWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1707,7 +1685,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test516RecomputeWillAfter20min() throws Exception {
-        final String TEST_NAME = "test516RecomputeWillAfter20min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1741,7 +1718,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test517RecomputeWillAfter50min() throws Exception {
-        final String TEST_NAME = "test517RecomputeWillAfter50min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1777,7 +1753,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test518RecomputeWillAfter180min() throws Exception {
-        final String TEST_NAME = "test518RecomputeWillAfter180min";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1837,7 +1812,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test522AssignWillRoleTwoValidFrom() throws Exception {
-        final String TEST_NAME = "test522AssignWillRoleTwoValidFrom";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1870,7 +1844,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test524TwoHoursForRoleTwo() throws Exception {
-        final String TEST_NAME = "test524TwoHoursForRoleTwo";
         // GIVEN
 
         clockForward("PT2H5M");
@@ -1938,7 +1911,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test525CloseCasesAndReconcileWill() throws Exception {
-        final String TEST_NAME = "test525CloseCasesAndReconcileWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1975,7 +1947,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test526UnassignWillBothRoles() throws Exception {
-        final String TEST_NAME = "test526UnassignWillBothRoles";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2034,7 +2005,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test528CloseCaseAndRecomputeWill() throws Exception {
-        final String TEST_NAME = "test528CloseCaseAndRecomputeWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2114,7 +2084,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test800ImportShadowRefreshTask() throws Exception {
-        final String TEST_NAME = "test800ImportShadowRefreshTask";
         // GIVEN
 
         // WHEN
@@ -2129,8 +2098,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test810AssignAccountWill() throws Exception {
-        final String TEST_NAME = "test810AssignAccountWill";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -2152,7 +2119,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test820AssignAccountJack() throws Exception {
-        final String TEST_NAME = "test820AssignAccountJack";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2189,7 +2155,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test830CloseCaseWillAndWaitForRefresh() throws Exception {
-        final String TEST_NAME = "test830CloseCaseWillAndWaitForRefresh";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2216,7 +2181,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test840AddToBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test840AddToBackingStoreAndGetAccountWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

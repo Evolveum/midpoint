@@ -48,48 +48,44 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     @Autowired private WorkStateManager workStateManager;
     @Autowired private WorkSegmentationStrategyFactory strategyFactory;
 
-    private static String taskFilename(String testName, String subId) {
-        return "src/test/resources/work-buckets/task-" + testNumber(testName) + "-" + subId + ".xml";
+    private String taskFilename(String subId) {
+        return "src/test/resources/work-buckets/task-" + getTestNumber() + "-" + subId + ".xml";
     }
 
-    private static String taskFilename(String testName) {
-        return taskFilename(testName, "0");
+    private String taskFilename() {
+        return taskFilename("0");
     }
 
-    private static String taskOid(String testName, String subId) {
-        return "44444444-0000-0000-0000-" + testNumber(testName) + subId + "00000000";
+    private String taskOid(String subId) {
+        return "44444444-0000-0000-0000-" + getTestNumber() + subId + "00000000";
     }
 
-    private static String taskOid(String test) {
-        return taskOid(test, "0");
-    }
-
-    private static String testNumber(String test) {
-        return test.substring(4, 7);
+    private String taskOid() {
+        return taskOid("0");
     }
 
     @SuppressWarnings("unused")
     @NotNull
-    protected String workerTaskFilename(String TEST_NAME) {
-        return taskFilename(TEST_NAME, "w");
+    protected String workerTaskFilename() {
+        return taskFilename("w");
     }
 
     @SuppressWarnings("unused")
     @NotNull
-    protected String coordinatorTaskFilename(String TEST_NAME) {
-        return taskFilename(TEST_NAME, "c");
+    protected String coordinatorTaskFilename() {
+        return taskFilename("c");
     }
 
     @SuppressWarnings("unused")
     @NotNull
-    protected String workerTaskOid(String TEST_NAME) {
-        return taskOid(TEST_NAME, "w");
+    protected String workerTaskOid() {
+        return taskOid("w");
     }
 
     @SuppressWarnings("unused")
     @NotNull
-    protected String coordinatorTaskOid(String TEST_NAME) {
-        return taskOid(TEST_NAME, "c");
+    protected String coordinatorTaskOid() {
+        return taskOid("c");
     }
 
     @PostConstruct
@@ -107,11 +103,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     @Test
     public void test100NumericExplicitBuckets() throws Exception {
-        final String TEST_NAME = "test100NumericExplicitBuckets";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN
         WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
@@ -188,11 +183,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     @Test
     public void test110FilterExplicitBuckets() throws Exception {
-        final String TEST_NAME = "test110FilterExplicitBuckets";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -276,11 +270,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     @Test
     public void test120StringPrefixBuckets() throws Exception {
-        final String TEST_NAME = "test120StringPrefixBuckets";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -332,11 +325,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     @Test
     public void test125StringExactValueBuckets() throws Exception {
-        final String TEST_NAME = "test125StringExactValueBuckets";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -388,11 +380,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     @Test
     public void test130StringIntervalBuckets() throws Exception {
-        final String TEST_NAME = "test130StringIntervalBuckets";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -438,11 +429,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     @Test
     public void test140OidBuckets() throws Exception {
-        final String TEST_NAME = "test140OidBuckets";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -457,11 +447,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     @Test
     public void test150OidBucketsTwice() throws Exception {
-        final String TEST_NAME = "test150OidBucketsTwice";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());

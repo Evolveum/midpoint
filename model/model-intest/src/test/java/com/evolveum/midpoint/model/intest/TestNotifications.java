@@ -53,10 +53,6 @@ import java.util.*;
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotifications extends AbstractInitializedModelIntegrationTest {
@@ -122,8 +118,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        final String TEST_NAME = "test100ModifyUserAddAccount";
-
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
@@ -212,10 +206,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test119ModifyUserDeleteAccount() throws Exception {
-        final String TEST_NAME = "test119ModifyUserDeleteAccount";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -285,10 +277,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
-        final String TEST_NAME = "test131ModifyUserJackAssignAccount";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -354,15 +344,12 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 + "\n"
                 + "Channel: ";
         assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
-
     }
 
     @Test
     public void test140ModifyUserJackAssignRole() throws Exception {
-        final String TEST_NAME = "test135ModifyUserJackAssignRole";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -411,10 +398,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test150ModifyUserJackModifyAssignment() throws Exception {
-        final String TEST_NAME = "test150ModifyUserJackModifyAssignment";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -472,10 +457,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test160ModifyUserJackDeleteAssignment() throws Exception {
-        final String TEST_NAME = "test160ModifyUserJackDeleteAssignment";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -530,10 +513,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200SendSmsUsingGet() {
-        final String TEST_NAME = "test200SendSmsUsingGet";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -554,10 +535,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test210SendSmsUsingPost() {
-        final String TEST_NAME = "test210SendSmsUsingPost";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -586,10 +565,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test215SendSmsUsingGeneralPost() {
-        final String TEST_NAME = "test215SendSmsUsingGeneralPost";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -618,10 +595,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test220SendSmsViaProxy() {
-        final String TEST_NAME = "test220SendSmsViaProxy";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -643,10 +618,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test300CheckVariables() {
-        final String TEST_NAME = "test300CheckVariables";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareNotifications();
@@ -668,10 +641,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test400StringAttachment() throws Exception {
-        final String TEST_NAME = "test400StringAttachment";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -699,15 +670,13 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         Object content = RawType.getValue(message.getAttachments().get(0).getContent());
         assertEquals("Wrong content of attachments", "Hello world", content);
         assertEquals("Wrong fileName of attachments", "plain.txt", message.getAttachments().get(0).getFileName());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContentFromFile());
     }
 
     @Test
     public void test410ByteAttachment() throws Exception {
-        final String TEST_NAME = "test410ByteAttachment";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -749,15 +718,13 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
             throw new AssertionError("Wrong content of attachments expected:" + origJPEG  + " but was:" + content);
         }
         assertEquals("Wrong fileName of attachments", "alf.jpg", message.getAttachments().get(0).getFileName());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContentFromFile());
     }
 
     @Test
     public void test420AttachmentFromFile() throws Exception {
-        final String TEST_NAME = "test420AttachmentFromFile";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -789,10 +756,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test430ExpressionAttachment() throws Exception {
-        final String TEST_NAME = "test430ExpressionAttachment";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 

@@ -86,7 +86,7 @@ public abstract class AbstractLexicalProcessorTest {
     @Test
     public void testParseUserToPrism() throws Exception {
         // GIVEN
-        LexicalProcessor lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -182,7 +182,7 @@ public abstract class AbstractLexicalProcessorTest {
     @Test
     public void testParseResourceRumToPrism() throws Exception {
         // GIVEN
-        LexicalProcessor lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -331,7 +331,7 @@ public abstract class AbstractLexicalProcessorTest {
     @Test(enabled = false)
     public void testParseEventHandler() throws Exception {
         // GIVEN
-        LexicalProcessor lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createParser();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -356,9 +356,7 @@ public abstract class AbstractLexicalProcessorTest {
 
     @Test
     public void testParseObjectsIteratively_1() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_1";
-
-        List<RootXNodeImpl> nodes = standardTest(TEST_NAME, OBJECTS_1, 3);
+        List<RootXNodeImpl> nodes = standardTest(OBJECTS_1, 3);
 
         final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
         nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
@@ -367,7 +365,8 @@ public abstract class AbstractLexicalProcessorTest {
         assertEquals("Wrong namespace for node 3", NS_C, getFirstElementNS(nodes, 2));
     }
 
-    protected List<RootXNodeImpl> standardTest(String TEST_NAME, String fileName, int expectedCount) throws SchemaException, IOException {
+    protected List<RootXNodeImpl> standardTest(String fileName, int expectedCount)
+            throws SchemaException, IOException {
 
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();

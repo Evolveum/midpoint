@@ -6,16 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -41,14 +32,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests for delayed HR enable/disable.
- *
+ * <p>
  * HR system has enabled/disabled status. We want to synchronize that status to midPoint,
  * but we want the information to be delayed by one day.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestDelayedEnable extends AbstractStoryTest {
 
@@ -109,8 +99,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test100AddUserMancomb() throws Exception {
-        final String TEST_NAME = "test100AddUserMancomb";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -139,7 +127,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test102UserMancombTriggerScannerAgain() throws Exception {
-        final String TEST_NAME = "test102UserMancombTriggerScannerAgain";
         displayCurrentTime();
 
         // WHEN
@@ -161,8 +148,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test104UserMancombRecompute() throws Exception {
-        final String TEST_NAME = "test104UserMancombRecompute";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         displayCurrentTime();
@@ -183,20 +168,20 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void assertMancombCreated() throws Exception {
         assertUserAfter(USER_MANCOMB_OID)
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrCreateTsStart, hrCreateTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.DISABLED)
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
                 .end()
-            .triggers()
+                .triggers()
                 .single()
-                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFutureBetween(hrCreateTsStart, hrCreateTsEnd, "P1D");
+                .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .assertTimestampFutureBetween(hrCreateTsStart, hrCreateTsEnd, "P1D");
     }
 
     /**
@@ -205,8 +190,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test110UserMancombRunTriggerScannerDay1() throws Exception {
-        final String TEST_NAME = "test110UserMancombRunTriggerScannerDay1";
-
         clockForward("P1D");
 
         // WHEN
@@ -228,8 +211,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test112UserMancombRecomputeDay1() throws Exception {
-        final String TEST_NAME = "test112UserMancombRecomputeDay1";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -251,24 +232,22 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void assertMancombEnabled() throws Exception {
         assertUserAfter(USER_MANCOMB_OID)
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrCreateTsStart, hrCreateTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.ENABLED)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .end()
-            .triggers()
+                .triggers()
                 .assertNone();
     }
 
     @Test
     public void test114UserMancombRunTriggerScannerDay1Again() throws Exception {
-        final String TEST_NAME = "test114UserMancombRunTriggerScannerDay1Again";
-
         // WHEN
         when();
 
@@ -287,8 +266,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test116UserMancombRecomputeDay1Again() throws Exception {
-        final String TEST_NAME = "test116UserMancombRecomputeDay1Again";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -312,8 +289,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test120UserMancombHrDisable() throws Exception {
-        final String TEST_NAME = "test120UserMancombHrDisable";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -337,13 +312,13 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void assertMancombHalfDisabled() throws Exception {
         assertUserAfter(USER_MANCOMB_OID)
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.ENABLED)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
     }
@@ -353,8 +328,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test122UserMancombRecompute() throws Exception {
-        final String TEST_NAME = "test122UserMancombRecompute";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -374,8 +347,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test124UserMancombDay1TriggerScanner() throws Exception {
-        final String TEST_NAME = "test124UserMancombDay1TriggerScanner";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -399,8 +370,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test130UserMancombTriggerScannerDay2() throws Exception {
-        final String TEST_NAME = "test130UserMancombTriggerScannerDay2";
-
         clockForward("P1D");
 
         Task task = getTestTask();
@@ -422,13 +391,13 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void assertMancombDisabled() throws Exception {
         assertUserAfter(USER_MANCOMB_OID)
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.DISABLED)
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED);
     }
@@ -439,8 +408,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test132UserMancombRecomputeDay2() throws Exception {
-        final String TEST_NAME = "test132UserMancombRecomputeDay2";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -460,8 +427,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test132UserMancombRecomputeDay2Again() throws Exception {
-        final String TEST_NAME = "test132UserMancombRecomputeDay2Again";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -485,8 +450,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
      */
     @Test
     public void test140UserMancombRecomputeDay3() throws Exception {
-        final String TEST_NAME = "test140UserMancombRecomputeDay3";
-
         clockForward("P1D");
 
         Task task = getTestTask();
@@ -510,8 +473,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test200HrLivesyncTask() throws Exception {
-        final String TEST_NAME = "test200HrLivesyncTask";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -521,18 +482,16 @@ public class TestDelayedEnable extends AbstractStoryTest {
         addObject(TASK_DUMMY_HR_FILE, task, result);
 
         // THEN
-         then();
-         assertSuccess(result);
+        then();
+        assertSuccess(result);
 
-         waitForTaskStart(TASK_DUMMY_HR_OID, true);
+        waitForTaskStart(TASK_DUMMY_HR_OID, true);
 
-         assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+        assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
     }
 
     @Test
     public void test210HrAddUserGuybrush() throws Exception {
-        final String TEST_NAME = "test210HrAddUserGuybrush";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -564,8 +523,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test212HrUserGuybrushSyncAgain() throws Exception {
-        final String TEST_NAME = "test212HrUserGuybrushSyncAgain";
-
         clockForward("PT1H");
 
         Task task = getTestTask();
@@ -587,8 +544,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test214HrUserGuybrushRunTriggers() throws Exception {
-        final String TEST_NAME = "test214HrUserGuybrushRunTriggers";
-
         clockForward("PT1H");
 
         Task task = getTestTask();
@@ -610,8 +565,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test216HrUserGuybrushRecompute() throws Exception {
-        final String TEST_NAME = "test216HrUserGuybrushRecompute";
-
         clockForward("PT1H");
 
         Task task = getTestTask();
@@ -633,8 +586,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test218HrUserGuybrushReconcile() throws Exception {
-        final String TEST_NAME = "test218HrUserGuybrushReconcile";
-
         clockForward("PT1H");
 
         Task task = getTestTask();
@@ -654,29 +605,27 @@ public class TestDelayedEnable extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
     }
 
-    private UserAsserter<Void> assertGuybrushCreated(UserAsserter<Void> userAsserter) throws Exception {
+    private UserAsserter<Void> assertGuybrushCreated(UserAsserter<Void> userAsserter) {
         return userAsserter
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrCreateTsStart, hrCreateTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.DISABLED)
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
                 .end()
-            .triggers()
+                .triggers()
                 .single()
-                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFutureBetween(hrCreateTsStart, hrCreateTsEnd, "P1D")
-                    .end()
+                .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .assertTimestampFutureBetween(hrCreateTsStart, hrCreateTsEnd, "P1D")
+                .end()
                 .end();
     }
 
     @Test
     public void test220HrUserGuybrushDay1() throws Exception {
-        final String TEST_NAME = "test220HrUserGuybrushDay1";
-
         clockForward("P1D");
 
         // WHEN
@@ -694,8 +643,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test222HrUserGuybrushDay1SyncAgain() throws Exception {
-        final String TEST_NAME = "test222HrUserGuybrushDay1SyncAgain";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -715,8 +662,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test224HrUserGuybrushDay1TriggerScanAgain() throws Exception {
-        final String TEST_NAME = "test224HrUserGuybrushDay1TriggerScanAgain";
-
         clockForward("PT1H");
 
         Task task = getTestTask();
@@ -738,8 +683,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test226HrUserGuybrushDay1Recompute() throws Exception {
-        final String TEST_NAME = "test226HrUserGuybrushDay1Recompute";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -759,8 +702,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test228HrUserGuybrushDay1Reconcile() throws Exception {
-        final String TEST_NAME = "test228HrUserGuybrushDay1Reconcile";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -780,25 +721,23 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void assertGuybrushEnabled() throws Exception {
         assertUserAfter(userGuybrushOid)
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrCreateTsStart, hrCreateTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.ENABLED)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .end()
-            .triggers()
+                .triggers()
                 .assertNone();
     }
 
     @Test
     public void test230HrDisableGuybrush() throws Exception {
-        final String TEST_NAME = "test230HrDisableGuybrush";
-
         getDummyResourceHr()
-            .getAccountByUsername(ACCOUNT_GUYBRUSH_USERNAME)
+                .getAccountByUsername(ACCOUNT_GUYBRUSH_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, EXT_HR_STATUS_DISABLED);
 
         hrModifyTsStart = clock.currentTimeXMLGregorianCalendar();
@@ -820,8 +759,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test232GuybrushHrSyncAgain() throws Exception {
-        final String TEST_NAME = "test232GuybrushHrSyncAgain";
-
         // WHEN
         when();
 
@@ -837,8 +774,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test234GuybrushRecompute() throws Exception {
-        final String TEST_NAME = "test232GuybrushHrSyncAgain";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -858,8 +793,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test236GuybrushReconcile() throws Exception {
-        final String TEST_NAME = "test236GuybrushReconcile";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -879,8 +812,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test238GuybrushrunTriggersAgain() throws Exception {
-        final String TEST_NAME = "test238GuybrushrunTriggersAgain";
-
         clockForward("PT1H");
 
         // WHEN
@@ -898,25 +829,23 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void assertGuybrushHalfDisabled() throws Exception {
         assertUserAfter(userGuybrushOid)
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.ENABLED)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .end()
-            .triggers()
+                .triggers()
                 .single()
-                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFutureBetween(hrModifyTsStart, hrModifyTsEnd, "P1D");
+                .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .assertTimestampFutureBetween(hrModifyTsStart, hrModifyTsEnd, "P1D");
     }
 
     @Test
     public void test240HrUserGuybrushDay2() throws Exception {
-        final String TEST_NAME = "test240HrUserGuybrushDay2";
-
         clockForward("P1D");
 
         // WHEN
@@ -934,8 +863,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test242GuybrushRecompute() throws Exception {
-        final String TEST_NAME = "test242GuybrushRecompute";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -955,8 +882,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test244GuybrushHrSyncAgain() throws Exception {
-        final String TEST_NAME = "test244GuybrushHrSyncAgain";
-
         // WHEN
         when();
 
@@ -972,8 +897,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     @Test
     public void test246GuybrushReconcile() throws Exception {
-        final String TEST_NAME = "test246GuybrushReconcile";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -993,16 +916,16 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void assertGuybrushDisabled() throws Exception {
         assertUserAfter(userGuybrushOid)
-            .assertSubtype(SUBTYPE_EMPLOYEE)
-            .extension()
+                .assertSubtype(SUBTYPE_EMPLOYEE)
+                .extension()
                 .assertPropertyValuesEqual(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
                 .assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
                 .end()
-            .activation()
+                .activation()
                 .assertEffectiveStatus(ActivationStatusType.DISABLED)
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
                 .end()
-            .triggers()
+                .triggers()
                 .assertNone();
     }
 
