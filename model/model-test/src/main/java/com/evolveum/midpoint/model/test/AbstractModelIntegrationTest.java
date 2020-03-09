@@ -3672,7 +3672,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
-        Task task = taskManager.getTask(taskOid, result);
+        Task task = taskManager.getTaskPlain(taskOid, result);
         assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionStatus());
     }
 

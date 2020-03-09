@@ -514,7 +514,7 @@ public class PageAbout extends PageAdminConfiguration {
         final String taskOidToRemoving = taskOid;
 
         try {
-            while(!getTaskManager().getTask(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
+            while(!getTaskManager().getTaskPlain(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
 
             runPrivileged(new Producer<Object>() {
 

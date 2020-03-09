@@ -471,7 +471,7 @@ public class LocalNodeManager {
         for (String oid : getLocallyRunningTasksOids(result)) {
             OperationResult result1 = result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask");
             try {
-                retval.add(taskManager.getTask(oid, result1));
+                retval.add(taskManager.getTaskPlain(oid, result1));
                 result1.recordSuccess();
             } catch (ObjectNotFoundException e) {
                 String m = "Cannot get the task with OID " + oid + " as it no longer exists";

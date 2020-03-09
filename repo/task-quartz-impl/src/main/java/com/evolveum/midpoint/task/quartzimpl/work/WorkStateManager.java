@@ -122,11 +122,11 @@ public class WorkStateManager {
         }
 
         void reloadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
-            coordinatorTask = taskManager.getTask(coordinatorTask.getOid(), null, result);
+            coordinatorTask = taskManager.getTaskPlain(coordinatorTask.getOid(), null, result);
         }
 
         void reloadWorkerTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
-            workerTask = taskManager.getTask(workerTask.getOid(), null, result);
+            workerTask = taskManager.getTaskPlain(workerTask.getOid(), null, result);
         }
 
         TaskWorkManagementType getWorkStateConfiguration() {
@@ -495,7 +495,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
     private Context createContext(String workerTaskOid, Supplier<Boolean> canRun,
             WorkBucketStatisticsCollector collector, boolean isGetOperation, OperationResult result) throws SchemaException, ObjectNotFoundException {
         Context ctx = new Context(canRun, collector, isGetOperation);
-        ctx.workerTask = taskManager.getTask(workerTaskOid, result);
+        ctx.workerTask = taskManager.getTaskPlain(workerTaskOid, result);
         TaskWorkManagementType wsConfig = ctx.workerTask.getWorkManagement();
         if (wsConfig != null && wsConfig.getTaskKind() != null && wsConfig.getTaskKind() != TaskKindType.WORKER &&
                 wsConfig.getTaskKind() != TaskKindType.STANDALONE) {

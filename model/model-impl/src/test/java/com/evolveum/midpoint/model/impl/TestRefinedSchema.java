@@ -119,7 +119,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
 
-        Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_OBJECTCLASS_OID, result);
+        Task task = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_OBJECTCLASS_OID, result);
         display("Task", task);
 
         // WHEN
@@ -139,7 +139,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
 
-        Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OID, result);
+        Task task = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_KIND_INTENT_OID, result);
         display("Task", task);
 
         // WHEN
@@ -159,7 +159,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
 
-        Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID, result);
+        Task task = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID, result);
         display("Task", task);
 
         // WHEN
@@ -179,7 +179,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
 
-        Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_OBJECTCLASS_OID, result);
+        Task task = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_OBJECTCLASS_OID, result);
         display("Task", task);
 
         // WHEN
@@ -200,7 +200,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
 
-        Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OID, result);
+        Task task = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_KIND_INTENT_OID, result);
         display("Task", task);
 
         // WHEN
@@ -222,7 +222,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
 
-        Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID, result);
+        Task task = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID, result);
         display("Task", task);
 
         // WHEN

@@ -123,7 +123,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         logger.trace("Retrieving the task and getting its progress...");
 
-        TaskQuartzImpl task = getTask(taskOid(), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
         AssertJUnit.assertEquals("Progress is not 0", 0, task.getProgress());
     }
 
@@ -146,7 +146,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = getTask(taskOid(), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
         // property definition
         ItemName bigStringQName = new ItemName("http://midpoint.evolveum.com/repo/test", "bigString");
@@ -167,7 +167,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         logger.trace("Retrieving the task and comparing its properties...");
 
-        Task task001 = getTask(taskOid(), result);
+        Task task001 = getTaskWithResult(taskOid(), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
 
         PrismProperty<String> bigString001 = task001.getExtensionPropertyOrClone(bigStringQName);
@@ -184,7 +184,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.flushPendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
 
-        Task task002 = getTask(taskOid(), result);
+        Task task002 = getTaskWithResult(taskOid(), result);
         System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
         PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(bigStringQName);
@@ -212,7 +212,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         // TODO fix B file or what, so we can have this here: addObjectFromFile(taskFilename());
         addObjectFromFile("src/test/resources/basic/task-004aTaskBigProperty.xml");
 
-        TaskQuartzImpl task = getTask(taskOid(), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
         // property definition
         ItemName shipStateQName = new ItemName("http://myself.me/schemas/whatever", "shipState");
@@ -229,7 +229,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         logger.trace("Retrieving the task and comparing its properties...");
 
-        Task task001 = getTask(taskOid(), result);
+        Task task001 = getTaskWithResult(taskOid(), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
 
         PrismProperty<String> shipState001 = task001.getExtensionPropertyOrClone(shipStateQName);
@@ -243,7 +243,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.flushPendingModifications(result);
 
-        Task task002 = getTask(taskOid(), result);
+        Task task002 = getTaskWithResult(taskOid(), result);
         System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
         PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(shipStateQName);
@@ -255,7 +255,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = getTask(taskOid(), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
         System.out.println("Task extension = " + task.getExtensionOrClone());
 
@@ -277,7 +277,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = getTask(taskOid(), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
         System.out.println("Task extension = " + task.getExtensionOrClone());
 
@@ -359,7 +359,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         logger.trace("Retrieving the task (second time) and comparing its properties...");
 
-        Task task001 = getTask(taskOid(), result);
+        Task task001 = getTaskWithResult(taskOid(), result);
         logger.trace("Task from repo: " + task001.debugDump());
         AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
         PrismAsserts.assertEqualsPolyString("Name not", newname, task001.getName());
@@ -442,7 +442,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         addObjectFromFile(taskFilename());
 
         logger.trace("Retrieving the task...");
-        TaskQuartzImpl task = getTask(taskOid(), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         logger.trace("Task retrieval OK.");
@@ -457,7 +457,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status
 
-        Task task1 = getTask(taskOid(), result);
+        Task task1 = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task1);
         System.out.println("getTask returned: " + task1.debugDump());
@@ -538,7 +538,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -602,7 +602,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -655,7 +655,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -696,7 +696,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -738,7 +738,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -798,7 +798,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // check if we can read the extension (xsi:type issue)
 
-        Task taskTemp = getTask(taskOid(), result);
+        Task taskTemp = getTaskWithResult(taskOid(), result);
         PrismProperty<?> delay = taskTemp.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
@@ -806,7 +806,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status (task is running 5 iterations where each takes 2000 ms)
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -841,7 +841,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
         // check if we can read the extension (xsi:type issue)
@@ -897,7 +897,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
         waitForTaskStart(taskOid(), result, 10000, 2000);
@@ -1121,7 +1121,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Check task status
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -1234,7 +1234,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
         System.out.println("Waiting to see if the task would not start...");
@@ -1279,7 +1279,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         addObjectFromFile(taskFilename());
 
         String taskOid = taskOid();
-        Task task = getTask(taskOid, result);
+        Task task = getTaskWithResult(taskOid, result);
         System.out.println("After setup: " + task.debugDump());
 
         checkTaskStateRepeatedly(taskOid, result, 15000, 20);
@@ -1325,7 +1325,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
         waitForTaskStart(taskOid(), result, 15000, 500);
@@ -1503,6 +1503,11 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
                 .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
 
+        TaskType getTaskPlain_rootNoChildren = taskManager.getTaskPlain(rootOid, null, result).getUpdatedTaskObject().asObjectable();
+        TaskType getTaskPlain_rootWithChildren = taskManager.getTaskPlain(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable();
+        assertEquals("Wrong # of children", 0, getTaskPlain_rootNoChildren.getSubtaskRef().size());
+        assertEquals("Wrong # of children", 0, getTaskPlain_rootWithChildren.getSubtaskRef().size());
+
         TaskType getTask_rootNoChildren = taskManager.getTask(rootOid, null, result).getUpdatedTaskObject().asObjectable();
         TaskType getTask_rootWithChildren = taskManager.getTask(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable();
         assertEquals("Wrong # of children", 0, getTask_rootNoChildren.getSubtaskRef().size());
@@ -1581,7 +1586,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         String oid = taskOid(testNumber, subId);
         Task t;
         try {
-            t = getTask(oid, result);
+            t = getTaskWithResult(oid, result);
         } catch (ObjectNotFoundException e) {
             // this is OK, test probably did not start
             logger.info("Check leftovers: Task {} does not exist.", oid);
@@ -1596,7 +1601,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         }
     }
 
-    private TaskQuartzImpl getTask(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return taskManager.getTask(oid, retrieveItemsNamed(TaskType.F_RESULT), result);
+    private TaskQuartzImpl getTaskWithResult(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return taskManager.getTaskWithResult(oid, result);
     }
 }

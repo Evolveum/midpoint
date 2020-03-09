@@ -78,9 +78,7 @@ public class JobExecutor implements InterruptableJob {
         // get the task instance
         String oid = context.getJobDetail().getKey().getName();
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = taskManagerImpl.getSchemaHelper().getOperationOptionsBuilder()
-                    .item(TaskType.F_RESULT).retrieve().build();
-            task = taskManagerImpl.createRunningTask(taskManagerImpl.getTask(oid, options, executionResult));
+            task = taskManagerImpl.createRunningTask(taskManagerImpl.getTaskWithResult(oid, executionResult));
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -365,7 +363,7 @@ public class JobExecutor implements InterruptableJob {
                 }
                 Task otherTask;
                 try {
-                    otherTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
+                    otherTask = taskManagerImpl.getTaskPlain(taskInfo.getOid(), result);
                 } catch (ObjectNotFoundException e) {
                     LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(),
                             e.getMessage());

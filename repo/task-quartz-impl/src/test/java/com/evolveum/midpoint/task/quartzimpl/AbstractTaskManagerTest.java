@@ -300,7 +300,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest
     protected int getTotalItemsProcessed(String coordinatorTaskOid) {
         OperationResult result = new OperationResult("getTotalItemsProcessed");
         try {
-            Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
+            Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
             List<Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {

@@ -80,7 +80,7 @@ public class TestReport extends AbstractReportIntegrationTest {
 
       display("Background task", task);
 
-      waitForTaskFinish(task.getOid(), true);
+      waitForTaskFinish(task.getOid(), false);
 
       // THEN
       then();
@@ -139,7 +139,7 @@ public class TestReport extends AbstractReportIntegrationTest {
 
       display("Background task", task);
 
-      waitForTaskFinish(task.getOid(), true);
+      waitForTaskFinish(task.getOid(), false);
 
       // THEN
       then();
@@ -198,7 +198,7 @@ public class TestReport extends AbstractReportIntegrationTest {
 
       display("Background task (running)", task);
 
-      waitForTaskFinish(task.getOid(), true, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
+      waitForTaskFinish(task.getOid(), false, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
 
       // THEN
       then();
