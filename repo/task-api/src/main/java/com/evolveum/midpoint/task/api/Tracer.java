@@ -18,16 +18,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 
-/**
- *
- */
 public interface Tracer {
 
     /**
      * Stores trace to persistent storage (usually a file in "trace" directory).
      *
-     * @param task         Task containing the context information necessary e.g. to derive name of the trace file.
-     * @param result       Result that is to be serialized and stored.
+     * @param task Task containing the context information necessary e.g. to derive name of the trace file.
+     * @param result Result that is to be serialized and stored.
      * @param parentResult Parent result where this operation should be recorded (if any).
      */
     void storeTrace(Task task, OperationResult result, @Nullable OperationResult parentResult);
@@ -35,8 +32,8 @@ public interface Tracer {
     /**
      * Resolves a tracing profile - i.e. replaces references to other (named) profiles with their content.
      *
-     * @throws SchemaException If the profile name cannot be resolved e.g. if the referenced profile does not exist
-     *                         or the name in ambiguous.
+     * @throws SchemaException If the profile name cannot be resolved e.g. if the referenced
+     * profile does not exist or the name in ambiguous.
      */
     TracingProfileType resolve(TracingProfileType tracingProfile, OperationResult result) throws SchemaException;
 
