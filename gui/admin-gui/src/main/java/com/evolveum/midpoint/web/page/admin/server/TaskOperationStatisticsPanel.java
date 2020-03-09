@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements TaskTabPanel {
 
@@ -69,29 +70,39 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
            protected OperationStatsType load() {
                PrismObject<TaskType> task = getModelObject().getObject();
 
-               IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
-               SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
-               ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
-
-               if (TaskTypeUtil.isPartitionedMaster(task.asObjectable())) {
-                   List<TaskType> subTasks = resolveSubTasks();
-                   for (TaskType taskDto : subTasks) {
-                       OperationStatsType operationStats = taskDto.getOperationStats();
-                       if (operationStats != null) {
-                           IterativeTaskInformation.addTo(iterativeTaskInformation, operationStats.getIterativeTaskInformation(), true);
-                           SynchronizationInformation.addTo(synchronizationInformation, operationStats.getSynchronizationInformation());
-                           ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStats.getActionsExecutedInformation());
-                       }
-                   }
-
-                   return new OperationStatsType(getPrismContext())
-                           .iterativeTaskInformation(iterativeTaskInformation)
-                           .synchronizationInformation(synchronizationInformation)
-                           .actionsExecutedInformation(actionsExecutedInformation);
-
-               }
-
-               return task.asObjectable().getOperationStats();
+               return TaskTypeUtil.getAggregatedOperationStats(task.asObjectable(), getPrismContext());
+//               IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
+//               SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
+//               ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
+//
+//               if (TaskTypeUtil.isPartitionedMaster(task.asObjectable())) {
+////                   List<TaskType> subTasks = resolveSubTasks();
+//                   Stream<TaskType> subTasks = TaskTypeUtil.getAllTasksStream(task.asObjectable());
+//                   subTasks.forEach(subTask -> {
+//                       OperationStatsType operationStatsType = subTask.getOperationStats();
+//                       if (operationStatsType != null) {
+//                           IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), true);
+//                           SynchronizationInformation.addTo(synchronizationInformation, operationStatsType.getSynchronizationInformation());
+//                           ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStatsType.getActionsExecutedInformation());
+//                       }
+//                   });
+////                   for (TaskType taskDto : subTasks) {
+////                       OperationStatsType operationStats = taskDto.getOperationStats();
+////                       if (operationStats != null) {
+////                           IterativeTaskInformation.addTo(iterativeTaskInformation, operationStats.getIterativeTaskInformation(), true);
+////                           SynchronizationInformation.addTo(synchronizationInformation, operationStats.getSynchronizationInformation());
+////                           ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStats.getActionsExecutedInformation());
+////                       }
+////                   }
+//
+//                   return new OperationStatsType(getPrismContext())
+//                           .iterativeTaskInformation(iterativeTaskInformation)
+//                           .synchronizationInformation(synchronizationInformation)
+//                           .actionsExecutedInformation(actionsExecutedInformation);
+//
+//               }
+//
+//               return task.asObjectable().getOperationStats();
 
            }
        };
