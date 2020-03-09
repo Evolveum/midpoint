@@ -264,10 +264,6 @@ public interface TaskManager {
     @NotNull
     Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-    /**
-     * BEWARE: This method does not obey taskManager-related options, e.g. retrieve(F_SUBTASK). If you need to apply them,
-     * use getTaskObject instead. See MID-5374.
-     */
     @NotNull
     Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 

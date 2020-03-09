@@ -3130,7 +3130,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectNotFoundException,
             SchemaException {
         Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> task = taskManager.getObject(TaskType.class, oid, options, result);
         dumpTaskAndSubtasks(task.asObjectable(), 0);
@@ -3822,7 +3822,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = createPlainTask("getTaskTree");
         OperationResult result = task.getResult();
-        PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK), task, result);
+        PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK_REF), task, result);
         result.computeStatus();
         TestUtil.assertSuccess("getObject(Task) result not success", result);
         return retTask;

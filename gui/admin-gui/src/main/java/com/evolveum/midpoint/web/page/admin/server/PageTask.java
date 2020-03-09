@@ -117,7 +117,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
         return getOperationOptionsBuilder()
                 // retrieve
-                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
                 .item(TaskType.F_NODE_AS_OBSERVED).retrieve()
                 .item(TaskType.F_NEXT_RUN_START_TIMESTAMP).retrieve()
                 .item(TaskType.F_NEXT_RETRY_TIMESTAMP).retrieve()

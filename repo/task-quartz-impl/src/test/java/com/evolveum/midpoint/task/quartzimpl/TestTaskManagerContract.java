@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
@@ -17,6 +19,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
+
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -57,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
+public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
     private static final String TASK_OWNER_FILENAME = "src/test/resources/basic/owner.xml";
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";
@@ -72,8 +77,12 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         return taskFilename("");
     }
 
+    private String taskOid(String testNumber, String subId) {
+        return "91919191-76e0-59e2-86d6-55665566" + subId + testNumber;
+    }
+
     private String taskOid(String subId) {
-        return "91919191-76e0-59e2-86d6-55665566" + subId + getTestNumber();
+        return taskOid(getTestNumber(), subId);
     }
 
     private String taskOid() {
@@ -1294,7 +1303,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() < start + duration) {
             Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-                    .item(TaskType.F_SUBTASK).retrieve()
+                    .item(TaskType.F_SUBTASK_REF).retrieve()
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
             OperationStatsType stats = task.getOperationStats();
@@ -1447,7 +1456,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     private TaskType getTaskType(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         Collection<SelectorOptions<GetOperationOptions>> options = retrieveItemsNamed(
-                TaskType.F_SUBTASK,
+                TaskType.F_SUBTASK_REF,
                 TaskType.F_NODE_AS_OBSERVED,
                 TaskType.F_NEXT_RUN_START_TIMESTAMP,
                 TaskType.F_NEXT_RETRY_TIMESTAMP);
@@ -1482,36 +1491,79 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     }
 
     @Test
+    public void test200RetrieveSubtasks() throws Exception {
+        final OperationResult result = createOperationResult();
+
+        String rootOid = addObjectFromFile(taskFilename()).getOid();
+        String child1Oid = addObjectFromFile(taskFilename("-child-1")).getOid();
+        String child11Oid = addObjectFromFile(taskFilename("-child-1-1")).getOid();
+        String child2Oid = addObjectFromFile(taskFilename("-child-2")).getOid();
+
+        Collection<SelectorOptions<GetOperationOptions>> withChildren = schemaHelper.getOperationOptionsBuilder()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+
+        TaskType getTask_rootNoChildren = taskManager.getTask(rootOid, null, result).getUpdatedTaskObject().asObjectable();
+        TaskType getTask_rootWithChildren = taskManager.getTask(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable();
+        assertEquals("Wrong # of children", 0, getTask_rootNoChildren.getSubtaskRef().size());
+        assertTaskTree(getTask_rootWithChildren, child1Oid, child2Oid, child11Oid);
+
+        TaskType getObject_rootNoChildren = taskManager.getObject(TaskType.class, rootOid, null, result).asObjectable();
+        TaskType getObject_rootWithChildren = taskManager.getObject(TaskType.class, rootOid, withChildren, result).asObjectable();
+        assertEquals("Wrong # of children", 0, getObject_rootNoChildren.getSubtaskRef().size());
+        assertTaskTree(getObject_rootWithChildren, child1Oid, child2Oid, child11Oid);
+
+        ObjectQuery query = prismContext.queryFor(TaskType.class).id(rootOid).build();
+        TaskType searchObjects_rootNoChildren = extractSingleton(taskManager.searchObjects(TaskType.class, query, null, result)).asObjectable();
+        TaskType searchObjects_rootWithChildren = extractSingleton(taskManager.searchObjects(TaskType.class, query, withChildren, result)).asObjectable();
+        assertEquals("Wrong # of children", 0, searchObjects_rootNoChildren.getSubtaskRef().size());
+        assertTaskTree(searchObjects_rootWithChildren, child1Oid, child2Oid, child11Oid);
+    }
+
+    private void assertTaskTree(TaskType rootWithChildren, String child1Oid, String child2Oid, String child11Oid) {
+        assertEquals("Wrong # of children of root", 2, rootWithChildren.getSubtaskRef().size());
+        TaskType child1 = TaskTypeUtil.findChild(rootWithChildren, child1Oid);
+        TaskType child2 = TaskTypeUtil.findChild(rootWithChildren, child2Oid);
+        assertNotNull(child1);
+        assertNotNull(child2);
+        assertEquals("Wrong # of children of child1", 1, child1.getSubtaskRef().size());
+        assertEquals("Wrong # of children of child2", 0, child2.getSubtaskRef().size());
+        TaskType child11 = TaskTypeUtil.findChild(child1, child11Oid);
+        assertNotNull(child11);
+    }
+
+    @Test
     public void test999CheckingLeftovers() throws Exception {
         OperationResult result = createOperationResult();
 
         ArrayList<String> leftovers = new ArrayList<>();
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, "1", result);
-        checkLeftover(leftovers, "2", result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, "a", result);
-        checkLeftover(leftovers, "b", result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, "a", result);
-        checkLeftover(leftovers, result);
-        checkLeftover(leftovers, result);
+        checkLeftover(leftovers, "test005", result);
+        checkLeftover(leftovers, "test006", result);
+        checkLeftover(leftovers, "test008", result);
+        checkLeftover(leftovers, "test009", result);
+        checkLeftover(leftovers, "test010", result);
+        checkLeftover(leftovers, "test011", result);
+        checkLeftover(leftovers, "test012", result);
+        checkLeftover(leftovers, "test013", result);
+        checkLeftover(leftovers, "test014", result);
+        checkLeftover(leftovers, "test015", result);
+        checkLeftover(leftovers, "test016", result);
+        checkLeftover(leftovers, "test017", result);
+        checkLeftover(leftovers, "test019", result);
+        checkLeftover(leftovers, "test021", result);
+        checkLeftover(leftovers, "test021", "1", result);
+        checkLeftover(leftovers, "test021", "2", result);
+        checkLeftover(leftovers, "test022", result);
+        checkLeftover(leftovers, "test100", result);
+        checkLeftover(leftovers, "test105", result);
+        checkLeftover(leftovers, "test108", result);
+        checkLeftover(leftovers, "test108", "a", result);
+        checkLeftover(leftovers, "test108", "b", result);
+        checkLeftover(leftovers, "test110", result);
+        checkLeftover(leftovers, "test110", "a", result);
+		checkLeftover(leftovers, "test120", result);
+		checkLeftover(leftovers, "test130", result);
+		checkLeftover(leftovers, "test200", result);
 
         StringBuilder message = new StringBuilder("Leftover task(s) found:");
         for (String leftover : leftovers) {
@@ -1521,18 +1573,18 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertTrue(message.toString(), leftovers.isEmpty());
     }
 
-    private void checkLeftover(ArrayList<String> leftovers, OperationResult result) throws Exception {
-        checkLeftover(leftovers, "0", result);
+    private void checkLeftover(ArrayList<String> leftovers, String testNumber, OperationResult result) throws Exception {
+        checkLeftover(leftovers, testNumber, "0", result);
     }
 
-    private void checkLeftover(ArrayList<String> leftovers, String subId, OperationResult result) throws Exception {
-        String oid = taskOid(subId);
+    private void checkLeftover(ArrayList<String> leftovers, String testNumber, String subId, OperationResult result) throws Exception {
+        String oid = taskOid(testNumber, subId);
         Task t;
         try {
             t = getTask(oid, result);
         } catch (ObjectNotFoundException e) {
             // this is OK, test probably did not start
-            logger.info("Check leftovers: Task " + oid + " does not exist.");
+            logger.info("Check leftovers: Task {} does not exist.", oid);
             return;
         }
 

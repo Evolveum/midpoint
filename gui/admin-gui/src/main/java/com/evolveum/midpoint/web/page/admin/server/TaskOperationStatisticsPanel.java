@@ -125,7 +125,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             subTaskWithLoadedSubtasks = subTask.asPrismObject();
         } else {
             subTaskWithLoadedSubtasks = WebModelServiceUtils.loadObject(TaskType.class, subTask.getOid(),
-                    getSchemaHelper().getOperationOptionsBuilder().item(TaskType.F_SUBTASK).retrieve().build(), getPageBase(), task, result);
+                    getSchemaHelper().getOperationOptionsBuilder().item(TaskType.F_SUBTASK_REF).retrieve().build(), getPageBase(), task, result);
         }
 
         if (subTaskWithLoadedSubtasks == null) {
