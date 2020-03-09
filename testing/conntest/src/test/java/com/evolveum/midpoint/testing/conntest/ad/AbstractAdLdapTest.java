@@ -1238,8 +1238,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertNotNull("No sync token", syncTokenProperty);
         assertNotNull("No sync token value", syncTokenProperty.getRealValue());
         assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
     }
 
     public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
