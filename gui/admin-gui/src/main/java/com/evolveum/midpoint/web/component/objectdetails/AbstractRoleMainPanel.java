@@ -177,7 +177,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
                     }
                 };
                 return panel;
-//                return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
             }
 
             @Override

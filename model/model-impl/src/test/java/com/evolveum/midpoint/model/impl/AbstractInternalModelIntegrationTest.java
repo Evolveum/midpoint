@@ -7,32 +7,26 @@
 package com.evolveum.midpoint.model.impl;
 
 import java.io.File;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.test.TestResource;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.impl.util.mock.MockClockworkHook;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class AbstractInternalModelIntegrationTest extends AbstractModelImplementationIntegrationTest {
@@ -66,7 +60,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
     protected static final String USER_ELAINE_USERNAME = "elaine";
 
     // Largo does not have a full name set, employeeType=PIRATE
-    protected static final File USER_LARGO_FILE = new File(COMMON_DIR,  "user-largo.xml");
+    protected static final File USER_LARGO_FILE = new File(COMMON_DIR, "user-largo.xml");
     protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
 
     public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
@@ -113,8 +107,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 
     protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 
-    protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
-
     protected PrismObject<UserType> userAdministrator;
 
     protected UserType userTypeJack;
@@ -126,7 +118,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
         // We want logging config from logback-test.xml and not from system config object (unless suppressed)

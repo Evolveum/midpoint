@@ -84,7 +84,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     public IW createWrapper(Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
         return createWrapper(null, (I) childItem, status, context);
 
-    };
+    }
 
     private IW createWrapper(PrismContainerValueWrapper<?> parent, I childItem, ItemStatus status, WrapperContext context) throws SchemaException {
         IW itemWrapper = createWrapper(parent, childItem, status);

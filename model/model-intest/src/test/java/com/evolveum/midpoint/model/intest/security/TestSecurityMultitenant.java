@@ -211,7 +211,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -239,7 +238,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test010ImportOrgstruct() throws Exception {
-        final String TEST_NAME = "test010ImportOrgstruct";
         // GIVEN
 
         Task task = getTestTask();
@@ -375,7 +373,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test100AutzLetoRead() throws Exception {
-        final String TEST_NAME = "test100AutzLetoRead";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -416,7 +413,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test102AutzLetoAdd() throws Exception {
-        final String TEST_NAME = "test102AutzLetoAdd";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -460,7 +456,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test104AutzLetoModify() throws Exception {
-        final String TEST_NAME = "test104AutzLetoModify";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -491,7 +486,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test106AutzLetoAddResourceTask() throws Exception {
-        final String TEST_NAME = "test106AutzLetoAddResourceTask";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -524,7 +518,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddAllow(resource, null);
     }
 
-    private void assertAddDummyResourceDeny(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void assertAddDummyResourceDeny(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(file);
         resource.asObjectable()
             .connectorRef(dummyConnector.getOid(), ConnectorType.COMPLEX_TYPE);
@@ -536,7 +530,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test109AutzLetoDelete() throws Exception {
-        final String TEST_NAME = "test109AutzLetoDelete";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -565,7 +558,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test110AutzLetoAddOrgs() throws Exception {
-        final String TEST_NAME = "test110AutzLetoAddOrgs";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -619,7 +611,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test112AutzLetoProtectTenant() throws Exception {
-        final String TEST_NAME = "test112AutzLetoProtectTenant";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -688,7 +679,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test114AutzLetoKeepWithinTenant() throws Exception {
-        final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -750,7 +740,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test116AutzLetoProtectTenantAdminRole() throws Exception {
-        final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -807,7 +796,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test118AutzLetoBusinessRoles() throws Exception {
-        final String TEST_NAME = "test118AutzLetoBusinessRoles";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -846,7 +834,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test120AutzPaulEndUser() throws Exception {
-        final String TEST_NAME = "test120AutzPaulEndUser";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -881,7 +868,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 
     @Test
     public void test122AutzDuncanRoleManager() throws Exception {
-        final String TEST_NAME = "test122AutzDuncanRoleManager";
         // GIVEN
         cleanupAutzTest(null);
 
@@ -930,7 +916,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test130AutzEdricRead() throws Exception {
-        final String TEST_NAME = "test120AutzEdricRead";
         // GIVEN
         cleanupAutzTest(null);
 

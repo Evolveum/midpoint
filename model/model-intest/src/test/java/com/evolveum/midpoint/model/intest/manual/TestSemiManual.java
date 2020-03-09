@@ -36,8 +36,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManual extends AbstractDirectManualResourceTest {
 
-    protected static final String ATTR_DISABLED = "disabled";
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);

@@ -59,44 +59,40 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
     @Autowired private WorkStateManager workStateManager;
 
-    private static String taskFilename(String testName, String subId) {
-        return "src/test/resources/work/task-" + testNumber(testName) + "-" + subId + ".xml";
+    private String taskFilename(String subId) {
+        return "src/test/resources/work/task-" + getTestNumber() + "-" + subId + ".xml";
     }
 
-    private static String taskFilename(String testName) {
-        return taskFilename(testName, "0");
+    private String taskFilename() {
+        return taskFilename("0");
     }
 
-    private static String taskOid(String testName, String subId) {
-        return "44444444-2222-2222-2222-" + testNumber(testName) + subId + "00000000";
+    private String taskOid(String subId) {
+        return "44444444-2222-2222-2222-" + getTestNumber() + subId + "00000000";
     }
 
-    private static String taskOid(String test) {
-        return taskOid(test, "0");
-    }
-
-    private static String testNumber(String test) {
-        return test.substring(4, 7);
+    private String taskOid() {
+        return taskOid("0");
     }
 
     @NotNull
-    protected String workerTaskFilename(String TEST_NAME) {
-        return taskFilename(TEST_NAME, "w");
+    protected String workerTaskFilename() {
+        return taskFilename("w");
     }
 
     @NotNull
-    protected String coordinatorTaskFilename(String TEST_NAME) {
-        return taskFilename(TEST_NAME, "c");
+    protected String coordinatorTaskFilename() {
+        return taskFilename("c");
     }
 
     @NotNull
-    protected String workerTaskOid(String TEST_NAME) {
-        return taskOid(TEST_NAME, "w");
+    protected String workerTaskOid() {
+        return taskOid("w");
     }
 
     @NotNull
-    protected String coordinatorTaskOid(String TEST_NAME) {
-        return taskOid(TEST_NAME, "c");
+    protected String coordinatorTaskOid() {
+        return taskOid("c");
     }
 
     @PostConstruct
@@ -114,20 +110,19 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
     @Test
     public void test100AllocateBucket() throws Exception {
-        final String TEST_NAME = "test100AllocateBucket";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-        addObjectFromFile(workerTaskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(coordinatorTaskFilename());
+        addObjectFromFile(workerTaskFilename());
 
         try {
-            TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(TEST_NAME), result);
+            TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(), result);
 
             // WHEN
             WorkBucketType bucket = workStateManager.getWorkBucket(worker.getOid(), 0, null, null, result);
 
             // THEN
             display("allocated bucket", bucket);
-            TaskQuartzImpl coordinatorAfter = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+            TaskQuartzImpl coordinatorAfter = taskManager.getTask(coordinatorTaskOid(), result);
             TaskQuartzImpl workerAfter = taskManager.getTask(worker.getOid(), result);
             display("coordinator task after", coordinatorAfter);
             display("worker task after", workerAfter);
@@ -141,17 +136,16 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             assertOptimizedCompletedBuckets(coordinatorAfter);
         } finally {
-            suspendAndDeleteTasks(coordinatorTaskOid(TEST_NAME));
+            suspendAndDeleteTasks(coordinatorTaskOid());
         }
     }
 
     @Test
     public void test105AllocateBucketStandalone() throws Exception {
-        final String TEST_NAME = "test105AllocateBucketStandalone";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl standalone = taskManager.getTask(taskOid(), result);
         try {
 
             // WHEN
@@ -174,11 +168,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
     @Test
     public void test107AllocateBucketStandaloneBatched() throws Exception {
-        final String TEST_NAME = "test107AllocateBucketStandaloneBatched";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl standalone = taskManager.getTask(taskOid(), result);
         try {
 
             // WHEN
@@ -200,12 +193,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
     @Test
     public void test110AllocateTwoBucketsStandalone() throws Exception {
-        final String TEST_NAME = "test110AllocateTwoBucketsStandalone";
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
-
-        TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl standalone = taskManager.getTask(taskOid(), result);
         try {
 
             // WHEN
@@ -268,11 +259,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
     @Test
     public void test120UnspecifiedBuckets() throws Exception {
-        final String TEST_NAME = "test120UnspecifiedBuckets";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
 
         // WHEN + THEN
         try {
@@ -285,21 +275,20 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
     @Test
     public void test130AllocateReleaseCompleteSequence() throws Exception {
-        final String TEST_NAME = "test130AllocateReleaseCompleteSequence";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-        addObjectFromFile(taskFilename(TEST_NAME, "1"));
-        addObjectFromFile(taskFilename(TEST_NAME, "2"));
-        addObjectFromFile(taskFilename(TEST_NAME, "3"));
-        addObjectFromFile(taskFilename(TEST_NAME, "4"));
-        addObjectFromFile(taskFilename(TEST_NAME, "5"));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(coordinatorTaskFilename());
+        addObjectFromFile(taskFilename("1"));
+        addObjectFromFile(taskFilename("2"));
+        addObjectFromFile(taskFilename("3"));
+        addObjectFromFile(taskFilename("4"));
+        addObjectFromFile(taskFilename("5"));
 
         try {
-            TaskQuartzImpl worker1 = taskManager.getTask(taskOid(TEST_NAME, "1"), result);
-            TaskQuartzImpl worker2 = taskManager.getTask(taskOid(TEST_NAME, "2"), result);
-            TaskQuartzImpl worker3 = taskManager.getTask(taskOid(TEST_NAME, "3"), result);
-            TaskQuartzImpl worker4 = taskManager.getTask(taskOid(TEST_NAME, "4"), result);
-            TaskQuartzImpl worker5 = taskManager.getTask(taskOid(TEST_NAME, "5"), result);
+            TaskQuartzImpl worker1 = taskManager.getTask(taskOid("1"), result);
+            TaskQuartzImpl worker2 = taskManager.getTask(taskOid("2"), result);
+            TaskQuartzImpl worker3 = taskManager.getTask(taskOid("3"), result);
+            TaskQuartzImpl worker4 = taskManager.getTask(taskOid("4"), result);
+            TaskQuartzImpl worker5 = taskManager.getTask(taskOid("5"), result);
 
             // WHEN
             WorkBucketType bucket1 = workStateManager.getWorkBucket(worker1.getOid(), 0, null, null, result);
@@ -319,7 +308,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             worker2 = taskManager.getTask(worker2.getOid(), result);
             worker3 = taskManager.getTask(worker3.getOid(), result);
             worker4 = taskManager.getTask(worker4.getOid(), result);
-            Task coordinator = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+            Task coordinator = taskManager.getTask(coordinatorTaskOid(), result);
             display("coordinator task after 4+1x allocation", coordinator);
             display("worker1 task after 4+1x allocation", worker1);
             display("worker2 task after 4+1x allocation", worker2);
@@ -507,25 +496,24 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             assertNoWorkBuckets(worker1.getWorkState());
         } finally {
-            suspendAndDeleteTasks(coordinatorTaskOid(TEST_NAME));
+            suspendAndDeleteTasks(coordinatorTaskOid());
         }
     }
 
     @Test
     public void test200OneWorkerTask() throws Exception {
-        final String TEST_NAME = "test200OneWorkerTask";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-        addObjectFromFile(workerTaskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(coordinatorTaskFilename());
+        addObjectFromFile(workerTaskFilename());
 
-        TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(TEST_NAME), result);
+        TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(), result);
 
         try {
             // WHEN
             taskManager.resumeTask(worker, result);
 
             // THEN
-            String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
+            String coordinatorTaskOid = coordinatorTaskOid();
             waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
 
             TaskQuartzImpl coordinatorAfter = taskManager.getTask(coordinatorTaskOid, result);
@@ -535,23 +523,22 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             assertTotalSuccessCount(30, singleton(workerAfter));
         } finally {
-            suspendAndDeleteTasks(coordinatorTaskOid(TEST_NAME));
+            suspendAndDeleteTasks(coordinatorTaskOid());
         }
     }
 
     @Test
     public void test210ThreeWorkersTask() throws Exception {
-        final String TEST_NAME = "test210ThreeWorkersTask";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-        addObjectFromFile(taskFilename(TEST_NAME, "1"));
-        addObjectFromFile(taskFilename(TEST_NAME, "2"));
-        addObjectFromFile(taskFilename(TEST_NAME, "3"));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(coordinatorTaskFilename());
+        addObjectFromFile(taskFilename("1"));
+        addObjectFromFile(taskFilename("2"));
+        addObjectFromFile(taskFilename("3"));
 
         try {
-            TaskQuartzImpl worker1 = taskManager.getTask(taskOid(TEST_NAME, "1"), result);
-            TaskQuartzImpl worker2 = taskManager.getTask(taskOid(TEST_NAME, "2"), result);
-            TaskQuartzImpl worker3 = taskManager.getTask(taskOid(TEST_NAME, "3"), result);
+            TaskQuartzImpl worker1 = taskManager.getTask(taskOid("1"), result);
+            TaskQuartzImpl worker2 = taskManager.getTask(taskOid("2"), result);
+            TaskQuartzImpl worker3 = taskManager.getTask(taskOid("3"), result);
 
             workBucketsTaskHandler.setDelayProcessor(50);
 
@@ -561,7 +548,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             taskManager.resumeTask(worker3, result);
 
             // THEN
-            String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
+            String coordinatorTaskOid = coordinatorTaskOid();
             waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
 
             TaskQuartzImpl coordinatorAfter = taskManager.getTask(coordinatorTaskOid, result);
@@ -587,22 +574,21 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // TODO other asserts
         } finally {
-            suspendAndDeleteTasks(coordinatorTaskOid(TEST_NAME));
+            suspendAndDeleteTasks(coordinatorTaskOid());
         }
     }
 
     @Test
     public void test220WorkerSuspend() throws Exception {
-        final String TEST_NAME = "test220WorkerSuspend";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-        addObjectFromFile(taskFilename(TEST_NAME, "1"));
-        addObjectFromFile(taskFilename(TEST_NAME, "2"));
-        addObjectFromFile(taskFilename(TEST_NAME, "3"));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(coordinatorTaskFilename());
+        addObjectFromFile(taskFilename("1"));
+        addObjectFromFile(taskFilename("2"));
+        addObjectFromFile(taskFilename("3"));
         try {
-            TaskQuartzImpl worker1 = taskManager.getTask(taskOid(TEST_NAME, "1"), result);
-            TaskQuartzImpl worker2 = taskManager.getTask(taskOid(TEST_NAME, "2"), result);
-            TaskQuartzImpl worker3 = taskManager.getTask(taskOid(TEST_NAME, "3"), result);
+            TaskQuartzImpl worker1 = taskManager.getTask(taskOid("1"), result);
+            TaskQuartzImpl worker2 = taskManager.getTask(taskOid("2"), result);
+            TaskQuartzImpl worker3 = taskManager.getTask(taskOid("3"), result);
 
             Holder<Task> suspensionVictim = new Holder<>();
             workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
@@ -628,7 +614,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             then();
-            String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
+            String coordinatorTaskOid = coordinatorTaskOid();
             waitFor("waiting for all items to be processed", () -> getTotalItemsProcessed(coordinatorTaskOid) == 107 - 6,
                     DEFAULT_TIMEOUT, 500);
 
@@ -676,22 +662,21 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             // this does not work as processed items from deleted subtask are missing
             //assertTotalSuccessCount(107 - 6 + 10, coordinatorAfter.listSubtasks(result));
         } finally {
-            suspendAndDeleteTasks(coordinatorTaskOid(TEST_NAME));
+            suspendAndDeleteTasks(coordinatorTaskOid());
         }
     }
 
     @Test
     public void test230WorkerException() throws Exception {
-        final String TEST_NAME = "test230WorkerException";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-        addObjectFromFile(taskFilename(TEST_NAME, "1"));
-        addObjectFromFile(taskFilename(TEST_NAME, "2"));
-        addObjectFromFile(taskFilename(TEST_NAME, "3"));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(coordinatorTaskFilename());
+        addObjectFromFile(taskFilename("1"));
+        addObjectFromFile(taskFilename("2"));
+        addObjectFromFile(taskFilename("3"));
         try {
-            TaskQuartzImpl worker1 = taskManager.getTask(taskOid(TEST_NAME, "1"), result);
-            TaskQuartzImpl worker2 = taskManager.getTask(taskOid(TEST_NAME, "2"), result);
-            TaskQuartzImpl worker3 = taskManager.getTask(taskOid(TEST_NAME, "3"), result);
+            TaskQuartzImpl worker1 = taskManager.getTask(taskOid("1"), result);
+            TaskQuartzImpl worker2 = taskManager.getTask(taskOid("2"), result);
+            TaskQuartzImpl worker3 = taskManager.getTask(taskOid("3"), result);
 
             Holder<Task> exceptionVictim = new Holder<>();
             workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
@@ -713,7 +698,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             then();
-            String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
+            String coordinatorTaskOid = coordinatorTaskOid();
             waitFor("waiting for all items to be processed", () -> getTotalItemsProcessed(coordinatorTaskOid) == 107 - 6,
                     DEFAULT_TIMEOUT, 500);
 
@@ -769,29 +754,28 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             assertOptimizedCompletedBuckets(coordinatorAfter);
         } finally {
-            suspendAndDeleteTasks(coordinatorTaskOid(TEST_NAME));
+            suspendAndDeleteTasks(coordinatorTaskOid());
         }
     }
 
     @Test
     public void test300NarrowQueryOneWorkerTask() throws Exception {
-        final String TEST_NAME = "test300NarrowQueryOneWorkerTask";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-        addObjectFromFile(workerTaskFilename(TEST_NAME));
+        OperationResult result = createOperationResult();
+        addObjectFromFile(coordinatorTaskFilename());
+        addObjectFromFile(workerTaskFilename());
 
         workBucketsTaskHandler.resetBeforeTest();
         workBucketsTaskHandler.setDefaultQuery(prismContext.queryFactory().createQuery());
 
         try {
 
-            TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(TEST_NAME), result);
+            TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(), result);
 
             // WHEN
             taskManager.resumeTask(worker, result);
 
             // THEN
-            String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
+            String coordinatorTaskOid = coordinatorTaskOid();
             waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
 
             TaskQuartzImpl coordinatorAfter = taskManager.getTask(coordinatorTaskOid, result);
@@ -820,7 +804,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             PrismAsserts.assertQueriesEquivalent("Wrong query #2", q2, qe.get(1));
             PrismAsserts.assertQueriesEquivalent("Wrong query #3", q3, qe.get(2));
         } finally {
-            suspendAndDeleteTasks(coordinatorTaskOid(TEST_NAME));
+            suspendAndDeleteTasks(coordinatorTaskOid());
         }
     }
 }

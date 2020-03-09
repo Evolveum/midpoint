@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.intest.misc;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -58,8 +56,6 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test050SanityLost1() throws Exception {
-        final String TEST_NAME = "test050SanityLost1";
-
         // WHEN
         when();
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
@@ -77,8 +73,6 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test100RefreshTaskDefault() throws Exception {
-        final String TEST_NAME = "test100RefreshTaskDefault";
-
         addObject(TASK_SHADOW_REFRESH_FILE);
 
         // WHEN
@@ -101,8 +95,6 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110RefreshTaskExplicitDummy() throws Exception {
-        final String TEST_NAME = "test110RefreshTaskExplicitDummy";
-
         addObject(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_FILE);
 
         // WHEN

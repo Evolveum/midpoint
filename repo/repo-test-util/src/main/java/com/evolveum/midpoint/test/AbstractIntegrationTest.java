@@ -1825,7 +1825,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     @SuppressWarnings("unused")
     protected void displayHEREHERE() {
-        IntegrationTestTools.display("HEREHERE");
+        display(contextName() + "HEREHERE");
     }
 
     public static void display(String message, SearchResultEntry response) {

@@ -76,7 +76,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_LIMITED_NAME,

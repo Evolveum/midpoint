@@ -69,11 +69,6 @@ public class DummyGroup extends DummyObject {
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     protected void extendDebugDump(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Members", getMembers(), indent + 1);

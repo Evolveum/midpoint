@@ -92,7 +92,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
 
             public IModel<String> getLabel() {
                 return createStringResource("FocusType.delegations");
-            };
+            }
 
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {

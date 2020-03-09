@@ -46,6 +46,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -227,6 +228,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         columns.add(createTaskExecutionStatusColumn());
 
         columns.add(createProgressColumn("pageTasks.task.progress"));
+        columns.add(createErrorsColumn("pageTasks.task.errors"));
 
         columns.add(new IconColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
@@ -292,6 +294,17 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 return Model.of(getProgressDescription(rowModel.getObject()));
+            }
+        };
+    }
+
+    private AbstractColumn<SelectableBean<TaskType>, String> createErrorsColumn(String titleKey) {
+        return new AbstractColumn<SelectableBean<TaskType>, String>(createStringResource(titleKey)) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
+                TaskType task = rowModel.getObject().getValue();
+                cellItem.add(new Label(componentId, new Model<>(TaskTypeUtil.getObjectsProcessedFailures(task, getPrismContext()))));
+
             }
         };
     }
@@ -415,7 +428,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 if (rowModel == null){
                     return Model.of(Boolean.TRUE);
                 }
-                SelectableBean<TaskType> rowModelObj = (SelectableBean<TaskType>)rowModel.getObject();
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
                 boolean visible = WebComponentUtil.canSuspendTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase());
                 return Model.of(visible);
             }
@@ -452,7 +465,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 if (rowModel == null){
                     return Model.of(Boolean.TRUE);
                 }
-                SelectableBean<TaskType> rowModelObj = (SelectableBean<TaskType>)rowModel.getObject();
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
                 boolean visible = WebComponentUtil.canResumeTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase());
                 return Model.of(visible);
             }
@@ -490,7 +503,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 if (rowModel == null){
                     return Model.of(Boolean.TRUE);
                 }
-                SelectableBean<TaskType> rowModelObj = (SelectableBean<TaskType>)rowModel.getObject();
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
                 return Model.of(WebComponentUtil.canRunNowTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase()));
             }
 
@@ -664,7 +677,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 if (rowModel == null){
                     return Model.of(Boolean.TRUE);
                 }
-                SelectableBean<TaskType> rowModelObj = (SelectableBean<TaskType>)rowModel.getObject();
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
                 return Model.of(WebComponentUtil.canSuspendTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase()));
             }
 
@@ -699,6 +712,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     //region Task-level actions
+    //TODO unify with TaskOperationUtils
     private void suspendTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
         List<TaskType> selectedTasks = getSelectedTasks(target, selectedTask);
         if (selectedTasks == null) {
@@ -842,12 +856,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-//        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-//        provider.clearCache();
-
         // refresh feedback and table
         refreshTable(TaskType.class, target);
-//        refreshTable(target);
     }
 
     private void reconcileWorkersConfirmedPerformed(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {

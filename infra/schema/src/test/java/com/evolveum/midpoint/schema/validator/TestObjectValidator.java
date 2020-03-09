@@ -25,7 +25,6 @@ import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
- *
  */
 public class TestObjectValidator extends AbstractSchemaTest {
 
@@ -41,10 +40,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
 
     @Test
     public void testValidateRoleOneDefault() throws Exception {
-        final String TEST_NAME = "testValidateRoleOneDefault";
-
         // GIVEN
-
         ObjectValidator validator = createValidator();
 
         PrismObject<RoleType> object = PrismTestUtil.getPrismContext().parseObject(ROLE_ONE_FILE);
@@ -63,8 +59,6 @@ public class TestObjectValidator extends AbstractSchemaTest {
 
     @Test
     public void testValidateRoleOneDeprecated() throws Exception {
-        final String TEST_NAME = "testValidateRoleOneDeprecated";
-
         // GIVEN
 
         ObjectValidator validator = createValidator();
@@ -90,8 +84,6 @@ public class TestObjectValidator extends AbstractSchemaTest {
      */
     @Test
     public void testValidateRoleOneLegacyCompat() throws Exception {
-        final String TEST_NAME = "testValidateRoleOneLegacyCompat";
-
         // GIVEN
 
         ObjectValidator validator = createValidator();
@@ -120,8 +112,6 @@ public class TestObjectValidator extends AbstractSchemaTest {
      */
     @Test
     public void testValidateRoleOneLegacyStrict() throws Exception {
-        final String TEST_NAME = "testValidateRoleOneLegacyStrict";
-
         // GIVEN
 
         ObjectValidator validator = createValidator();
@@ -144,11 +134,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
     // We have no planned removal annotations in 4.0. Nothing to test.
 //    @Test
 //    public void testValidateRoleOnePlannedRemoval() throws Exception {
-//        final String TEST_NAME = "testValidateRoleOnePlannedRemoval";
-//        displayTestTile(TEST_NAME);
-//
 //        // GIVEN
-//
 //        ObjectValidator validator = createValidator();
 //        validator.setWarnPlannedRemoval(true);
 //
@@ -179,7 +165,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
             if (expectedItem instanceof ItemPath) {
                 expectedPath = (ItemPath)expectedItem;
             } else if (expectedItem instanceof QName) {
-                expectedPath = ItemPath.create((QName)expectedItem);
+                expectedPath = ItemPath.create(expectedItem);
             } else {
                 throw new IllegalArgumentException("What? "+expectedItem);
             }

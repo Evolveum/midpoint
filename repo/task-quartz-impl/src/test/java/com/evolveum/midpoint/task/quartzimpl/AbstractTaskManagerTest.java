@@ -36,6 +36,7 @@ import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -44,7 +45,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class AbstractTaskManagerTest extends AbstractSpringTest {
+public class AbstractTaskManagerTest extends AbstractSpringTest
+        implements OperationResultTestMixin {
 
     protected static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
     protected static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
@@ -82,10 +84,6 @@ public class AbstractTaskManagerTest extends AbstractSpringTest {
     protected MockCycleTaskHandler cycleFinishingHandler;
     protected MockParallelTaskHandler parallelTaskHandler;
     protected MockLongTaskHandler longTaskHandler;
-
-    protected static OperationResult createResult(String test) {
-        return new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".test" + test);
-    }
 
     protected void initHandlers() {
         MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler(false);    // ordinary recurring task

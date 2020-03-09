@@ -264,7 +264,7 @@ public class JRMidpointEvaluator extends JREvaluator {
         }
     }
 
-    enum Mode { DEFAULT, OLD, ESTIMATED };
+    enum Mode { DEFAULT, OLD, ESTIMATED }
 
     // NOT USED
 

@@ -84,8 +84,8 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
 
     @Override
     protected ObjectSummaryPanel<ArchetypeType> createSummaryPanel() {
-        IModel<PrismObjectValueWrapper<ArchetypeType>> valueModel = new PropertyModel<PrismObjectValueWrapper<ArchetypeType>>(getObjectModel(), "value");
-        return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, new ItemRealValueModel<ArchetypeType>(valueModel), this);
+        IModel<PrismObjectValueWrapper<ArchetypeType>> valueModel = new PropertyModel<>(getObjectModel(), "value");
+        return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, new ItemRealValueModel<>(valueModel), this);
 
     }
 

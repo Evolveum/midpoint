@@ -16,6 +16,8 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -38,11 +40,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author katka
@@ -76,6 +73,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
     //consider
     private boolean readOnly;
+    private UserInterfaceElementVisibilityType visibleOverwrite;
 
     public ItemWrapperImpl(@Nullable PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
         Validate.notNull(item, "Item must not be null.");
@@ -372,6 +370,11 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
     @Override
     public void setShowInVirtualContainer(boolean showInVirtualContainer) {
         this.showInVirtualContainer = showInVirtualContainer;
+    }
+
+    @Override
+    public void setVisibleOverwrite(UserInterfaceElementVisibilityType visibleOverwrite) {
+        this.visibleOverwrite = visibleOverwrite;
     }
 
     @Override
@@ -719,5 +722,9 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
     @Override
     public boolean isIndexOnly() {
         return false;   // todo
+    }
+
+    protected UserInterfaceElementVisibilityType getVisibleOverwrite() {
+        return visibleOverwrite;
     }
 }

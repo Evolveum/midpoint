@@ -97,24 +97,8 @@ public interface ValueFilter<V extends PrismValue, D extends ItemDefinition> ext
     @Override
     ValueFilter clone();
 
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @Override
-    boolean equals(Object o);
-
     @Override
     boolean equals(Object o, boolean exact);
-
-    @Override
-    int hashCode();
-
-    @Override
-    String debugDump();
-
-    @Override
-    String debugDump(int indent);
-
-    @Override
-    String toString();
 
     //String getFilterName();
 
