@@ -2526,7 +2526,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             return null;
         });
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, true, 40000);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, false, 40000);
         dumpStatistics(taskAfter);
 
         OperationStatsType statistics = taskAfter.getStoredOperationStats();
