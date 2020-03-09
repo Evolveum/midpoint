@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -41,7 +43,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
+public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
@@ -70,13 +72,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         taskTabsVisibility.computeAll((PageTask) parentPage, getObjectWrapper());
 
         ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", (PageTask) parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_BASIC_URL, (PageTask) parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isBasicVisible();
+                return super.isVisible() && taskTabsVisibility.isBasicVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.basic.title"), basicTabVisibility) {
@@ -90,13 +92,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> scheduleTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SCHEDULE_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isSchedulingVisible();
+                return super.isVisible() && taskTabsVisibility.isSchedulingVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.schedule.title"), scheduleTabVisibility) {
@@ -110,13 +112,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isWorkManagementVisible();
+                return super.isVisible() && taskTabsVisibility.isWorkManagementVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
@@ -130,13 +132,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_CLEANUP_POLICIES_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isCleanupPolicyVisible();
+                return super.isVisible() && taskTabsVisibility.isCleanupPolicyVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.cleanupPolicies.title"), cleanupPoliciesTabVisibility) {
@@ -150,13 +152,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SUBTASKS_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isSubtasksAndThreadsVisible();
+                return super.isVisible() && taskTabsVisibility.isSubtasksAndThreadsVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.subtasks.title"), subtasksTabVisibility) {
@@ -170,13 +172,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_STATISTICS_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isInternalPerformanceVisible();
+                return super.isVisible() && taskTabsVisibility.isInternalPerformanceVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.operationStats.title"), operationStatsAndInternalPerfTabsVisibility) {
@@ -190,13 +192,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isEnvironmentalPerformanceVisible();
+                return super.isVisible() && taskTabsVisibility.isEnvironmentalPerformanceVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.environmentalPerformance.title"), envPerfTabVisibility) {
@@ -210,13 +212,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isOperationVisible();
+                return super.isVisible() && taskTabsVisibility.isOperationVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTaskEdit.operation"), operationTabVisibility) {
@@ -228,7 +230,17 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
             }
         });
 
-        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.internalPerformance.title"), operationStatsAndInternalPerfTabsVisibility) {
+        ObjectTabVisibleBehavior<TaskType> internalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_INTERNAL_PERFORMANCE_URL, parentPage){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return super.isVisible() && taskTabsVisibility.isInternalPerformanceVisible();
+            }
+        };
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.internalPerformance.title"), internalPerfTabsVisibility) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -238,13 +250,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> resultTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_RESULT_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isResultVisible();
+                return super.isVisible() && taskTabsVisibility.isResultVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.result.title"), resultTabVisibility) {
@@ -258,13 +270,13 @@ public class TaskMainPanel extends AbstractObjectMainPanel<TaskType> {
 
 
         ObjectTabVisibleBehavior<TaskType> errorsTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), "", parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ERRORS_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return taskTabsVisibility.isErrorsVisible();
+                return super.isVisible() && taskTabsVisibility.isErrorsVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.errors.title"), errorsTabVisibility) {

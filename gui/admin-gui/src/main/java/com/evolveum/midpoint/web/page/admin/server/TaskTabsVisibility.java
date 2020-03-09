@@ -89,18 +89,11 @@ class TaskTabsVisibility implements Serializable {
     public boolean computeEnvironmentalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         final OperationStatsType operationStats = taskWrapper.getObject().asObjectable().getOperationStats();
         environmentalPerformanceVisible = parentPage.isEditingFocus();
-        //todo does it make sense to check operationStats? it may be null for partitioned task
-//                && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
-//                && operationStats != null
-//                && !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
         return environmentalPerformanceVisible;
     }
 
     public boolean computeInternalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         internalPerformanceVisible = parentPage.isEditingFocus();
-        //todo doea it make sense to check operationStats? it may be null for partitioned task
-//                && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
-//                && taskWrapper.getObject().asObjectable().getOperationStats() != null;
         return internalPerformanceVisible;
     }
 
