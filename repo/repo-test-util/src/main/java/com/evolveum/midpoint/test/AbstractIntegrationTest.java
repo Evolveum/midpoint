@@ -135,6 +135,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected static final Random RND = new Random();
 
+    private static final String MACRO_TEST_NAME_TRACER_PARAM = "testName";
+    private static final String MACRO_TEST_NAME_SHORT_TRACER_PARAM = "testNameShort";
+
     private static final float FLOAT_EPSILON = 0.001f;
 
     // Values used to check if something is unchanged or changed properly
@@ -255,16 +258,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * This implementation fully overrides version from {@link AbstractSpringTest}.
      */
     @BeforeMethod
-    public void startTestContext(ITestResult testResult) {
+    public void startTestContext(ITestResult testResult) throws SchemaException {
         Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
         String testMethodName = testResult.getMethod().getMethodName();
-
-        displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
+        String testName = testClass.getSimpleName() + "." + testMethodName;
+        displayTestTitle(testName);
 
         Task task = createTask(testMethodName);
-        // TODO inttest do we need that subresult? :-) (Virgo's brave new world)
-        // If this exist for some "optional richer tracing", why not switch it on with some System property?
-        // maybe it doesn't break tests, but changes traceability/maintenance?
+        // TODO inttest: add tracing facility - ideally without the need to create subresult
 //        OperationResult rootResult = task.getResult();
 //        TracingProfileType tracingProfile = getTestMethodTracingProfile();
 //        CompiledTracingProfile compiledTracingProfile = tracingProfile != null ?
@@ -278,8 +279,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 //        task.setResult(result);
 
         MidpointTestContextWithTask.create(testClass, testMethodName, task, task.getResult());
-        // TODO inttest: remove after fix in TracerImpl
-        TestNameHolder.setCurrentTestName(contextName());
+        tracer.setTemplateParametersCustomizer(params -> {
+            params.put(MACRO_TEST_NAME_TRACER_PARAM, testName);
+            params.put(MACRO_TEST_NAME_SHORT_TRACER_PARAM, testMethodName);
+        });
     }
 
     /**
