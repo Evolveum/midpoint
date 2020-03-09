@@ -203,7 +203,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
             public boolean isVisible() {
                 return (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null);
-            };
+            }
         });
 
         if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {

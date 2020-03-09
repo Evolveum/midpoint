@@ -525,7 +525,7 @@ public abstract class ResourceContentPanel extends Panel {
 
     protected void initCustomLayout() {
         // Nothing to do, for subclass extension
-    };
+    }
 
     protected ObjectQuery createQuery() {
         ObjectQuery baseQuery = null;

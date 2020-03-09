@@ -227,7 +227,7 @@ public class PageReports extends PageAdmin {
                 PageReports.this.runConfirmPerformed(target, reportType, reportParam);
                 hideMainPopup(target);
 
-            };
+            }
         };
         showMainPopup(runReportPopupPanel, target);
 

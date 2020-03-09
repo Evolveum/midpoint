@@ -700,12 +700,13 @@ public class TestQueryConverter extends AbstractUnitTest {
         checkQueryRoundtripFile(AccessCertificationCaseType.class, q);
     }
 
+    public static final String TEST_900_910_FILE_NAME = TEST_DIR + "/test900TypeWrong.xml";
+
     @Test
     public void test900TypeWrong() throws Exception {
-        final String TEST_NAME = "test900TypeWrong";
-        String fileName = TEST_DIR + "/" + TEST_NAME + ".xml";
         try {
-            toQueryType(FileUtils.readFileToString(new File(fileName), StandardCharsets.UTF_8));
+            toQueryType(FileUtils.readFileToString(
+                    new File(TEST_900_910_FILE_NAME), StandardCharsets.UTF_8));
             fail("Unexpected success!");
         } catch (SchemaException e) {
             System.out.println("Got expected exception: " + e.getMessage());
@@ -714,10 +715,8 @@ public class TestQueryConverter extends AbstractUnitTest {
 
     @Test
     public void test910TypeWrongCompat() throws Exception {
-        final String TEST_NAME = "test900TypeWrong";
-        String fileName = TEST_DIR + "/" + TEST_NAME + ".xml";
-        QueryType jaxb = toQueryTypeCompat(
-                FileUtils.readFileToString(new File(fileName), StandardCharsets.UTF_8));
+        QueryType jaxb = toQueryTypeCompat(FileUtils.readFileToString(
+                new File(TEST_900_910_FILE_NAME), StandardCharsets.UTF_8));
         displayQueryType(jaxb);
         try {
             ObjectQuery query = toObjectQuery(ObjectType.class, jaxb);

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.tools.testng;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -67,6 +68,24 @@ public interface MidpointTestMixin {
      */
     default String getTestNameLong() {
         return testContext().getTestNameLong();
+    }
+
+    /**
+     * Returns the number of the test derived from the method name in form "testXxxDescription".
+     * Number is returned as a string with all leading zeroes preserved.
+     * Fails if the method name does not conform to the "testXxx" prefix to prevent invalid usage.
+     * Also fails if test-method context is not available.
+     */
+    default String getTestNumber() {
+        String methodName = testContext().getTestMethodName();
+        if (methodName.startsWith("test") && methodName.length() >= 7) {
+            String testNumber = methodName.substring(4, 7);
+            if (StringUtils.isNumeric(testNumber)) {
+                return testNumber;
+            }
+        }
+        throw new IllegalArgumentException(
+                "Test method name doesn't start with \"testXxx\" (Xxx = test number).");
     }
 
     /**

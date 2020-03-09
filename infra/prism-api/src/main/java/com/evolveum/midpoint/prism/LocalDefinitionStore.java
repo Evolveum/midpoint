@@ -36,7 +36,7 @@ public interface LocalDefinitionStore {
     @SuppressWarnings("unchecked")
     default <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name) {
         return (ID) findLocalItemDefinition(name, ItemDefinition.class, false);
-    };
+    }
 
     @SuppressWarnings("unchecked")
     default <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {

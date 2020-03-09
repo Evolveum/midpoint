@@ -116,7 +116,7 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
     }
 
     public void firstClicked(AjaxRequestTarget target, IModel<T> model){}
-    public void secondClicked(AjaxRequestTarget target, IModel<T> model){};
+    public void secondClicked(AjaxRequestTarget target, IModel<T> model){}
 
     public String getFirstSizeCssClass(){
         return ButtonSizeClass.SMALL.toString();

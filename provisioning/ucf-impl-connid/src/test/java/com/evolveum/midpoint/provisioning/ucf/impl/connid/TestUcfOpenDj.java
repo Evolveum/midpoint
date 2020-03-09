@@ -258,9 +258,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test100AddDeleteObject() throws Exception {
-        final String TEST_NAME = "test100AddDeleteObject";
-
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
@@ -292,9 +290,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test110ChangeModifyObject() throws Exception {
-        final String TEST_NAME = "test110ChangeModifyObject";
-
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
@@ -336,9 +332,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test200FetchChanges() throws Exception {
-        final String TEST_NAME = "test200FetchChanges";
-
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
         PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 
@@ -445,9 +439,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         AssertJUnit.assertNotNull(connectorConnectionResult);
         System.out.println("Test \"connector connection\" result: " + connectorConnectionResult
                 + " (FAILURE EXPECTED)");
-        AssertJUnit.assertTrue("Unexpected success of bad connector test",
-                !connectorConnectionResult.isSuccess());
-        AssertJUnit.assertTrue(!result.isSuccess());
+        assertFalse("Unexpected success of bad connector test", connectorConnectionResult.isSuccess());
+        assertFalse(result.isSuccess());
     }
 
     /**
@@ -481,8 +474,9 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
                 .getPrimaryIdentifiers().isEmpty());
 
-        PrismPropertyDefinition uidDefinition = accountDefinition.findAttributeDefinition(
-                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
+        PrismPropertyDefinition<?> uidDefinition = accountDefinition.findAttributeDefinition(
+                new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                        OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
         AssertJUnit.assertNotNull(uidDefinition);
 
         for (Definition def : resourceSchema.getDefinitions()) {
@@ -522,13 +516,11 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test500FetchObject() throws Exception {
-        final String TEST_NAME = "test500FetchObject";
-
         // GIVEN
         ResourceAttributeContainer resourceObject = createResourceObject(
                 "uid=Teell,ou=People,dc=example,dc=com", "Teell William", "Teell");
 
-        OperationResult addResult = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult addResult = createOperationResult("addObject");
 
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
         // Add a testing object
@@ -540,7 +532,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // Determine object class from the schema
 
         ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult("fetchObject");
 
         // WHEN
         PrismObject<ShadowType> ro = cc.fetchObject(identification, null, null, result);
@@ -556,7 +548,6 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test510Search() throws Exception {
-        final String TEST_NAME = "test510Search";
         // GIVEN
 
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
@@ -570,7 +561,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
             }
         };
 
-        OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         cc.search(accountDefinition, null, handler, null, null, null, null, result);
@@ -581,18 +572,13 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test600CreateAccountWithPassword() throws Exception {
-        final String TEST_NAME = "test600CreateAccountWithPassword";
         // GIVEN
         ResourceAttributeContainer resourceObject = createResourceObject(
                 "uid=lechuck,ou=people,dc=example,dc=com", "Ghost Pirate LeChuck", "LeChuck");
 
         ProtectedStringType ps = protector.encryptString("t4k30v3rTh3W0rld");
 
-//        PasswordChangeOperation passOp = new PasswordChangeOperation(ps);
-//        additionalOperations.add(passOp);
-
-        OperationResult addResult = new OperationResult(this.getClass().getName()
-                + "." + TEST_NAME);
+        OperationResult addResult = createOperationResult();
 
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
         CredentialsType credentials = new CredentialsType();
@@ -620,13 +606,12 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     @Test
     public void test610ChangePassword() throws Exception {
-        final String TEST_NAME = "test610ChangePassword";
         // GIVEN
         ResourceAttributeContainer resourceObject = createResourceObject(
                 "uid=drake,ou=People,dc=example,dc=com", "Sir Francis Drake", "Drake");
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
-        OperationResult addResult = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult addResult = createOperationResult();
 
         // Add a testing object
         cc.addObject(shadow, null, addResult);

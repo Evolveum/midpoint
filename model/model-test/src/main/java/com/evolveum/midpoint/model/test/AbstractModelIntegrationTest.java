@@ -5976,10 +5976,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ShadowAsserter<Void> assertModelShadowNoFetch(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> repoShadow = getShadowModelNoFetch(oid);
-        ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model(noFetch)");
-        asserter
-                .display();
-        return asserter;
+        return ShadowAsserter.forShadow(repoShadow, "model(noFetch)").display();
     }
 
     protected ShadowAsserter<Void> assertModelShadowFuture(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
