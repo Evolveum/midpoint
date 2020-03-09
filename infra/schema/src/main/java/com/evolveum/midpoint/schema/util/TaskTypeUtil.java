@@ -117,4 +117,13 @@ public class TaskTypeUtil {
                 .synchronizationInformation(synchronizationInformation)
                 .actionsExecutedInformation(actionsExecutedInformation);
     }
+
+    public static TaskType findChild(TaskType parent, String childOid) {
+        for (TaskType subtask : getResolvedSubtasks(parent)) {
+            if (childOid.equals(subtask.getOid())) {
+                return subtask;
+            }
+        }
+        return null;
+    }
 }

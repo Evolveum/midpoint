@@ -74,7 +74,7 @@ class TaskTabsVisibility implements Serializable {
             subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable;
         } else if (!parentPage.isAdd() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
             subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable
-                    || !CollectionUtils.isNotEmpty(task.getSubtask());
+                    || !CollectionUtils.isNotEmpty(task.getSubtaskRef());
         } else {
             subtasksAndThreadsVisible = false;
         }

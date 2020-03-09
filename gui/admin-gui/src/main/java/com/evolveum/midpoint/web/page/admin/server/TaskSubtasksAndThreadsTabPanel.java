@@ -30,7 +30,7 @@ import java.util.*;
 /**
  * @author semancik
  */
-public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements TaskTabPanel {
+public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";

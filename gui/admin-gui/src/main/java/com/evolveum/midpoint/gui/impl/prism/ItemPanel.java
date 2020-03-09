@@ -6,9 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismValue;
+
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -37,7 +41,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  * @author katka
  *
  */
-public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWrapper> extends BasePanel<IW>{
+public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWrapper> extends BasePanel<IW> implements RefreshableTabPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -313,5 +317,10 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
     public ItemPanelSettings getSettings() {
          return itemPanelSettings;
+    }
+
+    @Override
+    public Collection<Component> getComponentsToUpdate() {
+        return Collections.singleton(this);
     }
 }

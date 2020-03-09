@@ -175,7 +175,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     private static final Set<ItemPath> PATHS_NOT_RETURNED_BY_DEFAULT = new HashSet<>(Arrays.asList(
             ItemPath.create(UserType.F_JPEG_PHOTO),
             ItemPath.create(TaskType.F_RESULT),
-            ItemPath.create(TaskType.F_SUBTASK),
+            ItemPath.create(TaskType.F_SUBTASK_REF),
             ItemPath.create(TaskType.F_NODE_AS_OBSERVED),
             ItemPath.create(TaskType.F_NEXT_RUN_START_TIMESTAMP),
             ItemPath.create(TaskType.F_NEXT_RETRY_TIMESTAMP),
