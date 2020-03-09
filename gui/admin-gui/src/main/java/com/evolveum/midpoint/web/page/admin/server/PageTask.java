@@ -6,8 +6,6 @@ import java.util.Collections;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -520,9 +518,9 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 //        target.add(getMainPanel());
 
         for (Component component : getMainPanel().getTabbedPanel()) {
-            if (component instanceof TaskTabPanel) {
+            if (component instanceof RefreshableTabPanel) {
 
-                for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
+                for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
                     target.add(c);
                 }
             }

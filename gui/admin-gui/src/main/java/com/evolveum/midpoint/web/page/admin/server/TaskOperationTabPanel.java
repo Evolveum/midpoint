@@ -37,7 +37,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 
 //TODO implement correctly
-public class TaskOperationTabPanel extends BasePanel<PrismContainerWrapper<LensContextType>> implements TaskTabPanel {
+public class TaskOperationTabPanel extends BasePanel<PrismContainerWrapper<LensContextType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";

@@ -44,7 +44,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements TaskTabPanel {
+public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
