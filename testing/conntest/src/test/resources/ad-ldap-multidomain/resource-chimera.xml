@@ -41,7 +41,7 @@
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
-            <icfcldap:baseContextsToSynchronize>CN=Users,DC=ad,DC=evolveum,DC=com</icfcldap:baseContextsToSynchronize>
+            <icfcldap:baseContextToSynchronize>CN=Users,DC=ad,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
