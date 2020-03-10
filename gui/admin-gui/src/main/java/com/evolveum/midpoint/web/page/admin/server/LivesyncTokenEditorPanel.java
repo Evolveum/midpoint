@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
@@ -17,9 +16,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -41,7 +38,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
     private static final String ID_OK = "ok";
     private static final String ID_CANCEL = "cancel";
 
-    private ItemPath tokenPath = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN);
+    public static ItemPath PATH_TOKEN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN);
 
     public LivesyncTokenEditorPanel(String id, IModel<PrismObjectWrapper<TaskType>> model) {
         super(id, model);
@@ -60,7 +57,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
             public T getObject() {
                 PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
                 PrismObject<TaskType> task = taskWrapper.getObject();
-                PrismProperty<T> token = task.findProperty(tokenPath);
+                PrismProperty<T> token = task.findProperty(PATH_TOKEN);
 
                 if (token == null) {
                     return null;
@@ -73,11 +70,11 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
             public void setObject(T object) {
                 PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
                 PrismObject<TaskType> task = taskWrapper.getObject();
-                PrismProperty<T> token = task.findProperty(tokenPath);
+                PrismProperty<T> token = task.findProperty(PATH_TOKEN);
 
                 if (token == null) {
                     try {
-                        token = task.findOrCreateProperty(tokenPath);
+                        token = task.findOrCreateProperty(PATH_TOKEN);
                     } catch (SchemaException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Cannot create token property", e);
                         getSession().error("Cannot create token property: " + e.getMessage());
@@ -119,12 +116,16 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
     }
 
     private <T> ObjectDelta<TaskType> getTokenDelta(AjaxRequestTarget target) {
-        TextPanel<T> tokenPanel = (TextPanel<T>)get(ID_TOKEN);
+        TextPanel<T> tokenPanel = (TextPanel<T>) get(ID_TOKEN);
         T newTokenValue = tokenPanel.getBaseFormComponent().getModelObject();
         try {
-            PrismProperty<T> tokenProperty = getModelObject().getObject().findProperty(tokenPath);
+            PrismProperty<T> tokenProperty = getModelObject().getObject().findProperty(PATH_TOKEN);
 
-            S_ValuesEntry valuesEntry = getPrismContext().deltaFor(TaskType.class).item(tokenPath, tokenProperty.getDefinition());
+            if (tokenProperty == null) {
+                tokenProperty = getModelObject().getObject().findOrCreateProperty(PATH_TOKEN);
+            }
+
+            S_ValuesEntry valuesEntry = getPrismContext().deltaFor(TaskType.class).item(PATH_TOKEN, tokenProperty.getDefinition());
             if (newTokenValue == null) {
                 return valuesEntry.replace().asObjectDelta(getModelObject().getOid());
             }

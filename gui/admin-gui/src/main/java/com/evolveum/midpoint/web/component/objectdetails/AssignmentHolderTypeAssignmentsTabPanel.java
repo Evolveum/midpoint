@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 
@@ -17,10 +20,13 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * @author semancik
  */
-public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> {
+public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";
@@ -62,4 +68,8 @@ public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolde
         return false;
     }
 
+    @Override
+    public Collection<Component> getComponentsToUpdate() {
+        return Collections.singleton(this);
+    }
 }
