@@ -58,7 +58,7 @@ public class OperationRequestCaseTabPanel extends AbstractObjectTabPanel<CaseTyp
     }
 
     private void initModels(){
-        sceneModel = new LoadableModel<List<SceneDto>>() {
+        sceneModel = new LoadableModel<List<SceneDto>>(false) {
             @Override
             protected List<SceneDto> load() {
                 PageBase pageBase = OperationRequestCaseTabPanel.this.getPageBase();
