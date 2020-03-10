@@ -1402,14 +1402,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertSyncToken(String syncTaskOid, Object expectedValue) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".assertSyncToken");
-        Task task = taskManager.getTask(syncTaskOid, result);
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         assertSyncToken(task, expectedValue, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
 
     protected void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Task task = taskManager.getTask(syncTaskOid, result);
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         assertSyncToken(task, expectedValue, result);
     }
 

@@ -106,7 +106,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
+        TaskQuartzImpl task = taskManager.getTaskPlain(taskOid(), result);
 
         // WHEN
         WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
@@ -115,7 +115,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // THEN
         display("allocated bucket", bucket);
-        TaskQuartzImpl taskAfter = taskManager.getTask(task.getOid(), result);
+        TaskQuartzImpl taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after", taskAfter);
         display("narrowed query", narrowedQuery);
 
@@ -133,7 +133,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
         // THEN
         display("allocated bucket (2)", bucket);
-        taskAfter = taskManager.getTask(task.getOid(), result);
+        taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after (2)", taskAfter);
         display("narrowed query (2)", narrowedQuery);
         assertNumericBucket(bucket, null, 2, 123, 200);
@@ -153,7 +153,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // THEN
         display("allocated bucket (3)", bucket);
-        taskAfter = taskManager.getTask(task.getOid(), result);
+        taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after (3)", taskAfter);
         display("narrowed query (3)", narrowedQuery);
 
@@ -170,7 +170,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // THEN
         display("allocated bucket (4)", String.valueOf(bucket));
-        taskAfter = taskManager.getTask(task.getOid(), result);
+        taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after (4)", taskAfter);
 
         //noinspection SimplifiedTestNGAssertion
@@ -186,7 +186,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
+        TaskQuartzImpl task = taskManager.getTaskPlain(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -197,7 +197,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // THEN
         display("allocated bucket", bucket);
-        TaskQuartzImpl taskAfter = taskManager.getTask(task.getOid(), result);
+        TaskQuartzImpl taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after", taskAfter);
         display("narrowed query", narrowedQuery);
 
@@ -219,7 +219,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // THEN
         display("allocated bucket (2)", bucket);
-        taskAfter = taskManager.getTask(task.getOid(), result);
+        taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after (2)", taskAfter);
         display("narrowed query (2)", narrowedQuery);
 
@@ -240,7 +240,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // THEN
         display("allocated bucket (3)", bucket);
-        taskAfter = taskManager.getTask(task.getOid(), result);
+        taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after (3)", taskAfter);
         display("narrowed query (3)", narrowedQuery);
 
@@ -257,7 +257,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // THEN
         display("allocated bucket (4)", String.valueOf(bucket));
-        taskAfter = taskManager.getTask(task.getOid(), result);
+        taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         display("task after (4)", taskAfter);
 
         //noinspection SimplifiedTestNGAssertion
@@ -273,7 +273,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
+        TaskQuartzImpl task = taskManager.getTaskPlain(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -328,7 +328,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
+        TaskQuartzImpl task = taskManager.getTaskPlain(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -383,7 +383,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
+        TaskQuartzImpl task = taskManager.getTaskPlain(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -432,7 +432,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
+        TaskQuartzImpl task = taskManager.getTaskPlain(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
@@ -450,7 +450,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         OperationResult result = createOperationResult();
         addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = taskManager.getTask(taskOid(), result);
+        TaskQuartzImpl task = taskManager.getTaskPlain(taskOid(), result);
 
         // WHEN
         WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());

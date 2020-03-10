@@ -24,8 +24,6 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -139,7 +137,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
             throws ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
-        Task task = taskManager.getTask(syncTaskOid, result);
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

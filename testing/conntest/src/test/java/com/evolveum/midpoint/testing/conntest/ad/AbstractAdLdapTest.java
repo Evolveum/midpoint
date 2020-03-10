@@ -54,7 +54,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -1233,7 +1232,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
             throws ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult("assertStepSyncToken");
-        Task task = taskManager.getTask(syncTaskOid, result);
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         assertNotNull("No sync token", syncTokenProperty);
         assertNotNull("No sync token value", syncTokenProperty.getRealValue());

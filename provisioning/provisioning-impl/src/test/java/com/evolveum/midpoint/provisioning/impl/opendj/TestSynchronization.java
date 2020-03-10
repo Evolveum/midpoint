@@ -119,7 +119,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
         assertNotNull("No resource schema", resource.asObjectable().getSchema());
         assertNotNull("No native capabilities", resource.asObjectable().getCapabilities().getNative());
 
-        Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
         assertSyncToken(syncTask, 0, result);
     }
@@ -128,7 +128,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
     public void test100SyncAddWill() throws Exception {
         final OperationResult result = createOperationResult();
 
-        Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
         assertSyncToken(syncTask, 0, result);
         ((SynchronizationServiceMock) syncServiceMock).reset();
@@ -187,7 +187,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
     public void test500SyncAddProtected() throws Exception {
         final OperationResult result = createOperationResult();
 
-        Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
         assertSyncToken(syncTask, 1, result);
         ((SynchronizationServiceMock) syncServiceMock).reset();

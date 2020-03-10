@@ -40,7 +40,7 @@ public class TestValidityRecomputeTaskPartitioned extends TestValidityRecomputeT
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         OperationResult result = createOperationResult("assertLastScanTimestamp");
-        Task master = taskManager.getTask(taskOid, result);
+        Task master = taskManager.getTaskPlain(taskOid, result);
         for (Task subtask : master.listSubtasks(result)) {
             super.assertLastScanTimestamp(subtask.getOid(), startCal, endCal);
         }

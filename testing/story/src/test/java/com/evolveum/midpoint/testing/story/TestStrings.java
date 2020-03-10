@@ -149,7 +149,7 @@ public class TestStrings extends AbstractStoryTest {
         // and we don't need validity scanner
         taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_VALIDITY_SCANNER_OID), 60000L, true, initResult);
 
-        Task triggerScanner = taskManager.getTask(TASK_TRIGGER_SCANNER_OID, initResult);
+        Task triggerScanner = taskManager.getTaskPlain(TASK_TRIGGER_SCANNER_OID, initResult);
         display("triggerScanner", triggerScanner);
 
         // import of story objects
