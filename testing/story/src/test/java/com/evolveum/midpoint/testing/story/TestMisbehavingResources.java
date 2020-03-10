@@ -6,14 +6,6 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,9 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Test for various resource-side errors, strange situations, timeouts
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMisbehavingResources extends AbstractStoryTest {
 
@@ -52,8 +43,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 
     @Test
     public void test010SanityAssignJackDummyAccount() throws Exception {
-        final String TEST_NAME = "test010SanityAssignJackDummyAccount";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -67,13 +56,11 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         assertSuccess(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
-            .assertFullName(USER_JACK_FULL_NAME);
+                .assertFullName(USER_JACK_FULL_NAME);
     }
 
     @Test
     public void test019SanityUnassignJackDummyAccount() throws Exception {
-        final String TEST_NAME = "test010SanityAssignJackDummyAccount";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -94,8 +81,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
      */
     @Test
     public void test100AssignJackDummyAccountTimeout() throws Exception {
-        final String TEST_NAME = "test100AssignJackDummyAccountTimeout";
-
         getDummyResource().setOperationDelayOffset(3000);
 
         Task task = getTestTask();
@@ -114,9 +99,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     }
 
     @Test
-    public void test102AssignJackDummyAccounRetry() throws Exception {
-        final String TEST_NAME = "test102AssignJackDummyAccounRetry";
-
+    public void test102AssignJackDummyAccountRetry() throws Exception {
         getDummyResource().setOperationDelayOffset(0);
         clockForward("P1D");
 
@@ -133,7 +116,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         assertSuccess(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
-            .assertFullName(USER_JACK_FULL_NAME);
+                .assertFullName(USER_JACK_FULL_NAME);
     }
 
     /**
@@ -141,8 +124,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
      */
     @Test
     public void test110ModifyJackDummyAccountTimeout() throws Exception {
-        final String TEST_NAME = "test110ModifyJackDummyAccountTimeout";
-
         getDummyResource().setOperationDelayOffset(3000);
 
         Task task = getTestTask();
@@ -158,14 +139,12 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         assertInProgress(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
-            // operation timed out, data not updated
-            .assertFullName(USER_JACK_FULL_NAME);
+                // operation timed out, data not updated
+                .assertFullName(USER_JACK_FULL_NAME);
     }
 
     @Test
-    public void test112ModifyJackDummyAccounRetry() throws Exception {
-        final String TEST_NAME = "test112ModifyJackDummyAccounRetry";
-
+    public void test112ModifyJackDummyAccountRetry() throws Exception {
         getDummyResource().setOperationDelayOffset(0);
         clockForward("P1D");
 
@@ -182,6 +161,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         assertSuccess(result);
 
         assertDummyAccountByUsername(null, USER_JACK_USERNAME)
-            .assertFullName(USER_JACK_FULL_NAME_CAPTAIN);
+                .assertFullName(USER_JACK_FULL_NAME_CAPTAIN);
     }
 }

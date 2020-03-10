@@ -912,7 +912,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             // This is not redundant. It checks that the previous command set the policy correctly
             assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
 
-            ObjectDeltaType objectChange = unmarshallValueFromFile(
+            ObjectDeltaType objectChange = unmarshalValueFromFile(
                     REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectDeltaType.class);
 
             // WHEN
@@ -1044,7 +1044,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         checkRepoDerbyResource();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -1234,7 +1234,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -1328,7 +1328,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test022ChangeUserPassword() throws Exception {
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectDeltaType.class);
 
         System.out.println("In modification: " + objectChange.getItemDelta().get(0).getValue().get(0));
@@ -1438,7 +1438,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(reqFile, ObjectDeltaType.class);
+        ObjectDeltaType objectChange = unmarshalValueFromFile(reqFile, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidOpendj);
 
         // WHEN
@@ -1472,7 +1472,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidOpendj);
 
@@ -1517,7 +1517,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test030DisableUser() throws Exception {
         // GIVEN
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME, ObjectDeltaType.class);
 
         Entry entry = openDJController.searchByUid("jack");
@@ -1627,7 +1627,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test031EnableUser() throws Exception {
         // GIVEN
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME, ObjectDeltaType.class);
         assertNoRepoCache();
 
@@ -1826,7 +1826,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_NAME_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -1884,7 +1884,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test048ModifyUserRemoveGivenName() throws Exception {
         // GIVEN
         assertNoRepoCache();
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_GIVENNAME_FILENAME, ObjectDeltaType.class);
         displayJaxb("objectChange:", objectChange, SchemaConstants.T_OBJECT_DELTA);
 
@@ -2005,7 +2005,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
         TestUtil.assertSuccess("addObject has failed", resultHolder.value);
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2100,7 +2100,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test102AssignRoleCaptain() throws Exception {
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2178,7 +2178,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test103AssignRoleCaptainAgain() throws Exception {
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2252,7 +2252,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test105ModifyAccount() throws Exception {
         // GIVEN
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_ACCOUNT_MODIFY_ATTRS_FILE, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
@@ -2337,7 +2337,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<String> oidHolder = new Holder<>();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME, ObjectDeltaType.class);
         try {
 
@@ -2374,7 +2374,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2450,7 +2450,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -2532,7 +2532,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
+        ObjectDeltaType objectChange = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(),
@@ -3115,7 +3115,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Assign role to a user, but we do this using a repository instead of model.
         // The role assignment will not be executed and this created an inconsistent state.
-        ObjectDeltaType changeAddRoleCaptain = unmarshallValueFromFile(
+        ObjectDeltaType changeAddRoleCaptain = unmarshalValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
         Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(changeAddRoleCaptain.getItemDelta(),
                 getUserDefinition());

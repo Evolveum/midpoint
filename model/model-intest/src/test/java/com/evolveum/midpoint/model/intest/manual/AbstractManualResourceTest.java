@@ -346,7 +346,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
-        PrismContainerDefinition confContDef = configurationContainer.getDefinition();
+        PrismContainerDefinition<?> confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
         PrismProperty<String> propDefaultAssignee = configurationContainer.findProperty(CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME);
         assertNotNull("No defaultAssignee conf prop", propDefaultAssignee);
@@ -1702,15 +1702,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // WHEN
         when();
-
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
                     login(userAdministrator);
-                    Task localTask = getTestTask();
+                    Task localTask = createTask(testName + "-thread-" + i);
 
                     assignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localTask.getResult());
-
-                }, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeAssign());
+                },
+                getConcurrentTestNumberOfThreads(),
+                getConcurrentTestRandomStartDelayRangeAssign());
 
         // THEN
         then();
@@ -1774,16 +1775,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("user before", userBefore);
         assertAssignments(userBefore, getConcurrentTestNumberOfThreads());
 
-        final long TIMEOUT = 60000L;
+        final long TIMEOUT = 60_000L;
 
         // WHEN
         when();
-
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
                     display("Thread " + Thread.currentThread().getName() + " START");
                     login(userAdministrator);
-                    Task localTask = getTestTask();
+                    Task localTask = createTask(testName + "-thread-" + i);
                     OperationResult localResult = localTask.getResult();
 
                     unassignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localResult);
@@ -1791,8 +1792,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                     localResult.computeStatus();
 
                     display("Thread " + Thread.currentThread().getName() + " DONE, result", localResult);
-
-                }, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeUnassign());
+                },
+                getConcurrentTestNumberOfThreads(),
+                getConcurrentTestRandomStartDelayRangeUnassign());
 
         // THEN
         then();

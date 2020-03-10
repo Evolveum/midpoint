@@ -6,21 +6,15 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -33,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -41,25 +36,14 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMapleLeaf extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "mapleLeaf");
-
-    public static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/story/mapleLeaf/ext";
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
@@ -74,23 +58,18 @@ public class TestMapleLeaf extends AbstractStoryTest {
     private static final File ROLE_META_MONKEY_DONKEY = new File(TEST_DIR, "meta-role-monkey-donkey.xml");
 
     private static final File ROLE_MAPLE_LEAF_FACULTY_LICENSE = new File(TEST_DIR, "role-maple-leaf-faculty-license.xml");
-    private static final String ROLE_MAPLE_LEAF_FACULTY_LICENSE_OID = "00000000-role-meta-0000-000011112222";
     private static final File ROLE_MAPLE_LEAF_FACULTY = new File(TEST_DIR, "role-maple-leaf-faculty.xml");
     private static final String ROLE_MAPLE_LEAF_FACULTY_OID = "00000000-role-0000-0000-000011112222";
 
     private static final File ROLE_MAPLE_LEAF_GRADUATE_LICENSE = new File(TEST_DIR, "role-maple-leaf-graduate-license.xml");
-    private static final String ROLE_MAPLE_LEAF_GRADUATE_LICENSE_OID = "00000000-role-meta-0000-000011113333";
     private static final File ROLE_MAPLE_LEAF_GRADUATE = new File(TEST_DIR, "role-maple-leaf-graduate.xml");
     private static final String ROLE_MAPLE_LEAF_GRADUATE_OID = "00000000-role-0000-0000-000011113333";
 
     private static final File OBJECT_TEMPLATE_USER = new File(TEST_DIR, "object-template-user.xml");
-    private static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
 
-    private static final String LDIF_GROUPS =  TEST_DIR + "/mapleLeafGroups.ldif";
+    private static final String LDIF_GROUPS = TEST_DIR + "/mapleLeafGroups.ldif";
 
     private static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-
-    protected static final ItemPath ACTIVATION_EFFECTIVE_STATUS_PATH = SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS;
 
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
@@ -101,7 +80,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -134,8 +113,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestMapleLeaf.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -155,8 +133,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test001addUser() throws Exception {
-        final String TEST_NAME = "test001addUser";
-
         //when
         when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, "default");
@@ -186,8 +162,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test002assignRoleSquirrel() throws Exception {
-        final String TEST_NAME = "test002assignRoleSquirrel";
-
         //when
         when();
         assignRole(USER_JACK_OID, ROLE_SQUIRREL_OID);
@@ -217,8 +191,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test003unassignRoleSquirrel() throws Exception {
-        final String TEST_NAME = "test003unassignRoleSquirrel";
-
         //when
         when();
         unassignRole(USER_JACK_OID, ROLE_SQUIRREL_OID);
@@ -246,11 +218,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
         assertTrue(values.contains("mcconkey"), "No mcconkey found among values");
     }
 
-
     @Test
     public void test004assignRoleMapleLeafFaculty() throws Exception {
-        final String TEST_NAME = "test004assignRoleMapleLeafFaculty";
-
         //when
         when();
         assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
@@ -278,19 +247,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     }
 
-    private boolean containRoleMemebrShip(List<ObjectReferenceType> roleMemberships, String roleId) {
-        for (ObjectReferenceType ref : roleMemberships) {
-            if (ref.getOid().equals(roleId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Test
     public void test005assignRoleMapleLeafGraduate() throws Exception {
-        final String TEST_NAME = "test005assignRoleMapleLeafGraduate";
-
         //when
         when();
         assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_GRADUATE_OID);
@@ -321,8 +279,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test006unassignRoleMapleLeafFaculty() throws Exception {
-        final String TEST_NAME = "test006unassignRoleMapleLeafFaculty";
-
         //when
         when();
         unassignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
@@ -349,13 +305,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         openDJController.assertUniqueMember("cn=mapleLeafGraduateLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
     }
 
-
-
     @Test
     public void test100changePasswordForceChange() throws Exception {
-        final String TEST_NAME = "test100changePasswordForceChange";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //given
@@ -389,9 +341,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         UserType userTypeAfter = userAfter.asObjectable();
 
         CredentialsType credentials = userTypeAfter.getCredentials();
-        assertNotNull("Oooops, something unexpected happenned - no credentials found in user " + userAfter, credentials);
+        assertNotNull("Oooops, something unexpected happened - no credentials found in user " + userAfter, credentials);
         PasswordType password = credentials.getPassword();
-        assertNotNull("Oooops, something unexpected happenned - no password defined for user " + userAfter, password);
+        assertNotNull("Oooops, something unexpected happened - no password defined for user " + userAfter, password);
 
         String clearTextValue = protector.decryptString(password.getValue());
         assertEquals(clearTextValue, "somenewValue", "Passwords don't match");
@@ -408,9 +360,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test101resetPassword() throws Exception {
-        final String TEST_NAME = "test101resetPassword";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
@@ -429,9 +379,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         UserType userTypeAfter = userAfter.asObjectable();
 
         CredentialsType credentials = userTypeAfter.getCredentials();
-        assertNotNull("Oooops, something unexpected happenned - no credentials found in user " + userAfter, credentials);
+        assertNotNull("Oooops, something unexpected happened - no credentials found in user " + userAfter, credentials);
         PasswordType password = credentials.getPassword();
-        assertNotNull("Oooops, something unexpected happenned - no password defined for user " + userAfter, password);
+        assertNotNull("Oooops, something unexpected happened - no password defined for user " + userAfter, password);
 
         String clearTextValue = protector.decryptString(password.getValue());
         assertEquals(clearTextValue, "123passwd456", "Passwords don't match");
@@ -442,9 +392,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test200setArchivedAdministrativeStatus() throws Exception {
-        final String TEST_NAME = "test200setArchivedAdministrativeStatus";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, null, task, result, ActivationStatusType.ARCHIVED);
@@ -461,9 +409,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
     @Test
     public void test201SetUndefinedAdministrativeStatus() throws Exception {
-        final String TEST_NAME = "test201SetUndefinedAdministrativeStatus";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //WHEN

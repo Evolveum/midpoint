@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
-
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,9 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -38,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -45,6 +42,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskConstants;
@@ -150,10 +148,12 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // property definition
         ItemName shipStateQName = new ItemName("http://myself.me/schemas/whatever", "shipState");
-        PrismPropertyDefinition<?> shipStateDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
+        //noinspection unchecked
+        PrismPropertyDefinition<String> shipStateDefinition = (PrismPropertyDefinition<String>)
+                prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
         assertNotNull("Cannot find property definition for shipState", shipStateDefinition);
 
-        PrismProperty<String> shipStateProperty = (PrismProperty<String>) shipStateDefinition.instantiate();
+        PrismProperty<String> shipStateProperty = shipStateDefinition.instantiate();
         shipStateProperty.setRealValue(string300);
         task.setExtensionProperty(shipStateProperty);
 
@@ -1314,9 +1314,9 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         checkLeftover(leftovers, "test108", "b", result);
         checkLeftover(leftovers, "test110", result);
         checkLeftover(leftovers, "test110", "a", result);
-		checkLeftover(leftovers, "test120", result);
-		checkLeftover(leftovers, "test130", result);
-		checkLeftover(leftovers, "test200", result);
+        checkLeftover(leftovers, "test120", result);
+        checkLeftover(leftovers, "test130", result);
+        checkLeftover(leftovers, "test200", result);
 
         StringBuilder message = new StringBuilder("Leftover task(s) found:");
         for (String leftover : leftovers) {

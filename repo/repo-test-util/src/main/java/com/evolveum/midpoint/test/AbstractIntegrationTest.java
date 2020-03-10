@@ -27,7 +27,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -606,32 +605,35 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return prismObject.asObjectable();
     }
 
-    protected static <T> T unmarshallValueFromFile(File file, Class<T> clazz)
-            throws IOException, JAXBException, SchemaException {
+    protected static <T> T unmarshalValueFromFile(File file, Class<T> clazz)
+            throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(file);
     }
 
-    protected static <T> T unmarshallValueFromFile(String filePath, Class<T> clazz)
-            throws IOException, JAXBException, SchemaException {
+    protected static <T> T unmarshalValueFromFile(String filePath, Class<T> clazz)
+            throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(new File(filePath));
     }
 
-    protected static ObjectType unmarshallValueFromFile(String filePath) throws IOException,
-            JAXBException, SchemaException {
-        return unmarshallValueFromFile(filePath, ObjectType.class);
+    protected static ObjectType unmarshalValueFromFile(String filePath)
+            throws IOException, SchemaException {
+        return unmarshalValueFromFile(filePath, ObjectType.class);
     }
 
-    protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, OperationResult result)
-            throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    protected PrismObject<ResourceType> addResourceFromFile(
+            File file, String connectorType, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResourceFromFile(file, connectorType, false, result);
     }
 
-    protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, boolean overwrite, OperationResult result)
-            throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    protected PrismObject<ResourceType> addResourceFromFile(
+            File file, String connectorType, boolean overwrite, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResourceFromFile(file, Collections.singletonList(connectorType), overwrite, result);
     }
 
-    protected PrismObject<ResourceType> addResourceFromFile(File file, List<String> connectorTypes, boolean overwrite, OperationResult result)
+    protected PrismObject<ResourceType> addResourceFromFile(
+            File file, List<String> connectorTypes, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         logger.trace("addObjectFromFile: {}, connector types {}", file, connectorTypes);
         PrismObject<ResourceType> resource = prismContext.parseObject(file);
@@ -699,7 +701,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         resourceType.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
     }
 
-    protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, String connectorName, String connectorType, OperationResult result)
+    protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource,
+            String connectorName, String connectorType, OperationResult result)
             throws SchemaException {
         ResourceType resourceType = resource.asObjectable();
         PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
@@ -791,14 +794,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected void assumeResourceAssigmentPolicy(String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    protected void assumeResourceAssigmentPolicy(
+            String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(legalize);
         applySyncSettings(ResourceType.class, resourceOid, ResourceType.F_PROJECTION, syncSettings);
     }
 
-    protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    protected void deleteResourceAssigmentPolicy(
+            String oid, AssignmentPolicyEnforcementType policy, boolean legalize)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(legalize);
@@ -809,12 +816,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(deleteAssigmentEnforcement);
 
-        OperationResult result = new OperationResult("Aplying sync settings");
+        OperationResult result = createOperationResult("Applying sync settings");
 
         repositoryService.modifyObject(ResourceType.class, oid, modifications, result);
-        display("Aplying sync settings result", result);
+        display("Applying sync settings result", result);
         result.computeStatus();
-        TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
+        TestUtil.assertSuccess("Applying sync settings failed (result)", result);
     }
 
     protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
@@ -834,13 +841,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().container()
                 .createModificationReplaceContainerCollection(itemName, objectDefinition, syncSettings.asPrismContainerValue());
 
-        OperationResult result = new OperationResult("Aplying sync settings");
+        OperationResult result = new OperationResult("Applying sync settings");
 
         repositoryService.modifyObject(clazz, oid, modifications, result);
         invalidateSystemObjectsCache();
-        display("Aplying sync settings result", result);
+        display("Applying sync settings result", result);
         result.computeStatus();
-        TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
+        TestUtil.assertSuccess("Applying sync settings failed (result)", result);
     }
 
     protected void invalidateSystemObjectsCache() {
@@ -2050,6 +2057,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .level(TracingLevelType.MINIMAL)
                 .<TracingProfileType>end()
                 .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
+    }
+
+    protected Task createTracedTask() {
+        return createTracedTask(null);
     }
 
     protected Task createTracedTask(String operationName) {

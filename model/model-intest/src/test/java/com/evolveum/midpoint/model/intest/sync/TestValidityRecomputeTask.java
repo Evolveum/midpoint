@@ -1376,7 +1376,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     }
 
     /**
-     * Note: red resource disables account on unsassign, does NOT delete it.
+     * Note: red resource disables account on unassign, does NOT delete it.
      * Just the recompute trigger is set
      */
     @Test

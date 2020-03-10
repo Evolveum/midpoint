@@ -51,15 +51,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-
-/**
- *
- * @author mederly
- *
- */
 
 @SuppressWarnings("FieldCanBeLocal")
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
@@ -129,11 +122,8 @@ public class TestStrings extends AbstractStoryTest {
 
     private static final File CONFIG_WITH_GLOBAL_RULES_FILE = new File(ROLES_DIR, "global-policy-rules.xml");
 
-    public static final String NS_STRINGS_EXT = "http://midpoint.evolveum.com/xml/ns/strings";
-
     private static final String DUMMY_WORK_ITEM_LIFECYCLE = "dummy:workItemLifecycle";
     private static final String DUMMY_WORK_ITEM_ALLOCATION = "dummy:workItemAllocation";
-    private static final String DUMMY_WORK_ITEM_CUSTOM = "dummy:workItemCustom";
     private static final String DUMMY_PROCESS = "dummy:process";
 
     protected static final int CASE_WAIT_TIMEOUT = 40000;
@@ -196,16 +186,12 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = getTestTask();
-
         // TODO
     }
 
     //region Basic approval
     @Test
     public void test100SimpleAssignmentStart() throws Exception {
-        final String TEST_NAME = "test100SimpleAssignmentStart";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -270,7 +256,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test102SimpleAssignmentApproveByLechuck() throws Exception {
-        final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -351,14 +336,13 @@ public class TestStrings extends AbstractStoryTest {
 
         // events
         List<CaseEventType> events = assertEvents(aCase, 2);
-        assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
+        assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 
         display("audit", dummyAuditService);
     }
 
     @Test
     public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
-        final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -438,7 +422,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test106SimpleAssignmentApproveByCheese() throws Exception {
-        final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -496,7 +479,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test108SimpleAssignmentApproveByChef() throws Exception {
-        final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -573,7 +555,6 @@ public class TestStrings extends AbstractStoryTest {
     //region Testing escalation
     @Test
     public void test200EscalatedApprovalStart() throws Exception {
-        final String TEST_NAME = "test200EscalatedApprovalStart";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -620,10 +601,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test202FourDaysLater() throws Exception {
-        final String TEST_NAME = "test202FourDaysLater";
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
@@ -652,7 +629,6 @@ public class TestStrings extends AbstractStoryTest {
     // escalation should occur here
     @Test
     public void test204SixDaysLater() throws Exception {
-        final String TEST_NAME = "test204SixDaysLater";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -689,7 +665,7 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong escalation level name", "Line manager escalation", ApprovalContextUtil.getEscalationLevelName(workItem));
 
         List<CaseEventType> events = assertEvents(aCase, 2);
-        assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
+        assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1,
                 Collections.singletonList(userGuybrushOid), Collections.singletonList(userCheeseOid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
                 1, "Line manager escalation");
 
@@ -719,10 +695,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test205EightDaysLater() throws Exception {
-        final String TEST_NAME = "test205EightDaysLater";
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
@@ -770,7 +742,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test206ApproveByCheese() throws Exception {
-        final String TEST_NAME = "test206ApproveByCheese";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -863,7 +834,6 @@ public class TestStrings extends AbstractStoryTest {
     // notification should be send
     @Test
     public void test208SixDaysLater() throws Exception {
-        final String TEST_NAME = "test208SixDaysLater";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -904,10 +874,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test209EightDaysLater() throws Exception {
-        final String TEST_NAME = "test209EightDaysLater";
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
@@ -947,7 +913,6 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com",
                 null,
                 "Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
-        int completed;
         assertMessage(lifecycleMessages.get(0), null, "Work item has been completed",
                 "^Carried out by:",
                 "Reason: Timed action",
@@ -960,7 +925,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test220FormRoleAssignmentStart() throws Exception {
-        final String TEST_NAME = "test220FormRoleAssignmentStart";
         PrismObject<UserType> bob = getUserFromRepo(userBobOid);
         login(bob);
 
@@ -1004,7 +968,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test221FormApproveByLechuck() throws Exception {
-        final String TEST_NAME = "test221FormApproveByLechuck";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1049,7 +1012,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test222FormApproveByCheese() throws Exception {
-        final String TEST_NAME = "test222FormApproveByCheese";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1119,7 +1081,6 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test250ApproverAssignment() throws Exception {
-        final String TEST_NAME = "test250ApproverAssignment";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1204,11 +1165,6 @@ public class TestStrings extends AbstractStoryTest {
         return rv;
     }
 
-    private Task getParentTask(PrismObject<TaskType> task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        return taskManager.getTaskByIdentifier(task.asObjectable().getParent(), result);
-    }
-
     private void assertTriggers(CaseType aCase, int count) {
         assertEquals("Wrong # of triggers", count, aCase.getTrigger().size());
     }
@@ -1241,13 +1197,13 @@ public class TestStrings extends AbstractStoryTest {
     }
 
     private void assertEscalationEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
-            int stageNumber, String stageName, List<String> assigneesBefore, List<String> delegatedTo,
+            int stageNumber, List<String> assigneesBefore, List<String> delegatedTo,
             WorkItemDelegationMethodType methodType, int newEscalationLevelNumber, String newEscalationLevelName) throws SchemaException {
         if (!(wfProcessEventType instanceof WorkItemEscalationEventType)) {
             fail("Wrong event class: expected: " + WorkItemEscalationEventType.class + ", real: " + wfProcessEventType.getClass());
         }
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) wfProcessEventType;
-        assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
+        assertEvent(event, initiator, originalAssignee, stageNumber);
         PrismAsserts.assertReferenceValues(ref(event.getAssigneeBefore()), assigneesBefore.toArray(new String[0]));
         PrismAsserts.assertReferenceValues(ref(event.getDelegatedTo()), delegatedTo.toArray(new String[0]));
         assertEquals("Wrong delegation method", methodType, event.getDelegationMethod());
@@ -1256,18 +1212,18 @@ public class TestStrings extends AbstractStoryTest {
     }
 
     private void assertCompletionEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
-            int stageNumber, String stageName, WorkItemOutcomeType outcome, String comment) throws SchemaException {
+            int stageNumber, WorkItemOutcomeType outcome, String comment) throws SchemaException {
         if (!(wfProcessEventType instanceof WorkItemCompletionEventType)) {
             fail("Wrong event class: expected: " + WorkItemCompletionEventType.class + ", real: " + wfProcessEventType.getClass());
         }
         WorkItemCompletionEventType event = (WorkItemCompletionEventType) wfProcessEventType;
-        assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
+        assertEvent(event, initiator, originalAssignee, stageNumber);
         assertEquals("Wrong outcome", outcome, ApprovalUtils.fromUri(event.getOutput().getOutcome()));
         assertEquals("Wrong comment", comment, event.getOutput().getComment());
     }
 
-    private void assertEvent(CaseEventType processEvent, String initiator, String originalAssignee, Integer stageNumber,
-            String stageName) throws SchemaException {
+    private void assertEvent(CaseEventType processEvent,
+            String initiator, String originalAssignee, Integer stageNumber) throws SchemaException {
         if (!(processEvent instanceof WorkItemEventType)) {
             fail("Wrong event class: expected: " + WorkItemEventType.class + ", real: " + processEvent.getClass());
         }
@@ -1280,5 +1236,4 @@ public class TestStrings extends AbstractStoryTest {
             PrismAsserts.assertReferenceValue(ref(event.getOriginalAssigneeRef()), originalAssignee);
         }
     }
-
 }

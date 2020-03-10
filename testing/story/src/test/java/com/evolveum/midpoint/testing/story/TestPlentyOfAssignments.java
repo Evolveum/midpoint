@@ -146,8 +146,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_GENERATED_DUMMY_ROLES + NUMBER_OF_ORDINARY_ROLES);
 
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
@@ -156,8 +154,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     @Test
     public void test100AddCheese() throws Exception {
-        final String TEST_NAME = "test100AddCheese";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -198,8 +194,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     @Test
     public void test110RecomputeCheese() throws Exception {
-        final String TEST_NAME = "test110RecomputeCheese";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -239,8 +233,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     @Test
     public void test120CheesePreviewChanges() throws Exception {
-        final String TEST_NAME = "test120CheesePreviewChanges";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -306,8 +298,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      */
     @Test
     public void test200DummyGroups() throws Exception {
-        final String TEST_NAME = "test200DummyGroups";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -380,8 +370,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      */
     @Test
     public void test210AddBob() throws Exception {
-        final String TEST_NAME = "test210AddBob";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -428,8 +416,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      */
     @Test
     public void test212RecomputeBob() throws Exception {
-        final String TEST_NAME = "test212RecomputeBob";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -472,8 +458,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      */
     @Test
     public void test2124ReconcileBob() throws Exception {
-        final String TEST_NAME = "test212RecomputeBob";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -534,8 +518,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      */
     @Test
     public void test220AddAlice() throws Exception {
-        final String TEST_NAME = "test220AddAlice";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -584,8 +566,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      */
     @Test
     public void test222RecomputeAlice() throws Exception {
-        final String TEST_NAME = "test222RecomputeAlice";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -628,8 +608,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      */
     @Test
     public void test224ReconcileAlice() throws Exception {
-        final String TEST_NAME = "test224ReconcileAlice";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

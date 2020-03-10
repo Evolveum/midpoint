@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.test.util.OperationResultTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,7 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author Radovan Semancik
  */
-public class TestMappingTime extends AbstractUnitTest {
+public class TestMappingTime extends AbstractUnitTest
+        implements OperationResultTestMixin {
 
     private static final String MAPPING_TIME_FROM_TO_FILENAME = "mapping-time-from-to.xml";
     private static final String MAPPING_TIME_ACTIVATION = "mapping-time-deferred-delete.xml";
@@ -62,7 +64,7 @@ public class TestMappingTime extends AbstractUnitTest {
     public void testBeforeTimeFrom() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
         MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
@@ -72,7 +74,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -91,7 +93,7 @@ public class TestMappingTime extends AbstractUnitTest {
     public void testBetweenTimes() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
         MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
@@ -101,7 +103,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -119,7 +121,7 @@ public class TestMappingTime extends AbstractUnitTest {
     public void testAfterTimeTo() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
         MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
@@ -129,7 +131,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -157,7 +159,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -185,7 +187,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -218,7 +220,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -238,7 +240,7 @@ public class TestMappingTime extends AbstractUnitTest {
         userOld.asObjectable().getActivation().setDisableTimestamp(null);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
                         disableTimestamp);
 
@@ -255,7 +257,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -275,7 +277,7 @@ public class TestMappingTime extends AbstractUnitTest {
         userOld.asObjectable().getActivation().setDisableTimestamp(null);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
                         disableTimestamp);
 
@@ -292,7 +294,7 @@ public class TestMappingTime extends AbstractUnitTest {
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);

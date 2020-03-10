@@ -1547,7 +1547,7 @@ public class TestMapping extends AbstractMappingTest {
     }
 
     /**
-     * Note: red resource disables account on unsassign, does NOT delete it
+     * Note: red resource disables account on unassign, does NOT delete it
      */
     @Test
     public void test178ModifyUserUnassignAccountRed() throws Exception {
@@ -1602,7 +1602,7 @@ public class TestMapping extends AbstractMappingTest {
     }
 
     /**
-     * Note: red resource disables account on unsassign, does NOT delete it
+     * Note: red resource disables account on unassign, does NOT delete it
      * So let's delete the account explicitly to make room for the following tests
      */
     @Test
