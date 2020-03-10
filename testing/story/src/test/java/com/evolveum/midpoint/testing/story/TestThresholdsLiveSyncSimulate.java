@@ -47,7 +47,7 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        assertSyncToken(taskAfter, 4, taskAfter.getResult());
+        assertSyncToken(taskAfter, 4);
 
         // user5, user6, user7, user8, user9 (why not user4? -- because token is preset to 4)
         assertEquals(syncInfo.getCountUnmatchedAfter(), 5);
@@ -77,7 +77,7 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        assertSyncToken(taskAfter, 4, taskAfter.getResult());
+        assertSyncToken(taskAfter, 4);
 
         // user5, user6, user7, user8, user9
         assertEquals(syncInfo.getCountUnmatchedAfter(), 5);

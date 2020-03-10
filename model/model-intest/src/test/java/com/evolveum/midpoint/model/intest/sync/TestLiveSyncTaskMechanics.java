@@ -12,6 +12,10 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.util.function.Consumer;
 
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,6 +31,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -41,33 +46,24 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
     private DummyInterruptedSyncResource interruptedSyncResource;
     private DummyInterruptedSyncImpreciseResource interruptedSyncImpreciseResource;
+    private DummyResourceContoller noPolicyController;
 
-    private static final File TASK_SLOW_RESOURCE_FILE = new File(TEST_DIR, "task-intsync-slow-resource.xml");
-    private static final String TASK_SLOW_RESOURCE_OID = "ca51f209-1ef5-42b3-84e7-5f639ee8e300";
+    private static final TestResource RESOURCE_DUMMY_NO_POLICY = new TestResource(TEST_DIR, "resource-dummy-no-policy.xml", "3908fabe-8608-4db0-93ee-e06c5691eb8f");
+    private static final String RESOURCE_DUMMY_NO_POLICY_NAME = "noPolicy";
 
-    private static final File TASK_SLOW_MODEL_FILE = new File(TEST_DIR, "task-intsync-slow-model.xml");
-    private static final String TASK_SLOW_MODEL_OID = "c37dda96-e547-41c2-b343-b890bc7fade9";
-
-    private static final File TASK_BATCHED_FILE = new File(TEST_DIR, "task-intsync-batched.xml");
-    private static final String TASK_BATCHED_OID = "ef22bf7b-5d28-4a57-b3a5-6fa58491eeb3";
-
-    private static final File TASK_ERROR_FILE = new File(TEST_DIR, "task-intsync-error.xml");
-    private static final String TASK_ERROR_OID = "b697f3a8-9d02-4924-8627-c1f216e88ed3";
-
-    private static final File TASK_SLOW_RESOURCE_IMPRECISE_FILE = new File(TEST_DIR, "task-intsync-slow-resource-imprecise.xml");
-    private static final String TASK_SLOW_RESOURCE_IMPRECISE_OID = "82407cd3-7b1f-4054-b45a-fc4d9aed8ae3";
-
-    private static final File TASK_SLOW_MODEL_IMPRECISE_FILE = new File(TEST_DIR, "task-intsync-slow-model-imprecise.xml");
-    private static final String TASK_SLOW_MODEL_IMPRECISE_OID = "066c6993-8b94-445c-aaff-937184bbe6ca";
-
-    private static final File TASK_BATCHED_IMPRECISE_FILE = new File(TEST_DIR, "task-intsync-batched-imprecise.xml");
-    private static final String TASK_BATCHED_IMPRECISE_OID = "dcfe4c53-a851-4fe1-90eb-f75d9c65d2e6";
-
-    private static final File TASK_ERROR_IMPRECISE_FILE = new File(TEST_DIR, "task-intsync-error-imprecise.xml");
-    private static final String TASK_ERROR_IMPRECISE_OID = "c554ec0f-95c3-40ac-b069-876708d28393";
+    private static final TestResource TASK_SLOW_RESOURCE = new TestResource(TEST_DIR, "task-intsync-slow-resource.xml", "ca51f209-1ef5-42b3-84e7-5f639ee8e300");
+    private static final TestResource TASK_SLOW_MODEL = new TestResource(TEST_DIR, "task-intsync-slow-model.xml", "c37dda96-e547-41c2-b343-b890bc7fade9");
+    private static final TestResource TASK_BATCHED = new TestResource(TEST_DIR, "task-intsync-batched.xml", "ef22bf7b-5d28-4a57-b3a5-6fa58491eeb3");
+    private static final TestResource TASK_ERROR = new TestResource(TEST_DIR, "task-intsync-error.xml", "b697f3a8-9d02-4924-8627-c1f216e88ed3");
+    private static final TestResource TASK_SLOW_RESOURCE_IMPRECISE = new TestResource(TEST_DIR, "task-intsync-slow-resource-imprecise.xml", "82407cd3-7b1f-4054-b45a-fc4d9aed8ae3");
+    private static final TestResource TASK_SLOW_MODEL_IMPRECISE = new TestResource(TEST_DIR, "task-intsync-slow-model-imprecise.xml", "066c6993-8b94-445c-aaff-937184bbe6ca");
+    private static final TestResource TASK_BATCHED_IMPRECISE = new TestResource(TEST_DIR, "task-intsync-batched-imprecise.xml", "dcfe4c53-a851-4fe1-90eb-f75d9c65d2e6");
+    private static final TestResource TASK_ERROR_IMPRECISE = new TestResource(TEST_DIR, "task-intsync-error-imprecise.xml", "c554ec0f-95c3-40ac-b069-876708d28393");
 
     private static final TestResource TASK_DRY_RUN = new TestResource(TEST_DIR, "task-intsync-dry-run.xml", "8b5b3b2d-6ef7-4cc8-8507-42778e0d869f");
     private static final TestResource TASK_DRY_RUN_WITH_UPDATE = new TestResource(TEST_DIR, "task-intsync-dry-run-with-update.xml", "ebcc7393-e886-40ae-8a9f-dfa72230c658");
+
+    private static final TestResource TASK_NO_POLICY = new TestResource(TEST_DIR, "task-no-policy.xml", "b2aa4e0a-1fce-499d-8502-ece187b24ae4");
 
     private static final String USER_P = "user-p-";
     private static final String USER_I = "user-i-";
@@ -85,39 +81,46 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         interruptedSyncImpreciseResource = new DummyInterruptedSyncImpreciseResource();
         interruptedSyncImpreciseResource.init(dummyResourceCollection, initTask, initResult);
 
+        noPolicyController = initDummyResource(RESOURCE_DUMMY_NO_POLICY_NAME,
+                RESOURCE_DUMMY_NO_POLICY.file, RESOURCE_DUMMY_NO_POLICY.oid, initTask, initResult);
+        noPolicyController.setSyncStyle(DummySyncStyle.DUMB);
+
         // Initial run of these tasks must come before accounts are created.
 
         Consumer<PrismObject<TaskType>> workerThreadsCustomizer = workerThreadsCustomizer(getWorkerThreads());
 
-        addObject(TASK_SLOW_RESOURCE_FILE, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_RESOURCE_OID, false);
+        addObject(TASK_SLOW_RESOURCE.file, initTask, initResult, workerThreadsCustomizer);
+        waitForTaskFinish(TASK_SLOW_RESOURCE.oid, false);
 
-        addObject(TASK_SLOW_RESOURCE_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_RESOURCE_IMPRECISE_OID, false);
+        addObject(TASK_SLOW_RESOURCE_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
+        waitForTaskFinish(TASK_SLOW_RESOURCE_IMPRECISE.oid, false);
 
-        addObject(TASK_SLOW_MODEL_FILE, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_MODEL_OID, false);
+        addObject(TASK_SLOW_MODEL.file, initTask, initResult, workerThreadsCustomizer);
+        waitForTaskFinish(TASK_SLOW_MODEL.oid, false);
 
-        addObject(TASK_SLOW_MODEL_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_MODEL_IMPRECISE_OID, false);
+        addObject(TASK_SLOW_MODEL_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
+        waitForTaskFinish(TASK_SLOW_MODEL_IMPRECISE.oid, false);
 
-        addObject(TASK_BATCHED_FILE, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_BATCHED_OID, false);
+        addObject(TASK_BATCHED.file, initTask, initResult, workerThreadsCustomizer);
+        waitForTaskFinish(TASK_BATCHED.oid, false);
 
-        addObject(TASK_BATCHED_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
+        addObject(TASK_BATCHED_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
         // Starting this task results in (expected) exception
 
-        addObject(TASK_ERROR_FILE, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_ERROR_OID, false);
+        addObject(TASK_ERROR.file, initTask, initResult, workerThreadsCustomizer);
+        waitForTaskFinish(TASK_ERROR.oid, false);
 
-        addObject(TASK_ERROR_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_ERROR_IMPRECISE_OID, false);
+        addObject(TASK_ERROR_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
+        waitForTaskFinish(TASK_ERROR_IMPRECISE.oid, false);
 
         addObject(TASK_DRY_RUN.file, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_DRY_RUN.oid, false);
 
         addObject(TASK_DRY_RUN_WITH_UPDATE.file, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_DRY_RUN_WITH_UPDATE.oid, false);
+
+        addObject(TASK_NO_POLICY.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
+        waitForTaskFinish(TASK_NO_POLICY.oid, false);
 
         assertUsers(getNumberOfUsers());
         for (int i = 0; i < USERS; i++) {
@@ -157,14 +160,14 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextStart(TASK_SLOW_RESOURCE_OID, false, 2000, true);  // starts the task
-        boolean suspended = suspendTask(TASK_SLOW_RESOURCE_OID, 10000);
+        waitForTaskNextStart(TASK_SLOW_RESOURCE.oid, false, 2000, true);  // starts the task
+        boolean suspended = suspendTask(TASK_SLOW_RESOURCE.oid, 10000);
 
         // THEN
         then();
 
         assertTrue("Task was not suspended", suspended);
-        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertEquals("Wrong token value", (Integer) 0, taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN));
     }
@@ -185,14 +188,14 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextStart(TASK_SLOW_RESOURCE_IMPRECISE_OID, false, 2000, true);  // starts the task
-        boolean suspended = suspendTask(TASK_SLOW_RESOURCE_IMPRECISE_OID, 5000);
+        waitForTaskNextStart(TASK_SLOW_RESOURCE_IMPRECISE.oid, false, 2000, true);  // starts the task
+        boolean suspended = suspendTask(TASK_SLOW_RESOURCE_IMPRECISE.oid, 5000);
 
         // THEN
         then();
 
         assertTrue("Task was not suspended", suspended);
-        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_IMPRECISE_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_IMPRECISE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertEquals("Wrong token value", (Integer) 0, taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN));
     }
@@ -221,15 +224,15 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextStart(TASK_SLOW_MODEL_OID, false, 2000, true);  // starts the task
+        waitForTaskNextStart(TASK_SLOW_MODEL.oid, false, 2000, true);  // starts the task
         Thread.sleep(4000);
-        boolean suspended = suspendTask(TASK_SLOW_MODEL_OID, 5000);
+        boolean suspended = suspendTask(TASK_SLOW_MODEL.oid, 5000);
 
         // THEN
         then();
 
         assertTrue("Task was not suspended", suspended);
-        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         // If we are particularly unfortunate the token value could be zero in multithreaded scenario:
@@ -274,15 +277,15 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextStart(TASK_SLOW_MODEL_IMPRECISE_OID, false, 2000, true);  // starts the task
+        waitForTaskNextStart(TASK_SLOW_MODEL_IMPRECISE.oid, false, 2000, true);  // starts the task
         Thread.sleep(4000);
-        boolean suspended = suspendTask(TASK_SLOW_MODEL_IMPRECISE_OID, 5000);
+        boolean suspended = suspendTask(TASK_SLOW_MODEL_IMPRECISE.oid, 5000);
 
         // THEN
         then();
 
         assertTrue("Task was not suspended", suspended);
-        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_IMPRECISE_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_IMPRECISE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
 
         Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
@@ -316,12 +319,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextRun(TASK_BATCHED_OID, false, 10000, true);
+        waitForTaskNextRun(TASK_BATCHED.oid, false, 10000, true);
 
         // THEN
         then();
 
-        Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) 10, token);
@@ -331,12 +334,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextRun(TASK_BATCHED_OID, false, 10000, true);
+        waitForTaskNextRun(TASK_BATCHED.oid, false, 10000, true);
 
         // THEN
         then();
 
-        taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
+        taskAfter = taskManager.getTaskWithResult(TASK_BATCHED.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) 20, token);
@@ -346,12 +349,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN 3 (with error)
         when();
 
-        waitForTaskNextRun(TASK_BATCHED_OID, false, 10000, true);
+        waitForTaskNextRun(TASK_BATCHED.oid, false, 10000, true);
 
         // THEN 3 (with error)
         then();
 
-        taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
+        taskAfter = taskManager.getTaskWithResult(TASK_BATCHED.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertPartialError(taskAfter.getResult());          // error was "skippable" (retryLiveSyncErrors = false)
 
@@ -381,16 +384,16 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         when();
 
         try {
-            waitForTaskNextRun(TASK_BATCHED_IMPRECISE_OID, false, 10000, true);
+            waitForTaskNextRun(TASK_BATCHED_IMPRECISE.oid, false, 10000, true);
         } catch (Throwable t) {
-            suspendTask(TASK_BATCHED_IMPRECISE_OID, 10000);
+            suspendTask(TASK_BATCHED_IMPRECISE.oid, 10000);
             throw t;
         }
 
         // THEN
         then();
 
-        Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_IMPRECISE_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_IMPRECISE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertFailure(taskAfter.getResult());
         assertEquals("Wrong task state", TaskExecutionStatus.CLOSED, taskAfter.getExecutionStatus());
@@ -425,12 +428,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextRun(TASK_ERROR_OID, false, 10000, true);
+        waitForTaskNextRun(TASK_ERROR.oid, false, 10000, true);
 
         // THEN
         then();
 
-        Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertPartialError(taskAfter.getResult());      // the task should continue (i.e. not suspend) - TODO reconsider this
         assertTaskClosed(taskAfter);
@@ -447,12 +450,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextRun(TASK_ERROR_OID, false, 10000, true);
+        waitForTaskNextRun(TASK_ERROR.oid, false, 10000, true);
 
         // THEN
         then();
 
-        taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
+        taskAfter = taskManager.getTaskWithResult(TASK_ERROR.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) ERROR_ON, token);
@@ -484,16 +487,16 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         when();
 
         try {
-            waitForTaskNextRun(TASK_ERROR_IMPRECISE_OID, false, 10000, true);
+            waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 10000, true);
         } catch (Throwable t) {
-            suspendTask(TASK_ERROR_IMPRECISE_OID, 10000);
+            suspendTask(TASK_ERROR_IMPRECISE.oid, 10000);
             throw t;
         }
 
         // THEN
         then();
 
-        Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
+        Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         assertPartialError(taskAfter.getResult());            // the task should continue (i.e. not suspend) - TODO reconsider this
         assertTaskClosed(taskAfter);
@@ -512,12 +515,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextRun(TASK_ERROR_IMPRECISE_OID, false, 10000, true);
+        waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 10000, true);
 
         // THEN
         then();
 
-        taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
+        taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE.oid, result);
         displayTaskWithOperationStats("Task after", taskAfter);
         token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) 0, token);
@@ -599,6 +602,38 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertObjects(UserType.class, query, 0);
     }
 
+    /**
+     * Live sync processing resource object with no synchronization policy (MID-5999)
+     */
+    @Test
+    public void test200NoPolicy() throws Exception {
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        Task noPolicyBefore = taskManager.getTaskPlain(TASK_NO_POLICY.oid, result);
+        display("Task before", noPolicyBefore);
+
+        noPolicyController.addAccount("no-policy-user");
+
+        when();
+
+        waitForTaskNextRun(TASK_NO_POLICY.oid, false, 10000, true);
+
+        then();
+
+        Task taskAfter = taskManager.getTaskWithResult(TASK_NO_POLICY.oid, result);
+        display("Task after", taskAfter);
+        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+        display("Sync info", SynchronizationInformation.format(syncInfo));
+        assertSuccess(taskAfter.getResult());
+        assertTaskClosed(taskAfter);
+
+        assertSyncToken(taskAfter, 1);
+        assertEquals("Wrong noSyncPolicy counter value", 1, syncInfo.getCountNoSynchronizationPolicy());
+        assertEquals("Wrong noSyncPolicyAfter counter value", 1, syncInfo.getCountNoSynchronizationPolicyAfter());
+    }
 
     private ObjectQuery getStartsWithQuery(String s) {
         return prismContext.queryFor(UserType.class)

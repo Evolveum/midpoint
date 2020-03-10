@@ -121,7 +121,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
         Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 0, result);
+        assertSyncToken(syncTask, 0);
     }
 
     @Test
@@ -130,7 +130,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
         Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 0, result);
+        assertSyncToken(syncTask, 0);
         ((SynchronizationServiceMock) syncServiceMock).reset();
 
         // create add change in embedded LDAP
@@ -189,7 +189,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
         Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 1, result);
+        assertSyncToken(syncTask, 1);
         ((SynchronizationServiceMock) syncServiceMock).reset();
 
         // create add change in embedded LDAP
