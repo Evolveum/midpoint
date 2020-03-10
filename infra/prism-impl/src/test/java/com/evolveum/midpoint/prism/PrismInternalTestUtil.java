@@ -369,7 +369,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         if (withIncomplete) {
             assertTrue("Assignment is not incomplete", assContainer.isIncomplete());
         }
-        assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
+        assertEquals("Wrong assignment values", 2, assContainer.getValues().size());
         PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
         assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
 

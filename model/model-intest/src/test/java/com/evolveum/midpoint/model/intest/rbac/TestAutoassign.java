@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -80,8 +79,6 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test100ModifyUnitWorker() throws Exception {
-        final String TEST_NAME = "test100ModifyUnitWorker";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -113,8 +110,6 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test109ModifyUniNull() throws Exception {
-        final String TEST_NAME = "test109ModifyUniNull";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -141,8 +136,6 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test110ModifyUnitSleepwalker() throws Exception {
-        final String TEST_NAME = "test110ModifyUnitSleepwalker";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -181,8 +174,6 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test112ModifyUnitSleeperToWorker() throws Exception {
-        final String TEST_NAME = "test112ModifyUnitSleeperToWorker";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -217,8 +208,6 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test114ModifyUnitAddSleeper() throws Exception {
-        final String TEST_NAME = "test114ModifyUnitAddSleeper";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

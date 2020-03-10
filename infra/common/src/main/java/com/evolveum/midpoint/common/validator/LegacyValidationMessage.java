@@ -17,7 +17,7 @@ public class LegacyValidationMessage {
 
     public enum Type {
         WARNING, ERROR
-    };
+    }
 
     public Type type;
     public String oid;

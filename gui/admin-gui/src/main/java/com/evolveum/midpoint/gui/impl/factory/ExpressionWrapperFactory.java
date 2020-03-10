@@ -48,9 +48,6 @@ public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<E
     protected PrismPropertyWrapper<ExpressionType> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<ExpressionType> item,
                                                                  ItemStatus status) {
 
-        if (parent != null && parent.getParent() != null && QNameUtil.match(parent.getParent().getTypeName(), MappingType.COMPLEX_TYPE)) {
-            return super.createWrapper(parent, item, status);
-        }
         ExpressionWrapper propertyWrapper = new ExpressionWrapper(parent, item, status);
         getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), ExpressionPropertyPanel.class);
         return propertyWrapper;

@@ -53,16 +53,12 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
-/**
- * @author semancik
- */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbac extends AbstractRbacTest {
 
     private static final String LOCALITY_TORTUGA = "Tortuga";
 
-    private String userLemonheadOid;
     private String userSharptoothOid;
     private String userRedskullOid;
     private String userBignoseOid;
@@ -79,8 +75,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test000SanityRolePirate() throws Exception {
-        final String TEST_NAME = "test000SanityRolePirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -97,8 +91,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test001SanityRoleProjectOmnimanager() throws Exception {
-        final String TEST_NAME = "test001SanityRoleProjectOmnimanager";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -117,8 +109,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test010SearchRequestableRoles() throws Exception {
-        final String TEST_NAME = "test010SearchRequestableRoles";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -137,8 +127,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test101JackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test101JackAssignRolePirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -187,8 +175,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test102JackModifyUserLocality() throws Exception {
-        final String TEST_NAME = "test102JackModifyUserLocality";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -196,8 +182,6 @@ public class TestRbac extends AbstractRbacTest {
         DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
                 EXISTING_GOSSIP);
-
-        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result,
@@ -207,11 +191,9 @@ public class TestRbac extends AbstractRbacTest {
         then();
         assertSuccess(result);
 
-        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -228,8 +210,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test110UnAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test110UnAssignRolePirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -242,7 +222,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        assertAssignedNoRole(userAfter, task, result);
+        assertAssignedNoRole(userAfter);
         assertRoleMembershipRef(userAfter);
         assertDelegatedRef(userAfter);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -250,8 +230,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test120JackAssignRolePirateWhileAlreadyHasAccount() throws Exception {
-        final String TEST_NAME = "test120JackAssignRolePirateWhileAlreadyHasAccount";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -315,8 +293,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test121JackAssignAccountImplicitIntent() throws Exception {
-        final String TEST_NAME = "test121JackAssignAccountImplicitIntent";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -348,8 +324,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test122JackAssignAccountExplicitIntent() throws Exception {
-        final String TEST_NAME = "test122JackAssignAccountExplicitIntent";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -381,8 +355,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test127UnAssignAccountImplicitIntent() throws Exception {
-        final String TEST_NAME = "test127UnAssignAccountImplicitIntent";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -409,8 +381,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test128UnAssignAccountExplicitIntent() throws Exception {
-        final String TEST_NAME = "test128UnAssignAccountExplicitIntent";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -437,8 +407,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test129UnAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test129UnAssignRolePirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -459,8 +427,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test130JackAssignRolePirateWithSeaInAssignment() throws Exception {
-        final String TEST_NAME = "test130JackAssignRolePirateWithSeaInAssignment";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -496,8 +462,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test132JackUnAssignRolePirateWithSeaInAssignment() throws Exception {
-        final String TEST_NAME = "test132JackUnAssignRolePirateWithSeaInAssignment";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -528,8 +492,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test134JackAssignRoleAdriaticPirate() throws Exception {
-        final String TEST_NAME = "test134JackAssignRoleAdriaticPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -561,8 +523,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test135PreviewChangesEmptyDelta() throws Exception {
-        final String TEST_NAME = "test135PreviewChangesEmptyDelta";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -588,13 +548,10 @@ public class TestRbac extends AbstractRbacTest {
         assertEquals("Wrong number of evaluated role", 2, evaluatedRoles.size());
         assertEvaluatedRole(evaluatedRoles, ROLE_ADRIATIC_PIRATE_OID);
         assertEvaluatedRole(evaluatedRoles, ROLE_PIRATE_OID);
-
     }
 
     @Test
     public void test136JackUnAssignRoleAdriaticPirate() throws Exception {
-        final String TEST_NAME = "test136JackUnAssignRoleAdriaticPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -619,8 +576,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test137JackAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
-        final String TEST_NAME = "test137JackAssignRoleAdriaticPirateWithSeaInAssignment";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -656,8 +611,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
-        final String TEST_NAME = "test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -685,8 +638,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test144JackAssignRoleBlackSeaPirate() throws Exception {
-        final String TEST_NAME = "test144JackAssignRoleBlackSeaPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -715,8 +666,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test146JackUnAssignRoleBlackSeaPirate() throws Exception {
-        final String TEST_NAME = "test146JackUnAssignRoleBlackSeaPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -737,8 +686,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test147JackAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
-        final String TEST_NAME = "test147JackAssignRoleBlackSeaPirateWithSeaInAssignment";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -775,8 +722,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
-        final String TEST_NAME = "test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -804,8 +749,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test154JackAssignRoleIndianOceanPirate() throws Exception {
-        final String TEST_NAME = "test154JackAssignRoleIndianOceanPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -838,8 +781,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test156JackUnAssignRoleIndianOceanPirate() throws Exception {
-        final String TEST_NAME = "test156JackUnAssignRoleIndianOceanPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -864,7 +805,7 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test160JackAssignRolePirateApprover() throws Exception {
-        testJackAssignRolePirateRelationNoPrivs("test160JackAssignRolePirateApprover", SchemaConstants.ORG_APPROVER);
+        testJackAssignRolePirateRelationNoPrivs(SchemaConstants.ORG_APPROVER);
     }
 
     /**
@@ -872,7 +813,7 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test162JackUnassignRolePirateApprover() throws Exception {
-        testJackUnassignRolePirateRelationNoPrivs("test160JackAssignRolePirateApprover", SchemaConstants.ORG_APPROVER);
+        testJackUnassignRolePirateRelationNoPrivs(SchemaConstants.ORG_APPROVER);
 
     }
 
@@ -882,7 +823,7 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test164JackAssignRolePirateOwner() throws Exception {
-        testJackAssignRolePirateRelationNoPrivs("test164JackAssignRolePirateOwner", SchemaConstants.ORG_OWNER);
+        testJackAssignRolePirateRelationNoPrivs(SchemaConstants.ORG_OWNER);
     }
 
     /**
@@ -890,7 +831,7 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test166JackUnassignRolePirateOwner() throws Exception {
-        testJackUnassignRolePirateRelationNoPrivs("test166JackUnassignRolePirateOwner", SchemaConstants.ORG_OWNER);
+        testJackUnassignRolePirateRelationNoPrivs(SchemaConstants.ORG_OWNER);
     }
 
     /**
@@ -899,7 +840,7 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test168JackAssignRolePirateComplicated() throws Exception {
-        testJackAssignRolePirateRelationNoPrivs("test168JackAssignRolePirateComplicated", RELATION_COMPLICATED_QNAME);
+        testJackAssignRolePirateRelationNoPrivs(RELATION_COMPLICATED_QNAME);
     }
 
     /**
@@ -907,11 +848,10 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test169JackUnassignRolePirateComplicated() throws Exception {
-        testJackUnassignRolePirateRelationNoPrivs("test169JackUnassignRolePirateComplicated", RELATION_COMPLICATED_QNAME);
+        testJackUnassignRolePirateRelationNoPrivs(RELATION_COMPLICATED_QNAME);
     }
 
-    public void testJackAssignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
-
+    public void testJackAssignRolePirateRelationNoPrivs(QName relation) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -952,15 +892,12 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
-    public void testJackUnassignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
-
+    public void testJackUnassignRolePirateRelationNoPrivs(QName relation) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-
-        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, getDefaultOptions(), task, result);
@@ -969,7 +906,6 @@ public class TestRbac extends AbstractRbacTest {
         then();
         assertSuccess(result);
 
-        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertNoAssignments(userAfter);
@@ -986,8 +922,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test200ImportRoleAllTreasure() throws Exception {
-        final String TEST_NAME = "test200ImportRoleAllTreasure";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1008,8 +942,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test202JackAssignRoleAllTreasure() throws Exception {
-        final String TEST_NAME = "test202JackAssignRoleAllTreasure";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1041,8 +973,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test204AddGoldTreasureAndRecomputeJack() throws Exception {
-        final String TEST_NAME = "test204AddGoldTreasureAndRecomputeJack";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1071,8 +1001,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test206JackAssignRoleAllLoot() throws Exception {
-        final String TEST_NAME = "test206JackAssignRoleAllLoot";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1097,8 +1025,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test208JackUnassignRoleAllLoot() throws Exception {
-        final String TEST_NAME = "test208JackUnassignRoleAllLoot";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1122,8 +1048,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test209JackUnassignRoleAllTreasure() throws Exception {
-        final String TEST_NAME = "test209JackUnassignRoleAllTreasure";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1145,8 +1069,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test(enabled = false) // MID-3966
     public void test210JackAssignRoleAllYouCanGet() throws Exception {
-        final String TEST_NAME = "test210JackAssignRoleAllYouCanGet";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1171,8 +1093,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test(enabled = false) // MID-3966
     public void test219JackUnassignRoleAllYouCanGet() throws Exception {
-        final String TEST_NAME = "test219JackUnassignRoleAllYouCanGet";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1195,8 +1115,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test501JackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test501JackAssignRolePirate";
-
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1231,8 +1149,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test502JackModifyUserLocality() throws Exception {
-        final String TEST_NAME = "test502JackModifyUserLocality";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1270,8 +1186,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test510UnAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test510UnAssignRolePirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1298,8 +1212,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test511DeleteAccount() throws Exception {
-        final String TEST_NAME = "test511DeleteAccount";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1329,8 +1241,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test520JackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test520JackAssignRolePirate";
-
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1361,8 +1271,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test521JackUnassignRolePirateDeleteAccount() throws Exception {
-        final String TEST_NAME = "test521JackUnassignRolePirateDeleteAccount";
-
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1396,7 +1304,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test530JackAssignRoleCleric() throws Exception {
-        final String TEST_NAME = "test530JackAssignRoleCleric";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1413,7 +1320,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test532JackModifyAssignmentRoleCleric() throws Exception {
-        final String TEST_NAME = "test532JackModifyAssignmentRoleCleric";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1447,7 +1353,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test539JackUnAssignRoleCleric() throws Exception {
-        final String TEST_NAME = "test539JackUnAssignRoleCleric";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1483,7 +1388,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test540JackAssignRoleWannabe() throws Exception {
-        final String TEST_NAME = "test540JackAssignRoleWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1512,7 +1416,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test541JackRemoveHonorificSuffixWannabe() throws Exception {
-        final String TEST_NAME = "test541JackRemoveHonorificSuffixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1540,7 +1443,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test542JackModifySubtypeWannabe() throws Exception {
-        final String TEST_NAME = "test542JackModifySubtypeWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1569,7 +1471,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test543JackRemoveHonorificPrefixWannabe() throws Exception {
-        final String TEST_NAME = "test543JackRemoveHonorificPrefixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1597,7 +1498,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test544JackSetHonorificSuffixWannabe() throws Exception {
-        final String TEST_NAME = "test544JackSetHonorificSuffixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1628,7 +1528,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test545JackRestoreHonorificPrefixWannabe() throws Exception {
-        final String TEST_NAME = "test545JackRestoreHonorificPrefixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1658,7 +1557,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test549JackUnassignRoleWannabe() throws Exception {
-        final String TEST_NAME = "test549JackUnassignRoleWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1674,7 +1572,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        assertNotAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
+        assertNotAssignedRole(userAfter, ROLE_WANNABE_OID);
         assertRoleMembershipRef(userAfter);
         assertDelegatedRef(userAfter);
 
@@ -1683,7 +1581,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test600JackAssignRoleJudge() throws Exception {
-        final String TEST_NAME = "test600JackAssignRoleJudge";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1719,7 +1616,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test602JackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test602JackAssignRolePirate";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1754,7 +1650,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test605JackUnAssignRoleJudgeAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test605JackUnAssignRoleJudgeAssignRolePirate";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1791,7 +1686,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test609JackUnAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test609JackUnAssignRolePirate";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1811,7 +1705,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test610ElaineAssignRoleGovernor() throws Exception {
-        final String TEST_NAME = "test610ElaineAssignRoleGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1848,7 +1741,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test612JackAssignRoleGovernor() throws Exception {
-        final String TEST_NAME = "test612JackAssignRoleGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1879,12 +1771,10 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test613JackAssignRoleGovernorAsApprover() throws Exception {
-
         if (!testMultiplicityConstraintsForNonDefaultRelations()) {
             return;
         }
 
-        final String TEST_NAME = "test613JackAssignRoleGovernorAsApprover";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1917,7 +1807,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test620LemonheadAssignRoleCanibal() throws Exception {
-        final String TEST_NAME = "test620LemonheadAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1925,7 +1814,6 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME, true);
         addObject(user);
-        userLemonheadOid = user.getOid();
 
         assertAssignees(ROLE_CANNIBAL_OID, 0);
 
@@ -1947,7 +1835,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test622SharptoothAssignRoleCanibal() throws Exception {
-        final String TEST_NAME = "test622SharptoothAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -1977,7 +1864,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test624RedskullAssignRoleCanibal() throws Exception {
-        final String TEST_NAME = "test624RedskullAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2007,7 +1893,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test625BignoseAssignRoleCanibal() throws Exception {
-        final String TEST_NAME = "test625BignoseAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2043,7 +1928,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test627SharptoothUnassignRoleCanibal() throws Exception {
-        final String TEST_NAME = "test627SharptoothUnassignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2068,7 +1952,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test628RedskullUnassignRoleCanibal() throws Exception {
-        final String TEST_NAME = "test628RedskullUnassignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2107,7 +1990,6 @@ public class TestRbac extends AbstractRbacTest {
             return;
         }
 
-        final String TEST_NAME = "test630RappAssignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2136,7 +2018,6 @@ public class TestRbac extends AbstractRbacTest {
             return;
         }
 
-        final String TEST_NAME = "test632RappUnassignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2176,7 +2057,6 @@ public class TestRbac extends AbstractRbacTest {
             return;
         }
 
-        final String TEST_NAME = "test634BignoseAssignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2211,7 +2091,6 @@ public class TestRbac extends AbstractRbacTest {
             return;
         }
 
-        final String TEST_NAME = "test636BignoseUnassignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2237,7 +2116,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test649ElaineUnassignRoleGovernor() throws Exception {
-        final String TEST_NAME = "test649ElaineUnassignRoleGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2265,7 +2143,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test650BignoseAssignRoleCannibalAsOwner() throws Exception {
-        final String TEST_NAME = "test650BignoseAssignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         assertUserBefore(userBignoseOid)
@@ -2291,7 +2168,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test651BignoseAssignRoleCannibalAsApprover() throws Exception {
-        final String TEST_NAME = "test651BignoseAssignRoleCannibalAsApprover";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2317,7 +2193,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test655BignoseAssignRoleCannibal() throws Exception {
-        final String TEST_NAME = "test655BignoseAssignRoleCannibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2341,7 +2216,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test656BignoseUnassignRoleCannibal() throws Exception {
-        final String TEST_NAME = "test656BignoseUnassignRoleCannibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2364,7 +2238,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test658BignoseUnassignRoleCannibalAsOwner() throws Exception {
-        final String TEST_NAME = "test658BignoseUnassignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Task task = getTestTask();
@@ -2390,7 +2263,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test700JackAssignRoleJudge() throws Exception {
-        final String TEST_NAME = "test700JackModifyJudgeRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2415,7 +2287,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test701JackModifyJudgeDeleteConstructionRecompute() throws Exception {
-        final String TEST_NAME = "test701JackModifyJudgeDeleteConstructionRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2445,7 +2316,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test702JackModifyJudgeAddInducementHonorabilityRecompute() throws Exception {
-        final String TEST_NAME = "test702JackModifyJudgeAddInducementHonorabilityRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2480,7 +2350,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test703JackModifyJudgeDeleteInducementHonorabilityRecompute() throws Exception {
-        final String TEST_NAME = "test703JackModifyJudgeDeleteInducementHonorabilityRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2515,7 +2384,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test709JackUnAssignRoleJudge() throws Exception {
-        final String TEST_NAME = "test709JackUnAssignRoleJudge";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2533,13 +2401,12 @@ public class TestRbac extends AbstractRbacTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
     @Test
     public void test710JackAssignRoleEmpty() throws Exception {
-        final String TEST_NAME = "test710JackAssignRoleEmpty";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2564,7 +2431,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test712JackModifyEmptyRoleAddInducementPirateRecompute() throws Exception {
-        final String TEST_NAME = "test712JackModifyEmptyRoleAddInducementPirateRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2596,7 +2462,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test714JackModifyEmptyRoleDeleteInducementPirateRecompute() throws Exception {
-        final String TEST_NAME = "test714JackModifyEmptyRoleDeleteInducementPirateRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2623,7 +2488,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test719JackUnAssignRoleEmpty() throws Exception {
-        final String TEST_NAME = "test719JackUnAssignRoleEmpty";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2641,13 +2505,12 @@ public class TestRbac extends AbstractRbacTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
     @Test
     public void test720JackAssignRoleGovernorTenantRef() throws Exception {
-        final String TEST_NAME = "test720JackAssignRoleGovernorTenantRef";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2678,7 +2541,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test729JackUnassignRoleGovernorTenantRef() throws Exception {
-        final String TEST_NAME = "test729JackUnassignRoleGovernorTenantRef";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2699,7 +2561,7 @@ public class TestRbac extends AbstractRbacTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         assertAssignees(ROLE_GOVERNOR_OID, 0);
@@ -2710,7 +2572,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test750JackAssignRoleOmnimanager() throws Exception {
-        final String TEST_NAME = "test750JackAssignRoleOmnimanager";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2741,7 +2602,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test755AddProjectAndRecomputeJack() throws Exception {
-        final String TEST_NAME = "test755AddProjectAndRecomputeJack";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2776,7 +2636,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test759JackUnassignRoleOmnimanager() throws Exception {
-        final String TEST_NAME = "test759JackUnassignRoleOmnimanager";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2796,7 +2655,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
 
-        assertNotAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
+        assertNotAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID);
 
         assertHasNoOrg(userAfter);
     }
@@ -2807,7 +2666,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test760JackAssignRoleWeakGossiper() throws Exception {
-        final String TEST_NAME = "test760JackAssignRoleWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2843,7 +2701,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test761JackRecompute() throws Exception {
-        final String TEST_NAME = "test761JackRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2876,7 +2733,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test762JackReconcile() throws Exception {
-        final String TEST_NAME = "test762JackReconcile";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -2909,8 +2765,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test763PreviewChanges() throws Exception {
-        final String TEST_NAME = "test763PreviewChanges";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -2968,7 +2822,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test764JackAssignRoleSailor() throws Exception {
-        final String TEST_NAME = "test764JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3007,7 +2860,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test765JackRecompute() throws Exception {
-        final String TEST_NAME = "test765JackRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3045,7 +2897,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test766JackReconcile() throws Exception {
-        final String TEST_NAME = "test766JackReconcile";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3085,7 +2936,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test767JackUnAssignRoleWeakGossiper() throws Exception {
-        final String TEST_NAME = "test767JackUnAssignRoleWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3122,7 +2972,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test768JackRecompute() throws Exception {
-        final String TEST_NAME = "test768JackRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3159,7 +3008,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test769JackUnAssignRoleSailor() throws Exception {
-        final String TEST_NAME = "test762JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3193,7 +3041,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test770JackAssignRoleSailor() throws Exception {
-        final String TEST_NAME = "test770JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3232,7 +3079,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test772JackAssignRoleGossiper() throws Exception {
-        final String TEST_NAME = "test772JackAssignRoleGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3272,7 +3118,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test774JackUnAssignRoleSailor() throws Exception {
-        final String TEST_NAME = "test774JackUnAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3306,7 +3151,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test775JackUnAssignRoleGossiper() throws Exception {
-        final String TEST_NAME = "test775JackUnAssignRoleGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3340,7 +3184,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test778JackAssignRoleGossiperAndSailor() throws Exception {
-        final String TEST_NAME = "test778JackAssignRoleGossiperAndSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3385,7 +3228,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test779JackUnassignRoleGossiperAndSailor() throws Exception {
-        final String TEST_NAME = "test779JackUnassignRoleGossiperAndSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3424,7 +3266,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test780JackAssignRoleWeakSinger() throws Exception {
-        final String TEST_NAME = "test780JackAssignRoleWeakSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3461,7 +3302,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test781JackAssignRoleWeakGossiper() throws Exception {
-        final String TEST_NAME = "test781JackAssignRoleWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3498,7 +3338,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test782JackAssignRoleSailor() throws Exception {
-        final String TEST_NAME = "test782JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3540,7 +3379,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test783JackUnassignRoleSailor() throws Exception {
-        final String TEST_NAME = "test783JackUnassignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3574,7 +3412,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test784JackUnAssignRoleWeakSinger() throws Exception {
-        final String TEST_NAME = "test784JackUnAssignRoleWeakSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3610,7 +3447,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test785JackUnAssignRoleGossiper() throws Exception {
-        final String TEST_NAME = "test785JackUnAssignRoleGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3644,7 +3480,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test786JackAssignRoleGossiperAndSinger() throws Exception {
-        final String TEST_NAME = "test786JackAssignRoleGossiperAndSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3684,7 +3519,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test788JackUnassignRoleGossiperAndSinger() throws Exception {
-        final String TEST_NAME = "test788JackUnassignRoleGossiperAndSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3724,7 +3558,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test790JackAssignRoleWeakSinger() throws Exception {
-        final String TEST_NAME = "test780JackAssignRoleWeakSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3763,7 +3596,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test791JackSwitchRolesGossiperAndSinger() throws Exception {
-        final String TEST_NAME = "test791JackSwitchRolesGossiperAndSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3805,7 +3637,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test792JackAssignRoleSailor() throws Exception {
-        final String TEST_NAME = "test792JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3849,7 +3680,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test793JackSwitchRolesSingerAndGossiper() throws Exception {
-        final String TEST_NAME = "test793JackSwitchRolesSingerAndGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3895,7 +3725,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test794JackSwitchRolesSailorAndGossiper() throws Exception {
-        final String TEST_NAME = "test793JackSwitchRolesSingerAndGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3935,7 +3764,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test795JackSwitchRolesSingerAndSailor() throws Exception {
-        final String TEST_NAME = "test795JackSwitchRolesSingerAndSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -3981,7 +3809,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test796JackSwitchRolesSailorAndGovernor() throws Exception {
-        final String TEST_NAME = "test796JackSwitchRolesSailorAndGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4028,7 +3855,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test799JackUnassignGovernorAndWeakGossiper() throws Exception {
-        final String TEST_NAME = "test799JackUnassignGovernorAndWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4063,7 +3889,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test800ModifyRoleImmutable() throws Exception {
-        final String TEST_NAME = "test800ModifyRoleImmutable";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4093,7 +3918,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test802AddGlobalImmutableRole() throws Exception {
-        final String TEST_NAME = "test802AddGlobalImmutableRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4118,7 +3942,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test804ModifyRoleImmutableGlobalIdentifier() throws Exception {
-        final String TEST_NAME = "test804ModifyRoleImmutableGlobalIdentifier";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4145,7 +3968,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test805ModifyRoleImmutableGlobalDescription() throws Exception {
-        final String TEST_NAME = "test805ModifyRoleImmutableGlobalDescription";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4176,7 +3998,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test812AddGlobalImmutableDescriptionRole() throws Exception {
-        final String TEST_NAME = "test812AddGlobalImmutableDescriptionRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4204,7 +4025,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test814ModifyRoleImmutableDescriptionGlobalIdentifier() throws Exception {
-        final String TEST_NAME = "test814ModifyRoleImmutableDescriptionGlobalIdentifier";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4228,7 +4048,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test815ModifyRoleImmutableGlobalDescription() throws Exception {
-        final String TEST_NAME = "test815ModifyRoleImmutableGlobalDescription";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4254,7 +4073,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test826AddNonCreateableRole() throws Exception {
-        final String TEST_NAME = "test826AddNonCreateableRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4281,7 +4099,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test826bAddCreateableRole() throws Exception {
-        final String TEST_NAME = "test826bAddCreateableRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4305,7 +4122,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test827AddImmutableAssignRole() throws Exception {
-        final String TEST_NAME = "test827AddImmutableAssignRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4337,7 +4153,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test828ModifyUntouchableMetarole() throws Exception {
-        final String TEST_NAME = "test828ModifyUntouchableMetarole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4359,7 +4174,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test830ModifyRoleJudge() throws Exception {
-        final String TEST_NAME = "test830ModifyRoleJudge";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4381,7 +4195,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test840AssignRoleNonAssignable() throws Exception {
-        final String TEST_NAME = "test840AssignRoleNonAssignable";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4411,7 +4224,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test850JackAssignRoleBloodyFool() throws Exception {
-        final String TEST_NAME = "test850JackAssignRoleBloodyFool";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4448,7 +4260,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test855JackModifyFoolMetaroleDeleteInducement() throws Exception {
-        final String TEST_NAME = "test855JackModifyFoolMetaroleDeleteInducement";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4475,7 +4286,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test857JackReconcile() throws Exception {
-        final String TEST_NAME = "test857JackReconcile";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4515,7 +4325,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test870AssignRoleScreaming() throws Exception {
-        final String TEST_NAME = "test870AssignRoleScreaming";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         notificationManager.setDisabled(false);
@@ -4552,7 +4361,6 @@ public class TestRbac extends AbstractRbacTest {
      */
     @Test
     public void test880GlobalRuleOnChange() throws Exception {
-        final String TEST_NAME = "test880GlobalRuleOnChange";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4573,7 +4381,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test(enabled = false)          // MID-4856
     public void test890DeleteRoleUndeletable() throws Exception {
-        final String TEST_NAME = "test890DeleteRoleUndeletable";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4594,7 +4401,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test           // MID-4856
     public void test892DeleteRoleUndeletableGlobal() throws Exception {
-        final String TEST_NAME = "test892DeleteRoleUndeletableGlobal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();
@@ -4616,7 +4422,6 @@ public class TestRbac extends AbstractRbacTest {
 
     @Test
     public void test900ModifyDetectingRole() throws Exception {
-        final String TEST_NAME = "test900ModifyDetectingRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = getTestTask();

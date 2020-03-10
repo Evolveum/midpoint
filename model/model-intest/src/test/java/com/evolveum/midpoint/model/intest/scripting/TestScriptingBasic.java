@@ -642,23 +642,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test394AssignToWill2() throws Exception {
         // GIVEN
-        QName customRelation = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "piracy:captain");
+        QName customRelation = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "captain");
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_2_FILE);
-
-        PrismObject<SystemConfigurationType> systemConfig = repositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
-        RoleManagementConfigurationType roleManagement = systemConfig.asObjectable().getRoleManagement();
-        PrismContainerValue<RoleManagementConfigurationType> oldValue = systemConfig.asObjectable().getRoleManagement().asPrismContainerValue();
-        roleManagement.beginRelations().beginRelation().setRef(customRelation);
-        Collection<? extends ItemDelta> modifications = new ArrayList<>();
-        ContainerDelta<RoleManagementConfigurationType> deleteDelta = prismContext.deltaFactory().container().createModificationReplace(SystemConfigurationType.F_ROLE_MANAGEMENT,
-                SystemConfigurationType.class, oldValue.clone());
-        ((Collection) modifications).add(deleteDelta);
-        modifySystemObjectInRepo(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);

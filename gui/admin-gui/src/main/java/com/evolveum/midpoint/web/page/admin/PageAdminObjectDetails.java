@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -18,6 +15,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -25,17 +23,22 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -44,6 +47,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
@@ -83,21 +87,16 @@ import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
  * @author semancik
  */
 public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageAdmin
-        implements ProgressReportingAwarePage {
+        implements ProgressReportingAwarePage, Refreshable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageAdminObjectDetails.class.getName() + ".";
 
-    public static final String PARAM_RETURN_PAGE = "returnPage";
-
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
-    private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
-    private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
     protected static final String OPERATION_SAVE = DOT_CLASS + "save";
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
-    protected static final String OPERATION_EXECUTE_CHANGES = DOT_CLASS + "executeChangesTask";
     protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
     protected static final String OPERATION_LOAD_FILTERED_ARCHETYPES = DOT_CLASS + "loadFilteredArchetypes";
 
@@ -259,7 +258,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             @Override
             protected PrismObjectWrapper<O> load() {
                 PrismObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
-//                wrapper.sort();
                 return wrapper;
             }
         };
@@ -348,17 +346,40 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 initOperationalButtons(repeatingView);
             }
         };
-        if (getAdditionalOperationalButtonPanelBehaviors() != null && !getAdditionalOperationalButtonPanelBehaviors().isEmpty()){
-            getAdditionalOperationalButtonPanelBehaviors().forEach(this::add);
-        }
+
         opButtonPanel.setOutputMarkupId(true);
         opButtonPanel.add(new VisibleBehaviour(() -> isEditingFocus() && opButtonPanel.buttonsExist()));
+
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
+
+        opButtonPanel.add(behavior);
+
         add(opButtonPanel);
     }
 
-    protected List<? extends Behavior> getAdditionalOperationalButtonPanelBehaviors(){
-        return new ArrayList<>();
-    }
+    public boolean isRefreshEnabled() {
+        return false;
+   }
+
+    public void refresh(AjaxRequestTarget target) {
+
+   }
+
+   public int getRefreshInterval() {
+        return 30;
+   }
 
     protected void initOperationalButtons(RepeatingView repeatingView){
         if (getObjectArchetypeRef() != null) {
@@ -660,24 +681,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected abstract Class<? extends Page> getRestartResponsePage();
 
-    public Object findParam(String param, String oid, OperationResult result) {
-
-        Object object = null;
-
-        for (OperationResult subResult : result.getSubresults()) {
-            if (subResult != null && subResult.getParams() != null) {
-                if (subResult.getParams().get(param) != null
-                        && subResult.getParams().get(OperationResult.PARAM_OID) != null
-                        && subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
-                    return subResult.getParams().get(param);
-                }
-                object = findParam(param, oid, subResult);
-
-            }
-        }
-        return object;
-    }
-
     // TODO put this into correct place
     protected boolean previewRequested;
 
@@ -970,14 +973,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     public List<ObjectFormType> getObjectFormTypes() {
-        Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
-        OperationResult result = task.getResult();
-        CompiledGuiProfile adminGuiConfiguration;
-        try {
-            adminGuiConfiguration = getModelInteractionService().getCompiledGuiProfile(task, result);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
-        }
+        CompiledGuiProfile adminGuiConfiguration = getCompiledGuiProfile();
         ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
         if (objectFormsType == null) {
             return null;
@@ -1013,4 +1009,71 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
     }
 
+    //TODO moved from PageAdminFocus.. maybe we need PageAssignmentHolderDetails?
+    @Override
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
+
+        if (previewRequested) {
+            finishPreviewProcessing(target, result);
+            return;
+        }
+        if (result.isSuccess() && getDelta() != null  && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
+            Session.get().setLocale(WebModelServiceUtils.getLocale());
+            LOGGER.debug("Using {} as locale", getLocale());
+            WebSession.get().getClientInfo().getProperties().
+                    setTimeZone(WebModelServiceUtils.getTimezone());
+            LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
+        }
+        boolean focusAddAttempted = getDelta() != null && getDelta().isAdd();
+        boolean focusAddSucceeded = focusAddAttempted && StringUtils.isNotEmpty(getDelta().getOid());
+
+        // we don't want to allow resuming editing if a new focal object was created (on second 'save' there would be a conflict with itself)
+        // and also in case of partial errors, like those related to projections (many deltas would be already executed, and this could cause problems on second 'save').
+        boolean canContinueEditing = !focusAddSucceeded && result.isFatalError();
+
+        boolean canExitPage;
+        if (returningFromAsync) {
+            canExitPage = getProgressPanel().isAllSuccess() || result.isInProgress() || result.isHandledError(); // if there's at least a warning in the progress table, we would like to keep the table open
+        } else {
+            canExitPage = !canContinueEditing;                            // no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
+        }
+
+        if (!isKeepDisplayingResults() && canExitPage) {
+            showResult(result);
+            redirectBack();
+        } else {
+            if (returningFromAsync) {
+                getProgressPanel().showBackButton(target);
+                getProgressPanel().hideAbortButton(target);
+            }
+            showResult(result);
+            target.add(getFeedbackPanel());
+
+            if (canContinueEditing) {
+                getProgressPanel().hideBackButton(target);
+                getProgressPanel().showContinueEditingButton(target);
+            }
+        }
+    }
+
+    private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
+        getMainPanel().setVisible(true);
+        getProgressPanel().hide();
+        getProgressPanel().hideAbortButton(target);
+        getProgressPanel().hideBackButton(target);
+        getProgressPanel().hideContinueEditingButton(target);
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+
+        Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap = new LinkedHashMap<>();
+        modelContextMap.put(getObjectWrapper().getObject(), getProgressPanel().getPreviewResult());
+
+        processAdditionalFocalObjectsForPreview(modelContextMap);
+
+        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+    }
+
+    protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap){
+    }
 }

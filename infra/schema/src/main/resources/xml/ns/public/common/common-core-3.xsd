@@ -2617,18 +2617,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="subtask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Set of task's subtasks.
-                                TRANSIENT attribute. In the repository the parent-child relationship is stored using "parent" property.
-                                TODO: do we still need this?
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReference>tns:subtaskRef</a:objectReference>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="subtaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -5553,7 +5541,7 @@
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.target</a:displayName>
                             <a:help>AssignmentType.target.help</a:help>
-                            <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                            <a:objectReferenceTargetType>tns:AssignmentHolderType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -21479,7 +21467,21 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000504">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_LIVE_SYNCH_TASK"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_LIVE_SYNC_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000507">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000509">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_ITERATIVE_BULK_ACTION_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

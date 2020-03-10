@@ -15,7 +15,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <!-- Task printable name -->
     <name>Reconciliation Simulate Execute: Dummy</name>
 
     <extension>

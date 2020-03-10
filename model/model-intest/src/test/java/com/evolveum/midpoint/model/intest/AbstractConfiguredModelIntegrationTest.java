@@ -44,9 +44,6 @@ import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-/**
- * @author semancik
- */
 public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegrationTest {
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");

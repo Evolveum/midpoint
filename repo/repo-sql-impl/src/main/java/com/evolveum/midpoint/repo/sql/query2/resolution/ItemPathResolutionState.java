@@ -110,11 +110,6 @@ public class ItemPathResolutionState implements DebugDumpable {
                 itemPathResolver);
     }
 
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     String debugDumpNoParent() {
         return debugDump(0, false);
     }

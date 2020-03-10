@@ -102,13 +102,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public boolean isDelete() {
-        return getPrimaryDelta() != null && getPrimaryDelta().isDelete();
+        return ObjectDelta.isDelete(getPrimaryDelta());
     }
 
     public boolean isAdd() {
-        return getPrimaryDelta() != null && getPrimaryDelta().isAdd();
+        return ObjectDelta.isAdd(getPrimaryDelta());
     }
-
 
     @Override
     public ObjectDelta<O> getSecondaryDelta() {

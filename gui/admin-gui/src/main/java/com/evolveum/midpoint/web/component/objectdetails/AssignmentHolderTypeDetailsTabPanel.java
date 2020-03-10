@@ -30,8 +30,6 @@ import java.util.List;
 public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> {
     private static final long serialVersionUID = 1L;
 
-    protected static final String ID_FOCUS_FORM = "focusDetails";
-
     private static final String ID_MAIN_PANEL = "main";
     private static final String ID_ACTIVATION_PANEL = "activation";
     private static final String ID_PASSWORD_PANEL = "password";
@@ -70,17 +68,5 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
             LOGGER.error("Could not create focus details panel. Reason: {}", e.getMessage(), e);
         }
     }
-
-    private List<ItemPath> getVisibleContainers() {
-        List<ItemPath> paths = new ArrayList<>();
-        paths.add(ItemPath.EMPTY_PATH);
-        paths.add(SchemaConstants.PATH_ACTIVATION);
-        paths.add(SchemaConstants.PATH_PASSWORD);
-        if (WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())) {
-            paths.add(AbstractRoleType.F_DATA_PROTECTION);
-        }
-        return paths;
-    }
-
 
 }

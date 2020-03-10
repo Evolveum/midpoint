@@ -303,9 +303,7 @@ public class TestAddAssociation extends AbstractWfTest {
      */
     @Test
     public void test100AddJackToGuests() throws Exception {
-        final String TEST_NAME = "test100AddJackToGuests";
-
-        Task modelTask = taskManager.createTaskInstance(TEST_NAME);
+        Task modelTask = getTestTask();
         OperationResult result = createOperationResult();
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
@@ -362,7 +360,7 @@ public class TestAddAssociation extends AbstractWfTest {
         void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                 OperationResult result) throws Exception { }
         boolean decideOnApproval(CaseType subcase, ApprovalContextType wfContext) throws Exception { return true; }
-        String getObjectOid(CaseType task, OperationResult result) throws SchemaException { return null; };
+        String getObjectOid(CaseType task, OperationResult result) throws SchemaException { return null; }
         boolean removeAssignmentsBeforeTest() { return true; }
     }
 

@@ -164,8 +164,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
 
     @Test
     public void test001SanityAzure() throws Exception {
-        final String TEST_NAME = "test001SanityAzure";
-
         display("Dummy resource azure", dummyResourceSteelBlue);
 
         // WHEN
@@ -179,8 +177,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
 
     @Test
     public void test002SanityAzureRefined() throws Exception {
-        final String TEST_NAME = "test002SanityAzureRefined";
-
         // WHEN
         RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
 
@@ -192,8 +188,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
 
     @Test
     public void test100Synchronize() throws Exception {
-        final String TEST_NAME = "test100Synchronize";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

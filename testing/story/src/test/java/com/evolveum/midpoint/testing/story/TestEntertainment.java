@@ -6,10 +6,8 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.Collection;
@@ -26,20 +24,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestEntertainment extends AbstractStoryTest {
-
-    public static final Trace LOGGER = TraceManager.getTrace(TestEntertainment.class);
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "entertainment");
 
@@ -65,7 +54,7 @@ public class TestEntertainment extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -81,14 +70,11 @@ public class TestEntertainment extends AbstractStoryTest {
 
         importObjectFromFile(ROLE_META_CREATE_ORG_GROUPS_FILE);
 
-
-
     }
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestEntertainment.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -108,8 +94,7 @@ public class TestEntertainment extends AbstractStoryTest {
 
     @Test
     public void test001AddParentOrg() throws Exception {
-        final String TEST_NAME = "test001AddParentOrg";
-        Task task = taskManager.createTaskInstance(TestEntertainment.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -139,8 +124,7 @@ public class TestEntertainment extends AbstractStoryTest {
 
     @Test
     public void test002AddChildOrg() throws Exception {
-        final String TEST_NAME = "test002AddChildOrg";
-        Task task = taskManager.createTaskInstance(TestEntertainment.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -199,5 +183,4 @@ public class TestEntertainment extends AbstractStoryTest {
                     + intentShadow1 + ", " + intentShadow2);
         }
     }
-
 }

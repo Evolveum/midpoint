@@ -26,7 +26,7 @@ import java.util.Collections;
 /**
  *
  */
-public class TaskInternalPerformanceTabPanel extends BasePanel<PrismContainerWrapper<OperationStatsType>> implements TaskTabPanel {
+public class TaskInternalPerformanceTabPanel extends BasePanel<PrismContainerWrapper<OperationStatsType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskInternalPerformanceTabPanel.class);

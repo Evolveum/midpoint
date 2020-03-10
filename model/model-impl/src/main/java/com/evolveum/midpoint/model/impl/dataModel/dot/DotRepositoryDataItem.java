@@ -25,7 +25,7 @@ public class DotRepositoryDataItem implements DotDataItem {
     private static final String COLOR_DEFAULT = "black";
     private static final String COLOR_FILL = "grey92";
 
-    RepositoryDataItem dataItem;
+    private RepositoryDataItem dataItem;
 
     public DotRepositoryDataItem(RepositoryDataItem dataItem) {
         this.dataItem = dataItem;
@@ -40,10 +40,10 @@ public class DotRepositoryDataItem implements DotDataItem {
     public String getNodeLabel() {
         String entity = StringUtils.removeEnd(dataItem.getTypeName().getLocalPart(), "Type");
         String pathString = dataItem.getItemPath().toString();
-        final String EXT = "extension/";
-        if (pathString.startsWith(EXT)) {
+        final String ext = "extension/";
+        if (pathString.startsWith(ext)) {
             entity += " extension";
-            pathString = pathString.substring(EXT.length());
+            pathString = pathString.substring(ext.length());
         }
         return entity + "&#10;" + pathString;
     }

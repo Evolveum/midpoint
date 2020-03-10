@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.FileNotFoundException;
@@ -59,12 +58,7 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
 
     @Override
     public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
-        final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 

@@ -28,7 +28,7 @@ public class Slf4jConnectorLogger implements LogSpi {
 
     @Override
     public void log(Class<?> clazz, String method, Level level, String message, Throwable ex) {
-        final Trace LOGGER = TraceManager.getTrace(clazz);
+        final Trace logger = TraceManager.getTrace(clazz);
         //Mark all messages from ICF as ICF
         Marker m = MarkerFactory.getMarker("ICF");
 
@@ -39,27 +39,27 @@ public class Slf4jConnectorLogger implements LogSpi {
         // ERROR -> error
         if (Level.OK.equals(level)) {
             if (null == ex) {
-                LOGGER.trace(m, "method: {} msg:{}", method, message);
+                logger.trace(m, "method: {} msg:{}", method, message);
             } else {
-                LOGGER.trace(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+                logger.trace(m, "method: {} msg:{}", new Object[] { method, message }, ex);
             }
         } else if (Level.INFO.equals(level)) {
             if (null == ex) {
-                LOGGER.debug(m, "method: {} msg:{}", method, message);
+                logger.debug(m, "method: {} msg:{}", method, message);
             } else {
-                LOGGER.debug(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+                logger.debug(m, "method: {} msg:{}", new Object[] { method, message }, ex);
             }
         } else if (Level.WARN.equals(level)) {
             if (null == ex) {
-                LOGGER.warn(m, "method: {} msg:{}", method, message);
+                logger.warn(m, "method: {} msg:{}", method, message);
             } else {
-                LOGGER.warn(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+                logger.warn(m, "method: {} msg:{}", new Object[] { method, message }, ex);
             }
         } else if (Level.ERROR.equals(level)) {
             if (null == ex) {
-                LOGGER.error(m, "method: {} msg:{}", method, message);
+                logger.error(m, "method: {} msg:{}", method, message);
             } else {
-                LOGGER.error(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+                logger.error(m, "method: {} msg:{}", new Object[] { method, message }, ex);
             }
         }
     }

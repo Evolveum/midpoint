@@ -31,10 +31,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
-/**
- * @author semancik
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntent extends AbstractInitializedModelIntegrationTest {
@@ -54,8 +50,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test131ModifyUserJackAssignAccountDefault() throws Exception {
-        final String TEST_NAME="test131ModifyUserJackAssignAccountDefault";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -113,8 +107,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test132ModifyUserJackAssignAccountTest() throws Exception {
-        final String TEST_NAME="test132ModifyUserJackAssignAccountTest";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -185,8 +177,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test135ModifyUserJackFullName() throws Exception {
-        final String TEST_NAME="test135ModifyUserJackFullName";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -246,8 +236,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test147ModifyUserJackUnAssignAccountDefault() throws Exception {
-        final String TEST_NAME="test147ModifyUserJackUnAssignAccountDefault";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -258,8 +246,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
                 RESOURCE_DUMMY_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         when();
         modelService.executeChanges(deltas, null, task, result);
@@ -267,7 +253,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
         assertSuccess(result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -305,8 +290,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test149ModifyUserJackUnassignAccountTest() throws Exception {
-        final String TEST_NAME = "test149ModifyUserJackUnassignAccountTest";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

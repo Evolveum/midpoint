@@ -123,10 +123,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test101AddAccountWithoutName() throws Exception {
-        final String TEST_NAME = "test101AddAccountWithoutName";
         // GIVEN
-        Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        Task syncTask = getTestTask();
+        OperationResult result = syncTask.getResult();
         syncServiceMock.reset();
 
         ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
@@ -207,9 +206,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test107AGetModifiedAccountFromCacheMax() throws Exception {
-        final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -261,9 +259,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
-        final String TEST_NAME = "test107BGetModifiedAccountFromCacheHighStaleness";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -311,9 +308,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test108GetAccountLowStaleness() throws Exception {
-        final String TEST_NAME = "test106GetModifiedAccount";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         Collection<SelectorOptions<GetOperationOptions>> options =
@@ -367,10 +363,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test109ModifiedAccountCleanup() throws Exception {
-        final String TEST_NAME = "test109ModifiedAccountCleanup";
-
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -407,10 +401,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test110SearchIterative() throws Exception {
-        final String TEST_NAME = "test110SeachIterative";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // Make sure there is an account on resource that the provisioning has
         // never seen before, so there is no shadow
@@ -524,10 +516,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test111SeachIterativeNoFetch() throws Exception {
-        final String TEST_NAME = "test111SeachIterativeNoFetch";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
                 new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
@@ -578,10 +568,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test112SeachIterativeKindIntent() throws Exception {
-        final String TEST_NAME = "test112SeachIterativeKindIntent";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_DUMMY_OID,
                 ShadowKindType.ACCOUNT, "default", prismContext);
@@ -655,10 +643,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test114SearchAllAccounts() throws Exception {
-        final String TEST_NAME = "test114SearchAllAccounts";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);
@@ -685,9 +671,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test115CountAllAccounts() throws Exception {
-        final String TEST_NAME = "test115CountAllAccounts";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);
@@ -713,10 +698,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test116SearchNullQueryResource() throws Exception {
-        final String TEST_NAME = "test116SearchNullQueryResource";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,
@@ -764,10 +747,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test118SearchAllAccountsLongStaleness() throws Exception {
-        final String TEST_NAME = "test118SearchAllAccountsLongStaleness";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);
@@ -811,10 +792,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
-        final String TEST_NAME = "test119SearchAllAccountsMaxStaleness";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);
@@ -854,8 +833,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test120ModifyWillReplaceFullname() throws Exception {
-        final String TEST_NAME = "test120ModifyWillReplaceFullname";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -885,8 +862,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test121ModifyObjectAddPirate() throws Exception {
-        final String TEST_NAME = "test121ModifyObjectAddPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -919,8 +894,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test122ModifyObjectAddCaptain() throws Exception {
-        final String TEST_NAME = "test122ModifyObjectAddCaptain";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -953,8 +926,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test123ModifyObjectDeletePirate() throws Exception {
-        final String TEST_NAME = "test123ModifyObjectDeletePirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -990,8 +961,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test124ModifyAccountWillAddCaptainAgain() throws Exception {
-        final String TEST_NAME = "test124ModifyAccountWillAddCaptainAgain";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -1026,10 +995,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test125CompareAccountWillPassword() throws Exception {
-        final String TEST_NAME = "test125CompareAccountWillPassword";
-
-        testComparePassword(TEST_NAME, "match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
-        testComparePassword(TEST_NAME, "mismatch", ACCOUNT_WILL_OID, "I woulD NeVeR ever USE this PASSword", getExpectedPasswordComparisonResultMismatch());
+        testComparePassword("match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
+        testComparePassword("mismatch", ACCOUNT_WILL_OID, "I woulD NeVeR ever USE this PASSword", getExpectedPasswordComparisonResultMismatch());
 
         assertSteadyResource();
     }
@@ -1039,8 +1006,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test126ModifyAccountWillPassword() throws Exception {
-        final String TEST_NAME = "test126ModifyAccountWillPassword";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -1081,16 +1046,15 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test127CompareAccountWillPassword() throws Exception {
-        final String TEST_NAME = "test125CompareAccountWillPassword";
-
-        testComparePassword(TEST_NAME, "match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
-        testComparePassword(TEST_NAME, "mismatch old password", ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD, getExpectedPasswordComparisonResultMismatch());
-        testComparePassword(TEST_NAME, "mismatch", ACCOUNT_WILL_OID, "I woulD NeVeR ever USE this PASSword", getExpectedPasswordComparisonResultMismatch());
+        testComparePassword("match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
+        testComparePassword("mismatch old password", ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD, getExpectedPasswordComparisonResultMismatch());
+        testComparePassword("mismatch", ACCOUNT_WILL_OID, "I woulD NeVeR ever USE this PASSword", getExpectedPasswordComparisonResultMismatch());
 
         assertSteadyResource();
     }
 
-    protected void testComparePassword(final String TEST_NAME, String tag, String shadowOid, String expectedPassword, ItemComparisonResult expectedResult) throws Exception {
+    protected void testComparePassword(String tag, String shadowOid,
+            String expectedPassword, ItemComparisonResult expectedResult) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -1115,8 +1079,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test129NullAttributeValue() throws Exception {
-        final String TEST_NAME = "test129NullAttributeValue";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -1143,10 +1105,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test131AddScript() throws Exception {
-        final String TEST_NAME = "test131AddScript";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
@@ -1154,7 +1114,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ShadowType account = parseObjectType(ACCOUNT_SCRIPT_FILE, ShadowType.class);
         display("Account before add", account);
 
-        OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
         display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         // WHEN
@@ -1203,7 +1163,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
         display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -1241,15 +1201,13 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test133ModifyScriptNoExec() throws Exception {
-        final String TEST_NAME = "test133ModifyScriptNoExec";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
         display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -1282,15 +1240,13 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test134DeleteScript() throws Exception {
-        final String TEST_NAME = "test134DeleteScript";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
         display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         // WHEN
@@ -1318,15 +1274,13 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test135ExecuteScript() throws Exception {
-        final String TEST_NAME = "test135ExecuteScript";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
         display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ProvisioningScriptType script = scriptsType.getScript().get(0);
@@ -1348,10 +1302,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test150DisableAccount() throws Exception {
-        final String TEST_NAME = "test150DisableAccount";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task,
@@ -1392,10 +1344,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test151SearchDisabledAccounts() throws Exception {
-        final String TEST_NAME = "test151SearchDisabledAccounts";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
@@ -1424,10 +1374,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test152ActivationStatusUndefinedAccount() throws Exception {
-        final String TEST_NAME = "test152ActivationStatusUndefinedAccount";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task,
@@ -1460,8 +1408,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
         // check if activation was changed
         dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertEquals("Wrong dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " enabled flag",
-                null, dummyAccount.isEnabled());
+        assertNull("Wrong dummy account " + transformNameFromResource(ACCOUNT_WILL_USERNAME) + " enabled flag",
+                dummyAccount.isEnabled());
 
         syncServiceMock.assertNotifySuccessOnly();
 
@@ -1470,10 +1418,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test154EnableAccount() throws Exception {
-        final String TEST_NAME = "test154EnableAccount";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task,
@@ -1482,7 +1428,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("Retrieved account shadow", accountType);
 
         DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-        assertEquals("Wrong dummy account enabled flag", null, dummyAccount.isEnabled());
+        assertNull("Wrong dummy account enabled flag", dummyAccount.isEnabled());
 
         syncServiceMock.reset();
 
@@ -1513,10 +1459,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test155SearchDisabledAccounts() throws Exception {
-        final String TEST_NAME = "test155SearchDisabledAccounts";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
@@ -1542,10 +1486,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test156SetValidFrom() throws Exception {
-        final String TEST_NAME = "test156SetValidFrom";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task,
@@ -1586,10 +1528,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test157SetValidTo() throws Exception {
-        final String TEST_NAME = "test157SetValidTo";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task,
@@ -1633,10 +1573,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test158DeleteValidToValidFrom() throws Exception {
-        final String TEST_NAME = "test158DeleteValidToValidFrom";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task,
@@ -1688,10 +1626,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test159GetLockedoutAccount() throws Exception {
-        final String TEST_NAME = "test159GetLockedoutAccount";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
         dummyAccount.setLockout(true);
@@ -1730,10 +1666,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test160SearchLockedAccounts() throws Exception {
-        final String TEST_NAME = "test160SearchLockedAccounts";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
@@ -1762,10 +1696,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test162UnlockAccount() throws Exception {
-        final String TEST_NAME = "test162UnlockAccount";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task,
@@ -1807,10 +1739,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test163GetAccount() throws Exception {
-        final String TEST_NAME = "test163GetAccount";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1847,10 +1777,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test163SearchLockedAccounts() throws Exception {
-        final String TEST_NAME = "test163SearchLockedAccounts";
         // GIVEN
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
@@ -1876,7 +1804,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test170SearchNull() throws Exception {
-        testSeachIterative(null, null, true, true, false,
+        testSearchIterative(null, null, true, true, false,
                 "meathook", "daemon", transformNameFromResource("morgan"), transformNameFromResource("Will"));
     }
 
@@ -1939,10 +1867,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test180SearchNullPagingOffset0Size3() throws Exception {
-        final String TEST_NAME = "test180SearchNullPagingSize5";
         ObjectPaging paging = prismContext.queryFactory().createPaging(0, 3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
                 getSortedUsernames18x(0, 3));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
@@ -1953,30 +1880,27 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
-        final String TEST_NAME = "test181SearchNullPagingOffset0Size3Desc";
         ObjectPaging paging = prismContext.queryFactory().createPaging(0, 3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
                 getSortedUsernames18xDesc(0, 3));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
 
     @Test
     public void test182SearchNullPagingOffset1Size2() throws Exception {
-        final String TEST_NAME = "test182SearchNullPagingOffset1Size2";
         ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
                 getSortedUsernames18x(1, 2));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
 
     @Test
     public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
-        final String TEST_NAME = "test183SearchNullPagingOffset1Size3Desc";
         ObjectPaging paging = prismContext.queryFactory().createPaging(2, 3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
                 getSortedUsernames18xDesc(2, 3));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
@@ -2040,7 +1964,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test198SearchNone() throws Exception {
         ObjectFilter attrFilter = FilterCreationUtil.createNone(prismContext);
-        testSeachIterative(attrFilter, null, true, true, false);
+        testSearchIterative(attrFilter, null, true, true, false);
     }
 
     /**
@@ -2050,10 +1974,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test199SearchOnAndOffResource() throws Exception {
-        final String TEST_NAME = "test199SearchOnAndOffResource";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = createOnOffQuery();
@@ -2091,10 +2013,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test196SearchOnAndOffResourceNoFetch() throws Exception {
-        final String TEST_NAME = "test196SearchOnAndOffResourceNoFetch";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = createOnOffQuery();
@@ -2148,7 +2068,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectFilter filter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attrVal)
                 .buildFilter();
-        testSeachIterative(filter, rootOptions, fullShadow, true, false, expectedAccountNames);
+        testSearchIterative(filter, rootOptions, fullShadow, true, false, expectedAccountNames);
     }
 
     protected <T> void testSeachIterativeAlternativeAttrFilter(QName attr1QName, T attr1Val,
@@ -2162,10 +2082,10 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .itemWithDef(attr1Def, ShadowType.F_ATTRIBUTES, attr1Def.getItemName()).eq(attr1Val)
                 .or().itemWithDef(attr2Def, ShadowType.F_ATTRIBUTES, attr2Def.getItemName()).eq(attr2Val)
                 .buildFilter();
-        testSeachIterative(filter, rootOptions, fullShadow, false, true, expectedAccountNames);
+        testSearchIterative(filter, rootOptions, fullShadow, false, true, expectedAccountNames);
     }
 
-    private SearchResultMetadata testSeachIterative(
+    private SearchResultMetadata testSearchIterative(
             ObjectFilter attrFilter, GetOperationOptions rootOptions, final boolean fullShadow,
             boolean useObjectClassFilter, final boolean useRepo, String... expectedAccountNames)
             throws Exception {
@@ -2188,16 +2108,12 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         display("Query", query);
 
-        final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
             @Override
             public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
                 foundObjects.add(shadow);
-
-                XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
                 assertTrue(shadow.canRepresent(ShadowType.class));
                 if (!useRepo) {
@@ -2254,9 +2170,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     // This has to be a different method than ordinary search. We care about ordering here.
     // Also, paged search without sorting does not make much sense anyway.
-    private SearchResultMetadata testSeachIterativePaging(final String TEST_NAME, ObjectFilter attrFilter, ObjectPaging paging, GetOperationOptions rootOptions, String... expectedAccountNames) throws Exception {
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+    private SearchResultMetadata testSeachIterativePaging(ObjectFilter attrFilter,
+            ObjectPaging paging, GetOperationOptions rootOptions, String... expectedAccountNames)
+            throws Exception {
+        OperationResult result = createOperationResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
                 SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
@@ -2268,16 +2185,12 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         display("Query", query);
 
-        final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
             @Override
             public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
                 foundObjects.add(shadow);
-
-                XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
                 assertTrue(shadow.canRepresent(ShadowType.class));
                 try {
@@ -2321,9 +2234,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test200AddGroup() throws Exception {
-        final String TEST_NAME = "test200AddGroup";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2383,10 +2295,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test202GetGroup() throws Exception {
-        final String TEST_NAME = "test202GetGroup";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         rememberDummyResourceGroupMembersReadCount(null);
 
@@ -2425,10 +2335,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test203GetGroupNoFetch() throws Exception {
-        final String TEST_NAME = "test203GetGroupNoFetch";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         GetOperationOptions rootOptions = new GetOperationOptions();
         rootOptions.setNoFetch(true);
@@ -2459,10 +2367,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test205ModifyGroupReplace() throws Exception {
-        final String TEST_NAME = "test205ModifyGroupReplace";
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberDummyResourceGroupMembersReadCount(null);
@@ -2498,9 +2403,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test210AddPrivilege() throws Exception {
-        final String TEST_NAME = "test210AddPrivilege";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2551,10 +2455,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test212GetPriv() throws Exception {
-        final String TEST_NAME = "test212GetPriv";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, PRIVILEGE_PILLAGE_OID, null, null, result);
@@ -2589,9 +2491,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test214AddPrivilegeBargain() throws Exception {
-        final String TEST_NAME = "test214AddPrivilegeBargain";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2659,9 +2560,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test220EntitleAccountWillPirates() throws Exception {
-        final String TEST_NAME = "test220EntitleAccountWillPirates";
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberDummyResourceGroupMembersReadCount(null);
@@ -2704,10 +2603,7 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test221GetPirateWill() throws Exception {
-        final String TEST_NAME = "test221GetPirateWill";
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberDummyResourceGroupMembersReadCount(null);
@@ -2736,8 +2632,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test222EntitleAccountWillPillage() throws Exception {
-        final String TEST_NAME = "test222EntitleAccountWillPillage";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -2791,8 +2685,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test223EntitleAccountWillBargain() throws Exception {
-        final String TEST_NAME = "test223EntitleAccountWillBargain";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3014,8 +2906,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test230DetitleAccountWillPirates() throws Exception {
-        final String TEST_NAME = "test230DetitleAccountWillPirates";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3046,8 +2936,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test232EntitleAccountWillPiratesIdentifiersName() throws Exception {
-        final String TEST_NAME = "test232EntitleAccountWillPiratesIdentifiersName";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3078,8 +2966,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test233DetitleAccountWillPiratesIdentifiersName() throws Exception {
-        final String TEST_NAME = "test233DetitleAccountWillPiratesIdentifiersName";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3110,8 +2996,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test234EntitleAccountWillPiratesIdentifiersUid() throws Exception {
-        final String TEST_NAME = "test234EntitleAccountWillPiratesIdentifiersUid";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3142,8 +3026,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test235DetitleAccountWillPiratesIdentifiersUid() throws Exception {
-        final String TEST_NAME = "test235DetitleAccountWillPiratesIdentifiersUid";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3542,8 +3424,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test300AccountRename() throws Exception {
-        final String TEST_NAME = "test300AccountRename";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -3595,8 +3475,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test310ModifyMorganEnlistTimestamp() throws Exception {
-        final String TEST_NAME = "test310ModifyMorganEnlistTimestamp";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3635,8 +3513,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test330ModifyAccountWillPasswordSelfService() throws Exception {
-        final String TEST_NAME = "test330ModifyAccountWillPasswordSelfService";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3685,8 +3561,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test340ModifyWillReplaceGossipBloodAvast() throws Exception {
-        final String TEST_NAME = "test340ModifyWillReplaceGossipBloodAvast";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3717,8 +3591,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test342ModifyWillAddGossipEunuch() throws Exception {
-        final String TEST_NAME = "test342ModifyWillAddGossipEunuch";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3749,8 +3621,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test344ModifyWillDeleteGossipAvast() throws Exception {
-        final String TEST_NAME = "test344ModifyWillDeleteGossipAvast";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -3822,7 +3692,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test500AddProtectedAccount() throws Exception {
-        final String TEST_NAME = "test500AddProtectedAccount";
         testAddProtectedAccount(ACCOUNT_DAVIEJONES_USERNAME);
     }
 
@@ -3890,10 +3759,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test503ModifyProtectedAccountShadowProperty() throws Exception {
-        final String TEST_NAME = "test503ModifyProtectedAccountShadowProperty";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -3919,7 +3786,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test509DeleteProtectedAccountShadow() throws Exception {
-        final String TEST_NAME = "test509DeleteProtectedAccountShadow";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -3950,7 +3816,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test510AddProtectedAccounts() throws Exception {
-        final String TEST_NAME = "test510AddProtectedAccounts";
         // GIVEN
         testAddProtectedAccount("Xavier");
         testAddProtectedAccount("Xenophobia");
@@ -4034,7 +3899,6 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test520MigrationPrimaryIdentifierValueRefresh() throws Exception {
-        final String TEST_NAME = "test520MigrationPrimaryIdentifierValueRefresh";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -4066,10 +3930,9 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test600AddAccountAlreadyExist() throws Exception {
-        final String TEST_NAME = "test600AddAccountAlreadyExist";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         dummyResourceCtl.addAccount(ACCOUNT_MURRAY_USERNAME, ACCOUNT_MURRAY_USERNAME);
@@ -4111,7 +3974,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test800LiveSyncInit() throws Exception {
-        final String TEST_NAME = "test800LiveSyncInit";
         syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
         dummyResource.setSyncStyle(DummySyncStyle.DUMB);
@@ -4146,10 +4008,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test801LiveSyncAddBlackbeard() throws Exception {
-        final String TEST_NAME = "test801LiveSyncAddBlackbeard";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -4214,10 +4074,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test802LiveSyncModifyBlackbeard() throws Exception {
-        final String TEST_NAME = "test802LiveSyncModifyBlackbeard";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         syncServiceMock.reset();
 
@@ -4275,108 +4133,107 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test810LiveSyncAddDrakeDumbObjectClass() throws Exception {
-        testLiveSyncAddDrake("test810LiveSyncAddDrakeDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncAddDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
     }
 
     @Test
     public void test812LiveSyncModifyDrakeDumbObjectClass() throws Exception {
-        testLiveSyncModifyDrake("test812LiveSyncModifyDrakeDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncModifyDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
     }
 
     @Test
     public void test815LiveSyncAddCorsairsDumbObjectClass() throws Exception {
-        testLiveSyncAddCorsairs("test815LiveSyncAddCorsairsDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncAddCorsairs(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
     }
 
     @Test
     public void test817LiveSyncDeleteCorsairsDumbObjectClass() throws Exception {
-        testLiveSyncDeleteCorsairs("test817LiveSyncDeleteCorsairsDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
     }
 
     @Test
     public void test819LiveSyncDeleteDrakeDumbObjectClass() throws Exception {
-        testLiveSyncDeleteDrake("test819LiveSyncDeleteDrakeDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncDeleteDrake(DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
     }
 
     @Test
     public void test820LiveSyncAddDrakeSmartObjectClass() throws Exception {
-        testLiveSyncAddDrake("test820LiveSyncAddDrakeDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncAddDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
     }
 
     @Test
     public void test822LiveSyncModifyDrakeSmartObjectClass() throws Exception {
-        testLiveSyncModifyDrake("test822LiveSyncModifyDrakeDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncModifyDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
     }
 
     @Test
     public void test825LiveSyncAddCorsairsSmartObjectClass() throws Exception {
-        testLiveSyncAddCorsairs("test825LiveSyncAddCorsairsDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncAddCorsairs(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
     }
 
     @Test
     public void test827LiveSyncDeleteCorsairsSmartObjectClass() throws Exception {
-        testLiveSyncDeleteCorsairs("test827LiveSyncDeleteCorsairsDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), false);
     }
 
     @Test
     public void test829LiveSyncDeleteDrakeSmartObjectClass() throws Exception {
-        testLiveSyncDeleteDrake("test829LiveSyncDeleteDrakeDumbObjectClass", DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
+        testLiveSyncDeleteDrake(DummySyncStyle.SMART, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
     }
 
     @Test
     public void test830LiveSyncAddDrakeDumbAny() throws Exception {
-        testLiveSyncAddDrake("test830LiveSyncAddDrakeDumbAny", DummySyncStyle.DUMB, null);
+        testLiveSyncAddDrake(DummySyncStyle.DUMB, null);
     }
 
     @Test
     public void test832LiveSyncModifyDrakeDumbAny() throws Exception {
-        testLiveSyncModifyDrake("test832LiveSyncModifyDrakeDumbAny", DummySyncStyle.DUMB, null);
+        testLiveSyncModifyDrake(DummySyncStyle.DUMB, null);
     }
 
     @Test
     public void test835LiveSyncAddCorsairsDumbAny() throws Exception {
-        testLiveSyncAddCorsairs("test835LiveSyncAddCorsairsDumbAny", DummySyncStyle.DUMB, null, true);
+        testLiveSyncAddCorsairs(DummySyncStyle.DUMB, null, true);
     }
 
     @Test
     public void test837LiveSyncDeleteCorsairsDumbAny() throws Exception {
-        testLiveSyncDeleteCorsairs("test837LiveSyncDeleteCorsairsDumbAny", DummySyncStyle.DUMB, null, true);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.DUMB, null, true);
     }
 
     @Test
     public void test839LiveSyncDeleteDrakeDumbAny() throws Exception {
-        testLiveSyncDeleteDrake("test839LiveSyncDeleteDrakeDumbAny", DummySyncStyle.DUMB, null);
+        testLiveSyncDeleteDrake(DummySyncStyle.DUMB, null);
     }
 
     @Test
     public void test840LiveSyncAddDrakeSmartAny() throws Exception {
-        testLiveSyncAddDrake("test840LiveSyncAddDrakeSmartAny", DummySyncStyle.SMART, null);
+        testLiveSyncAddDrake(DummySyncStyle.SMART, null);
     }
 
     @Test
     public void test842LiveSyncModifyDrakeSmartAny() throws Exception {
-        testLiveSyncModifyDrake("test842LiveSyncModifyDrakeSmartAny", DummySyncStyle.SMART, null);
+        testLiveSyncModifyDrake(DummySyncStyle.SMART, null);
     }
 
     @Test
     public void test845LiveSyncAddCorsairsSmartAny() throws Exception {
-        testLiveSyncAddCorsairs("test845LiveSyncAddCorsairsSmartAny", DummySyncStyle.SMART, null, true);
+        testLiveSyncAddCorsairs(DummySyncStyle.SMART, null, true);
     }
 
     @Test
     public void test847LiveSyncDeleteCorsairsSmartAny() throws Exception {
-        testLiveSyncDeleteCorsairs("test847LiveSyncDeleteCorsairsSmartAny", DummySyncStyle.SMART, null, true);
+        testLiveSyncDeleteCorsairs(DummySyncStyle.SMART, null, true);
     }
 
     @Test
     public void test849LiveSyncDeleteDrakeSmartAny() throws Exception {
-        testLiveSyncDeleteDrake("test849LiveSyncDeleteDrakeSmartAny", DummySyncStyle.SMART, null);
+        testLiveSyncDeleteDrake(DummySyncStyle.SMART, null);
     }
 
-    public void testLiveSyncAddDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
+    public void testLiveSyncAddDrake(DummySyncStyle syncStyle, QName objectClass) throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4449,10 +4306,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    public void testLiveSyncModifyDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
+    public void testLiveSyncModifyDrake(DummySyncStyle syncStyle, QName objectClass) throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4506,10 +4362,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    public void testLiveSyncAddCorsairs(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
+    public void testLiveSyncAddCorsairs(
+            DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4581,10 +4437,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    public void testLiveSyncDeleteCorsairs(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
+    public void testLiveSyncDeleteCorsairs(
+            DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4647,10 +4503,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    public void testLiveSyncDeleteDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
+    private void testLiveSyncDeleteDrake(
+            DummySyncStyle syncStyle, QName objectClass) throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4707,9 +4563,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test890LiveSyncModifyProtectedAccount() throws Exception {
-        final String TEST_NAME = "test890LiveSyncModifyProtectedAccount";
         // GIVEN
-        Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task syncTask = getTestTask();
         OperationResult result = syncTask.getResult();
 
         syncServiceMock.reset();
@@ -4741,10 +4596,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test901FailResourceNotFound() throws Exception {
-        final String TEST_NAME = "test901FailResourceNotFound";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         try {

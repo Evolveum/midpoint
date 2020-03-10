@@ -6,6 +6,20 @@
  */
 package com.evolveum.midpoint.model.intest.mapping;
 
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
@@ -26,29 +40,13 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.nio.charset.StandardCharsets;
-
-import javax.xml.namespace.QName;
-
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 /**
  * Tests inbound mappings. Uses live sync to do that.
  * These tests are much simpler and more focused than those in AbstractSynchronizationStoryTest.
  *
  * @author mederly
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMappingInbound extends AbstractMappingTest {
 
@@ -81,7 +79,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                     controller.extendSchemaPirate();
                     controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                             DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, String.class, false, false)
-                        .setSensitive(true);
+                            .setSensitive(true);
                     controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                             DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
                     controller.setSyncStyle(DummySyncStyle.SMART);
@@ -91,8 +89,6 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     @Test
     public void test010SanitySchema() throws Exception {
-        final String TEST_NAME = "test010SanitySchema";
-
         // GIVEN
         Task task = getTestTask();
 
@@ -118,26 +114,15 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     @Test
     public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
-        final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
-
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        /// WHEN
         when();
         importSyncTask();
 
-        // THEN
         then();
-
         waitForSyncTaskStart();
     }
 
     @Test
     public void test110AddDummyTeaGreenAccountMancomb() throws Exception {
-        final String TEST_NAME = "test110AddDummyTeaGreenAccountMancomb";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -171,19 +156,19 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         UserAsserter<Void> mancombUserAsserter = assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         mancombLocker = mancombUserAsserter
-            .links()
+                .links()
                 .single()
-                    .assertOid(accountMancomb.getOid())
-                    .end()
+                .assertOid(accountMancomb.getOid())
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .extension()
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .extension()
                 .property(PIRACY_LOCKER)
-                    .singleValue()
-                        .protectedString()
-                            .assertIsEncrypted()
-                            .assertCompareCleartext(LOCKER_BIG_SECRET)
-                            .getProtectedString();
+                .singleValue()
+                .protectedString()
+                .assertIsEncrypted()
+                .assertCompareCleartext(LOCKER_BIG_SECRET)
+                .getProtectedString();
 
         assertJpegPhoto(UserType.class, mancombUserAsserter.getOid(), "water".getBytes(StandardCharsets.UTF_8), result);
 //        assertUsers(6);
@@ -197,8 +182,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test120ModifyMancombPhotoSource() throws Exception {
-        final String TEST_NAME = "test120ModifyMancombPhotoSource";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -232,8 +215,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test130ModifyMancombPhotoSourceAndReconcile() throws Exception {
-        final String TEST_NAME = "test130ModifyMancombPhotoSourceAndReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -271,8 +252,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test140ModifyMancombPhotoInRepo() throws Exception {
-        final String TEST_NAME = "test140ModifyMancombPhotoInRepo";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -307,8 +286,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test150UserReconcile() throws Exception {
-        final String TEST_NAME = "test150UserReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -336,23 +313,23 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
-            .links()
+                .links()
                 .single()
-                    .assertOid(accountMancomb.getOid())
-                    .end()
+                .assertOid(accountMancomb.getOid())
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .extension()
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .extension()
                 .property(PIRACY_LOCKER)
-                    .singleValue()
-                        .protectedString()
-                            .assertIsEncrypted()
-                            .assertCompareCleartext(LOCKER_BIG_SECRET)
-                            // Make sure that this is exactly the same content of protected string
-                            // including all the randomized things (IV). If it is the same,
-                            // there is a good chance we haven't had any phantom changes
-                            // MID-5197
-                            .assertEquals(mancombLocker);
+                .singleValue()
+                .protectedString()
+                .assertIsEncrypted()
+                .assertCompareCleartext(LOCKER_BIG_SECRET)
+                // Make sure that this is exactly the same content of protected string
+                // including all the randomized things (IV). If it is the same,
+                // there is a good chance we haven't had any phantom changes
+                // MID-5197
+                .assertEquals(mancombLocker);
 
 //        assertUsers(6);
 
@@ -365,20 +342,13 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
-        final String TEST_NAME = "test300DeleteDummyTeaGreenAccountMancomb";
-
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        /// WHEN
         when();
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         display("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
 
         // Make sure we have steady state
-        waitForTaskResume(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
+        resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
         waitForSyncTaskNextRun();
 
         // THEN
@@ -387,12 +357,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
-            .assertFullName("Mancomb Seepgood")
-            .links()
+                .assertFullName("Mancomb Seepgood")
+                .links()
                 .single()
-                    .resolveTarget()
-                        .assertTombstone()
-                        .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
+                .resolveTarget()
+                .assertTombstone()
+                .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
 //        assertUsers(7 + getNumberOfExtraDummyUsers());
 
@@ -403,8 +373,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     // Remove livesync task so it won't get into the way for next tests
     @Test
     public void test399DeleteDummyTeaGreenAccountMancomb() throws Exception {
-        final String TEST_NAME = "test399DeleteDummyTeaGreenAccountMancomb";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -421,8 +389,6 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     @Test
     public void test400AddUserLeeloo() throws Exception {
-        final String TEST_NAME = "test400AddUserLeeloo";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -449,13 +415,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         userLeelooOid = assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
-            .getOid();
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .getOid();
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -474,8 +440,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test402UserLeelooRecompute() throws Exception {
-        final String TEST_NAME = "test402UserLeelooRecompute";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -490,12 +454,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
@@ -507,8 +471,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test404UserLeelooReconcile() throws Exception {
-        final String TEST_NAME = "test404UserLeelooReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -523,12 +485,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -544,8 +506,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test410UserLeeloominaiReconcile() throws Exception {
-        final String TEST_NAME = "test410UserLeeloominaiReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -564,12 +524,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -586,8 +546,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test412UserLeeloominaiRecompute() throws Exception {
-        final String TEST_NAME = "test412UserLeeloominaiRecompute";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -602,12 +560,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
@@ -619,8 +577,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test414UserLeeloominaiReconcile() throws Exception {
-        final String TEST_NAME = "test414UserLeeloominaiReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -635,12 +591,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -656,8 +612,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test420UserLeelooStrangeReconcile() throws Exception {
-        final String TEST_NAME = "test420UserLeelooStrangeReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -676,13 +630,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-            .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+                .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -699,8 +653,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test424UserLeelooStrangeReconcile() throws Exception {
-        final String TEST_NAME = "test424UserLeelooStrangeReconcile";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -715,13 +667,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-            .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
-            .links()
+                .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+                .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
+                .links()
                 .single()
-                    .end()
                 .end()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+                .end()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);

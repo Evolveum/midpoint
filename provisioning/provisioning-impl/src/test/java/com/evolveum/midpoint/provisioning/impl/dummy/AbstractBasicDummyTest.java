@@ -837,7 +837,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
     @Test
     public void test034ResourceAndConnectorCachingForceFresh() throws Exception {
-
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
                 + ".test011ResourceAndConnectorCachingForceFresh");

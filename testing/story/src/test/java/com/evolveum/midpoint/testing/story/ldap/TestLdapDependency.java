@@ -7,15 +7,10 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
+import static org.testng.AssertJUnit.assertNotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.io.File;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,32 +19,33 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
-import java.io.File;
-
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Testing dependencies:
  * There are two meta-roles for orgs.
  * Org Metarole contains two inducements, one for creating organizationalUnit (intent=ou) and one for creating groupOfUniqueNames (intent=group) in ldap.
  * group depends on ou (since it is created in ou)
- *
+ * <p>
  * Org Metarole VIP is very similar it also contains two inducements, one for creating (intent=ou-vip) and one for creating groupOfUniqueNames (intent=group-vip) in ldap.
  * group-vip depends on ou-cip (since it is created in ou-vip)
  *
  * @author michael gruber
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public  class TestLdapDependency extends AbstractLdapTest {
+public class TestLdapDependency extends AbstractLdapTest {
 
     public static final File TEST_DIR = new File(LDAP_TEST_DIR, "dependency");
 
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-    private static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
     public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
 
@@ -62,7 +58,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     private static String orgItOid;
     private static String orgHrOid;
 
-
     private static final String ORG_TYPE_FUNCTIONAL = "functional";
 
     private static final String LDAP_GROUP_INTENT = "group";
@@ -71,8 +66,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     private static final String LDAP_OU_INTENT = "ou";
     private static final String LDAP_OU_VIP_INTENT = "ou-vip";
-
-    private PrismObject<ResourceType> resourceOpenDj;
 
     @Override
     protected String getLdapResourceOid() {
@@ -114,7 +107,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -122,9 +115,8 @@ public  class TestLdapDependency extends AbstractLdapTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         // Org
@@ -138,8 +130,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -150,7 +141,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     @Test
     public void test100AddOrgIT() throws Exception {
-        final String TEST_NAME = "test100AddOrgIT";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -177,7 +167,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     @Test
     public void test150AssignFunctionalRoleToITOrg() throws Exception {
-        final String TEST_NAME = "test150AssignFunctionalRoleToITOrg";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -206,7 +195,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     @Test
     public void test170UnassignFunctionalRoleFromITOrg() throws Exception {
-        final String TEST_NAME = "test170UnassignFunctionalRoleFromITOrg";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -233,10 +221,8 @@ public  class TestLdapDependency extends AbstractLdapTest {
         //TODO: assert ldap objects deleted...
     }
 
-
     @Test
     public void test200AddOrgHR() throws Exception {
-        final String TEST_NAME = "test200AddOrgHR";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -263,7 +249,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     @Test
     public void test250AssignFunctionalAndVipRoleToHROrg() throws Exception {
-        final String TEST_NAME = "test250AssignFunctionalAndVipRoleToHROrg";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -295,7 +280,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     @Test
     public void test270UnassignVipRoleFromHROrg() throws Exception {
-        final String TEST_NAME = "test270UnassignVipRoleFromHROrg";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -327,7 +311,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     //test280AssignVipAndSuperVipRoleToHROrg required for  test290UnassignVipRoleFromHROrg
     @Test
     public void test280AssignVipAndSuperVipRoleToHROrg() throws Exception {
-        final String TEST_NAME = "test280AssignVipAndSuperVipRoleToHROrg";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -360,7 +343,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
 
     @Test
     public void test290UnassignVipRoleFromHROrg() throws Exception {
-        final String TEST_NAME = "test290UnassignVipRoleFromHROrg";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -413,54 +395,36 @@ public  class TestLdapDependency extends AbstractLdapTest {
         return org;
     }
 
-    private void assertLdapObjectsFunctionalOrg(PrismObject<OrgType> org) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
-        String orgName =  org.getName().toString();
-        display("assert org", org.getName());
-
-        String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, LDAP_GROUP_INTENT);
-        PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-        display("Org "+orgName+" group shadow", groupShadow);
-        // TODO assert shadow content
-
-        Entry groupEntry = openDJController.searchSingle("cn="+orgName);
-        assertNotNull("No group LDAP entry for "+orgName, groupEntry);
-        display("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
-        openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
-
-    }
-
-
-    private void assertLdapObject(PrismObject<OrgType> org, ShadowKindType kind, String intent) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
-        String orgName =  org.getName().toString();
+    private void assertLdapObject(PrismObject<OrgType> org, ShadowKindType kind, String intent)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, DirectoryException, ExpressionEvaluationException {
+        String orgName = org.getName().toString();
         display("assert org", orgName);
 
         String objOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, kind, intent);
         PrismObject<ShadowType> objShadow = getShadowModel(objOid);
-        display("Org "+orgName+" kind " +kind + " intent " + intent +" shadow", objShadow);
+        display("Org " + orgName + " kind " + kind + " intent " + intent + " shadow", objShadow);
         // TODO assert shadow content
 
         String search = "";
-        if (kind.equals(ShadowKindType.ENTITLEMENT)){
-            if (LDAP_GROUP_INTENT.equals(intent)) search = "cn="+orgName;
-            if (LDAP_GROUP_VIP_INTENT.equals(intent)) search = "cn="+orgName+"-vip";
-            if (LDAP_GROUP_SUPERVIP_INTENT.equals(intent)) search = "cn="+orgName+"-supervip";
+        if (kind.equals(ShadowKindType.ENTITLEMENT)) {
+            if (LDAP_GROUP_INTENT.equals(intent)) { search = "cn=" + orgName; }
+            if (LDAP_GROUP_VIP_INTENT.equals(intent)) { search = "cn=" + orgName + "-vip"; }
+            if (LDAP_GROUP_SUPERVIP_INTENT.equals(intent)) { search = "cn=" + orgName + "-supervip"; }
         }
-        if (kind.equals(ShadowKindType.GENERIC)){
-            if (LDAP_OU_INTENT.equals(intent)) search = "ou="+orgName;
-            if (LDAP_OU_VIP_INTENT.equals(intent)) search = "ou="+orgName+"-vip";
+        if (kind.equals(ShadowKindType.GENERIC)) {
+            if (LDAP_OU_INTENT.equals(intent)) { search = "ou=" + orgName; }
+            if (LDAP_OU_VIP_INTENT.equals(intent)) { search = "ou=" + orgName + "-vip"; }
         }
         Entry objEntry = openDJController.searchSingle(search);
-        assertNotNull("No LDAP entry for "+orgName, objEntry);;
-        display("LDAP entry kind " +kind + " inten " + intent +" ldapObj", objEntry);
+        assertNotNull("No LDAP entry for " + orgName, objEntry);
+        display("LDAP entry kind " + kind + " intent " + intent + " ldapObj", objEntry);
 
-        if (kind.equals(ShadowKindType.ENTITLEMENT)){
-            openDJController.assertObjectClass(objEntry, "groupOfUniqueNames");
+        if (kind.equals(ShadowKindType.ENTITLEMENT)) {
+            OpenDJController.assertObjectClass(objEntry, "groupOfUniqueNames");
         }
-        if (kind.equals(ShadowKindType.GENERIC)){
-            openDJController.assertObjectClass(objEntry, "organizationalUnit");
+        if (kind.equals(ShadowKindType.GENERIC)) {
+            OpenDJController.assertObjectClass(objEntry, "organizationalUnit");
         }
-
     }
-
-
 }

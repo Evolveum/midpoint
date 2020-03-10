@@ -80,8 +80,6 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
     @Test
     public void test100ImportAccount() throws Exception {
-        final String TEST_NAME = "test100ImportAccount";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -104,8 +102,6 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
     @Test
     public void test110AssignJackPirate() throws Exception {
-        String TEST_NAME = "test110AssignJackPirate";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -164,8 +160,6 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
     @Test
     public void test112ModifyActivationJack() throws Exception {
-        String TEST_NAME = "test112ModifyActivationJack";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

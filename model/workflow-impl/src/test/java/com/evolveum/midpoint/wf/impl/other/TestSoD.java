@@ -185,7 +185,7 @@ public class TestSoD extends AbstractWfTestPolicy {
                         if (yes) {
                             assertAssignedRole(userJackOid, rolePirateOid, result);
                         } else {
-                            assertNotAssignedRole(userJackOid, rolePirateOid, opTask, result);
+                            assertNotAssignedRole(userJackOid, rolePirateOid, result);
                         }
                         break;
                 }
@@ -217,7 +217,7 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         // GIVEN
         unassignRole(userJackOid, rolePirateOid, task, result);
-        assertNotAssignedRole(userJackOid, rolePirateOid, task, result);
+        assertNotAssignedRole(userJackOid, rolePirateOid, result);
 
         // WHEN+THEN
         PrismObject<UserType> jack = getUser(userJackOid);
@@ -286,7 +286,7 @@ public class TestSoD extends AbstractWfTestPolicy {
                         if (yes) {
                             assertAssignedRole(userJackOid, roleRespectableOid, result);
                         } else {
-                            assertNotAssignedRole(userJackOid, roleRespectableOid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRespectableOid, result);
                         }
                         break;
                 }

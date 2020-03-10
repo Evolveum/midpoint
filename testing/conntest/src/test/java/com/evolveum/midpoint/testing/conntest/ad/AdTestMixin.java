@@ -28,6 +28,9 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+/**
+ * Mixin providing common methods/utilities for Active Directory (AD) related tests.
+ */
 public interface AdTestMixin extends MidpointTestMixin {
 
     String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
@@ -41,6 +44,7 @@ public interface AdTestMixin extends MidpointTestMixin {
     QName ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
     String ATTRIBUTE_TITLE_NAME = "title";
     String ATTRIBUTE_PROXY_ADDRESSES_NAME = "proxyAddresses";
+    String ATTRIBUTE_USER_PARAMETERS_NAME = "userParameters";
 
     QName OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME = new QName(MidPointConstants.NS_RI, "msExchBaseClass");
 

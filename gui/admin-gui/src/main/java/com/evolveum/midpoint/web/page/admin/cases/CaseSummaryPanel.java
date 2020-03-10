@@ -7,9 +7,14 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -39,13 +44,22 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
 
     @Override
     protected IModel<String> getTitleModel() {
-        ObjectReferenceType parentRef = getModelObject().getParentRef();
-        if (parentRef != null && StringUtils.isNotEmpty(parentRef.getOid())) {
-            return createStringResource("CaseSummaryPanel.parentCase",
-                    WebComponentUtil.getDisplayNameOrName(getModelObject().getParentRef(), getPageBase(), OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME, true));
-        } else {
-            return null;
-        }
+        return new LoadableModel<String>(){
+            @Override
+            public String load(){
+                ObjectReferenceType parentRef = getModelObject().getParentRef();
+                if (parentRef != null && StringUtils.isNotEmpty(parentRef.getOid())) {
+                    Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME);
+                    OperationResult result = new OperationResult(OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME);
+                    PrismObject<CaseType> parentCaseObj = WebModelServiceUtils.loadObject(CaseType.class, parentRef.getOid(), getPageBase(),
+                            task, result);
+                    return createStringResource("CaseSummaryPanel.parentCase",
+                            WebComponentUtil.getDisplayNameOrName(parentCaseObj)).getString();
+                } else {
+                    return null;
+                }
+            }
+        };
     }
 
     @Override

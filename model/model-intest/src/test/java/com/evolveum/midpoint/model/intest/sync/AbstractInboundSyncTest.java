@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Date;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -31,17 +30,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIntegrationTest {
 
@@ -53,16 +47,12 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
     protected static final File TASK_RECON_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-recon.xml");
     protected static final String TASK_RECON_DUMMY_EMERALD_OID = "10000000-0000-0000-5656-56560000e404";
 
-    protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     protected static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
     protected static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
     protected static final String ACCOUNT_POSIXUSER_DUMMY_USERNAME = "posixuser";
 
-    protected static String userWallyOid;
-
-    protected boolean allwaysCheckTimestamp = false;
     protected long timeBeforeSync;
 
     @Override
@@ -85,38 +75,18 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         return DEFAULT_TASK_WAIT_TIMEOUT;
     }
 
-    protected int getNumberOfExtraDummyUsers() {
-        return 0;
-    }
-
-
     @Test
     public void test100ImportLiveSyncTaskDummyEmerald() throws Exception {
-        final String TEST_NAME = "test100ImportLiveSyncTaskDummyEmerald";
-
-        // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        /// WHEN
         when();
         importSyncTask(resourceDummyEmerald);
 
-        // THEN
         then();
-
         waitForSyncTaskStart(resourceDummyEmerald);
     }
 
     @Test
     public void test110AddDummyEmeraldAccountMancomb() throws Exception {
-        final String TEST_NAME = "test110AddDummyEmeraldAccountMancomb";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -169,12 +139,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test120ModifyDummyEmeraldAccountMancombSeepbad() throws Exception {
-        final String TEST_NAME = "test120ModifyDummyEmeraldAccountMancombSeepbad";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -224,12 +189,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test122ModifyDummyEmeraldAccountMancombSeepNULL() throws Exception {
-        final String TEST_NAME = "test122ModifyDummyEmeraldAccountMancombSeepNULL";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -279,12 +239,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test124ModifyDummyEmeraldAccountMancombSeepevil() throws Exception {
-        final String TEST_NAME = "test124ModifyDummyEmeraldAccountMancombSeepevil";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -334,12 +289,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test126ModifyDummyEmeraldAccountMancombTitlePirate() throws Exception {
-        final String TEST_NAME = "test126ModifyDummyEmeraldAccountMancombTitlePirate";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -390,12 +340,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test127ModifyDummyEmeraldAccountMancombTitlePirateNull() throws Exception {
-        final String TEST_NAME = "test127ModifyDummyEmeraldAccountMancombTitlePirateNull";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -446,12 +391,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test129ModifyDummyEmeraldAccountMancombSeepgood() throws Exception {
-        final String TEST_NAME = "test129ModifyDummyEmeraldAccountMancombSeepgood";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -499,7 +439,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         notificationManager.setDisabled(true);
     }
 
-
     @Test
     public void test180NoChange() throws Exception {
         // default = no op
@@ -511,12 +450,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test300AddDummyEmeraldAccountPosixUser() throws Exception {
-        final String TEST_NAME = "test300AddDummyEmeraldAccountPosixUser";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -569,12 +503,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test310ModifyDummyEmeraldAccountPosixUserUidNumber() throws Exception {
-        final String TEST_NAME = "test310ModifyDummyEmeraldAccountPosixUserUidNumber";
-
         // GIVEN
-        AbstractInboundSyncTest.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -618,7 +547,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // TODO create and test inbounds for uid and gid numbers; also other attributes
     }
 
-
     protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
         waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
     }
@@ -627,7 +555,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
     }
 
-
     protected void rememberTimeBeforeSync() {
         timeBeforeSync = System.currentTimeMillis();
     }
@@ -635,11 +562,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
     protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
         ShadowType shadowType = shadow.asObjectable();
         SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
-        assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
+        assertEquals("Wrong situation in shadow " + shadow, expectedSituation, actualSituation);
         XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();
-        assert actualTimestampCal != null : "No synchronization timestamp in shadow "+shadow;
+        assert actualTimestampCal != null : "No synchronization timestamp in shadow " + shadow;
         long actualTimestamp = XmlTypeConverter.toMillis(actualTimestampCal);
-        assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow "+shadow;
+        assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow " + shadow;
         // TODO: assert sync description
     }
 

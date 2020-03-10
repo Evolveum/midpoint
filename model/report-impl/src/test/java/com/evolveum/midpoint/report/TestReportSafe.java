@@ -41,8 +41,7 @@ public class TestReportSafe extends TestReport {
     @Test
     @Override
     public void test112ReportUserListExpressionsPoisonousQueryCsv() throws Exception {
-        final String TEST_NAME = "test110ReportUserListExpressionsCsv";
-        testReportListUsersCsvFailure(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
+        testReportListUsersCsvFailure(REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
     }
 
     /**
@@ -52,8 +51,7 @@ public class TestReportSafe extends TestReport {
      */
     @Test
     public void test114ReportUserListExpressionsPoisonousFieldCsv() throws Exception {
-        final String TEST_NAME = "test114ReportUserListExpressionsPoisonousFieldCsv";
-        testReportListUsersCsvFailure(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID);
+        testReportListUsersCsvFailure(REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID);
     }
 
     /**
@@ -62,8 +60,6 @@ public class TestReportSafe extends TestReport {
      */
     @Test
     public void test300ReportAuditLegacy() throws Exception {
-        final String TEST_NAME = "test300ReportAuditLegacy";
-        testReportAuditCsvFailure(TEST_NAME, REPORT_AUDIT_CSV_LEGACY_OID);
+        testReportAuditCsvFailure(REPORT_AUDIT_CSV_LEGACY_OID);
     }
-
 }

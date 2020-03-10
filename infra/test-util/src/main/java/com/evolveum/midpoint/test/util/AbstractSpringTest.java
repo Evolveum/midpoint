@@ -36,7 +36,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     protected final Trace logger = TraceManager.getTrace(getClass());
 
     @BeforeMethod
-    public void startTestContext(ITestResult testResult) {
+    public void startTestContext(ITestResult testResult) throws Exception {
         SimpleMidpointTestContext context = SimpleMidpointTestContext.create(testResult);
         displayTestTitle(context.getTestName());
     }

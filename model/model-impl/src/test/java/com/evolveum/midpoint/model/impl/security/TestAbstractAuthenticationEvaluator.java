@@ -628,7 +628,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test138UnlockUserGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -671,7 +670,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test139TryToLockByModelService() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -700,7 +698,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test150PasswordLoginDisabledGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
@@ -711,7 +708,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test152PasswordLoginEnabledGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
@@ -722,7 +718,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test154PasswordLoginNotValidYetGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -741,8 +736,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         // GIVEN
         clock.overrideDuration("PT2H");
 
-        TestAbstractAuthenticationEvaluator.class.getName();
-
         loginJackGoodPasswordExpectSuccess();
     }
 
@@ -751,15 +744,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         // GIVEN
         clock.overrideDuration("P2D");
 
-        TestAbstractAuthenticationEvaluator.class.getName();
-
         loginJackGoodPasswordExpectDenied();
     }
 
     @Test
     public void test159PasswordLoginNoLongerValidEnabledGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
@@ -770,7 +760,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test160PasswordLoginLifecycleActiveGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -783,7 +772,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test162PasswordLoginLifecycleDraftGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -796,7 +784,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test164PasswordLoginLifecycleDeprecatedGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -809,7 +796,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test166PasswordLoginLifecycleProposedGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -822,7 +808,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test168PasswordLoginLifecycleArchivedGoodPassword() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -835,7 +820,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Test
     public void test200UserGuybrushSetCredentials() throws Exception {
         // GIVEN
-        TestAbstractAuthenticationEvaluator.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

@@ -74,7 +74,7 @@ class TaskTabsVisibility implements Serializable {
             subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable;
         } else if (!parentPage.isAdd() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
             subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable
-                    || !CollectionUtils.isNotEmpty(task.getSubtask());
+                    || !CollectionUtils.isNotEmpty(task.getSubtaskRef());
         } else {
             subtasksAndThreadsVisible = false;
         }
@@ -82,23 +82,18 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean configuresWorkerThreads(TaskType task) {
-        return isReconciliation(task) || isImport(task) || isRecomputation(task) || isExecuteChanges(task.getHandlerUri())
+        return WebComponentUtil.isReconciliation(task) || WebComponentUtil.isImport(task) || WebComponentUtil.isRecomputation(task) || isExecuteChanges(task.getHandlerUri())
                 || isShadowIntegrityCheck(task.getHandlerUri()) || isFocusValidityScanner(task.getHandlerUri()) || isTriggerScanner(task.getHandlerUri());
     }
 
     public boolean computeEnvironmentalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         final OperationStatsType operationStats = taskWrapper.getObject().asObjectable().getOperationStats();
-        environmentalPerformanceVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
-                && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
-                && operationStats != null
-                && !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
+        environmentalPerformanceVisible = parentPage.isEditingFocus();
         return environmentalPerformanceVisible;
     }
 
     public boolean computeInternalPerformanceVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        internalPerformanceVisible = !parentPage.isAdd() &&!parentPage.isEditingFocus()
-                && isTaskItemReadable(taskWrapper, TaskType.F_OPERATION_STATS)
-                && taskWrapper.getObject().asObjectable().getOperationStats() != null;
+        internalPerformanceVisible = parentPage.isEditingFocus();
         return internalPerformanceVisible;
     }
 
@@ -109,7 +104,7 @@ class TaskTabsVisibility implements Serializable {
         } catch (SchemaException ex){
             LOGGER.warn("Unable to find modelOperationContext in task {}", taskWrapper.getObject().asObjectable());
         }
-        operationVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
+        operationVisible = parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_MODEL_OPERATION_CONTEXT)
                 && lensContext != null && !lensContext.isEmpty()
                 && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
@@ -117,14 +112,14 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeResultVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        resultVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
+        resultVisible = parentPage.isEditingFocus()
                 && isTaskItemReadable(taskWrapper, TaskType.F_RESULT)
                 && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable());
         return resultVisible;
     }
 
     public boolean computeErrorsVisible(PageTask parentPage, TaskType task) {
-        errorsVisible = !parentPage.isAdd() && !parentPage.isEditingFocus()
+        errorsVisible = parentPage.isEditingFocus()
                 && !WebComponentUtil.isWorkflowTask(task);
         return errorsVisible;
     }
@@ -144,7 +139,7 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeProgressVisible(PageTask parentPage) {
-        progressVisible = !parentPage.isEditingFocus();
+        progressVisible = parentPage.isEditingFocus();
         return progressVisible;
     }
 
@@ -163,44 +158,6 @@ class TaskTabsVisibility implements Serializable {
 
     private boolean isExecuteChanges(String handlerUri) {
         return ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI.equals(handlerUri);
-    }
-
-    private boolean isReconciliation(TaskType task){
-        ObjectReferenceType archetypeRef = getArchetypeReference(task);
-        if (archetypeRef == null){
-            return false;
-        }
-        return SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value().equals(archetypeRef.getOid());
-    }
-
-    private boolean isRecomputation(TaskType task){
-        ObjectReferenceType archetypeRef = getArchetypeReference(task);
-        if (archetypeRef == null){
-            return false;
-        }
-        return SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value().equals(archetypeRef.getOid());
-    }
-
-    private boolean isImport(TaskType task){
-        ObjectReferenceType archetypeRef = getArchetypeReference(task);
-        if (archetypeRef == null){
-            return false;
-        }
-        return SystemObjectsType.ARCHETYPE_IMPORT_TASK.value().equals(archetypeRef.getOid());
-    }
-
-    private ObjectReferenceType getArchetypeReference(TaskType task) {
-        ObjectReferenceType archetypeRef = null;
-        if (task.getAssignment() == null || task.getAssignment().size() == 0) {
-            return archetypeRef;
-        }
-        for (AssignmentType assignment : task.getAssignment()) {
-            if (StringUtils.isNotEmpty(assignment.getTargetRef().getOid())
-                    && assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
-                archetypeRef = assignment.getTargetRef();
-            }
-        }
-        return archetypeRef;
     }
 
     private boolean isTaskItemReadable(PrismObjectWrapper<TaskType> taskWrapper, ItemPath itemPath){

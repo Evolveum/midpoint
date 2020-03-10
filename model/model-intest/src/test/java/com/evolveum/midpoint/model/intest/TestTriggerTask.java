@@ -52,9 +52,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     private MockTriggerHandler testTriggerHandler;
     private MockMultipleTriggersHandler testMultipleTriggersHandler;
 
-    private XMLGregorianCalendar drakeValidFrom;
-    private XMLGregorianCalendar drakeValidTo;
-
     @Autowired
     private TriggerHandlerRegistry triggerHandlerRegistry;
 
@@ -66,7 +63,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // TODO Auto-generated method stub
         super.initSystem(initTask, initResult);
 
         testTriggerHandler = new MockTriggerHandler();
@@ -78,13 +74,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100ImportScannerTask() throws Exception {
-        final String TEST_NAME = "test100ImportScannerTask";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         // Make sure there is an object with a trigger set to a long time ago.
         // That trigger should be invoked on first run.
         addTrigger(USER_JACK_OID, LONG_LONG_TIME_AGO, MockTriggerHandler.HANDLER_URI);
@@ -112,12 +102,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test105NoTrigger() throws Exception {
-        final String TEST_NAME = "test105NoTrigger";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -140,12 +125,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test110TriggerCalledAgain() throws Exception {
-        final String TEST_NAME = "test110TriggerCalledAgain";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -171,12 +151,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test120TwoTriggers() throws Exception {
-        final String TEST_NAME = "test120TwoTriggers";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -205,12 +180,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test130TwoTriggersSame() throws Exception {
-        final String TEST_NAME = "test130TwoTriggersSame";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -235,12 +205,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test135TwoTriggersSamePlusOne() throws Exception {
-        final String TEST_NAME = "test135TwoTriggersSamePlusOne";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -267,12 +232,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test140TwoTriggersSameAggregable() throws Exception {
-        final String TEST_NAME = "test140TwoTriggersSameAggregable";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -298,19 +258,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test145TwoTriggersSamePlusOneAggregable() throws Exception {
-        final String TEST_NAME = "test145TwoTriggersSamePlusOneAggregable";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testMultipleTriggersHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
         startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
-        addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal, startCalPlus5ms), MockMultipleTriggersHandler.HANDLER_URI,
-                true);
+        addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal, startCalPlus5ms),
+                MockMultipleTriggersHandler.HANDLER_URI, true);
 
         /// WHEN
         when();
@@ -332,12 +287,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test147TwoTriggersIdempotent() throws Exception {
-        final String TEST_NAME = "test147TwoTriggersIdempotent";
-
-        // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
         testTriggerHandler.setIdempotent(true);
 
@@ -369,12 +318,6 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test150NoTriggerAgain() throws Exception {
-        final String TEST_NAME = "test115NoTriggerAgain";
-
-        // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -398,10 +341,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     // MID-4610
     @Test
     public void test160TwoTriggersFirstFails() throws Exception {
-        final String TEST_NAME = "test160TwoTriggersFirstFails";
-
-        // GIVEN
-        TestTriggerTask.class.getName();
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
@@ -413,13 +353,10 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         testTriggerHandler.setFailOnNextInvocation(true);
 
-        /// WHEN
         when();
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 10000);
 
-        // THEN
         then();
-
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
@@ -455,12 +392,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200TwoDistantTriggers() throws Exception {
-        final String TEST_NAME = "test200TwoDistantTriggers";
-
         // GIVEN
-        TestTriggerTask.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -488,10 +420,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
     // MID-4474
     @Test
     public void test210InterruptedScanner() throws Exception {
-        final String TEST_NAME = "test210InterruptedScanner";
-
         // GIVEN
-        TestTriggerTask.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();

@@ -98,7 +98,6 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     @Test
     public void test190GetResource() throws Exception {
-        final String TEST_NAME = "test190GetResource";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -119,7 +118,6 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     @Test
     public void test200AddAccountNullAttributes() throws Exception {
-        final String TEST_NAME = "test200AddAccountNullAttributes";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -175,7 +173,7 @@ public class TestDummyNegative extends AbstractDummyTest {
     }
 
     @Test
-    public void test210AddAccountNoObjectclass() throws Exception {
+    public void test210AddAccountNoObjectClass() throws Exception {
         // GIVEN
         Task task =getTestTask();
         OperationResult result = getTestOperationResult();
@@ -206,10 +204,8 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     @Test
     public void test220AddAccountNoResourceRef() throws Exception {
-        final String TEST_NAME = "test220AddAccountNoResourceRef";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -231,16 +227,14 @@ public class TestDummyNegative extends AbstractDummyTest {
             display("Expected exception", e);
         }
 
-        //FIXME: not sure, if this check is needed..if the reosurce is not specified, provisioning probably will be not called.
+        //FIXME: not sure, if this check is needed..if the resource is not specified, provisioning probably will be not called.
 //        syncServiceMock.assertNotifyFailureOnly();
     }
 
     @Test
     public void test221DeleteAccountResourceNotFound() throws Exception {
-        final String TEST_NAME = "test221DeleteAccountResourceNotFound";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -273,10 +267,8 @@ public class TestDummyNegative extends AbstractDummyTest {
      */
     @Test
     public void test230GetAccountDeletedShadow() throws Exception {
-        final String TEST_NAME = "test230GetAccountDeletedShadow";
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_MORGAN_FILE);
@@ -285,7 +277,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         repositoryService.deleteObject(ShadowType.class, shadowOid, result);
 
         // reset
-        task = taskManager.createTaskInstance(TestDummyNegative.class.getName() + "." + TEST_NAME);
+        task = createPlainTask();
         result = task.getResult();
         syncServiceMock.reset();
 

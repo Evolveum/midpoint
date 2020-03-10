@@ -14,54 +14,35 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSegregationOfDuties extends AbstractInitializedModelIntegrationTest {
 
@@ -87,12 +68,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     protected static final String ROLE_PRIZE_BRONZE_OID = "19f11686-df22-11e6-b0e9-835ed7ca08a5";
     protected static final String ROLE_PRIZE_BRONZE_SHIP = "Bronze";
     protected static final File ROLE_PRIZE_BRONZE_ENFORCED_FILE = new File(TEST_DIR, "role-prize-bronze-enforced.xml");
-    protected static final String ROLE_PRIZE_BRONZE_ENFORCED_OID = "702dc3c9-9755-4880-b132-cf82d5845dd9";
 
     // Red, green and blue: mutual exclusion (prune) in the metarole
 
     protected static final File ROLE_META_COLOR_FILE = new File(TEST_DIR, "role-meta-color.xml");
-    protected static final String ROLE_META_COLOR_OID = "0b759ce2-df29-11e6-a84c-9b213183a815";
 
     protected static final File ROLE_COLOR_RED_FILE = new File(TEST_DIR, "role-color-red.xml");
     protected static final String ROLE_COLOR_RED_OID = "eaa4ec3e-df28-11e6-9cca-336e0346d5cc";
@@ -112,7 +91,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     // Executive / controlling exclusion roles
 
     protected static final File ROLE_META_EXECUTIVE_FILE = new File(TEST_DIR, "role-meta-executive.xml");
-    protected static final String ROLE_META_EXECUTIVE_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee00";
 
     protected static final File ROLE_EXECUTIVE_1_FILE = new File(TEST_DIR, "role-executive-1.xml");
     protected static final String ROLE_EXECUTIVE_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee01";
@@ -121,7 +99,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     protected static final String ROLE_EXECUTIVE_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee02";
 
     protected static final File ROLE_META_CONTROLLING_FILE = new File(TEST_DIR, "role-meta-controlling.xml");
-    protected static final String ROLE_META_CONTROLLING_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc00";
 
     protected static final File ROLE_CONTROLLING_1_FILE = new File(TEST_DIR, "role-controlling-1.xml");
     protected static final String ROLE_CONTROLLING_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc01";
@@ -186,8 +163,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test110SimpleExclusion1() throws Exception {
-        final String TEST_NAME = "test110SimpleExclusion1";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -210,7 +185,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     /**
@@ -218,8 +193,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test120SimpleExclusion2() throws Exception {
-        final String TEST_NAME = "test120SimpleExclusion2";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -237,17 +210,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         }
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test130SimpleExclusionBoth1() throws Exception {
-        final String TEST_NAME = "test130SimpleExclusionBoth1";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -261,17 +232,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test140SimpleExclusionBoth2() throws Exception {
-        final String TEST_NAME = "test140SimpleExclusionBoth2";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -285,17 +254,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test150SimpleExclusionBothBidirectional1() throws Exception {
-        final String TEST_NAME = "test150SimpleExclusionBothBidirectional1";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_THIEF_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -309,17 +276,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test160SimpleExclusionBothBidirectional2() throws Exception {
-        final String TEST_NAME = "test160SimpleExclusionBothBidirectional2";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         modifications.add((createAssignmentModification(ROLE_THIEF_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -333,13 +298,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             System.out.println("Got expected exception: " + e.getMessage());
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test171SimpleExclusion1WithPolicyException() throws Exception {
-        final String TEST_NAME = "test171SimpleExclusion1WithPolicyException";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -354,13 +317,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test172SimpleExclusion2WithPolicyException() throws Exception {
-        final String TEST_NAME = "test172SimpleExclusion2WithPolicyException";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -375,13 +336,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test173SimpleExclusion3WithPolicyException() throws Exception {
-        final String TEST_NAME = "test173SimpleExclusion3WithPolicyException";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -396,13 +355,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test174SimpleExclusion4WithPolicyException() throws Exception {
-        final String TEST_NAME = "test174SimpleExclusion4WithPolicyException";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -417,7 +374,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     /**
@@ -427,8 +384,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test180JudgeExceptionalPirateAndThief() throws Exception {
-        final String TEST_NAME = "test180JudgeExceptionalPirateAndThief";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -453,7 +408,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     private Consumer<AssignmentType> getJudgeExceptionBlock(String excludedRoleName) {
@@ -466,12 +421,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test190DifferentRelations() throws Exception {
-        final String TEST_NAME = "test190DifferentRelations";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
         modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -484,17 +437,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test193BothRelationsApprover() throws Exception {
-        final String TEST_NAME = "test193BothRelationsApprover";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
         modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -507,17 +458,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_APPROVER, task, result);
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test194MemberAndManager() throws Exception {
-        final String TEST_NAME = "test194MemberAndManager";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, true)));
         modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, null, null, true)));
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
@@ -534,7 +483,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
             unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT, task, result);
         }
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     /**
@@ -542,8 +491,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test200GuybrushAssignRoleGold() throws Exception {
-        final String TEST_NAME = "test200GuybrushAssignRoleGold";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -575,8 +522,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test202GuybrushAssignRoleSilver() throws Exception {
-        final String TEST_NAME = "test202GuybrushAssignRoleSilver";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -609,8 +554,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test204GuybrushAssignRoleSailor() throws Exception {
-        final String TEST_NAME = "test204GuybrushAssignRoleSailor";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -638,14 +581,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
     }
 
-
     /**
      * MID-3685
      */
     @Test
     public void test206GuybrushAssignRoleBronze() throws Exception {
-        final String TEST_NAME = "test206GuybrushAssignRoleBronze";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -678,8 +618,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test208GuybrushUnassignRoleBronze() throws Exception {
-        final String TEST_NAME = "test208GuybrushUnassignRoleSilver";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -710,8 +648,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test209GuybrushUnassignRoleSailor() throws Exception {
-        final String TEST_NAME = "test209GuybrushUnassignRoleSailor";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -735,13 +671,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     /**
      * There's an inherent conflict on resource attribute preventing the two roles to be assigned at once.
      * Original enforcement hook reacted too late so the "Attempt to replace 2 values to a single-valued item" comes first.
-     *
+     * <p>
      * MID-4797
      */
     @Test
     public void test209aGuybrushAssignRoleGoldAndSilverEnforced() throws Exception {
-        final String TEST_NAME = "test209aGuybrushAssignRoleGoldAndSilverEnforced";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -772,8 +706,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test209bGuybrushAssignRoleGoldAndSilver() throws Exception {
-        final String TEST_NAME = "test209bGuybrushAssignRoleGoldAndSilver";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -804,8 +736,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test210GuybrushAssignRoleRed() throws Exception {
-        final String TEST_NAME = "test210GuybrushAssignRoleRed";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -835,8 +765,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test212GuybrushAssignRoleGreen() throws Exception {
-        final String TEST_NAME = "test212GuybrushAssignRoleGreen";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -867,8 +795,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test214GuybrushAssignRoleColorNone() throws Exception {
-        final String TEST_NAME = "test214GuybrushAssignRoleColorNone";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -897,8 +823,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test216GuybrushAssignRoleBlue() throws Exception {
-        final String TEST_NAME = "test216GuybrushAssignRoleBlue";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -926,8 +850,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test219GuybrushUnassignRoleBlue() throws Exception {
-        final String TEST_NAME = "test219GuybrushUnassignRoleBlue";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -953,8 +875,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test220GuybrushAssignRoleBlue() throws Exception {
-        final String TEST_NAME = "test220GuybrushAssignRoleBlue";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -985,8 +905,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test221GuybrushDestroyAndRecompute() throws Exception {
-        final String TEST_NAME = "test221GuybrushDestroyAndRecompute";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1025,8 +943,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test222GuybrushDestroyAndAssignRoleRed() throws Exception {
-        final String TEST_NAME = "test222GuybrushDestroyAndAssignRoleRed";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1053,7 +969,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
         assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
 
-        String shadowAfterOid = getSingleLinkOid(userAfter);
+        getSingleLinkOid(userAfter);
 
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -1062,8 +978,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test229GuybrushUnassignRoleRed() throws Exception {
-        final String TEST_NAME = "test229GuybrushUnassignRoleRed";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1092,8 +1006,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test230GuybrushAssignRoleRedAndBlueAndGreen() throws Exception {
-        final String TEST_NAME = "test230GuybrushAssignRoleRedAndBlueAndGreen";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1125,8 +1037,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test240GuybrushAssignRoleExecutiveOne() throws Exception {
-        final String TEST_NAME = "test240GuybrushAssignRoleExecutiveOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1149,14 +1059,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test242GuybrushAssignRoleControllingOne() throws Exception {
-        final String TEST_NAME = "test242GuybrushAssignRoleControllingOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
 
         // THEN
         assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
@@ -1167,8 +1075,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test244GuybrushAssignRoleExecutiveTwo() throws Exception {
-        final String TEST_NAME = "test244GuybrushAssignRoleExecutiveTwo";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1192,14 +1098,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test245GuybrushAssignRoleControllingTwo() throws Exception {
-        final String TEST_NAME = "test245GuybrushAssignRoleControllingTwo";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CONTROLLING_2_OID, task, result);
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(USER_GUYBRUSH_OID, ROLE_CONTROLLING_2_OID, task, result);
 
         // THEN
         assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
@@ -1212,8 +1116,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test246GuybrushUnassignRoleExecutiveOne() throws Exception {
-        final String TEST_NAME = "test246GuybrushUnassignRoleExecutiveOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1236,14 +1138,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test247GuybrushAssignRoleControllingOne() throws Exception {
-        final String TEST_NAME = "test247GuybrushAssignRoleControllingOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
 
         // THEN
         assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
@@ -1256,8 +1156,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test249GuybrushUnassignRoleExecutiveTwo() throws Exception {
-        final String TEST_NAME = "test249GuybrushUnassignRoleExecutiveTwo";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1283,8 +1181,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test250GuybrushAssignRoleControllingOne() throws Exception {
-        final String TEST_NAME = "test250GuybrushAssignRoleControllingOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1307,14 +1203,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test252GuybrushAssignRoleExecutiveOne() throws Exception {
-        final String TEST_NAME = "test252GuybrushAssignRoleExecutiveOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
 
         // THEN
         assertAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
@@ -1325,8 +1219,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test259GuybrushUnassignRoleControllingOne() throws Exception {
-        final String TEST_NAME = "test259GuybrushUnassignRoleControllingOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1349,8 +1241,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test800ApplyGlobalPolicyRulesExclusion() throws Exception {
-        final String TEST_NAME = "test800ApplyGlobalPolicyRulesExclusion";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1370,8 +1260,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test810GuybrushAssignRoleCitizenSk() throws Exception {
-        final String TEST_NAME = "test810GuybrushAssignRoleCitizenSk";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1391,14 +1279,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test812GuybrushAssignRoleCitizenUs() throws Exception {
-        final String TEST_NAME = "test812GuybrushAssignRoleCitizenUs";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CITIZEN_US_OID, task, result);
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(USER_GUYBRUSH_OID, ROLE_CITIZEN_US_OID, task, result);
 
         // THEN
         assertAssignedRole(userAfter, ROLE_CITIZEN_SK_OID);
@@ -1409,8 +1295,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test814GuybrushAssignRoleEmpty() throws Exception {
-        final String TEST_NAME = "test814GuybrushAssignRoleEmpty";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1431,8 +1315,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test818GuybrushUnassignRoleCitizenSk() throws Exception {
-        final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1455,8 +1337,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test819GuybrushUnassignRoleEmpty() throws Exception {
-        final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1480,8 +1360,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test820GuybrushAssignRoleCriminal() throws Exception {
-        final String TEST_NAME = "test820GuybrushAssignRoleCriminal";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1505,8 +1383,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test822GuybrushAssignRoleMinister() throws Exception {
-        final String TEST_NAME = "test822GuybrushAssignRoleMinister";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1529,8 +1405,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test826GuybrushUnassignRoleCriminal() throws Exception {
-        final String TEST_NAME = "test826GuybrushUnassignRoleCriminal";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1551,8 +1425,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test829GuybrushUnassignRoleMinister() throws Exception {
-        final String TEST_NAME = "test829GuybrushUnassignRoleMinister";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1573,8 +1445,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test900ApplyGlobalPolicyRulesSoDApproval() throws Exception {
-        final String TEST_NAME = "test900ApplyGlobalPolicyRulesSoDApproval";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1591,7 +1461,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertEquals("Wrong number of global policy rules", NUMBER_OF_GLOBAL_POLICY_RULES + 2, globalPolicyRules.size());
     }
 
-
     /**
      * Minister and Criminal are mutually exclusive. There is not enforcement for
      * this in the roles. But now there is a global policy rule that drives this through
@@ -1599,8 +1468,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test920GuybrushAssignRoleCriminal() throws Exception {
-        final String TEST_NAME = "test920GuybrushAssignRoleCriminal";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1628,8 +1495,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
      */
     @Test
     public void test922GuybrushPreviewAssignRoleMinister() throws Exception {
-        final String TEST_NAME = "test922GuybrushPreviewAssignRoleMinister";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1670,7 +1535,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
         display("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
-        EvaluatedPolicyRuleTrigger situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
+        EvaluatedPolicyRuleTrigger situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
         display("Situation trigger", situationTrigger);
         PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
         display("Actions", sodActions);
@@ -1679,13 +1544,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     private void assertPolicyActionApproval(EvaluatedPolicyRule evaluatedPolicyRule) {
         PolicyActionsType actions = evaluatedPolicyRule.getActions();
-        assertNotNull("No policy actions in "+evaluatedPolicyRule, actions);
-        assertFalse("No approval action in "+evaluatedPolicyRule, actions.getApproval().isEmpty());
+        assertNotNull("No policy actions in " + evaluatedPolicyRule, actions);
+        assertFalse("No approval action in " + evaluatedPolicyRule, actions.getApproval().isEmpty());
     }
 
     private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
-        assertEquals("Wrong number of triggers in evaluated policy rule "+evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
+        assertEquals("Wrong number of triggers in evaluated policy rule " + evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
     }
 
     private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
@@ -1693,11 +1558,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         return triggers.iterator().next();
     }
 
-    private EvaluatedPolicyRuleTrigger getEvaluatedPolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule,
+    private EvaluatedPolicyRuleTrigger getEvaluatedPolicyRuleTrigger(
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
         return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
     }
-
 
     private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
         return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
@@ -1705,8 +1569,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @Test
     public void test929GuybrushUnassignRoleCriminal() throws Exception {
-        final String TEST_NAME = "test929GuybrushUnassignRoleCriminal";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1728,14 +1590,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     /**
      * This does not work because of current optimizations regarding non-default relations:
      * "2018-02-19 17:02:15,977 [main] DEBUG (c.e.m.model.impl.lens.AssignmentEvaluator): Skipping processing of assignment target 9577bd6c-dd5d-48e5-bbb1-554bba5db9be because
-     *     relation {http://midpoint.evolveum.com/xml/ns/public/common/org-3}approver is configured for recompute skip (mode=ZERO)"
-     *
+     * relation {http://midpoint.evolveum.com/xml/ns/public/common/org-3}approver is configured for recompute skip (mode=ZERO)"
+     * <p>
      * i.e. it works only when evaluateAllAssignmentRelationsOnRecompute option is set
      */
     @Test(enabled = false)
     public void test950JackSelfExclusion() throws Exception {
-        final String TEST_NAME = "test950JackSelfExclusion";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1760,13 +1620,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_OID, SchemaConstants.ORG_APPROVER, task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     @Test
     public void test952JackSelfExclusionManagerMember() throws Exception {
-        final String TEST_NAME = "test952JackSelfExclusionManagerMember";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1789,14 +1647,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         unassignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID, SchemaConstants.ORG_DEFAULT, task, result);
 
-        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertAssignedNoRole(USER_JACK_OID, result);
     }
 
     // MID-5207
     @Test
     public void test960JimGoldByMapping() throws Exception {
-        final String TEST_NAME = "test960JimGoldByMapping";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1805,7 +1661,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         UserType jim = new UserType(prismContext)
                 .name("jim")
                 .beginAssignment()
-                    .targetRef(ROLE_PRIZE_SILVER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_PRIZE_SILVER_OID, RoleType.COMPLEX_TYPE)
                 .end();
         addObject(jim.asPrismObject());
 
@@ -1827,7 +1683,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
     }
 
-    private PrismObject<UserType> assignRolePolicyFailure(String TEST_NAME, String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, SecurityViolationException {
+    private PrismObject<UserType> assignRolePolicyFailure(
+            String userOid, String roleOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            SecurityViolationException {
         try {
             // WHEN
 
@@ -1849,15 +1709,4 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, roleOid);
         return userAfter;
     }
-
-    private void assertPolicySituation(PrismObject<UserType> user, String targetOid, String... expectedPolicySituation) {
-        for (AssignmentType assignment: user.asObjectable().getAssignment()) {
-            ObjectReferenceType targetRef = assignment.getTargetRef();
-            if (targetRef != null && targetOid.equals(targetRef.getOid())) {
-                PrismAsserts.assertSets("Wrong policy situation for target "+targetOid+" in "+user, assignment.getPolicySituation(), expectedPolicySituation);
-            }
-        }
-    }
-
-
 }

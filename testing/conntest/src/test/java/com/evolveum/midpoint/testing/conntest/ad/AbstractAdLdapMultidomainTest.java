@@ -18,6 +18,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -93,6 +97,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     protected static final String ACCOUNT_JACK_FULL_NAME = "Jack Sparrow";
     protected static final String ACCOUNT_JACK_PASSWORD = "qwe.123";
 
+    protected static final String ACCOUNT_HT_UID = "ht";
+    protected static final String ACCOUNT_HT_CN = "Herman Toothrot";
+    protected static final String ACCOUNT_HT_GIVENNAME = "Herman";
+    protected static final String ACCOUNT_HT_SN = "Toothrot";
+    protected static final String ACCOUNT_HT_SN_MODIFIED = "Torquemeda Marley";
+
+    protected static final String ACCOUNT_HTM_UID = "htm";
+    protected static final String ACCOUNT_HTM_CN = "Horatio Torquemada Marley";
+
     protected static final String USER_CPTBARBOSSA_FULL_NAME = "Captain Hector Barbossa";
 
     private static final String GROUP_PIRATES_NAME = "pirates";
@@ -141,6 +154,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     private static final String USER_GUYBRUSH_PASSWORD_123 = "wanna.be.a.123";
     private static final String USER_GUYBRUSH_PASSWORD_333 = "wanna.be.a.333";
 
+    private static final String VERY_STRANGE_PARAMETER = "This iš a véry stándže p§räméteř!";
+
     private boolean allowDuplicateSearchResults = false;
 
     protected String jackAccountOid;
@@ -174,7 +189,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     @Override
     protected String getSyncTaskOid() {
-        return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
+        return "0f93d8d4-5fb4-11ea-8571-a3f090bf921f";
     }
 
     @Override
@@ -309,6 +324,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME));
         cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME));
         cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME));
+        cleanupDelete(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN));
+        cleanupDelete(toAccountDn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
         cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
         cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_ALT_NAME));
         cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME));
@@ -935,6 +952,50 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+//        assertLdapConnectorInstances(2);
+    }
+
+    /**
+     * MID-4385
+     */
+    @Test
+    public void test216ModifyAccountBarbossaUserParameters() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+                .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+        QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_PARAMETERS_NAME);
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        assertNotNull("No definition for attribute " + attrQName, attrDef);
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+                ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, VERY_STRANGE_PARAMETER);
+        delta.addModification(attrDelta);
+
+        // WHEN
+        when();
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, ATTRIBUTE_USER_PARAMETERS_NAME, VERY_STRANGE_PARAMETER);
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, ATTRIBUTE_OBJECT_CATEGORY_NAME, OBJECT_CATEGORY_PERSON);
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
+
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+        assertModelShadow(shadowOid)
+                .attributes()
+                    .attribute(ATTRIBUTE_USER_PARAMETERS_NAME)
+                        .assertRealValues(VERY_STRANGE_PARAMETER);
 
 //        assertLdapConnectorInstances(2);
     }
@@ -2121,6 +2182,72 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         // TODO
 
 //        assertLdapConnectorInstances(2);
+    }
+
+    // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
+    // More experiments are needed, but only after we migrate our old AD servers.
+    @Test(enabled=false)
+    public void test900ImportSyncTask() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        long tsStart = System.currentTimeMillis();
+
+        // WHEN
+        when();
+        addObject(getSyncTaskFile(), task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+
+        long tsEnd = System.currentTimeMillis();
+
+        assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
+    }
+
+    // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
+    // More experiments are needed, but only after we migrate our old AD servers.
+    @Test(enabled=false)
+    public void test901SyncAddAccountHt() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        long tsStart = System.currentTimeMillis();
+
+        // WHEN
+        when();
+        addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        long tsEnd = System.currentTimeMillis();
+
+        displayUsers();
+
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
+        assertNotNull("No user " + ACCOUNT_HT_UID + " created", user);
+        assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
+
+        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
+    }
+
+    protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
+            throws ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult("assertStepSyncToken");
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
+        PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
+        assertNotNull("No sync token", syncTokenProperty);
+        assertNotNull("No sync token value", syncTokenProperty.getRealValue());
+        assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));
+        assertSuccess(result);
     }
 
     @Override

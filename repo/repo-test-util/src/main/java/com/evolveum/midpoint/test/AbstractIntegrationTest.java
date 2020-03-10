@@ -27,7 +27,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -134,6 +133,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected static final String OPENDJ_GROUPS_SUFFIX = "ou=groups,dc=example,dc=com";
 
     protected static final Random RND = new Random();
+
+    private static final String MACRO_TEST_NAME_TRACER_PARAM = "testName";
+    private static final String MACRO_TEST_NAME_SHORT_TRACER_PARAM = "testNameShort";
 
     private static final float FLOAT_EPSILON = 0.001f;
 
@@ -255,16 +257,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * This implementation fully overrides version from {@link AbstractSpringTest}.
      */
     @BeforeMethod
-    public void startTestContext(ITestResult testResult) {
+    public void startTestContext(ITestResult testResult) throws SchemaException {
         Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
         String testMethodName = testResult.getMethod().getMethodName();
-
-        displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
+        String testName = testClass.getSimpleName() + "." + testMethodName;
+        displayTestTitle(testName);
 
         Task task = createTask(testMethodName);
-        // TODO inttest do we need that subresult? :-) (Virgo's brave new world)
-        // If this exist for some "optional richer tracing", why not switch it on with some System property?
-        // maybe it doesn't break tests, but changes traceability/maintenance?
+        // TODO inttest: add tracing facility - ideally without the need to create subresult
 //        OperationResult rootResult = task.getResult();
 //        TracingProfileType tracingProfile = getTestMethodTracingProfile();
 //        CompiledTracingProfile compiledTracingProfile = tracingProfile != null ?
@@ -278,8 +278,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 //        task.setResult(result);
 
         MidpointTestContextWithTask.create(testClass, testMethodName, task, task.getResult());
-        // TODO inttest: remove after fix in TracerImpl
-        TestNameHolder.setCurrentTestName(contextName());
+        tracer.setTemplateParametersCustomizer(params -> {
+            params.put(MACRO_TEST_NAME_TRACER_PARAM, testName);
+            params.put(MACRO_TEST_NAME_SHORT_TRACER_PARAM, testMethodName);
+        });
     }
 
     /**
@@ -340,6 +342,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     /**
      * Returns default pre-created test-method-scoped {@link Task}.
+     * This fails if test-method context is not available.
      */
     protected Task getTestTask() {
         return MidpointTestContextWithTask.get().getTask();
@@ -347,10 +350,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     /**
      * Creates new {@link Task} with operation name prefixed with {@link #contextName()}.
-     * For most tests this should be unnecessary and the default test-method-scoped task
+     * For many tests this is not necessary and the default test-method-scoped task
      * that can be obtained with {@link #getTestTask()} should be enough.
-     * Even for multi-threaded tests we may not need the whole task - instead
-     * {@link #createSubresult(String)} should suffice.
+     * If more tasks are needed this method creates plain task without customization, see
+     * also {@link #createTask} for customized task.
+     * <p>
+     * This is useful for multi-threaded tests where we need local task.
+     * It is recommended to include method name and/or other info into parameter as only
+     * the current class name will be available as default contextual information - even
+     * this may be name of a inner class (e.g. anonymous runnable).
      */
     protected Task createPlainTask(String operationName) {
         String rootOpName = operationName != null
@@ -597,32 +605,35 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return prismObject.asObjectable();
     }
 
-    protected static <T> T unmarshallValueFromFile(File file, Class<T> clazz)
-            throws IOException, JAXBException, SchemaException {
+    protected static <T> T unmarshalValueFromFile(File file, Class<T> clazz)
+            throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(file);
     }
 
-    protected static <T> T unmarshallValueFromFile(String filePath, Class<T> clazz)
-            throws IOException, JAXBException, SchemaException {
+    protected static <T> T unmarshalValueFromFile(String filePath, Class<T> clazz)
+            throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(new File(filePath));
     }
 
-    protected static ObjectType unmarshallValueFromFile(String filePath) throws IOException,
-            JAXBException, SchemaException {
-        return unmarshallValueFromFile(filePath, ObjectType.class);
+    protected static ObjectType unmarshalValueFromFile(String filePath)
+            throws IOException, SchemaException {
+        return unmarshalValueFromFile(filePath, ObjectType.class);
     }
 
-    protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, OperationResult result)
-            throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    protected PrismObject<ResourceType> addResourceFromFile(
+            File file, String connectorType, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResourceFromFile(file, connectorType, false, result);
     }
 
-    protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, boolean overwrite, OperationResult result)
-            throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    protected PrismObject<ResourceType> addResourceFromFile(
+            File file, String connectorType, boolean overwrite, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResourceFromFile(file, Collections.singletonList(connectorType), overwrite, result);
     }
 
-    protected PrismObject<ResourceType> addResourceFromFile(File file, List<String> connectorTypes, boolean overwrite, OperationResult result)
+    protected PrismObject<ResourceType> addResourceFromFile(
+            File file, List<String> connectorTypes, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         logger.trace("addObjectFromFile: {}, connector types {}", file, connectorTypes);
         PrismObject<ResourceType> resource = prismContext.parseObject(file);
@@ -690,7 +701,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         resourceType.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
     }
 
-    protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, String connectorName, String connectorType, OperationResult result)
+    protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource,
+            String connectorName, String connectorType, OperationResult result)
             throws SchemaException {
         ResourceType resourceType = resource.asObjectable();
         PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
@@ -740,7 +752,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         List<ObjectPolicyConfigurationType> current = new ArrayList<>();
         List<ObjectPolicyConfigurationType> currentForTasks = new ArrayList<>();
-        final ConflictResolutionActionType ACTION_FOR_TASKS = ConflictResolutionActionType.NONE;
+        final ConflictResolutionActionType actionForTasks = ConflictResolutionActionType.NONE;
         for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
             if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
                 current.add(c);
@@ -760,11 +772,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     .deleteRealValues(current)
                     .asItemDelta());
         }
-        if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != ACTION_FOR_TASKS) {
+        if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != actionForTasks) {
             ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType(prismContext)
                     .type(TaskType.COMPLEX_TYPE)
                     .beginConflictResolution()
-                    .action(ACTION_FOR_TASKS)
+                    .action(actionForTasks)
                     .end();
             itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
                     .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
@@ -782,14 +794,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected void assumeResourceAssigmentPolicy(String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    protected void assumeResourceAssigmentPolicy(
+            String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(legalize);
         applySyncSettings(ResourceType.class, resourceOid, ResourceType.F_PROJECTION, syncSettings);
     }
 
-    protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    protected void deleteResourceAssigmentPolicy(
+            String oid, AssignmentPolicyEnforcementType policy, boolean legalize)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(legalize);
@@ -800,12 +816,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(deleteAssigmentEnforcement);
 
-        OperationResult result = new OperationResult("Aplying sync settings");
+        OperationResult result = createOperationResult("Applying sync settings");
 
         repositoryService.modifyObject(ResourceType.class, oid, modifications, result);
-        display("Aplying sync settings result", result);
+        display("Applying sync settings result", result);
         result.computeStatus();
-        TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
+        TestUtil.assertSuccess("Applying sync settings failed (result)", result);
     }
 
     protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
@@ -825,13 +841,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().container()
                 .createModificationReplaceContainerCollection(itemName, objectDefinition, syncSettings.asPrismContainerValue());
 
-        OperationResult result = new OperationResult("Aplying sync settings");
+        OperationResult result = new OperationResult("Applying sync settings");
 
         repositoryService.modifyObject(clazz, oid, modifications, result);
         invalidateSystemObjectsCache();
-        display("Aplying sync settings result", result);
+        display("Applying sync settings result", result);
         result.computeStatus();
-        TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
+        TestUtil.assertSuccess("Applying sync settings failed (result)", result);
     }
 
     protected void invalidateSystemObjectsCache() {
@@ -1402,14 +1418,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertSyncToken(String syncTaskOid, Object expectedValue) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".assertSyncToken");
-        Task task = taskManager.getTask(syncTaskOid, result);
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         assertSyncToken(task, expectedValue, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
 
     protected void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Task task = taskManager.getTask(syncTaskOid, result);
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         assertSyncToken(task, expectedValue, result);
     }
 
@@ -1825,7 +1841,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     @SuppressWarnings("unused")
     protected void displayHEREHERE() {
-        IntegrationTestTools.display("HEREHERE");
+        display(contextName() + "HEREHERE");
     }
 
     public static void display(String message, SearchResultEntry response) {
@@ -2041,6 +2057,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .level(TracingLevelType.MINIMAL)
                 .<TracingProfileType>end()
                 .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
+    }
+
+    protected Task createTracedTask() {
+        return createTracedTask(null);
     }
 
     protected Task createTracedTask(String operationName) {
@@ -2882,8 +2902,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
     }
 
-    protected void removeGlobalTracingOverride() {
-        taskManager.removeGlobalTracingOverride();
+    protected void unsetGlobalTracingOverride() {
+        taskManager.unsetGlobalTracingOverride();
     }
 
     protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {

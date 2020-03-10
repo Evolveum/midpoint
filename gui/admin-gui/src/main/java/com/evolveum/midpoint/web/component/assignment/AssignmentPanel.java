@@ -897,7 +897,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                         if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
                             PrismReferenceValueWrapperImpl<ObjectReferenceType> refWrapper = targetRef.getValues().get(0);
                             if (!StringUtils.isEmpty(refWrapper.getNewValue().getOid())) {
-                                Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(refWrapper.getRealValue().getType()).getClassDefinition();
+                                    Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(refWrapper.getRealValue().getType()).getClassDefinition();
                                 WebComponentUtil.dispatchToObjectDetailsPage(targetClass, refWrapper.getNewValue().getOid(), AssignmentPanel.this, false);
                             }
                         }

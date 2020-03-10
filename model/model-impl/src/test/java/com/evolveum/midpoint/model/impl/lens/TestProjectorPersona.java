@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -25,17 +22,9 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProjectorPersona extends AbstractLensTest {
 
@@ -45,15 +34,12 @@ public class TestProjectorPersona extends AbstractLensTest {
         setDefaultUserTemplate(USER_TEMPLATE_OID);
         addObject(ROLE_PERSONA_ADMIN_FILE);
         InternalMonitor.reset();
-//        InternalMonitor.setTraceShadowFetchOperation(true);
     }
 
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
-        final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjectorPersona.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -101,11 +87,7 @@ public class TestProjectorPersona extends AbstractLensTest {
         assertNotNull("No personaConstruction", personaConstruction);
         PersonaConstructionType personaConstructionType = personaConstruction.getConstructionType();
         assertNotNull("No personaConstructionType", personaConstructionType);
-        assertTrue("Wrong type: "+personaConstructionType.getTargetType(), QNameUtil.match(UserType.COMPLEX_TYPE, personaConstructionType.getTargetType()));
+        assertTrue("Wrong type: " + personaConstructionType.getTargetType(), QNameUtil.match(UserType.COMPLEX_TYPE, personaConstructionType.getTargetType()));
         PrismAsserts.assertEqualsCollectionUnordered("Wrong subtype", personaConstructionType.getTargetSubtype(), "admin");
-
     }
-
-
-
 }

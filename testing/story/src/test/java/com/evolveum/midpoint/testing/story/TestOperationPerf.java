@@ -88,8 +88,6 @@ public class TestOperationPerf extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_ORDINARY_ROLES);
 
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
@@ -98,17 +96,15 @@ public class TestOperationPerf extends AbstractStoryTest {
 
     @Test
     public void test100AddAlice() throws Exception {
-        final String TEST_NAME = "test100AddAlice";
-        testAddUser(TEST_NAME, USER_ALICE_FILE, USER_ALICE_OID, 1);
+        testAddUser(USER_ALICE_FILE, USER_ALICE_OID, 1);
     }
 
     @Test
     public void test110AddBob() throws Exception {
-        final String TEST_NAME = "test110AddBob";
-        testAddUser(TEST_NAME, USER_BOB_FILE, USER_BOB_OID, 1);
+        testAddUser(USER_BOB_FILE, USER_BOB_OID, 1);
     }
 
-    public void testAddUser(final String TEST_NAME, File userFile, String userOid, int roles) throws Exception {
+    public void testAddUser(File userFile, String userOid, int roles) throws Exception {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();

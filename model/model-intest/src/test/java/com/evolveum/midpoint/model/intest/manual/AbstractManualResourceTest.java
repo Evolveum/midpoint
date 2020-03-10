@@ -346,7 +346,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
-        PrismContainerDefinition confContDef = configurationContainer.getDefinition();
+        PrismContainerDefinition<?> confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
         PrismProperty<String> propDefaultAssignee = configurationContainer.findProperty(CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME);
         assertNotNull("No defaultAssignee conf prop", propDefaultAssignee);
@@ -360,7 +360,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // THEN
         // The returned type should have the schema pre-parsed
-        assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
+        assertTrue(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
@@ -370,7 +370,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertTrue("Broken caching", resourceSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+        assertSame("Broken caching", resourceSchema, RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
 
         ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
@@ -703,7 +703,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     @Test
     public void test104RecomputeWill() throws Exception {
-        final String TEST_NAME = "test104RecomputeWill";
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1703,15 +1702,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // WHEN
         when();
-
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
                     login(userAdministrator);
-                    Task localTask = getTestTask();
+                    Task localTask = createTask(testName + "-thread-" + i);
 
                     assignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localTask.getResult());
-
-                }, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeAssign());
+                },
+                getConcurrentTestNumberOfThreads(),
+                getConcurrentTestRandomStartDelayRangeAssign());
 
         // THEN
         then();
@@ -1775,16 +1775,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("user before", userBefore);
         assertAssignments(userBefore, getConcurrentTestNumberOfThreads());
 
-        final long TIMEOUT = 60000L;
+        final long TIMEOUT = 60_000L;
 
         // WHEN
         when();
-
+        String testName = getTestNameShort();
         ParallelTestThread[] threads = multithread(
                 (i) -> {
                     display("Thread " + Thread.currentThread().getName() + " START");
                     login(userAdministrator);
-                    Task localTask = getTestTask();
+                    Task localTask = createTask(testName + "-thread-" + i);
                     OperationResult localResult = localTask.getResult();
 
                     unassignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localResult);
@@ -1792,8 +1792,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                     localResult.computeStatus();
 
                     display("Thread " + Thread.currentThread().getName() + " DONE, result", localResult);
-
-                }, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeUnassign());
+                },
+                getConcurrentTestNumberOfThreads(),
+                getConcurrentTestRandomStartDelayRangeUnassign());
 
         // THEN
         then();
@@ -2168,7 +2169,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
 
-    protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
+    protected void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
         assertNoAttribute(shadow.asObjectable(), attrName);
     }
 

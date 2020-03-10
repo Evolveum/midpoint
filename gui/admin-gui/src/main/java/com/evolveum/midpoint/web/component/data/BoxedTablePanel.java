@@ -141,7 +141,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     public int getAutoRefreshInterval() {
         return 0;
-    };
+    }
 
     public boolean isAutoRefreshEnabled() {
         return false;

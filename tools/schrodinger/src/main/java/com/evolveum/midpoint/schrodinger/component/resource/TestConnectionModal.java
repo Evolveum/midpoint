@@ -147,8 +147,6 @@ public class TestConnectionModal<T> extends ModalBox<T> {
         return isFailure;
     }
 
-    ;
-
     public T clickOk() {
 
         $(Schrodinger.byDataId("ok"))

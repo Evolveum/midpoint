@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.prism.impl.marshaller;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -218,11 +217,11 @@ public final class ItemPathHolder {
     //region Serializing
 
     public static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
-        return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath)).getXPathWithDeclarations();
+        return new ItemPathHolder(UniformItemPath.from(itemPath)).getXPathWithDeclarations();
     }
 
     public static String serializeWithForcedDeclarations(@NotNull ItemPath itemPath) {
-        return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath), true).getXPathWithDeclarations();
+        return new ItemPathHolder(UniformItemPath.from(itemPath), true).getXPathWithDeclarations();
     }
 
     private ItemPathHolder(@NotNull UniformItemPath itemPath) {
@@ -398,7 +397,7 @@ public final class ItemPathHolder {
     }
 
     public static Element serializeToElement(ItemPath path, QName elementQName, Document document) {
-        return new ItemPathHolder(UniformItemPathImpl.fromItemPath(path)).toElement(elementQName, document);
+        return new ItemPathHolder(UniformItemPath.from(path)).toElement(elementQName, document);
     }
 
     public Element toElement(QName elementQName, Document document) {
@@ -443,10 +442,10 @@ public final class ItemPathHolder {
             } else {
                 QName qName = segment.getQName();
                 boolean variable = segment.isVariable();
-                segments.add(UniformItemPathImpl.createSegment(qName, variable));
+                segments.add(UniformItemPath.createSegment(qName, variable));
             }
         }
-        UniformItemPath path = new UniformItemPathImpl(segments);
+        UniformItemPath path = UniformItemPath.create(segments);
         path.setNamespaceMap(explicitNamespaceDeclarations);
         return path;
     }

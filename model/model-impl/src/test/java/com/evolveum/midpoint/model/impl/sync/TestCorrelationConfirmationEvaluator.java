@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -30,19 +29,15 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelIntegrationTest {
 
@@ -60,10 +55,8 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
     @Autowired private ExpressionFactory expressionFactory;
 
     @Test
-    public void test001CorrelationOrFilter() throws Exception{
-        String TEST_NAME = "test001CorrelationOrFilter";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+    public void test001CorrelationOrFilter() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -89,14 +82,11 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         PrismObject<UserType> jack = matchedUsers.get(0);
         assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
-
     }
 
     @Test
-    public void test002CorrelationMoreThanOne() throws Exception{
-        String TEST_NAME = "test002CorrelationMoreThanOne";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+    public void test002CorrelationMoreThanOne() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -121,17 +111,12 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         PrismObject<UserType> jack = matchedUsers.get(0);
         assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
-
     }
 
     @Test
-    public void test003CorrelationWithCondition() throws Exception{
-        String TEST_NAME = "test003CorrelationWithCondition";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+    public void test003CorrelationWithCondition() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
-
-//        importObjectFromFile(USER_JACK_FILENAME);
 
         PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
         //assert jack
@@ -155,14 +140,11 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         PrismObject<UserType> jack = matchedUsers.get(0);
         assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
-
     }
 
     @Test
-    public void test004CorrelationMatchCaseInsensitive() throws Exception{
-        String TEST_NAME = "test004CorrelationMatchCaseInsensitive";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+    public void test004CorrelationMatchCaseInsensitive() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -172,24 +154,21 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE, RESOURCE_DUMMY_FILE, task, result);
 
-        try{
+        try {
             boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
 
             System.out.println("matched users " + matchedUsers);
 
             AssertJUnit.assertTrue(matchedUsers);
-        } catch (Exception ex){
-            LOGGER.error("exception occured: {}", ex.getMessage(), ex);
+        } catch (Exception ex) {
+            logger.error("exception occured: {}", ex.getMessage(), ex);
             throw ex;
         }
-
     }
 
     @Test
-    public void test005CorrelationMatchCaseInsensitive() throws Exception{
-        String TEST_NAME = "test005CorrelationMatchCaseInsensitive";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+    public void test005CorrelationMatchCaseInsensitive() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -199,17 +178,16 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER, RESOURCE_DUMMY_FILE, task, result);
 
-        try{
+        try {
             boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
 
             System.out.println("matched users " + matchedUsers);
 
             AssertJUnit.assertTrue(matchedUsers);
-        } catch (Exception ex){
-            LOGGER.error("exception occured: {}", ex.getMessage(), ex);
+        } catch (Exception ex) {
+            logger.error("exception occured: {}", ex.getMessage(), ex);
             throw ex;
         }
-
     }
 
     private SynchronizationContext<UserType> createSynchronizationContext(File account, String correlationFilter, File resource, Task task, OperationResult result) throws SchemaException, IOException {
@@ -234,14 +212,10 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         return syncCtx;
     }
 
-
     @Test
-    public void test006CorrelationFindCaseInsensitive() throws Exception{
-        String TEST_NAME = "test006CorrelationFindCaseInsensitive";
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
+    public void test006CorrelationFindCaseInsensitive() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
-
 
         PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
         //assert jack
@@ -269,6 +243,5 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         PrismObject<UserType> jack = matchedUsers.get(0);
         assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "JACK", "Jack Sparrow", "Jack", "Sparrow");
-
     }
 }

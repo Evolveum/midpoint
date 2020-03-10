@@ -1339,7 +1339,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test242AutzJackManagerFullControlManagerMinistryOfRum() throws Exception {
-        final String TEST_NAME = "test242AutzJackManagerFullControlManagerMinistryOfRum";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -1357,7 +1356,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         when();
 
-        assertJack24xManager(TEST_NAME, true);
+        assertJack24xManager(true);
 
         assertGlobalStateUntouched();
     }
@@ -1367,7 +1366,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test243AutzJackManagerFullControlManagerMinistryOfRumAndDefense() throws Exception {
-        final String TEST_NAME = "test243AutzJackManagerFullControlManagerMinistryOfRumAndDefense";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -1388,7 +1386,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         when();
 
-        assertJack24xManagerDefense(TEST_NAME, true);
+        assertJack24xManagerDefense(true);
 
         assertGlobalStateUntouched();
     }
@@ -1423,7 +1421,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test246AutzJackManagerUserAdminManagerMinistryOfRum() throws Exception {
-        final String TEST_NAME = "test246AutzJackManagerUserAdminManagerMinistryOfRum";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -1441,7 +1438,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         when();
 
-        assertJack24xManager(TEST_NAME, false);
+        assertJack24xManager(false);
 
         assertGlobalStateUntouched();
     }
@@ -1451,7 +1448,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
      */
     @Test
     public void test247AutzJackManagerUserAdminManagerMinistryOfRumAndDefense() throws Exception {
-        final String TEST_NAME = "test243AutzJackManagerFullControlManagerMinistryOfRumAndDefense";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -1470,7 +1466,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         when();
 
-        assertJack24xManagerDefense(TEST_NAME, false);
+        assertJack24xManagerDefense(false);
 
         assertGlobalStateUntouched();
     }
@@ -1504,7 +1500,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                         new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
     }
 
-    private void assertJack24xManager(final String TEST_NAME, boolean fullControl) throws Exception {
+    private void assertJack24xManager(boolean fullControl) throws Exception {
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -1530,7 +1526,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAddDenyRaw(USER_MANCOMB_FILE);
         assertAddAllow(USER_MANCOMB_FILE); // MID-3874
 
-        Task task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         try {
             addObject(ORG_CHEATERS_FILE, task, result); // MID-3874
@@ -1570,7 +1566,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // MID-2822
 
-        task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
+        task = createPlainTask();
         result = task.getResult();
 
         ObjectQuery query = prismContext.queryFactory().createQuery(
@@ -1599,7 +1595,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertVisibleUsers(4);
     }
 
-    private void assertJack24xManagerDefense(String TEST_NAME, boolean fullControl) throws Exception {
+    private void assertJack24xManagerDefense(boolean fullControl) throws Exception {
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -1654,7 +1650,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // MID-2822
 
-        Task task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = prismContext.queryFactory().createQuery(
@@ -2868,7 +2864,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     }
 
     private void assertCredentialsPolicy(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        OperationResult result = new OperationResult("assertCredentialsPolicy");
+        OperationResult result = createOperationResult("assertCredentialsPolicy");
         CredentialsPolicyType credentialsPolicy = modelInteractionService.getCredentialsPolicy(user, null, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -3003,7 +2999,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                         .assertNotNull()
                         .getFilter();
 
-        Task task = taskManager.createTaskInstance();
+        Task task = createPlainTask();
         SearchResultList<PrismObject<AbstractRoleType>> assignableRolesJack =
                 modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createQuery(jackAssignableRoleFilter), null, task, task.getResult());
         display("Assignable roles", assignableRolesJack);

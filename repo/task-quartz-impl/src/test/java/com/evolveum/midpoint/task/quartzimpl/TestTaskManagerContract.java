@@ -8,8 +8,8 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,14 +28,13 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -43,7 +42,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskConstants;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.test.Checker;
@@ -55,29 +58,33 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author Radovan Semancik
- */
-
-@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
+public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
     private static final String TASK_OWNER_FILENAME = "src/test/resources/basic/owner.xml";
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";
     private static final String TASK_OWNER2_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
     private static final String NS_WHATEVER = "http://myself.me/schemas/whatever";
 
-    private static String taskFilename(String test) {
-        return "src/test/resources/basic/task-" + test.substring(4) + ".xml";
+    private String taskFilename(String fileSuffix) {
+        return "src/test/resources/basic/task-" + getTestNameShort().substring(4) + fileSuffix + ".xml";
     }
 
-    private static String taskOid(String test, String subId) {
-        return "91919191-76e0-59e2-86d6-55665566" + subId + test.substring(4, 7);
+    private String taskFilename() {
+        return taskFilename("");
     }
 
-    private static String taskOid(String test) {
-        return taskOid(test, "0");
+    private String taskOid(String testNumber, String subId) {
+        return "91919191-76e0-59e2-86d6-55665566" + subId + testNumber;
+    }
+
+    private String taskOid(String subId) {
+        return taskOid(getTestNumber(), subId);
+    }
+
+    private String taskOid() {
+        return taskOid("0");
     }
 
     @BeforeSuite
@@ -108,86 +115,19 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test003GetProgress() throws Exception {
-        String TEST_NAME = "test003GetProgress";
-        OperationResult result = createResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
         logger.trace("Retrieving the task and getting its progress...");
 
-        TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
         AssertJUnit.assertEquals("Progress is not 0", 0, task.getProgress());
     }
 
-
-    @Test(enabled=false)          // this is probably OK to fail, so do not enable it (at least for now)
-    public void test004aTaskBigProperty() throws Exception {
-        String TEST_NAME = "test004aTaskBigProperty";
-        OperationResult result = createResult(TEST_NAME);
-
-        String string300 = "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-";
-        String string300a = "AAAAAAAAA-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-";
-
-        addObjectFromFile(taskFilename(TEST_NAME));
-
-        TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
-
-        // property definition
-        ItemName bigStringQName = new ItemName("http://midpoint.evolveum.com/repo/test", "bigString");
-        MutablePrismPropertyDefinition bigStringDefinition = prismContext.definitionFactory().createPropertyDefinition(bigStringQName, DOMUtil.XSD_STRING);
-        bigStringDefinition.setIndexed(false);
-        bigStringDefinition.setMinOccurs(0);
-        bigStringDefinition.setMaxOccurs(1);
-        System.out.println("bigstring property definition = " + bigStringDefinition);
-
-        PrismProperty<String> bigStringProperty = (PrismProperty<String>) bigStringDefinition.instantiate();
-        bigStringProperty.setRealValue(string300);
-        task.setExtensionProperty(bigStringProperty);
-
-        task.flushPendingModifications(result);
-
-        System.out.println("1st round: Task = " + task.debugDump());
-
-        logger.trace("Retrieving the task and comparing its properties...");
-
-        Task task001 = getTask(taskOid(TEST_NAME), result);
-        System.out.println("1st round: Task from repo: " + task001.debugDump());
-
-        PrismProperty<String> bigString001 = task001.getExtensionPropertyOrClone(bigStringQName);
-        assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
-
-        // second round
-
-        bigStringProperty.setRealValue(string300a);
-        task001.setExtensionProperty(bigStringProperty);
-
-        // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
-        task001.getExtensionPropertyOrClone(bigStringQName).getDefinition().toMutable().setIndexed(false);
-
-        System.out.println("2nd round: Task before save = " + task001.debugDump());
-        task001.flushPendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
-
-        Task task002 = getTask(taskOid(TEST_NAME), result);
-        System.out.println("2nd round: Task from repo: " + task002.debugDump());
-
-        PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(bigStringQName);
-        assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
-    }
-
     @Test
-    public void test004bTaskBigProperty() throws Exception {
-        String TEST_NAME = "test004aTaskBigProperty";
-        OperationResult result = createResult(TEST_NAME);
+    public void test004TaskBigProperty() throws Exception {
+        OperationResult result = createOperationResult();
 
         String string300 = "123456789-123456789-123456789-123456789-123456789-"
                 + "123456789-123456789-123456789-123456789-123456789-"
@@ -202,16 +142,18 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
                 + "123456789-123456789-123456789-123456789-123456789-"
                 + "123456789-123456789-123456789-123456789-123456789-";
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
         // property definition
         ItemName shipStateQName = new ItemName("http://myself.me/schemas/whatever", "shipState");
-        PrismPropertyDefinition shipStateDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
+        //noinspection unchecked
+        PrismPropertyDefinition<String> shipStateDefinition = (PrismPropertyDefinition<String>)
+                prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
         assertNotNull("Cannot find property definition for shipState", shipStateDefinition);
 
-        PrismProperty<String> shipStateProperty = (PrismProperty<String>) shipStateDefinition.instantiate();
+        PrismProperty<String> shipStateProperty = shipStateDefinition.instantiate();
         shipStateProperty.setRealValue(string300);
         task.setExtensionProperty(shipStateProperty);
 
@@ -221,7 +163,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         logger.trace("Retrieving the task and comparing its properties...");
 
-        Task task001 = getTask(taskOid(TEST_NAME), result);
+        Task task001 = getTaskWithResult(taskOid(), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
 
         PrismProperty<String> shipState001 = task001.getExtensionPropertyOrClone(shipStateQName);
@@ -235,195 +177,12 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.flushPendingModifications(result);
 
-        Task task002 = getTask(taskOid(TEST_NAME), result);
+        Task task002 = getTaskWithResult(taskOid(), result);
         System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
         PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(shipStateQName);
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
-
-    @Test(enabled = false)
-    public void test004cReferenceInExtension() throws Exception {               // ok to fail
-        String TEST_NAME = "test004cReferenceInExtension";
-        OperationResult result = createResult(TEST_NAME);
-        addObjectFromFile(taskFilename(TEST_NAME));
-
-        TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
-
-        System.out.println("Task extension = " + task.getExtensionOrClone());
-
-        //PrismObject<UserType> requestee = task.getOwner();
-        //task.setRequesteeRef(requestee);
-
-        //LOGGER.trace("Saving modifications...");
-        //task.flushPendingModifications(result);          // here it crashes
-
-        //LOGGER.trace("Retrieving the task and comparing its properties...");
-        //Task task001 = getTask(taskOid(test), result);
-        //LOGGER.trace("Task from repo: " + task001.debugDump());
-        //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
-    }
-
-    @Test(enabled = false)
-    public void test004TaskProperties() throws Exception {
-        String TEST_NAME = "test004TaskProperties";
-        OperationResult result = createResult(TEST_NAME);
-
-        addObjectFromFile(taskFilename(TEST_NAME));
-
-        TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
-
-        System.out.println("Task extension = " + task.getExtensionOrClone());
-
-        PrismPropertyDefinition delayDefinition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT);
-        System.out.println("property definition = " + delayDefinition);
-
-        PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
-        property.setRealValue(100);
-
-        PropertyDelta delta = prismContext.deltaFactory().property().create(ItemPath.create(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition());
-        //delta.addV(property.getValues());
-        delta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(property.getValues()));
-
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
-        modifications.add(delta);
-
-        // TODO fix this code
-//        Collection<ItemDeltaType> idts = DeltaConvertor.toPropertyModificationTypes(delta);
-//        for (ItemDeltaType idt : idts) {
-//            String idtxml = prismContext.getParserDom().marshalElementToString(idt, new QName("http://a/", "A"));
-//            System.out.println("item delta type = " + idtxml);
-//
-//            ItemDeltaType idt2 = prismContext.getPrismJaxbProcessor().unmarshalObject(idtxml, ItemDeltaType.class);
-//            ItemDelta id2 = DeltaConvertor.createItemDelta(idt2, TaskType.class, prismContext);
-//            System.out.println("unwrapped item delta = " + id2.debugDump());
-//
-//            task.modifyExtension(id2);
-//        }
-
-        task.flushPendingModifications(result);
-        System.out.println("Task = " + task.debugDump());
-
-        repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
-
-        task.setBindingImmediate(TaskBinding.LOOSE, result);
-
-        // other properties will be set in batched mode
-        String newname = "Test task, name changed";
-        task.setName(PrismTestUtil.createPolyStringType(newname));
-        task.setProgress(10L);
-        long currentTime = System.currentTimeMillis();
-        long currentTime1 = currentTime + 10000;
-        long currentTime2 = currentTime + 25000;
-        task.setLastRunStartTimestamp(currentTime);
-        task.setLastRunFinishTimestamp(currentTime1);
-        task.setExecutionStatus(TaskExecutionStatus.SUSPENDED);
-        task.setHandlerUri("http://no-handler.org/");
-        //task.setOwner(owner2);
-
-        ScheduleType st0 = task.getSchedule();
-
-        ScheduleType st1 = new ScheduleType();
-        st1.setInterval(1);
-        st1.setMisfireAction(MisfireActionType.RESCHEDULE);
-        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, createExtensionDelta(delayDefinition, 1,
-                prismContext));
-
-        ScheduleType st2 = new ScheduleType();
-        st2.setInterval(2);
-        st2.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, createExtensionDelta(delayDefinition, 2,
-                prismContext));
-
-        task.setRecurrenceStatus(TaskRecurrence.RECURRING);
-
-        OperationResultType ort = result.createOperationResultType();            // to be compared with later
-
-        task.setResult(result);
-
-        //PrismObject<UserType> requestee = task.getOwner();
-        //task.setRequesteeRef(requestee);      does not work
-        //task.setRequesteeOid(requestee.getOid());
-
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setType(UserType.COMPLEX_TYPE);
-        String objectOid = "some-oid...";
-        objectReferenceType.setOid(objectOid);
-        task.setObjectRef(objectReferenceType);
-
-        logger.trace("Saving modifications...");
-
-        task.flushPendingModifications(result);
-
-        logger.trace("Retrieving the task (second time) and comparing its properties...");
-
-        Task task001 = getTask(taskOid(TEST_NAME), result);
-        logger.trace("Task from repo: " + task001.debugDump());
-        AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
-        PrismAsserts.assertEqualsPolyString("Name not", newname, task001.getName());
-//        AssertJUnit.assertEquals(newname, task001.getName());
-        AssertJUnit.assertTrue(10 == task001.getProgress());
-        AssertJUnit.assertNotNull(task001.getLastRunStartTimestamp());
-        AssertJUnit.assertEquals("Start time is not correct", (Long) (currentTime / 1000L), (Long) (task001.getLastRunStartTimestamp() / 1000L));   // e.g. MySQL cuts off millisecond information
-        AssertJUnit.assertNotNull(task001.getLastRunFinishTimestamp());
-        AssertJUnit.assertEquals("Finish time is not correct", (Long) (currentTime1 / 1000L), (Long) (task001.getLastRunFinishTimestamp() / 1000L));
-//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
-        AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Handler after 2xPUSH is not OK", "http://no-handler.org/2", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Schedule after 2xPUSH is not OK", st2, task001.getSchedule());
-        AssertJUnit.assertEquals("Number of handlers is not OK", 3, task.getHandlersCount());
-        UriStack us = task.getOtherHandlersUriStack();
-        AssertJUnit.assertEquals("First handler from the handler stack does not match", "http://no-handler.org/", us.getUriStackEntry().get(0).getHandlerUri());
-        AssertJUnit.assertEquals("First schedule from the handler stack does not match", st0, us.getUriStackEntry().get(0).getSchedule());
-        AssertJUnit.assertEquals("Second handler from the handler stack does not match", "http://no-handler.org/1", us.getUriStackEntry().get(1).getHandlerUri());
-        AssertJUnit.assertEquals("Second schedule from the handler stack does not match", st1, us.getUriStackEntry().get(1).getSchedule());
-        AssertJUnit.assertTrue(task001.isRecurring());
-        OperationResult r001 = task001.getResult();
-        AssertJUnit.assertNotNull(r001);
-        //AssertJUnit.assertEquals("Owner OID is not correct", TASK_OWNER2_OID, task001.getOwner().getOid());
-
-        PrismProperty<?> d = task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
-        AssertJUnit.assertNotNull("delay extension property was not found", d);
-        AssertJUnit.assertEquals("delay extension property has wrong value", (Integer) 100, d.getRealValue(Integer.class));
-
-        OperationResultType ort1 = r001.createOperationResultType();
-
-        // handling of operation result in tasks is extremely fragile now...
-        // in case of problems, just uncomment the following line ;)
-        AssertJUnit.assertEquals(ort, ort1);
-
-        //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
-        //AssertJUnit.assertEquals("RequesteeOid was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeOid());
-
-        AssertJUnit.assertEquals("ObjectRef OID was not stored/retrieved correctly", objectReferenceType.getOid(), task001.getObjectRefOrClone().getOid());
-        AssertJUnit.assertEquals("ObjectRef ObjectType was not stored/retrieved correctly", objectReferenceType.getType(), task001.getObjectRefOrClone().getType());
-
-        // now pop the handlers
-
-        task001.finishHandler(result);
-        task001.refresh(result);
-        AssertJUnit.assertEquals("Handler URI after first POP is not correct", "http://no-handler.org/1", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Schedule after first POP is not correct", st1, task001.getSchedule());
-        AssertJUnit.assertEquals("Binding after first POP is not correct", TaskBinding.TIGHT, task001.getBinding());
-        AssertJUnit.assertNotSame("Task state after first POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
-
-        task001.finishHandler(result);
-        task001.refresh(result);
-        AssertJUnit.assertEquals("Handler URI after second POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Schedule after second POP is not correct", st0, task001.getSchedule());
-        AssertJUnit.assertEquals("Binding after second POP is not correct", TaskBinding.LOOSE, task001.getBinding());
-        AssertJUnit.assertNotSame("Task state after second POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
-
-        task001.finishHandler(result);
-        task001.refresh(result);
-        //AssertJUnit.assertNull("Handler URI after third POP is not null", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Handler URI after third POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Task state after third POP is not CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-
-    }
-
 
     /*
      * Execute a single-run task.
@@ -431,37 +190,36 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test005Single() throws Exception {
-        final String TEST_NAME = "test005Single";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // reset 'has run' flag on the handler
         singleHandler1.resetHasRun();
 
         // Add single task. This will get picked by task scanner and executed
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
         logger.trace("Retrieving the task...");
-        TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
+        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
-           AssertJUnit.assertNotNull(task);
-           logger.trace("Task retrieval OK.");
+        AssertJUnit.assertNotNull(task);
+        logger.trace("Task retrieval OK.");
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
         // task
 
-        waitForTaskClose(taskOid(TEST_NAME), result, 10000, 1000);
+        waitForTaskClose(taskOid(), result, 10000, 1000);
 
         logger.info("... done");
 
         // Check task status
 
-        Task task1 = getTask(taskOid(TEST_NAME), result);
+        Task task1 = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task1);
         System.out.println("getTask returned: " + task1.debugDump());
 
-        PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, taskOid(TEST_NAME), null, result);
+        PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, taskOid(), null, result);
         System.out.println("getObject returned: " + po.debugDump());
 
         // .. it should be closed
@@ -508,11 +266,10 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test006Cycle() throws Exception {
-        final String TEST_NAME = "test006Cycle";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // But before that check sanity ... a known problem with xsi:type
-        PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(TEST_NAME));
+        PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename());
 
         ObjectType objectType = object.asObjectable();
         TaskType addedTask = (TaskType) objectType;
@@ -534,16 +291,16 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
         // task
-        waitForTaskProgress(taskOid(TEST_NAME), result, 10000, 2000, 1);
+        waitForTaskProgress(taskOid(), result, 10000, 2000, 1);
 
         // Check task status
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
 
-        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(TEST_NAME), null, result);
+        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(), null, result);
         System.out.println(t.debugDump());
 
         // .. it should be running
@@ -589,26 +346,25 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test008MoreHandlers() throws Exception {
-        final String TEST_NAME = "test008MoreHandlers";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // reset 'has run' flag on handlers
         singleHandler1.resetHasRun();
         singleHandler2.resetHasRun();
         singleHandler3.resetHasRun();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        waitForTaskClose(taskOid(TEST_NAME), result, 15000, 2000);
+        waitForTaskClose(taskOid(), result, 15000, 2000);
 
         // Check task status
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(TEST_NAME), null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
@@ -645,24 +401,23 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test009CycleLoose() throws Exception {
-        final String TEST_NAME = "test009CycleLoose";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this task
 
-        waitForTaskProgress(taskOid(TEST_NAME), result, 15000, 2000, 1);
+        waitForTaskProgress(taskOid(), result, 15000, 2000, 1);
 
         // Check task status
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
 
-        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(TEST_NAME), null, result);
+        PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(), null, result);
         System.out.println(t.debugDump());
 
         // .. it should be running
@@ -690,21 +445,20 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test010CycleCronLoose() throws Exception {
-        final String TEST_NAME = "test010CycleCronLoose";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        waitForTaskProgress(taskOid(TEST_NAME), result, 15000, 2000, 2);
+        waitForTaskProgress(taskOid(), result, 15000, 2000, 2);
 
         // Check task status
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
 
-        TaskType t = repositoryService.getObject(TaskType.class, taskOid(TEST_NAME), null, result).getValue().getValue();
+        TaskType t = repositoryService.getObject(TaskType.class, taskOid(), null, result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
@@ -728,26 +482,25 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test011MoreHandlersAndSchedules() throws Exception {
-        final String TEST_NAME = "test011MoreHandlersAndSchedules";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // reset 'has run' flag on handlers
         l1Handler.resetHasRun();
         l2Handler.resetHasRun();
         l3Handler.resetHasRun();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        waitForTaskClose(taskOid(TEST_NAME), result, 30000, 2000);
+        waitForTaskClose(taskOid(), result, 30000, 2000);
 
         // Check task status
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(TEST_NAME), null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
@@ -791,27 +544,26 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     }
 
     /*
-    * Suspends a running task.
-    */
+     * Suspends a running task.
+     */
 
     @Test
     public void test012Suspend() throws Exception {
-        final String TEST_NAME = "test012Suspend";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-          addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
         // check if we can read the extension (xsi:type issue)
 
-        Task taskTemp = getTask(taskOid(TEST_NAME), result);
-        PrismProperty delay = taskTemp.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
+        Task taskTemp = getTaskWithResult(taskOid(), result);
+        PrismProperty<?> delay = taskTemp.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
-        waitForTaskProgress(taskOid(TEST_NAME), result, 10000, 2000, 1);
+        waitForTaskProgress(taskOid(), result, 10000, 2000, 1);
 
         // Check task status (task is running 5 iterations where each takes 2000 ms)
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
@@ -842,24 +594,23 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test013ReleaseAndSuspendLooselyBound() throws Exception {
-        final String TEST_NAME = "test013ReleaseAndSuspendLooselyBound";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
         // check if we can read the extension (xsi:type issue)
 
-        PrismProperty delay = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty<?> delay = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 1000, delay.getRealValue());
 
         // let us resume (i.e. start the task)
         taskManager.resumeTask(task, result);
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
-        waitForTaskProgress(taskOid(TEST_NAME), result, 10000, 2000, 1);
+        waitForTaskProgress(taskOid(), result, 10000, 2000, 1);
 
         task.refresh(result);
 
@@ -899,15 +650,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test014SuspendLongRunning() throws Exception {
-        final String TEST_NAME = "test014SuspendLongRunning";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
-        waitForTaskStart(taskOid(TEST_NAME), result, 10000, 2000);
+        waitForTaskStart(taskOid(), result, 10000, 2000);
 
         task.refresh(result);
 
@@ -958,11 +708,10 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test015DeleteTaskFromRepo() throws Exception {
-        final String TEST_NAME = "test015DeleteTaskFromRepo";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
-        String oid = taskOid(TEST_NAME);
+        addObjectFromFile(taskFilename());
+        String oid = taskOid();
 
         // is the task in Quartz?
 
@@ -971,7 +720,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // Remove task from repo
 
-        repositoryService.deleteObject(TaskType.class, taskOid(TEST_NAME), result);
+        repositoryService.deleteObject(TaskType.class, taskOid(), result);
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this task
@@ -989,102 +738,92 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
             public void timeout() {
             }
         }, 10000, 2000);
-
     }
 
     @Test
     public void test016WaitForSubtasks() throws Exception {
-        final String TEST_NAME = "test016WaitForSubtasks";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        //taskManager.getClusterManager().startClusterManagerThread();
+        Task rootTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename()), result);
+        Task firstChildTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename("-child-1")), result);
 
-        try {
+        Task firstReloaded = taskManager.getTaskByIdentifier(firstChildTask.getTaskIdentifier(), result);
+        assertEquals("Didn't get correct task by identifier", firstChildTask.getOid(), firstReloaded.getOid());
 
-            Task rootTask = taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME)), result);
-            Task firstChildTask = taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME + "-child-1")), result);
+        Task secondChildTask = rootTask.createSubtask();
+        secondChildTask.setName("Second child");
+        secondChildTask.setOwner(rootTask.getOwner());
+        secondChildTask.pushHandlerUri(SINGLE_TASK_HANDLER_URI, new ScheduleType(), null);
+        secondChildTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
+        taskManager.switchToBackground(secondChildTask, result);
 
-            Task firstReloaded = taskManager.getTaskByIdentifier(firstChildTask.getTaskIdentifier(), result);
-            assertEquals("Didn't get correct task by identifier", firstChildTask.getOid(), firstReloaded.getOid());
+        Task firstPrerequisiteTask = taskManager.createTaskInstance(
+                addObjectFromFile(taskFilename("-prerequisite-1")), result);
 
-            Task secondChildTask = rootTask.createSubtask();
-            secondChildTask.setName("Second child");
-            secondChildTask.setOwner(rootTask.getOwner());
-            secondChildTask.pushHandlerUri(SINGLE_TASK_HANDLER_URI, new ScheduleType(), null);
-            secondChildTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
-            taskManager.switchToBackground(secondChildTask, result);
+        List<Task> prerequisities = rootTask.listPrerequisiteTasks(result);
+        assertEquals("Wrong # of prerequisite tasks", 1, prerequisities.size());
+        assertEquals("Wrong OID of prerequisite task", firstPrerequisiteTask.getOid(), prerequisities.get(0).getOid());
 
-            Task firstPrerequisiteTask = taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME + "-prerequisite-1")), result);
+        Task secondPrerequisiteTask = taskManager.createTaskInstance();
+        secondPrerequisiteTask.setName("Second prerequisite");
+        secondPrerequisiteTask.setOwner(rootTask.getOwner());
+        secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
+        secondPrerequisiteTask.pushHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI, new ScheduleType(), null);
+        secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
+        secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
+        secondPrerequisiteTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
+        secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
+        taskManager.switchToBackground(secondPrerequisiteTask, result);
 
-            List<Task> prerequisities = rootTask.listPrerequisiteTasks(result);
-            assertEquals("Wrong # of prerequisite tasks", 1, prerequisities.size());
-            assertEquals("Wrong OID of prerequisite task", firstPrerequisiteTask.getOid(), prerequisities.get(0).getOid());
+        logger.info("Starting waiting for child/prerequisite tasks");
+        rootTask.startWaitingForTasksImmediate(result);
 
-            Task secondPrerequisiteTask = taskManager.createTaskInstance();
-            secondPrerequisiteTask.setName("Second prerequisite");
-            secondPrerequisiteTask.setOwner(rootTask.getOwner());
-            secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
-            secondPrerequisiteTask.pushHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI, new ScheduleType(), null);
-            secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
-            secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
-            secondPrerequisiteTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
-            secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
-            taskManager.switchToBackground(secondPrerequisiteTask, result);
+        firstChildTask.refresh(result);
+        assertEquals("Parent is not set correctly on 1st child task", rootTask.getTaskIdentifier(), firstChildTask.getParent());
+        secondChildTask.refresh(result);
+        assertEquals("Parent is not set correctly on 2nd child task", rootTask.getTaskIdentifier(), secondChildTask.getParent());
+        firstPrerequisiteTask.refresh(result);
+        assertEquals("Dependents are not set correctly on 1st prerequisite task (count differs)", 1, firstPrerequisiteTask.getDependents().size());
+        assertEquals("Dependents are not set correctly on 1st prerequisite task (value differs)", rootTask.getTaskIdentifier(), firstPrerequisiteTask.getDependents().get(0));
+        List<Task> deps = firstPrerequisiteTask.listDependents(result);
+        assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (count differs)", 1, deps.size());
+        assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
+        secondPrerequisiteTask.refresh(result);
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task (count differs)", 1, secondPrerequisiteTask.getDependents().size());
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task (value differs)", rootTask.getTaskIdentifier(), secondPrerequisiteTask.getDependents().get(0));
+        deps = secondPrerequisiteTask.listDependents(result);
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (count differs)", 1, deps.size());
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
 
-            logger.info("Starting waiting for child/prerequisite tasks");
-            rootTask.startWaitingForTasksImmediate(result);
+        logger.info("Resuming suspended child/prerequisite tasks");
+        taskManager.resumeTask(secondChildTask, result);
+        taskManager.resumeTask(secondPrerequisiteTask, result);
 
-            firstChildTask.refresh(result);
-            assertEquals("Parent is not set correctly on 1st child task", rootTask.getTaskIdentifier(), firstChildTask.getParent());
-            secondChildTask.refresh(result);
-            assertEquals("Parent is not set correctly on 2nd child task", rootTask.getTaskIdentifier(), secondChildTask.getParent());
-            firstPrerequisiteTask.refresh(result);
-            assertEquals("Dependents are not set correctly on 1st prerequisite task (count differs)", 1, firstPrerequisiteTask.getDependents().size());
-            assertEquals("Dependents are not set correctly on 1st prerequisite task (value differs)", rootTask.getTaskIdentifier(), firstPrerequisiteTask.getDependents().get(0));
-            List<Task> deps = firstPrerequisiteTask.listDependents(result);
-            assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (count differs)", 1, deps.size());
-            assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
-            secondPrerequisiteTask.refresh(result);
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task (count differs)", 1, secondPrerequisiteTask.getDependents().size());
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task (value differs)", rootTask.getTaskIdentifier(), secondPrerequisiteTask.getDependents().get(0));
-            deps = secondPrerequisiteTask.listDependents(result);
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (count differs)", 1, deps.size());
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
+        final String rootOid = taskOid();
 
-            logger.info("Resuming suspended child/prerequisite tasks");
-            taskManager.resumeTask(secondChildTask, result);
-            taskManager.resumeTask(secondPrerequisiteTask, result);
+        waitForTaskClose(rootOid, result, 60000, 3000);
 
-            final String rootOid = taskOid(TEST_NAME);
+        firstChildTask.refresh(result);
+        secondChildTask.refresh(result);
+        firstPrerequisiteTask.refresh(result);
+        secondPrerequisiteTask.refresh(result);
 
-            waitForTaskClose(rootOid, result, 60000, 3000);
-
-            firstChildTask.refresh(result);
-            secondChildTask.refresh(result);
-            firstPrerequisiteTask.refresh(result);
-            secondPrerequisiteTask.refresh(result);
-
-            assertEquals("1st child task should be closed", TaskExecutionStatus.CLOSED, firstChildTask.getExecutionStatus());
-            assertEquals("2nd child task should be closed", TaskExecutionStatus.CLOSED, secondChildTask.getExecutionStatus());
-            assertEquals("1st prerequisite task should be closed", TaskExecutionStatus.CLOSED, firstPrerequisiteTask.getExecutionStatus());
-            assertEquals("2nd prerequisite task should be closed", TaskExecutionStatus.CLOSED, secondPrerequisiteTask.getExecutionStatus());
-
-        } finally {
-//            taskManager.getClusterManager().stopClusterManagerThread(10000L, result);
-        }
+        assertEquals("1st child task should be closed", TaskExecutionStatus.CLOSED, firstChildTask.getExecutionStatus());
+        assertEquals("2nd child task should be closed", TaskExecutionStatus.CLOSED, secondChildTask.getExecutionStatus());
+        assertEquals("1st prerequisite task should be closed", TaskExecutionStatus.CLOSED, firstPrerequisiteTask.getExecutionStatus());
+        assertEquals("2nd prerequisite task should be closed", TaskExecutionStatus.CLOSED, secondPrerequisiteTask.getExecutionStatus());
     }
 
     @Test
     public void test017WaitForSubtasksEmpty() throws Exception {
-        final String TEST_NAME = "test017WaitForSubtasksEmpty";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         taskManager.getClusterManager().startClusterManagerThread();
 
         try {
-            Task rootTask = taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME)), result);
+            Task rootTask = createTaskFromFile(taskFilename(), result);
             display("root task", rootTask);
-            waitForTaskClose(taskOid(TEST_NAME), result, 40000, 3000);
+            waitForTaskClose(taskOid(), result, 40000, 3000);
         } finally {
             taskManager.getClusterManager().stopClusterManagerThread(10000L, result);
         }
@@ -1092,8 +831,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test018TaskResult() throws Exception {
-        final String TEST_NAME = "test018RefreshingResult";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         Task task = taskManager.createTaskInstance();
         task.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
@@ -1119,24 +857,23 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test019FinishedHandler() throws Exception {
-        final String TEST_NAME = "test019FinishedHandler";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // reset 'has run' flag on handlers
         singleHandler1.resetHasRun();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        waitForTaskClose(taskOid(TEST_NAME), result, 15000, 2000);
+        waitForTaskClose(taskOid(), result, 15000, 2000);
 
         // Check task status
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
 
         AssertJUnit.assertNotNull(task);
         System.out.println(task.debugDump());
 
-        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(TEST_NAME), null, result);
+        PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
 
         // .. it should be closed
@@ -1168,10 +905,9 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test020QueryByExecutionStatus() throws Exception {
-        final String TEST_NAME = "test020QueryByExecutionStatus";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME)), result);
+        addObjectFromFile(taskFilename());
 
         ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
         ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
@@ -1188,12 +924,11 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test021DeleteTaskTree() throws Exception {
-        final String TEST_NAME = "test021DeleteTaskTree";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        PrismObject<TaskType> parentTaskPrism = addObjectFromFile(taskFilename(TEST_NAME));
-        PrismObject<TaskType> childTask1Prism = addObjectFromFile(taskFilename(TEST_NAME+"-child1"));
-        PrismObject<TaskType> childTask2Prism = addObjectFromFile(taskFilename(TEST_NAME+"-child2"));
+        PrismObject<TaskType> parentTaskPrism = addObjectFromFile(taskFilename());
+        PrismObject<TaskType> childTask1Prism = addObjectFromFile(taskFilename("-child1"));
+        PrismObject<TaskType> childTask2Prism = addObjectFromFile(taskFilename("-child2"));
 
         AssertJUnit.assertEquals(TaskExecutionStatusType.WAITING, parentTaskPrism.asObjectable().getExecutionStatus());
         AssertJUnit.assertEquals(TaskExecutionStatusType.SUSPENDED, childTask1Prism.asObjectable().getExecutionStatus());
@@ -1220,35 +955,33 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         try {
             repositoryService.getObject(TaskType.class, childTask1.getOid(), null, result);
-            assertTrue("Task " + childTask1 + " was not deleted from the repository", false);
+            fail("Task " + childTask1 + " was not deleted from the repository");
         } catch (ObjectNotFoundException e) {
             // ok!
         }
 
         try {
             repositoryService.getObject(TaskType.class, childTask2.getOid(), null, result);
-            assertTrue("Task " + childTask2 + " was not deleted from the repository", false);
+            fail("Task " + childTask2 + " was not deleted from the repository");
         } catch (ObjectNotFoundException e) {
             // ok!
         }
 
         try {
             repositoryService.getObject(TaskType.class, parentTask.getOid(), null, result);
-            assertTrue("Task " + parentTask + " was not deleted from the repository", false);
+            fail("Task " + parentTask + " was not deleted from the repository");
         } catch (ObjectNotFoundException e) {
             // ok!
         }
-
     }
 
     @Test
     public void test022ExecuteRecurringOnDemand() throws Exception {
-        final String TEST_NAME = "test022ExecuteRecurringOnDemand";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
         System.out.println("Waiting to see if the task would not start...");
@@ -1266,7 +999,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         taskManager.scheduleRunnableTaskNow(task, result);
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
-        waitForTaskProgress(taskOid(TEST_NAME), result, 10000, 2000, 1);
+        waitForTaskProgress(taskOid(), result, 10000, 2000, 1);
 
         task.refresh(result);
         System.out.println("After refresh: " + task.debugDump());
@@ -1288,13 +1021,12 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test100LightweightSubtasks() throws Exception {
-        final String TEST_NAME = "test100LightweightSubtasks";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        String taskOid = taskOid(TEST_NAME);
-        Task task = getTask(taskOid, result);
+        String taskOid = taskOid();
+        Task task = getTaskWithResult(taskOid, result);
         System.out.println("After setup: " + task.debugDump());
 
         checkTaskStateRepeatedly(taskOid, result, 15000, 20);
@@ -1318,13 +1050,13 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() < start + duration) {
             Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-                    .item(TaskType.F_SUBTASK).retrieve()
+                    .item(TaskType.F_SUBTASK_REF).retrieve()
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
             OperationStatsType stats = task.getOperationStats();
             Integer totalSuccessCount = stats != null && stats.getIterativeTaskInformation() != null ?
                     stats.getIterativeTaskInformation().getTotalSuccessCount() : null;
-            System.out.println((System.currentTimeMillis()-start) + ": subtasks: " + task.getSubtaskRef().size() +
+            System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
             if (task.getExecutionStatus() != TaskExecutionStatusType.RUNNABLE) {
                 System.out.println("Done. Status = " + task.getExecutionStatus());
@@ -1336,15 +1068,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test105LightweightSubtasksSuspension() throws Exception {
-        final String TEST_NAME = "test105LightweightSubtasksSuspension";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename());
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        Task task = getTaskWithResult(taskOid(), result);
         System.out.println("After setup: " + task.debugDump());
 
-        waitForTaskStart(taskOid(TEST_NAME), result, 15000, 500);
+        waitForTaskStart(taskOid(), result, 15000, 500);
 
         task.refresh(result);
         System.out.println("After refresh (task was started; and it should run now): " + task.debugDump());
@@ -1385,14 +1116,13 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test108SecondaryGroupLimit() throws Exception {
-        final String TEST_NAME = "test108SecondaryGroupLimit";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        TaskType task1 = (TaskType) addObjectFromFile(taskFilename()).asObjectable();
         waitForTaskStart(task1.getOid(), result, 10000, 500);
 
         // import second task with the same group (expensive)
-        TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
+        TaskType task2 = (TaskType) addObjectFromFile(taskFilename("-2")).asObjectable();
 
         Thread.sleep(10000);
         task1 = getTaskType(task1.getOid(), result);
@@ -1410,7 +1140,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         waitForTaskStart(task2Oid, result, 10000, 500);
 
         // import third task that has another collision (large-ram) with the second one
-        TaskType task3 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-3")).asObjectable();
+        TaskType task3 = (TaskType) addObjectFromFile(taskFilename("-3")).asObjectable();
 
         Thread.sleep(10000);
         task2 = getTaskType(task2Oid, result);
@@ -1444,16 +1174,15 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test110GroupLimit() throws Exception {
-        final String TEST_NAME = "test110GroupLimit";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         taskManager.getExecutionManager().setLocalExecutionLimitations((TaskExecutionLimitationsType) null);
 
-        TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        TaskType task1 = (TaskType) addObjectFromFile(taskFilename()).asObjectable();
         waitForTaskStart(task1.getOid(), result, 10000, 500);
 
         // import second task with the same group
-        TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
+        TaskType task2 = (TaskType) addObjectFromFile(taskFilename("-2")).asObjectable();
 
         Thread.sleep(10000);
         task1 = getTaskType(task1.getOid(), result);
@@ -1474,7 +1203,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     private TaskType getTaskType(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         Collection<SelectorOptions<GetOperationOptions>> options = retrieveItemsNamed(
-                TaskType.F_SUBTASK,
+                TaskType.F_SUBTASK_REF,
                 TaskType.F_NODE_AS_OBSERVED,
                 TaskType.F_NEXT_RUN_START_TIMESTAMP,
                 TaskType.F_NEXT_RETRY_TIMESTAMP);
@@ -1483,8 +1212,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test120NodeAllowed() throws Exception {
-        final String TEST_NAME = "test120NodeAllowed";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         taskManager.getExecutionManager().setLocalExecutionLimitations(
                 new TaskExecutionLimitationsType()
@@ -1492,7 +1220,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
                         .groupLimitation(new TaskGroupExecutionLimitationType().groupName(null))
                         .groupLimitation(new TaskGroupExecutionLimitationType().groupName(TaskConstants.LIMIT_FOR_OTHER_GROUPS).limit(0)));
 
-        TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        TaskType task = (TaskType) addObjectFromFile(taskFilename()).asObjectable();
         waitForTaskStart(task.getOid(), result, 10000, 500);
         task = getTaskType(task.getOid(), result);
         assertNotNull("Task was not started even if it should be", task.getLastRunStartTimestamp());
@@ -1500,10 +1228,9 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test130NodeNotAllowed() throws Exception {
-        final String TEST_NAME = "test130NodeNotAllowed";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        TaskType task = (TaskType) addObjectFromFile(taskFilename()).asObjectable();
         Thread.sleep(10000);
         task = getTaskType(task.getOid(), result);
         assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
@@ -1511,9 +1238,55 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     }
 
     @Test
+    public void test200RetrieveSubtasks() throws Exception {
+        final OperationResult result = createOperationResult();
+
+        String rootOid = addObjectFromFile(taskFilename()).getOid();
+        String child1Oid = addObjectFromFile(taskFilename("-child-1")).getOid();
+        String child11Oid = addObjectFromFile(taskFilename("-child-1-1")).getOid();
+        String child2Oid = addObjectFromFile(taskFilename("-child-2")).getOid();
+
+        Collection<SelectorOptions<GetOperationOptions>> withChildren = schemaHelper.getOperationOptionsBuilder()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+
+        TaskType getTaskPlain_rootNoChildren = taskManager.getTaskPlain(rootOid, null, result).getUpdatedTaskObject().asObjectable();
+        TaskType getTaskPlain_rootWithChildren = taskManager.getTaskPlain(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable();
+        assertEquals("Wrong # of children", 0, getTaskPlain_rootNoChildren.getSubtaskRef().size());
+        assertEquals("Wrong # of children", 0, getTaskPlain_rootWithChildren.getSubtaskRef().size());
+
+        TaskType getTask_rootNoChildren = taskManager.getTask(rootOid, null, result).getUpdatedTaskObject().asObjectable();
+        TaskType getTask_rootWithChildren = taskManager.getTask(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable();
+        assertEquals("Wrong # of children", 0, getTask_rootNoChildren.getSubtaskRef().size());
+        assertTaskTree(getTask_rootWithChildren, child1Oid, child2Oid, child11Oid);
+
+        TaskType getObject_rootNoChildren = taskManager.getObject(TaskType.class, rootOid, null, result).asObjectable();
+        TaskType getObject_rootWithChildren = taskManager.getObject(TaskType.class, rootOid, withChildren, result).asObjectable();
+        assertEquals("Wrong # of children", 0, getObject_rootNoChildren.getSubtaskRef().size());
+        assertTaskTree(getObject_rootWithChildren, child1Oid, child2Oid, child11Oid);
+
+        ObjectQuery query = prismContext.queryFor(TaskType.class).id(rootOid).build();
+        TaskType searchObjects_rootNoChildren = extractSingleton(taskManager.searchObjects(TaskType.class, query, null, result)).asObjectable();
+        TaskType searchObjects_rootWithChildren = extractSingleton(taskManager.searchObjects(TaskType.class, query, withChildren, result)).asObjectable();
+        assertEquals("Wrong # of children", 0, searchObjects_rootNoChildren.getSubtaskRef().size());
+        assertTaskTree(searchObjects_rootWithChildren, child1Oid, child2Oid, child11Oid);
+    }
+
+    private void assertTaskTree(TaskType rootWithChildren, String child1Oid, String child2Oid, String child11Oid) {
+        assertEquals("Wrong # of children of root", 2, rootWithChildren.getSubtaskRef().size());
+        TaskType child1 = TaskTypeUtil.findChild(rootWithChildren, child1Oid);
+        TaskType child2 = TaskTypeUtil.findChild(rootWithChildren, child2Oid);
+        assertNotNull(child1);
+        assertNotNull(child2);
+        assertEquals("Wrong # of children of child1", 1, child1.getSubtaskRef().size());
+        assertEquals("Wrong # of children of child2", 0, child2.getSubtaskRef().size());
+        TaskType child11 = TaskTypeUtil.findChild(child1, child11Oid);
+        assertNotNull(child11);
+    }
+
+    @Test
     public void test999CheckingLeftovers() throws Exception {
-        String TEST_NAME = "test999CheckingLeftovers";
-        OperationResult result = createResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ArrayList<String> leftovers = new ArrayList<>();
         checkLeftover(leftovers, "test005", result);
@@ -1542,6 +1315,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         checkLeftover(leftovers, "test110", "a", result);
         checkLeftover(leftovers, "test120", result);
         checkLeftover(leftovers, "test130", result);
+        checkLeftover(leftovers, "test200", result);
 
         StringBuilder message = new StringBuilder("Leftover task(s) found:");
         for (String leftover : leftovers) {
@@ -1559,10 +1333,10 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         String oid = taskOid(testNumber, subId);
         Task t;
         try {
-            t = getTask(oid, result);
+            t = getTaskWithResult(oid, result);
         } catch (ObjectNotFoundException e) {
             // this is OK, test probably did not start
-            logger.info("Check leftovers: Task " + oid + " does not exist.");
+            logger.info("Check leftovers: Task {} does not exist.", oid);
             return;
         }
 
@@ -1574,7 +1348,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         }
     }
 
-    private TaskQuartzImpl getTask(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return taskManager.getTask(oid, retrieveItemsNamed(TaskType.F_RESULT), result);
+    private TaskQuartzImpl getTaskWithResult(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return taskManager.getTaskWithResult(oid, result);
     }
 }

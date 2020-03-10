@@ -6,6 +6,16 @@ package com.evolveum.midpoint.testing.story;
  * and European Union Public License. See LICENSE file for details.
  */
 
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -16,19 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
-
-import java.io.File;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -42,7 +42,6 @@ public class TestDependencyRename extends AbstractStoryTest {
     protected static final File RESOURCE_DUMMY_PHONEBOOK_FILE = new File(TEST_DIR, "resource-dummy-phonebook.xml");
     protected static final String RESOURCE_DUMMY_PHONEBOOK_ID = "phonebook";
     protected static final String RESOURCE_DUMMY_PHONEBOOK_OID = "10000000-0000-0000-0000-000000000001";
-    protected static final String RESOURCE_DUMMY_PHONEBOOK_NAMESPACE = MidPointConstants.NS_RI;
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
@@ -76,7 +75,7 @@ public class TestDependencyRename extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -102,8 +101,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_PHONEBOOK_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -112,12 +110,9 @@ public class TestDependencyRename extends AbstractStoryTest {
         TestUtil.assertSuccess(testResultOpenDj);
     }
 
-
-
     @Test
     public void test100AddUserHerman() throws Exception {
-        final String TEST_NAME = "test100AddUserHerman";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUserDefinition().instantiate();
@@ -143,11 +138,9 @@ public class TestDependencyRename extends AbstractStoryTest {
         assertNoAssignments(userAfter);
     }
 
-
     @Test
     public void test110HermanAssignRoleBasic() throws Exception {
-        final String TEST_NAME = "test110HermanAssignRoleBasic";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -180,8 +173,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 
     @Test
     public void test112HermanRename() throws Exception {
-        final String TEST_NAME = "test112HermanRename";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -214,8 +206,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 
     @Test
     public void test120AddUserCapsizeWithBasicRole() throws Exception {
-        final String TEST_NAME = "test120AddUserCapsizeWithBasicRole";
-        Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUserDefinition().instantiate();
@@ -251,7 +242,6 @@ public class TestDependencyRename extends AbstractStoryTest {
         display("Shadow opendj after", shadowOpenDj);
         assertShadowSecondaryIdentifier(shadowOpenDj, openDJController.getAccountDn(USER_CAPSIZE_USERNAME_FINAL), resourceOpenDjType, caseIgnoreMatchingRule);
     }
-
 
     protected void assertUserHerman(PrismObject<UserType> user, String username) {
         assertUser(user, username, USER_HERMAN_GIVEN_NAME, USER_HERMAN_FAMILY_NAME);

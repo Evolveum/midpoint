@@ -21,14 +21,12 @@ import java.io.File;
 
 /**
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityMedium extends AbstractSecurityTest {
 
     protected static final File USER_EMPLOYEE_FRED_FILE = new File(TEST_DIR, "user-employee-fred.xml");
-    protected static final String USER_EMPLOYEE_FRED_OID = "4e63d9a2-d575-11e9-9c19-cb0e0207a10e";
 
     protected static final File ROLE_EMPLOYEE_MANAGER_FILE = new File(TEST_DIR, "role-employee-manager.xml");
     protected static final String ROLE_EMPLOYEE_MANAGER_OID = "5549cb8e-d573-11e9-a61e-7f2eff22715a";
@@ -53,7 +51,6 @@ public class TestSecurityMedium extends AbstractSecurityTest {
      */
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -77,7 +74,6 @@ public class TestSecurityMedium extends AbstractSecurityTest {
      */
     @Test
     public void test100AutzEmployeeManager() throws Exception {
-        final String TEST_NAME = "test100AutzEmployeeManager";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_MANAGER_OID);
@@ -107,7 +103,6 @@ public class TestSecurityMedium extends AbstractSecurityTest {
      */
     @Test
     public void test102AutzEmployeeManagerAddEmployee() throws Exception {
-        final String TEST_NAME = "test102AutzEmployeeManagerAddEmployee";
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_MANAGER_OID);
@@ -126,6 +121,4 @@ public class TestSecurityMedium extends AbstractSecurityTest {
         assertDeleteDeny();
         assertGlobalStateUntouched();
     }
-
-
 }

@@ -123,7 +123,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         getObjectObjectPostProcessor().postProcess(provider);
 
         return provider;
-    };
+    }
 
     protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
         return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfig((LdapModuleWebSecurityConfiguration) configuration));

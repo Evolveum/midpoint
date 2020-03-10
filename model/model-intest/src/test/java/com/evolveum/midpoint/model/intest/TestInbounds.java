@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,12 +31,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katkav
  * @author semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
@@ -56,8 +56,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         // GIVEN
         Task task = getTestTask();
 
@@ -75,8 +73,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test101ModifyUserSubtypePirate() throws Exception {
-        final String TEST_NAME = "test101ModifyUserSubtypePirate";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -97,29 +93,27 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         jackEmployeeNumber = assertUserAfter(USER_JACK_OID)
-            .assertDescription("Where's the rum?")
-            .assignments()
+                .assertDescription("Where's the rum?")
+                .assignments()
                 .single()
-                    .assertRole(ROLE_PIRATE_GREEN_OID)
-                    .metadata()
-                        .assertOriginMappingName("pirate-assignment")
-                        .end()
-                    .end()
+                .assertRole(ROLE_PIRATE_GREEN_OID)
+                .metadata()
+                .assertOriginMappingName("pirate-assignment")
                 .end()
-            .assertLinks(1)
-            .assertOrganizationalUnits("The crew of pirate")
-            .assertEmployeeNumber()
-            .getObject().asObjectable().getEmployeeNumber();
+                .end()
+                .end()
+                .assertLinks(1)
+                .assertOrganizationalUnits("The crew of pirate")
+                .assertEmployeeNumber()
+                .getObject().asObjectable().getEmployeeNumber();
     }
 
     /**
      * Switch subtype from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
-     * true. For the same role assignement value. So nothing should be changed.
+     * true. For the same role assignment value. So nothing should be changed.
      */
     @Test
     public void test102ModifyUserSubtypeBuccaneer() throws Exception {
-        final String TEST_NAME = "test102ModifyUserSubtypeBuccaneer";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -136,24 +130,22 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .assertDescription("Where's the rum?")
-            .assignments()
+                .assertDescription("Where's the rum?")
+                .assignments()
                 .single()
-                    .assertRole(ROLE_BUCCANEER_GREEN_OID)
-                    .metadata()
-                        .assertOriginMappingName("buccaneer-assignment")
-                        .end()
-                    .end()
+                .assertRole(ROLE_BUCCANEER_GREEN_OID)
+                .metadata()
+                .assertOriginMappingName("buccaneer-assignment")
                 .end()
-            .assertLinks(1)
-            .assertOrganizationalUnits("The crew of buccaneer")
-            .assertEmployeeNumber(jackEmployeeNumber);
+                .end()
+                .end()
+                .assertLinks(1)
+                .assertOrganizationalUnits("The crew of buccaneer")
+                .assertEmployeeNumber(jackEmployeeNumber);
     }
 
     @Test
     public void test103DeleteUserEmployeeTypeBartender() throws Exception {
-        final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -192,8 +184,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test200AssignAccountOrange() throws Exception {
-        final String TEST_NAME = "test200AssignAccountOrange";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -234,8 +224,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test202ModifyAccountOrangeGossip() throws Exception {
-        final String TEST_NAME = "test202ModifyAccountOrangeGossip";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -278,8 +266,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test204AssignAccountOrangeAgain() throws Exception {
-        final String TEST_NAME = "test204AssignAccountOrangeAgain";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -321,8 +307,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test209ModifyAccountOrangeGossipRemove() throws Exception {
-        final String TEST_NAME = "test209ModifyAccountOrangeGossipRemove";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -366,8 +350,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test210ModifyAccountOrangeQuoteMonkey() throws Exception {
-        final String TEST_NAME = "test210ModifyAccountOrangeQuoteMonkey";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -389,7 +371,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
@@ -416,8 +398,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test211ModifyAccountOrangeQuotePirate() throws Exception {
-        final String TEST_NAME = "test211ModifyAccountOrangeQuotePirate";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -466,8 +446,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test214ModifyAccountOrangeQuoteWoodchuck() throws Exception {
-        final String TEST_NAME = "test214ModifyAccountOrangeQuoteWoodchuck";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -489,7 +467,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
@@ -512,8 +490,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test250UnlinkAccountDefaultDummy() throws Exception {
-        final String TEST_NAME = "test250UnlinkAccountDefaultDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -556,8 +532,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test252ModifyAccountOrangeGossipRecon() throws Exception {
-        final String TEST_NAME = "test252ModifyAccountOrangeGossipRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -601,8 +575,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test259ModifyAccountOrangeGossipRemoveRecon() throws Exception {
-        final String TEST_NAME = "test259ModifyAccountOrangeGossipRemoveRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -647,15 +619,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test260ModifyAccountOrangeQuoteMonkeyRecon() throws Exception {
-        final String TEST_NAME = "test260ModifyAccountOrangeQuoteMonkeyRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
-        assertEquals("Wrong description", null, userBefore.asObjectable().getDescription());
+        assertNull("Wrong description", userBefore.asObjectable().getDescription());
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
@@ -679,7 +649,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
@@ -701,8 +671,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test261ModifyAccountOrangeQuotePirateRecon() throws Exception {
-        final String TEST_NAME = "test261ModifyAccountOrangeQuotePirateRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -750,8 +718,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test264ModifyAccountOrangeQuoteWoodchuckRecon() throws Exception {
-        final String TEST_NAME = "test264ModifyAccountOrangeQuoteWoodchuckRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -777,7 +743,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
@@ -797,8 +763,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test297ModifyAccountOrangeGossipRecon() throws Exception {
-        final String TEST_NAME = "test297ModifyAccountOrangeGossipRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -838,8 +802,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test299UnassignAccountOrange() throws Exception {
-        final String TEST_NAME = "test299UnassignAccountOrange";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

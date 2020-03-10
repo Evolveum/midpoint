@@ -6,16 +6,11 @@ package com.evolveum.midpoint.testing.story;
  * and European Union Public License. See LICENSE file for details.
  */
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.DirectoryException;
@@ -40,26 +35,14 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -79,13 +62,12 @@ public class TestOrgSync extends AbstractStoryTest {
     protected static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
     protected static final String RESOURCE_DUMMY_HR_ID = "HR";
     protected static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-000000000001";
-    protected static final String RESOURCE_DUMMY_HR_NAMESPACE = MidPointConstants.NS_RI;
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
     protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-    protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE,
-            "group");
+    protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME =
+            new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH = "orgpath";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES = "responsibilities";
@@ -102,8 +84,6 @@ public class TestOrgSync extends AbstractStoryTest {
 
     public static final File ROLE_META_RESPONSIBILITY_FILE = new File(TEST_DIR,
             "role-meta-responsibility.xml");
-    public static final String ROLE_META_RESPONSIBILITY_OID = "10000000-0000-0000-0000-000000006602";
-
     protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR,
             "task-dumy-hr-livesync.xml");
     protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
@@ -198,7 +178,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
     protected static final int TASK_WAIT_TIMEOUT = 40000;
 
-    @Autowired(required = true)
+    @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
 
     private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
@@ -225,7 +205,7 @@ public class TestOrgSync extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -238,17 +218,17 @@ public class TestOrgSync extends AbstractStoryTest {
 
         // Resources
         initDummyResource(RESOURCE_DUMMY_HR_ID, RESOURCE_DUMMY_HR_FILE, RESOURCE_DUMMY_HR_OID, c -> {
-                DummyObjectClass dummyAdAccountObjectClass = c.getDummyResource().getAccountObjectClass();
-                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME,
-                        String.class, false, false);
-                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME,
-                        String.class, false, false);
-                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH,
-                        String.class, false, false);
-                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES,
-                        String.class, false, true);
-                c.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
-            } , initTask, initResult);
+            DummyObjectClass dummyAdAccountObjectClass = c.getDummyResource().getAccountObjectClass();
+            c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME,
+                    String.class, false, false);
+            c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME,
+                    String.class, false, false);
+            c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH,
+                    String.class, false, false);
+            c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES,
+                    String.class, false, true);
+            c.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
+        }, initTask, initResult);
         dummyResourceHr = getDummyResource(RESOURCE_DUMMY_HR_ID);
 
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE,
@@ -286,7 +266,6 @@ public class TestOrgSync extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
@@ -307,9 +286,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test100AddHrAccountHerman() throws Exception {
-        final String TEST_NAME = "test100AddHrAccountHerman";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
@@ -346,9 +322,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test105AddHrAccountLemonhead() throws Exception {
-        final String TEST_NAME = "test105AddHrAccountLemonhead";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
@@ -390,9 +363,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test106AddHrAccountSharptooth() throws Exception {
-        final String TEST_NAME = "test106AddHrAccountSharptooth";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_SHARPTOOTH_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_SHARPTOOTH_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_SHARPTOOTH_LAST_NAME);
@@ -433,9 +403,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test107AddHrAccountRedskull() throws Exception {
-        final String TEST_NAME = "test107AddHrAccountRedskull";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_REDSKULL_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_REDSKULL_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_REDSKULL_LAST_NAME);
@@ -475,9 +442,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test108RedskullGoesVegetarian() throws Exception {
-        final String TEST_NAME = "test108RedskullGoesVegetarian";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
 
         // WHEN
@@ -515,9 +479,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test109HrDeleteRedskull() throws Exception {
-        final String TEST_NAME = "test109HrDeleteRedskull";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         // WHEN
         when();
         dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
@@ -544,9 +505,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test110AddHrAccountGuybrush() throws Exception {
-        final String TEST_NAME = "test110AddHrAccountGuybrush";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_GUYBRUSH_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_GUYBRUSH_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
@@ -589,9 +547,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test115AddHrAccountMancomb() throws Exception {
-        final String TEST_NAME = "test115AddHrAccountMancomb";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
@@ -635,9 +590,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test117AddHrAccountCobb() throws Exception {
-        final String TEST_NAME = "test117AddHrAccountCobb";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_COBB_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_COBB_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_COBB_LAST_NAME);
@@ -681,9 +633,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test130AddHrAccountLargo() throws Exception {
-        final String TEST_NAME = "test130AddHrAccountLargo";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LARGO_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_LARGO_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_LARGO_LAST_NAME);
@@ -733,9 +682,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test140AddHrAccountWally() throws Exception {
-        final String TEST_NAME = "test140AddHrAccountWally";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_WALLY_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_WALLY_LAST_NAME);
@@ -776,9 +722,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test142AddHrAccountAugustus() throws Exception {
-        final String TEST_NAME = "test142AddHrAccountAugustus";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_AUGUSTUS_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_AUGUSTUS_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_AUGUSTUS_LAST_NAME);
@@ -819,9 +762,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test185AddHrAccountStan() throws Exception {
-        final String TEST_NAME = "test185AddHrAccountStan";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_STAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_STAN_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_STAN_LAST_NAME);
@@ -864,9 +804,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test186AddHrAccountCapsize() throws Exception {
-        final String TEST_NAME = "test186AddHrAccountCapsize";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_CAPSIZE_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_CAPSIZE_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_CAPSIZE_LAST_NAME);
@@ -909,9 +846,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test187AddHrAccountRogersSr() throws Exception {
-        final String TEST_NAME = "test187AddHrAccountRogersSr";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_ROGERSSR_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_ROGERSSR_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_ROGERSSR_LAST_NAME);
@@ -955,9 +889,6 @@ public class TestOrgSync extends AbstractStoryTest {
      */
     @Test
     public void test190AddHrAccountTeleke() throws Exception {
-        final String TEST_NAME = "test190AddHrAccountTeleke";
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_TELEKE_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_TELEKE_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_TELEKE_LAST_NAME);
@@ -997,8 +928,6 @@ public class TestOrgSync extends AbstractStoryTest {
 
     @Test
     public void test500ReconcileOpenDJDefault() throws Exception {
-        final String TEST_NAME = "test500ReconcileOpenDJDefault";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1041,11 +970,8 @@ public class TestOrgSync extends AbstractStoryTest {
 
     @Test
     public void test502ReconcileOpenDJDefaultAgain() throws Exception {
-        final String TEST_NAME = "test502ReconcileOpenDJDefaultAgain";
 
         // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         assertUsers(18);
@@ -1077,8 +1003,6 @@ public class TestOrgSync extends AbstractStoryTest {
 
     @Test
     public void test510ReconcileOpenDJLdapGroup() throws Exception {
-        final String TEST_NAME = "test510ReconcileOpenDJLdapGroup";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1120,14 +1044,10 @@ public class TestOrgSync extends AbstractStoryTest {
 
     @Test
     public void test550ReconcileOpenDJAfterMembershipChange() throws Exception {
-        final String TEST_NAME = "test550ReconcileOpenDJAfterMembershipChange";
-
         // We manually remove Lemonhead from R_canibalism group
         // And check whether reconciliation re-adds him again
 
         // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Collection<String> membersBeforeTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
@@ -1194,9 +1114,9 @@ public class TestOrgSync extends AbstractStoryTest {
         // TODO assert shadow content
 
         Entry ouEntry = openDJController.searchSingle("ou=" + orgName);
-        assertNotNull("No ou LDAP entry for " + orgName);
+        assertNotNull("No ou LDAP entry for " + orgName, ouEntry);
         display("OU entry", ouEntry);
-        openDJController.assertObjectClass(ouEntry, "organizationalUnit");
+        OpenDJController.assertObjectClass(ouEntry, "organizationalUnit");
 
         return org;
     }
@@ -1215,7 +1135,7 @@ public class TestOrgSync extends AbstractStoryTest {
             CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
         String respRoleName = "R_" + respName;
         PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
-        assertNotNull("No role for responsibility " + respName);
+        assertNotNull("No role for responsibility " + respName, respRole);
         display("Responsibility role for " + respName, respRole);
         assertAssignedRole(user, respRole.getOid());
 

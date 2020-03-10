@@ -15,13 +15,12 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.*;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -35,8 +34,6 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -80,10 +77,14 @@ import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.*;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -159,15 +160,16 @@ import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.admin.resources.*;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.*;
+import com.evolveum.midpoint.web.page.admin.server.PageNodes;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
-import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -686,19 +688,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
 
-    public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-                                                                       PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Task task = getPageTask();
-        AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
-                .oldObject(object)
-                .delta(delta)
-                .target(target)
-                .build();
-        getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, task, task.getResult());
-    }
-
-
     public MidpointFormValidatorRegistry getFormValidatorRegistry() {
         return formValidatorRegistry;
     }
@@ -1185,10 +1174,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getMainPopup().getContentId();
     }
 
-    public void setMainPopupTitle(IModel<String> title) {
-        getMainPopup().setTitle(title);
-    }
-
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
         getMainPopup().setTitle(popupable.getTitle());
         getMainPopup().setInitialHeight(popupable.getHeight());
@@ -1542,61 +1527,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getString("pageBase.unknownBuildNumber");
     }
 
-    protected ModalWindow createModalWindow(final String id, IModel<String> title, int width, int height) {
-        final ModalWindow modal = new ModalWindow(id);
-        add(modal);
-
-        modal.setResizable(false);
-        modal.setTitle(title);
-        modal.setCookieName(PageBase.class.getSimpleName() + ((int) (Math.random() * 100)));
-
-        modal.setInitialWidth(width);
-        modal.setWidthUnit("px");
-        modal.setInitialHeight(height);
-        modal.setHeightUnit("px");
-
-        modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                return true;
-            }
-        });
-
-        modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClose(AjaxRequestTarget target) {
-                modal.close(target);
-            }
-        });
-
-        modal.add(new AbstractDefaultAjaxBehavior() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void renderHead(Component component, IHeaderResponse response) {
-                response.render(OnDomReadyHeaderItem.forScript("Wicket.Window.unloadConfirmation = false;"));
-                response.render(JavaScriptHeaderItem
-                        .forScript("$(document).ready(function() {\n" + "  $(document).bind('keyup', function(evt) {\n"
-                                + "    if (evt.keyCode == 27) {\n" + getCallbackScript() + "\n"
-                                + "        evt.preventDefault();\n" + "    }\n" + "  });\n" + "});", id));
-            }
-
-            @Override
-            protected void respond(AjaxRequestTarget target) {
-                modal.close(target);
-            }
-        });
-
-        return modal;
-    }
-
     // returns to previous page via restart response exception
     public RestartResponseException getRestartResponseException(Class<? extends Page> defaultBackPageClass) {
         return new RestartResponseException(defaultBackPageClass);
@@ -1755,11 +1685,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL)) {
             items.add(createResourcesItems());
         }
-        //TODO uncomment after ValuePolicies pages are finished
-//        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-//                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-//            items.add(createValuePolicieItems());
-//        }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
@@ -1953,16 +1878,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
 
-        //should we support archetype view for TaskType?
-//        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
-        MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTask.class, null,
-                new VisibleEnableBehaviour());
-        item.getItems().add(newTaskMenu);
-
-        MenuItem menuItem = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
-                PageTask.class, null, createVisibleDisabledBehaviorForEditMenu(PageTask.class));
-        item.getItems().add(menuItem);
-
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.serverTasks.new", "PageAdmin.menu.top.serverTasks.edit",
+                PageTask.class, false);
 
 
         return item;
@@ -1986,16 +1903,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
         addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
-
-        return item;
-    }
-
-    // Izolated until the referenced value policies pages are fully implemented
-    private MainMenuItem createValuePolicieItems() {
-        MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.valuePolicies"), null);
-
-        addMenuItem(item, "PageAdmin.menu.top.valuePolicies.list", PageValuePolicies.class);
-        addMenuItem(item, "PageAdmin.menu.top.valuePolicies.new", PageValuePolicy.class);
 
         return item;
     }
@@ -2163,8 +2070,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     return false;
                 }
 
-                if (getPage() instanceof PageAdminFocus) {
-                    PageAdminFocus page = (PageAdminFocus) getPage();
+                if (getPage() instanceof PageAdminObjectDetails) {
+                    PageAdminObjectDetails page = (PageAdminObjectDetails) getPage();
                     return page.isOidParameterExists() || page.isEditingFocus();
                 } else if (getPage() instanceof PageResourceWizard) {
                     PageResourceWizard page = (PageResourceWizard) getPage();
@@ -2191,8 +2098,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     return false;
                 }
 
-                if (PageBase.this.getPage() instanceof PageAdminFocus) {
-                    PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
+                if (PageBase.this.getPage() instanceof PageAdminObjectDetails) {
+                    PageAdminObjectDetails page = (PageAdminObjectDetails) PageBase.this.getPage();
                     return !page.isOidParameterExists() && !page.isEditingFocus();
                 } else if (PageBase.this.getPage() instanceof PageResourceWizard) {
                     PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
@@ -2426,20 +2333,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return false;
             }
         };
-    }
-
-    public DeploymentInformationType loadDeploymentInformationType() {
-        DeploymentInformationType deploymentInformationType = null;
-        OperationResult result = new OperationResult(OPERATION_GET_DEPLOYMENT_INFORMATION);
-        try {
-            deploymentInformationType = getModelInteractionService().getDeploymentInformationConfiguration(result);
-            LOGGER.trace("Deployment information : {}", deploymentInformationType);
-            result.recordSuccess();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", ex);
-            result.recordFatalError(createStringResource("PageBase.message.loadDeploymentInformationType.fatalError").getString(), ex);
-        }
-        return deploymentInformationType;
     }
 
     public boolean canRedirectBack() {
@@ -2777,14 +2670,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model,
             ItemPanelSettings settings) {
-            //ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         //TODO find from registry first
         return new PrismContainerValuePanel<>(id, model, settings);
-    }
-
-    public <C extends Containerable> Panel getBasicContainerValuePanel(String idPanel, IModel<PrismContainerValueWrapper<C>> model, ItemPanelSettings settings){
-        Panel containerValue = initContainerValuePanel(idPanel, model, settings);
-        return containerValue;
     }
 
     public Clock getClock() {

@@ -48,9 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author semancik
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSynchronizationService extends AbstractInternalModelIntegrationTest {
@@ -79,7 +76,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_LIMITED_NAME,
@@ -143,8 +140,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test020ModifyLootAbsolute() throws Exception {
-        final String TEST_NAME = "test020ModifyLootAbsolute";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -303,8 +298,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test039DeletedAccountJack() throws Exception {
-        final String TEST_NAME = "test039DeletedAccountJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -320,7 +313,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
 
-        PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
+        PrismObject<ShadowType> shadow; // TODO = getShadowModelNoFetch(accountShadowJackDummyOid);
 
         shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
         ShadowAsserter.forShadow(shadowRepo, "repo shadow after noFetch")
@@ -404,8 +397,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test050AddedAccountCalypso() throws Exception {
-        final String TEST_NAME = "test050AddedAccountCalypso";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -454,8 +445,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test051CalypsoRecon() throws Exception {
-        final String TEST_NAME = "test051CalypsoRecon";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -499,8 +488,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test100AddedAccountJack() throws Exception {
-        final String TEST_NAME = "test100AddedAccountJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -570,8 +557,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test199DeletedAccountJackTotal() throws Exception {
-        final String TEST_NAME = "test199DeletedAccountJackTotal";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -627,8 +612,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test200AddedAccountJackSchemaViolation() throws Exception {
-        final String TEST_NAME = "test200AddedAccountJackSchemaViolation";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -700,8 +683,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test202UpdatedAccountJackSchemaViolation() throws Exception {
-        final String TEST_NAME = "test202UpdatedAccountJackSchemaViolation";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -762,8 +743,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test210AssignJackDummy() throws Exception {
-        final String TEST_NAME = "test210AssignJackDummy";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -810,8 +789,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test212AssignJackDummyLimited() throws Exception {
-        final String TEST_NAME = "test212AssignJackDummyLimited";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -868,8 +845,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test214UpdatedAccountJackLimited() throws Exception {
-        final String TEST_NAME = "test214UpdatedAccountJackLimited";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -953,8 +928,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test300AddedGroupPirates() throws Exception {
-        final String TEST_NAME = "test300AddedGroupPirates";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -989,7 +962,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         assertNotNull("No focus primary delta", context.getFocusContext().getPrimaryDelta());
         assertFalse("No executed focus deltas", context.getFocusContext().getExecutedDeltas().isEmpty());
-        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
+        context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(),
                 ShadowKindType.ENTITLEMENT, INTENT_GROUP, null, false);

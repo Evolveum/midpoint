@@ -6,33 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -68,7 +59,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
     @Override
     public PrismContainerValue<C> getValueToAdd() throws SchemaException {
-        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        Collection<ItemDelta> modifications = new ArrayList<>();
         for (ItemWrapper<?, ?, ?, ?> itemWrapper : items) {
             Collection<ItemDelta> subDelta =  itemWrapper.getDelta();
 
@@ -270,16 +261,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
         PrismObjectWrapper objectWrapper = getParent().findObjectWrapper();
         if (objectWrapper == null) {
-            LOGGER.trace("No object wraper foung. Skipping virtual items.");
+            LOGGER.trace("No object wrapper found. Skipping virtual items.");
             return nonContainers;
         }
 
         for (VirtualContainerItemSpecificationType virtualItem : getVirtualItems()) {
-            if (objectWrapper == null) {
-                //should not happen, if happens it means something veeery strange happened
-                continue;
-            }
-
             try {
                 ItemPath virtualItemPath = getVirtualItemPath(virtualItem);
                 ItemWrapper itemWrapper = objectWrapper.findItem(virtualItemPath, ItemWrapper.class);
@@ -292,15 +278,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                     continue;
                 }
 
-                ((List)nonContainers).add(itemWrapper);
+                if (checkContainerInclusion(itemWrapper)) {
+                    ((List)nonContainers).add(itemWrapper);
+                }
             } catch (SchemaException e) {
                 LOGGER.error("Cannot find wrapper with path {}, error occured {}", virtualItem, e.getMessage(), e);
             }
-
-
         }
-
         return nonContainers;
+    }
+
+    public boolean checkContainerInclusion(ItemWrapper<?, ?, ?, ?> itemWrapper) {
+        return true;
     }
 
     private ItemPath getVirtualItemPath(VirtualContainerItemSpecificationType virtualItem) throws SchemaException {
@@ -333,9 +322,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                 }
             }
         } catch (SchemaException e) {
-            //in this case we could ignroe the error. extension is single value container so this error should not happened
+            //in this case we could ignore the error. extension is single value container so this error should not happened
             // but just to be sure we won't miss if something strange happened just throw runtime error
-            LOGGER.error("Something unexpected happenned. Please, check your schema");
+            LOGGER.error("Something unexpected happened. Please, check your schema");
             throw new IllegalStateException(e.getMessage(), e);
         }
 

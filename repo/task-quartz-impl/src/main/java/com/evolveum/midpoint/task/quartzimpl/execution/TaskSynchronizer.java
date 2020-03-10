@@ -109,7 +109,7 @@ class TaskSynchronizer {
             oidsInRepo.add(taskPrism.getOid());
             TaskQuartzImpl task;
             try {
-                task = taskManager.getTask(taskPrism.getOid(), result);    // in order for the task to be "fresh"
+                task = taskManager.getTaskPlain(taskPrism.getOid(), result);    // in order for the task to be "fresh"
                 if (synchronizeTask(task, result)) {
                     changed++;      // todo are we sure that we increment this counter only for successfully processed tasks? we hope so :)
                 }

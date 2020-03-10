@@ -15,10 +15,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,24 +31,16 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMetaMeta extends AbstractRbacTest {
 
@@ -74,8 +64,7 @@ public class TestMetaMeta extends AbstractRbacTest {
     protected static final String GROUP_BETA_NAME = "beta";
     protected static final String GROUP_A_NAME = "a";
 
-    protected Map<String,String> groupRoleOidMap = new HashMap<>();
-
+    protected Map<String, String> groupRoleOidMap = new HashMap<>();
 
     // LEGACY
 
@@ -91,7 +80,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     private String groupOneRoleOid;
 
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
@@ -100,8 +88,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test050AddMetaMeta() throws Exception {
-        final String TEST_NAME = "test050AddMetaMeta";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -117,7 +103,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         new PrismObjectAsserter<>(role).assertSanity();
         RoleType roleType = role.asObjectable();
 
-        PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", ROLE_META_META_WORLD_NAME, roleType.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + role + " name", ROLE_META_META_WORLD_NAME, roleType.getName());
 
         assertAssignments(role, 1); // just direct assignment
         assertRoleMembershipRef(role /* no values */);
@@ -130,13 +116,11 @@ public class TestMetaMeta extends AbstractRbacTest {
         String groupName = ROLE_META_META_WORLD_NAME.toLowerCase();
 
         DummyGroup dummyGroup = getDummyGroup(null, groupName);
-        assertNotNull("No dummy group "+groupName, dummyGroup);
+        assertNotNull("No dummy group " + groupName, dummyGroup);
     }
 
     @Test
     public void test100AddGreeks() throws Exception {
-        final String TEST_NAME = "test100AddGreeks";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -153,8 +137,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test110AddRomans() throws Exception {
-        final String TEST_NAME = "test110AddRomans";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -171,8 +153,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test200CreateAlpha() throws Exception {
-        final String TEST_NAME = "test200CreateAlpha";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -190,8 +170,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test202CreateBeta() throws Exception {
-        final String TEST_NAME = "test202CreateBeta";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -208,8 +186,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test210CreateA() throws Exception {
-        final String TEST_NAME = "test210CreateA";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -229,8 +205,6 @@ public class TestMetaMeta extends AbstractRbacTest {
      */
     @Test
     public void test300AssignAlphaToJack() throws Exception {
-        final String TEST_NAME = "test300AssignAlphaToJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -248,8 +222,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test309UnassignAlphaFromJack() throws Exception {
-        final String TEST_NAME = "test309UnassignAlphaFromJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -276,8 +248,6 @@ public class TestMetaMeta extends AbstractRbacTest {
      */
     @Test
     public void test310AssignAToJack() throws Exception {
-        final String TEST_NAME = "test310AssignAToJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -298,8 +268,6 @@ public class TestMetaMeta extends AbstractRbacTest {
      */
     @Test
     public void test312AssignBetaToJack() throws Exception {
-        final String TEST_NAME = "test312AssignBetaToJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -317,14 +285,15 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test319UnassignBetaAFromJack() throws Exception {
-        final String TEST_NAME = "test319UnassignBetaAFromJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(UserType.class, USER_JACK_OID, getGroupRoleOid(GROUP_BETA_NAME), RoleType.COMPLEX_TYPE, null, (Consumer<AssignmentType>)null, false);
-        focusDelta.addModification(createAssignmentModification(getGroupRoleOid(GROUP_A_NAME), RoleType.COMPLEX_TYPE, null, null, null, false));
+        ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(
+                UserType.class, USER_JACK_OID, getGroupRoleOid(GROUP_BETA_NAME),
+                RoleType.COMPLEX_TYPE, null, null, false);
+        focusDelta.addModification(createAssignmentModification(
+                getGroupRoleOid(GROUP_A_NAME), RoleType.COMPLEX_TYPE, null, null, null, false));
 
         // WHEN
         modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
@@ -347,8 +316,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test900LegacyAddMetaMeta() throws Exception {
-        final String TEST_NAME = "test900LegacyAddMetaMeta";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -364,7 +331,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         new PrismObjectAsserter<>(role).assertSanity();
         RoleType roleType = role.asObjectable();
 
-        PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", ROLE_META_META_LEGACY_NAME, roleType.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + role + " name", ROLE_META_META_LEGACY_NAME, roleType.getName());
 
         assertAssignments(role, 1); // just direct assignment
         assertRoleMembershipRef(role /* no values */);
@@ -377,13 +344,11 @@ public class TestMetaMeta extends AbstractRbacTest {
         String groupName = ROLE_META_META_LEGACY_NAME.toLowerCase();
 
         DummyGroup dummyGroup = getDummyGroup(null, groupName);
-        assertNotNull("No dummy group "+groupName, dummyGroup);
+        assertNotNull("No dummy group " + groupName, dummyGroup);
     }
 
     @Test
     public void test910LegacyAddMetaLegacyOne() throws Exception {
-        final String TEST_NAME = "test910LegacyAddMetaLegacyOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -399,7 +364,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         new PrismObjectAsserter<>(role).assertSanity();
         RoleType roleType = role.asObjectable();
 
-        PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", ROLE_META_LEGACY_ONE_NAME, roleType.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + role + " name", ROLE_META_LEGACY_ONE_NAME, roleType.getName());
 
         assertAssigned(role, ROLE_META_META_LEGACY_OID, RoleType.COMPLEX_TYPE);
         assertAssignments(role, 1);
@@ -413,20 +378,18 @@ public class TestMetaMeta extends AbstractRbacTest {
         String groupName = ROLE_META_LEGACY_ONE_NAME.toLowerCase();
 
         DummyGroup dummyGroup = getDummyGroup(null, groupName);
-        assertNotNull("No dummy group "+groupName, dummyGroup);
+        assertNotNull("No dummy group " + groupName, dummyGroup);
     }
 
     @Test
     public void test920LegacyCreateGroupOne() throws Exception {
-        final String TEST_NAME = "test920LegacyCreateGroupOne";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<RoleType> roleBefore = createObject(RoleType.class, GROUP_ONE_NAME);
         RoleType roleType = roleBefore.asObjectable();
         roleType
-            .beginAssignment()
+                .beginAssignment()
                 .targetRef(ROLE_META_LEGACY_ONE_OID, RoleType.COMPLEX_TYPE);
 
         // WHEN
@@ -435,20 +398,19 @@ public class TestMetaMeta extends AbstractRbacTest {
         // THEN
         assertSuccess(result);
 
-
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, groupOneRoleOid);
         display("Role after", roleAfter);
         new PrismObjectAsserter<>(roleAfter).assertSanity();
         RoleType roleTypeAfter = roleAfter.asObjectable();
 
-        PrismAsserts.assertEqualsPolyString("Wrong "+roleAfter+" name", GROUP_ONE_NAME, roleTypeAfter.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + roleAfter + " name", GROUP_ONE_NAME, roleTypeAfter.getName());
 
         assertAssigned(roleAfter, ROLE_META_LEGACY_ONE_OID, RoleType.COMPLEX_TYPE);
         assertAssignments(roleAfter, 1);
         assertRoleMembershipRef(roleAfter, ROLE_META_LEGACY_ONE_OID);
 
         DummyGroup dummyGroupOne = getDummyGroup(null, GROUP_ONE_NAME);
-        assertNotNull("No dummy group "+GROUP_ONE_NAME, dummyGroupOne);
+        assertNotNull("No dummy group " + GROUP_ONE_NAME, dummyGroupOne);
 
         assertLinks(roleAfter, 1);
         String shadowOid = roleTypeAfter.getLinkRef().get(0).getOid();
@@ -458,8 +420,6 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     @Test
     public void test930LegacyAssignGroupOneToJack() throws Exception {
-        final String TEST_NAME = "test930LegacyAssignGroupOneToJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -488,8 +448,10 @@ public class TestMetaMeta extends AbstractRbacTest {
 
     }
 
-
-    private PrismObject<UserType> readAndAssertGreekGroupMember(String userOid, String... roleNames) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, InterruptedException {
+    private PrismObject<UserType> readAndAssertGreekGroupMember(String userOid, String... roleNames)
+            throws ObjectNotFoundException, ExpressionEvaluationException, SchemaViolationException,
+            ConflictException, CommunicationException, SchemaException, SecurityViolationException,
+            ConnectException, ConfigurationException, FileNotFoundException, InterruptedException {
         PrismObject<UserType> user = getUser(userOid);
         display("User after", user);
         List<String> roleOids = Arrays.stream(roleNames).map(this::getGroupRoleOid).collect(Collectors.toList());
@@ -502,13 +464,12 @@ public class TestMetaMeta extends AbstractRbacTest {
         display("User shadow (model)", accountShadow);
 
         assertDefaultDummyAccount(user.getName().getOrig(), user.asObjectable().getFullName().getOrig(), true);
-        for (String roleName: roleNames) {
+        for (String roleName : roleNames) {
             assertDummyGroupMember(null, roleName, user.getName().getOrig());
         }
 
         return user;
     }
-
 
     private void rememberGroupRoleOid(String roleName, String roleOid) {
         groupRoleOidMap.put(roleName, roleOid);
@@ -522,32 +483,36 @@ public class TestMetaMeta extends AbstractRbacTest {
         assignRole(userOid, getGroupRoleOid(roleName), task, result);
     }
 
-    private void unassignGroupRole(String userOid, String roleName, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+    private void unassignGroupRole(String userOid, String roleName, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
         unassignRole(userOid, getGroupRoleOid(roleName), task, result);
     }
 
-    private PrismObject<RoleType> readAndAssertGreekGroupRole(String roleOid, String groupName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+    private PrismObject<RoleType> readAndAssertGreekGroupRole(String roleOid, String groupName)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
         return readAndAssertGroupRole(roleOid, ROLE_META_GREEK_GROUP_OID, groupName);
     }
 
-    private PrismObject<RoleType> readAndAssertLatinGroupRole(String roleOid, String groupName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+    private PrismObject<RoleType> readAndAssertLatinGroupRole(String roleOid, String groupName)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
         return readAndAssertGroupRole(roleOid, ROLE_META_LATIN_GROUP_OID, groupName);
     }
 
-    private PrismObject<RoleType> readAndAssertGroupRole(String roleOid, String metaroleOid, String groupName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+    private PrismObject<RoleType> readAndAssertGroupRole(String roleOid, String metaroleOid, String groupName)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
         PrismObject<RoleType> role = getObject(RoleType.class, roleOid);
         display("Role after", role);
         new PrismObjectAsserter<>(role).assertSanity();
         RoleType roleType = role.asObjectable();
 
-        PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", groupName, roleType.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + role + " name", groupName, roleType.getName());
 
         assertAssigned(role, metaroleOid, RoleType.COMPLEX_TYPE);
         assertAssignments(role, 1);
         assertRoleMembershipRef(role, metaroleOid);
 
         DummyGroup dummyGroup = getDummyGroup(null, groupName);
-        assertNotNull("No dummy group "+groupName, dummyGroup);
+        assertNotNull("No dummy group " + groupName, dummyGroup);
 
         assertLinks(role, 1);
         String shadowOid = roleType.getLinkRef().get(0).getOid();
@@ -557,14 +522,15 @@ public class TestMetaMeta extends AbstractRbacTest {
         return role;
     }
 
-    private PrismObject<RoleType> assertMetaRole(String metaroleOid, String metaroleName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+    private PrismObject<RoleType> assertMetaRole(String metaroleOid, String metaroleName)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
         PrismObject<RoleType> role = getObject(RoleType.class, metaroleOid);
         display("Metarole after", role);
 
         new PrismObjectAsserter<>(role).assertSanity();
         RoleType roleType = role.asObjectable();
 
-        PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", metaroleName, roleType.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + role + " name", metaroleName, roleType.getName());
 
         assertAssigned(role, ROLE_META_META_WORLD_OID, RoleType.COMPLEX_TYPE);
         assertAssignments(role, 1);
@@ -578,22 +544,23 @@ public class TestMetaMeta extends AbstractRbacTest {
         String groupName = metaroleName.toLowerCase();
 
         DummyGroup dummyGroup = getDummyGroup(null, groupName);
-        assertNotNull("No dummy group "+groupName, dummyGroup);
+        assertNotNull("No dummy group " + groupName, dummyGroup);
 
         return role;
     }
 
-
-
-    private String addGreekRole(String roleName, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private String addGreekRole(String roleName, Task task, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         return addGrupRole(roleName, ROLE_META_GREEK_GROUP_OID, task, result);
     }
 
-    private String addLatinkRole(String roleName, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private String addLatinkRole(String roleName, Task task, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         return addGrupRole(roleName, ROLE_META_LATIN_GROUP_OID, task, result);
     }
 
-    private String addGrupRole(String roleName, String metaroleOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private String addGrupRole(String roleName, String metaroleOid, Task task, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         PrismObject<RoleType> role = createGroupRole(roleName, metaroleOid);
         return addObject(role, task, result);
     }
@@ -601,8 +568,7 @@ public class TestMetaMeta extends AbstractRbacTest {
     private PrismObject<RoleType> createGroupRole(String roleName, String metaroleOid) throws SchemaException {
         PrismObject<RoleType> role = createObject(RoleType.class, roleName);
         RoleType roleType = role.asObjectable();
-        roleType
-            .beginAssignment()
+        roleType.beginAssignment()
                 .targetRef(metaroleOid, RoleType.COMPLEX_TYPE);
         return role;
     }

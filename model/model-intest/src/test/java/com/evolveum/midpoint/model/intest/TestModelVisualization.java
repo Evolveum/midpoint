@@ -10,6 +10,8 @@ import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -19,10 +21,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
-/**
- * @author mederly
- *
- */
+@UnusedTestElement("not in suite - failing")
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestModelVisualization extends AbstractInitializedModelIntegrationTest {
@@ -36,10 +35,8 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test100VisualizeOneResource() throws Exception {
-        final String TEST_NAME = "test100VisualizeOneResource";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelVisualization.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -54,10 +51,8 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
 
     @Test
     public void test110VisualizeTwoResources() throws Exception {
-        final String TEST_NAME = "test110VisualizeTwoResources";
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelVisualization.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -69,5 +64,4 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
-
 }

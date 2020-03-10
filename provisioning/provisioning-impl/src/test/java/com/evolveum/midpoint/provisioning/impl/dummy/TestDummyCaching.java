@@ -6,15 +6,11 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,22 +37,13 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Almost the same as TestDummy but this is using a caching configuration.
  *
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -94,9 +81,8 @@ public class TestDummyCaching extends TestDummy {
     @Test
     @Override
     public void test107AGetModifiedAccountFromCacheMax() throws Exception {
-        final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -121,8 +107,6 @@ public class TestDummyCaching extends TestDummy {
         TestUtil.assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-
-        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
         display("Retrieved account shadow", shadow);
 
@@ -161,9 +145,8 @@ public class TestDummyCaching extends TestDummy {
     @Test
     @Override
     public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
-        final String TEST_NAME = "test107BGetModifiedAccountFromCacheHighStaleness";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -185,8 +168,6 @@ public class TestDummyCaching extends TestDummy {
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-
-        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
         display("Retrieved account shadow", shadow);
 
@@ -222,9 +203,8 @@ public class TestDummyCaching extends TestDummy {
      */
     @Test
     public void test107CSkipCachingForIncompleteAttributes() throws Exception {
-        final String TEST_NAME = "test107CSkipCachingForIncompleteAttributes";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
@@ -247,8 +227,6 @@ public class TestDummyCaching extends TestDummy {
             assertSuccess(result);
 
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
-
-            XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
             display("Retrieved account shadow", shadow);
 
@@ -294,10 +272,8 @@ public class TestDummyCaching extends TestDummy {
     @Test
     @Override
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
-        final String TEST_NAME = "test119SearchAllAccountsMaxStaleness";
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         display("All shadows query", query);
@@ -322,13 +298,13 @@ public class TestDummyCaching extends TestDummy {
         assertFalse("No shadows found", allShadows.isEmpty());
         assertEquals("Wrong number of results", 4, allShadows.size());
 
-        for (PrismObject<ShadowType> shadow: allShadows) {
+        for (PrismObject<ShadowType> shadow : allShadows) {
             display("Found shadow", shadow);
             ShadowType shadowType = shadow.asObjectable();
             OperationResultType fetchResult = shadowType.getFetchResult();
             if (fetchResult != null) {
-                display("fetchResult",fetchResult);
-                assertEquals("Wrong fetch result status in "+shadow, OperationResultStatusType.SUCCESS, fetchResult.getStatus());
+                display("fetchResult", fetchResult);
+                assertEquals("Wrong fetch result status in " + shadow, OperationResultStatusType.SUCCESS, fetchResult.getStatus());
             }
             assertCachingMetadata(shadow, true, null, startTs);
 
@@ -361,25 +337,25 @@ public class TestDummyCaching extends TestDummy {
     @Override
     protected void assertRepoShadowCacheActivation(PrismObject<ShadowType> shadowRepo, ActivationStatusType expectedAdministrativeStatus) {
         ActivationType activationType = shadowRepo.asObjectable().getActivation();
-        assertNotNull("No activation in repo shadow "+shadowRepo, activationType);
+        assertNotNull("No activation in repo shadow " + shadowRepo, activationType);
         ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
-        assertEquals("Wrong activation administrativeStatus in repo shadow "+shadowRepo, expectedAdministrativeStatus, administrativeStatus);
+        assertEquals("Wrong activation administrativeStatus in repo shadow " + shadowRepo, expectedAdministrativeStatus, administrativeStatus);
     }
 
     @Override
     protected void assertRepoShadowPasswordValue(PrismObject<ShadowType> shadowRepo, PasswordType passwordType,
             String expectedPassword) throws SchemaException, EncryptionException {
         ProtectedStringType protectedStringType = passwordType.getValue();
-        assertNotNull("No password value in repo shadow "+shadowRepo, protectedStringType);
-        assertProtectedString("Wrong password value in repo shadow "+shadowRepo, expectedPassword, protectedStringType, CredentialsStorageTypeType.HASHING);
+        assertNotNull("No password value in repo shadow " + shadowRepo, protectedStringType);
+        assertProtectedString("Wrong password value in repo shadow " + shadowRepo, expectedPassword, protectedStringType, CredentialsStorageTypeType.HASHING);
     }
 
     @Override
     protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowFromRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
         CachingMetadataType cachingMetadata = shadowFromRepo.asObjectable().getCachingMetadata();
-        assertNotNull("No caching metadata in "+shadowFromRepo, cachingMetadata);
+        assertNotNull("No caching metadata in " + shadowFromRepo, cachingMetadata);
 
-        TestUtil.assertBetween("Wrong retrieval timestamp in caching metadata in "+shadowFromRepo,
+        TestUtil.assertBetween("Wrong retrieval timestamp in caching metadata in " + shadowFromRepo,
                 start, end, cachingMetadata.getRetrievalTimestamp());
     }
 
@@ -387,13 +363,12 @@ public class TestDummyCaching extends TestDummy {
     protected void assertCachingMetadata(PrismObject<ShadowType> shadow, boolean expectedCached, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
         CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
         if (expectedCached) {
-            assertNotNull("No caching metadata in "+shadow, cachingMetadata);
-            TestUtil.assertBetween("Wrong retrievalTimestamp in caching metadata in "+shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
+            assertNotNull("No caching metadata in " + shadow, cachingMetadata);
+            TestUtil.assertBetween("Wrong retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
         } else {
             super.assertCachingMetadata(shadow, expectedCached, startTs, endTs);
         }
     }
-
 
     @Override
     protected void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
@@ -406,10 +381,10 @@ public class TestDummyCaching extends TestDummy {
     }
 
     @Override
-    protected void assertRepoShadowAttributes(Collection<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+    protected void assertRepoShadowAttributes(Collection<Item<?, ?>> attributes, int expectedNumberOfIdentifiers) {
         // We can only assert that there are at least the identifiers. But we do not know how many attributes should be there
-        assertTrue("Unexpected number of attributes in repo shadow, expected at least "+
-        expectedNumberOfIdentifiers+", but was "+attributes.size(), attributes.size() >= expectedNumberOfIdentifiers);
+        assertTrue("Unexpected number of attributes in repo shadow, expected at least " +
+                expectedNumberOfIdentifiers + ", but was " + attributes.size(), attributes.size() >= expectedNumberOfIdentifiers);
     }
 
     @Override
@@ -418,13 +393,15 @@ public class TestDummyCaching extends TestDummy {
     }
 
     @Override
-    protected <T> void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
+    protected <T> void assertRepoShadowCachedAttributeValue(
+            PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
         assertAttribute(shadowRepo, attrName, attrValues);
     }
 
     @Override
-    protected void checkCachedAccountShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow, XMLGregorianCalendar startTs,
-            XMLGregorianCalendar endTs) throws SchemaException {
+    protected void checkCachedAccountShadow(
+            PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow,
+            XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException {
         super.checkAccountShadow(shadow, parentResult, fullShadow);
         if (fullShadow) {
             assertCachingMetadata(shadow, true, startTs, endTs);

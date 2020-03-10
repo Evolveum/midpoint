@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.prism.impl.marshaller.*;
 import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
@@ -563,12 +562,12 @@ public final class PrismContextImpl implements PrismContext {
 
     @Override
     public UniformItemPath emptyPath() {
-        return UniformItemPathImpl.EMPTY_PATH;
+        return UniformItemPath.empty();
     }
 
     @Override
     public UniformItemPath path(Object... namesOrIdsOrSegments) {
-        return new UniformItemPathImpl(namesOrIdsOrSegments);
+        return UniformItemPath.create(namesOrIdsOrSegments);
     }
 
     @Override
@@ -601,17 +600,17 @@ public final class PrismContextImpl implements PrismContext {
     @NotNull
     @Override
     public UniformItemPath toUniformPath(ItemPath path) {
-        return UniformItemPathImpl.fromItemPath(path);
+        return UniformItemPath.from(path);
     }
 
     @Override
     public UniformItemPath toUniformPathKeepNull(ItemPath path) {
-        return path != null ? UniformItemPathImpl.fromItemPath(path) : null;
+        return path != null ? UniformItemPath.from(path) : null;
     }
 
     @Override
     public UniformItemPath toUniformPath(ItemPathType path) {
-        return UniformItemPathImpl.fromItemPath(path.getItemPath());
+        return UniformItemPath.from(path.getItemPath());
     }
 
     @Override

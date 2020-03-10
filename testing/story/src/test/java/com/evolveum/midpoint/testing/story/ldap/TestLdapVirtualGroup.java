@@ -10,7 +10,6 @@ package com.evolveum.midpoint.testing.story.ldap;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -77,9 +76,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public static final File TEST_DIR = new File(LDAP_TEST_DIR, "virtualgroup");
 
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-    /// private static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new
-    /// QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
     public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
 
@@ -101,19 +97,9 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     private static final String USER_2_NAME = "User2";
     private static final String USER_3_NAME = "User3";
 
-    private static String user0Oid;
-    private static String user1Oid;
-    private static String user2Oid;
-    private static String user3Oid;
-
-    private static final String ORG_TYPE_FUNCTIONAL = "functional";
-
     private static final String LDAP_INTENT_DEFAULT = "default";
     private static final String LDAP_INTENT_VIRTUALSTATIC = "virtualstatic";
     private static final String LDAP_INTENT_DYNAMIC = "dynamic";
-
-    private ResourceType resourceOpenDjType;
-    private PrismObject<ResourceType> resourceOpenDj;
 
     @Override
     protected String getLdapResourceOid() {
@@ -161,7 +147,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -170,9 +156,8 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID,
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID,
                 initTask, initResult);
-        resourceOpenDjType = resourceOpenDj.asObjectable();
         openDJController.setResource(resourceOpenDj);
 
         // Org
@@ -233,8 +218,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
 
     @Test
     public void test100AddItDevRole() throws Exception {
-        final String TEST_NAME = "test100AddItDevRole";
-        Task task = taskManager.createTaskInstance(TestLdapVirtualGroup.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> roleBefore = createLdapRole(ROLE_IT_DEV_NAME);
@@ -463,23 +447,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
 
     }
 
-    private PrismObject<OrgType> createOrg(String name, String parentOrgOid) throws SchemaException {
-        PrismObject<OrgType> org = prismContext.getSchemaRegistry()
-                .findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
-        OrgType orgType = org.asObjectable();
-        orgType.setName(new PolyStringType(name));
-        orgType.getOrgType().add(ORG_TYPE_FUNCTIONAL);
-        if (parentOrgOid != null) {
-            AssignmentType parentAssignment = new AssignmentType();
-            ObjectReferenceType parentAssignmentTargetRef = new ObjectReferenceType();
-            parentAssignmentTargetRef.setOid(parentOrgOid);
-            parentAssignmentTargetRef.setType(OrgType.COMPLEX_TYPE);
-            parentAssignment.setTargetRef(parentAssignmentTargetRef);
-            orgType.getAssignment().add(parentAssignment);
-        }
-        return org;
-    }
-
     private PrismObject<RoleType> createLdapRole(String name) throws SchemaException {
         PrismObject<RoleType> role = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(RoleType.class).instantiate();
@@ -512,7 +479,6 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         }
         Entry objEntry = openDJController.searchSingle(search);
         assertNotNull("No LDAP entry for " + userName + ", kind " + kind + ", intent " + intent, objEntry);
-        ;
         display("LDAP entry kind " + kind + " inten " + intent + " ldapObj", objEntry);
     }
 
@@ -538,13 +504,13 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         }
         Entry objEntry = openDJController.searchSingle(search);
         assertNotNull("No LDAP entry for " + roleName + ", kind " + kind + ", intent " + intent, objEntry);
-        ;
         display("LDAP entry kind " + kind + " inten " + intent + " ldapObj", objEntry);
     }
 
-    private void assertShadowAttribute(PrismObject focus, ShadowKindType kind, String intent, String attribute,
-            String... values) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private void assertShadowAttribute(PrismObject focus,
+            ShadowKindType kind, String intent, String attribute, String... values)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String focusName = focus.getName().toString();
         display("assert focus " + focus.getCompileTimeClass(), focusName);
 
@@ -552,7 +518,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismObject<ShadowType> objShadow = getShadowModel(objOid);
         display("Focus " + focusName + " kind " + kind + " intent " + intent + " shadow", objShadow);
 
-        List<String> valuesList = new ArrayList<String>(Arrays.asList(values));
+        List<String> valuesList = new ArrayList<>(Arrays.asList(values));
 
         for (Object att : objShadow.asObjectable().getAttributes().asPrismContainerValue().getItems()) {
             if (att instanceof ResourceAttribute) {
@@ -560,7 +526,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
 
                 if (attribute.equals(((ResourceAttribute) att).getNativeAttributeName())) {
 
-                    List<String> propValsString = new ArrayList<String>(propVals.size());
+                    List<String> propValsString = new ArrayList<>(propVals.size());
                     for (Object pval : propVals) {
                         propValsString.add(pval.toString());
                     }
@@ -569,19 +535,9 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
                     Collections.sort(valuesList);
 
                     assertEquals(propValsString, valuesList);
-
                 }
             }
         }
-    }
-
-    protected PrismObject<RoleType> getRoleByNameX(String roleName) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        PrismObject<RoleType> role = findObjectByName(RoleType.class, roleName);
-        assertNotNull("The role " + roleName + " is missing!", role);
-        display("Role " + roleName, role);
-        PrismAsserts.assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString(roleName));
-        return role;
     }
 
     protected <F extends com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType> PrismObject<F> getObjectByName(
@@ -593,5 +549,4 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         PrismAsserts.assertPropertyValue(object, F.F_NAME, PrismTestUtil.createPolyString(name));
         return object;
     }
-
 }

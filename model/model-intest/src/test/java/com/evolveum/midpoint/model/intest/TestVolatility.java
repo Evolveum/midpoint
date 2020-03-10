@@ -40,9 +40,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests for MID-2436 (volatile attributes).
- *
- * @author mederly
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -91,32 +88,16 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100ImportLiveSyncTaskDummyHr() throws Exception {
-        final String TEST_NAME = "test100ImportLiveSyncTaskDummyHr";
-
-        // GIVEN
-        TestVolatility.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        /// WHEN
         when();
         importSyncTask();
 
-        // THEN
         then();
-
         waitForSyncTaskStart();
     }
 
     @Test
     public void test110AddDummyHrAccountMancomb() throws Exception {
-        final String TEST_NAME = "test110AddDummyHrAccountMancomb";
-
         // GIVEN
-        TestVolatility.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         // Preconditions
         //assertUsers(5);
 
@@ -174,14 +155,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test120UpdateDummyHrAccountMancomb() throws Exception {
-        final String TEST_NAME = "test120UpdateDummyHrAccountMancomb";
-
-        // GIVEN
-        TestVolatility.class.getName();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        /// WHEN
         when();
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_HR_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         account.replaceAttributeValue(DummyAccount.ATTR_FULLNAME_NAME, "Sir Mancomb Seepgood");
@@ -191,9 +164,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         // Make sure we have steady state
         waitForSyncTaskNextRun();
 
-        // THEN
         then();
-
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
                 getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
         display("Account mancomb on HR", accountMancombHr);
@@ -240,10 +211,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200ModifyGuybrushAssignAccount() throws Exception {
-        final String TEST_NAME = "test200ModifyGuybrushAssignAccount";
-
         // GIVEN
-        TestVolatility.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -293,10 +261,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test300AddLargo() throws Exception {
-        final String TEST_NAME = "test300AddLargo";
-
         // GIVEN
-        TestVolatility.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -348,10 +313,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test400AddHerman() throws Exception {
-        final String TEST_NAME = "test400AddHerman";
-
         // GIVEN
-        TestVolatility.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -390,10 +352,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test402ModifyHermanMonster() throws Exception {
-        final String TEST_NAME = "test402ModifyHermanMonster";
-
         // GIVEN
-        TestVolatility.class.getName();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

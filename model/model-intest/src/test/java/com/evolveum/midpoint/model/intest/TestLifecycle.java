@@ -25,11 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Radovan Semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
@@ -51,15 +47,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     //no subtype, forced in draft state
     public static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
-    protected static final String ROLE_CROUPIER_OID = "a7b8de9a-20a1-84f6-b452-01254a1256e3";
 
     public static final File ROLE_PIT_BOSS_FILE = new File(TEST_DIR, "role-pit-boss.xml");
-    protected static final String ROLE_PIT_BOSS_OID = "c4525ef8-31d4-95e6-d542-745e263f596c";
 
     public static final String SUBTYPE_EMPLOYEE = "employee";
     private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
-
-    private String accontJackOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -87,8 +79,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test050SetupJack() throws Exception {
-        final String TEST_NAME = "test050SetupJack";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -118,9 +108,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test052PrincipalJackDraft() throws Exception {
-        final String TEST_NAME = "test052AutzJackDraft";
-        // GIVEN
-
         // WHEN
         when();
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
@@ -140,8 +127,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test060TransitionJackToProposed() throws Exception {
-        final String TEST_NAME = "test060TransitionJackToProposed";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -162,14 +147,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // Although we are in the proposed lifecycle and assignments would not be active by default
         // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
         // considered active.
-        accontJackOid = getSingleLinkOid(userAfter);
+        getSingleLinkOid(userAfter);
     }
 
     @Test
     public void test062PrincipalJackProposed() throws Exception {
-        final String TEST_NAME = "test062PrincipalJackProposed";
-        // GIVEN
-
         // WHEN
         when();
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
@@ -194,8 +176,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test090TransitionJackToDefaultActive() throws Exception {
-        final String TEST_NAME = "test090TransitionJackToDefaultActive";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -219,9 +199,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test092PrincipalJackDefaultActive() throws Exception {
-        final String TEST_NAME = "test092PrincipalJackDefaultActive";
-        // GIVEN
-
         // WHEN
         when();
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
@@ -231,23 +208,21 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
-     // Forced assignment not specified for active lifecycle state
+        // Forced assignment not specified for active lifecycle state
         assertNotAuthorized(principal, AUTZ_PIT_BOSS_URL);
         assertNotAuthorized(principal, AUTZ_CROUPIER_URL);
     }
 
     private void assertTelephoneNumber(PrismObject<UserType> user, Object expectedTelephoneNumber) {
-        assertEquals("Wrong telephoe number in "+user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
+        assertEquals("Wrong telephoe number in " + user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
     }
 
     protected <O extends ObjectType> void assertLifecycleState(PrismObject<O> object, String expectedLifecycleState) {
-        assertEquals("Wrong lifecycle state in "+object, expectedLifecycleState, object.asObjectable().getLifecycleState());
+        assertEquals("Wrong lifecycle state in " + object, expectedLifecycleState, object.asObjectable().getLifecycleState());
     }
 
     @Test
     public void test100AssignJackCaretaker() throws Exception {
-        final String TEST_NAME = "test100AssignJackCaretaker";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -270,8 +245,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test102UnassignJackHeadmaster() throws Exception {
-        final String TEST_NAME = "test102UnassignJackHeadmaster";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -298,8 +271,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110UnassignJackCaretaker() throws Exception {
-        final String TEST_NAME = "test110UnassignJackCaretaker";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -325,8 +296,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test112UnassignJackCaretaker() throws Exception {
-        final String TEST_NAME = "test110UnassignJackCaretaker";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

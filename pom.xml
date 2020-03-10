@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -41,9 +41,14 @@
     Extra test run with custom JVM args (we have 16g on CI server, but it works without args too),
     runs just under 900 tests, skips distribution and any common unit/IT tests (~1h50m):
     mvn clean install -P extratest,-dist -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
+    (Skipping of default tests is managed by "extratest" profile.)
 
     Extra test run for a single module, -D property matches the module in -pl:
     mvn clean install -DskipConnTests=false -pl testing/conntest
+
+    Running a single IT test class in one module from the "extra" set with output to stdout:
+    mvn integration-test -DskipConnTests=false -DredirectTestOutputToFile=false -pl testing/conntest -Dit.test=TestAdLdapChimera
+    Note usage of "it.test" property (for failsafe), not just "test" (for surefire).
 
     Full build with extra tests for a single module, "-DskipTests" suppresses other default tests:
     mvn clean install -P -dist -DskipTests -DskipStoryTests=false
@@ -141,7 +146,6 @@
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
-        <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
         <cxf.version>3.3.1</cxf.version>
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
@@ -563,11 +567,6 @@
                 <version>${commons.lang.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons.lang3.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
                 <version>1.5.6</version>
@@ -893,7 +892,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>3.0-M1</version>
+                <version>3.0-M2</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -901,6 +900,11 @@
                         <artifactId>slf4j-jdk14</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-powershell</artifactId>
+                <version>1.0-M1</version>
             </dependency>
             <!-- End connectors -->
             <dependency>

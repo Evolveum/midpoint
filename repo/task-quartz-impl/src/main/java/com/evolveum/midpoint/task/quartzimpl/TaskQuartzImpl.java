@@ -603,7 +603,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     void setOperationStatsTransient(OperationStatsType value) {
-        setContainerableTransient(TaskType.F_OPERATION_STATS, value.clone());
+        setContainerableTransient(TaskType.F_OPERATION_STATS, value != null ? value.clone() : null);
     }
 
     /*

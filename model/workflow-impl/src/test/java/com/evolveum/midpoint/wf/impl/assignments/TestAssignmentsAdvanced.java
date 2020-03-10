@@ -1176,7 +1176,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                     if (yes) {
                         assertAssignedRole(userJackOid, oids[number-1], result);
                     } else {
-                        assertNotAssignedRole(userJackOid, oids[number-1], opTask, result);
+                        assertNotAssignedRole(userJackOid, oids[number-1], result);
                     }
                     break;
 
@@ -1225,6 +1225,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         if (TRACE) {
             result.tracingProfile(tracer.compileProfile(addWorkflowLogging(createModelLoggingTracingProfile()), result));
         }
+
+        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
 
         List<AssignmentType> assignmentsToAdd = new ArrayList<>();
         assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext));
@@ -1303,7 +1305,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ApprovalSchemaExecutionInformationType found = null;
         for (ApprovalSchemaExecutionInformationType info : infos) {
             assertNotNull("No taskRef", info.getCaseRef());
-            PrismObject object = info.getCaseRef().asReferenceValue().getObject();
+            PrismObject<?> object = info.getCaseRef().asReferenceValue().getObject();
             assertNotNull("No case in caseRef", object);
             CaseType aCase = (CaseType) object.asObjectable();
             ApprovalContextType wfc = aCase.getApprovalContext();
@@ -1442,8 +1444,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                             }
                         }
                         if (yes || !has1and2) {
-                            assertNotAssignedRole(userJackOid, roleRole21Oid, opTask, result);
-                            assertNotAssignedRole(userJackOid, roleRole22Oid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRole21Oid, result);
+                            assertNotAssignedRole(userJackOid, roleRole22Oid, result);
                         } else {
                             assertAssignedRole(userJackOid, roleRole21Oid, result);
                             assertAssignedRole(userJackOid, roleRole22Oid, result);
@@ -1451,7 +1453,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                         break;
                     case 1:
                         if (yes) {
-                            assertNotAssignedRole(userJackOid, roleRole23Oid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRole23Oid, result);
                         } else {
                             assertAssignedRole(userJackOid, roleRole23Oid, result);
                         }

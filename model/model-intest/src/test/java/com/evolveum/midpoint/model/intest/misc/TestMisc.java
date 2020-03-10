@@ -6,22 +6,15 @@
  */
 package com.evolveum.midpoint.model.intest.misc;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.List;
-
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.exception.SystemException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,8 +23,10 @@ import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -43,17 +38,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
@@ -90,9 +78,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test100GetRepositoryDiag() throws Exception {
-        final String TEST_NAME = "test100GetRepositoryDiag";
-
+    public void test100GetRepositoryDiag() {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -112,9 +98,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test110RepositorySelfTest() throws Exception {
-        final String TEST_NAME = "test110RepositorySelfTest";
-
+    public void test110RepositorySelfTest() {
         // GIVEN
         Task task = getTestTask();
 
@@ -132,8 +116,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200ExportUsers() throws Exception {
-        final String TEST_NAME = "test200ExportUsers";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -148,9 +130,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         assertEquals("Unexpected number of users", 6, users.size());
-        for (PrismObject<UserType> user: users) {
+        for (PrismObject<UserType> user : users) {
             display("Exporting user", user);
-            assertNotNull("Null definition in "+user, user.getDefinition());
+            assertNotNull("Null definition in " + user, user.getDefinition());
             display("Definition", user.getDefinition());
             String xmlString = prismContext.serializerFor(PrismContext.LANG_XML).serialize(user);
             display("Exported user", xmlString);
@@ -162,10 +144,8 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
             validator.validate(new DOMSource(xmlDocument));
 
             PrismObject<Objectable> parsedUser = prismContext.parseObject(xmlString);
-            assertTrue("Re-parsed user is not equal to original: "+user, user.equals(parsedUser));
-
+            assertEquals("Re-parsed user is not equal to original: " + user, parsedUser, user);
         }
-
     }
 
     /**
@@ -174,21 +154,19 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test210SearchUsersMatchingRulesPolystringNorm() throws Exception {
-        final String TEST_NAME = "test210SearchUsersMatchingRulesPolystringNorm";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
                 .item(UserType.F_NAME)
-                    .eq("JacK")
-                    .matchingNorm()
+                .eq("JacK")
+                .matchingNorm()
                 .build();
 
         // WHEN
         when();
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 
         // THEN
         then();
@@ -207,8 +185,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test212SearchUsersMatchingRulesPolystringIgnoreCase() throws Exception {
-        final String TEST_NAME = "test212SearchUsersMatchingRulesPolystringIgnoreCase";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -222,8 +198,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         try {
             // WHEN
             when();
-            List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
-
+            modelService.searchObjects(UserType.class, query, null, task, result);
         } catch (SystemException e) {
             // this is expected
         }
@@ -236,8 +211,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test214SearchUsersMatchingRulesStringIgnoreCase() throws Exception {
-        final String TEST_NAME = "test214SearchUsersMatchingRulesStringIgnoreCase";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -250,7 +223,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 
         // THEN
         then();
@@ -269,8 +242,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test216SearchUsersMatchingRulesStringNorm() throws Exception {
-        final String TEST_NAME = "test216SearchUsersMatchingRulesStringNorm";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -283,7 +254,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 
         // THEN
         then();
@@ -298,8 +269,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test300RecomputeJack() throws Exception {
-        final String TEST_NAME = "test300RecomputeJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -322,8 +291,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test302UpdateKeyJack() throws Exception {
-        final String TEST_NAME = "test302UpdateKeyJack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -343,8 +310,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test310AddUserClean() throws Exception {
-        final String TEST_NAME = "test310AddUserClean";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -371,8 +336,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test312UpdateBinaryIdClean() throws Exception {
-        final String TEST_NAME = "test312UpdateBinaryIdClean";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -394,19 +357,14 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      * MID-4660, MID-4491, MID-3581
      */
     @Test
-    public void test320DefaultRelations() throws Exception {
-        final String TEST_NAME="test320DefaultRelations";
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
+    public void test320DefaultRelations() {
         // WHEN
         when();
         List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions();
 
         // THEN
-         then();
-         display("Relations", relations);
+        then();
+        display("Relations", relations);
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "RelationTypes.owner");
         assertEquals("Unexpected number of relation definitions", 7, relations.size());
@@ -417,8 +375,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test400ImportRoleWithFilters() throws Exception {
-        final String TEST_NAME = "test400ImportRoleWithFilters";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -441,8 +397,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test500AddHocProvisioningScriptAssignJackResourceScripty() throws Exception {
-        final String TEST_NAME = "test500AddHocProvisioningScriptAssignJackResourceScripty";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -474,8 +428,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test502GetAccountJackResourceScripty() throws Exception {
-        final String TEST_NAME = "test502GetAccountJackResourceScripty";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -506,8 +458,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test504GetAccountJackResourceScriptyAgain() throws Exception {
-        final String TEST_NAME = "test504GetAccountJackResourceScriptyAgain";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -543,8 +493,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
-        final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -567,33 +515,26 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
         display("Resource version after", resourceAfter.getVersion());
-        assertFalse("Resource version is still the same: "+resourceAfter.getVersion(), resourceBefore.getVersion().equals(resourceAfter.getVersion()));
+        assertThat(resourceAfter.getVersion())
+                .withFailMessage("Resource version is still the same")
+                .isNotEqualTo(resourceBefore.getVersion());
 
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
         Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow,
                 getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-        assertTrue("Connector number hash changed: "+lastDummyConnectorNumber+" -> "+dummyConnectorNumber,
-                lastDummyConnectorNumber.equals(dummyConnectorNumber));
+        assertEquals("Connector number hash changed: " + lastDummyConnectorNumber + " -> " + dummyConnectorNumber,
+                dummyConnectorNumber, lastDummyConnectorNumber);
     }
-
-
 
     /**
      * MID-4504
      * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
-     *
+     * <p>
      * the ship attribute in the role "Ship" has mapping with calling midpoint.getLinkedShadow() on the reosurce which doesn't exist
      */
     @Test
     public void test600jackAssignRoleShip() throws Exception {
-        final String TEST_NAME = "test600jackAssignRoleShip";
-
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-
         // WHEN
         when();
         assignRole(USER_JACK_OID, ROLE_SHIP_OID);
@@ -606,7 +547,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         PrismReference linkRef = userAfter.findReference(UserType.F_LINK_REF);
-        assertTrue(!linkRef.isEmpty());
+        assertFalse(linkRef.isEmpty());
 
 //        PrismObject<ShadowType> shadowModel = getShadowModel(linkRef.getOid());
 
@@ -616,11 +557,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test601jackUnassignResourceAccount() throws Exception {
-        final String TEST_NAME = "test601jackUnassignResourceAccount";
-
         // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
@@ -637,33 +574,22 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
     }
 
-
     /**
      * MID-4504
      * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
-     *
+     * <p>
      * first assign role ship, the ship attribute in the role has mapping with calling midpoint.getLinkedShadow()
      */
     @Test
     public void test602jackUnssigndRoleShip() throws Exception {
-        final String TEST_NAME = "test602jackUnssigndRoleShip";
-
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-
-        // WHEN
         when();
         unassignRole(USER_JACK_OID, ROLE_SHIP_OID);
 
-        //THEN
         then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
         assertAssignments(userAfter, 0);
         assertLinks(userAfter, 0);
-
     }
 
 }

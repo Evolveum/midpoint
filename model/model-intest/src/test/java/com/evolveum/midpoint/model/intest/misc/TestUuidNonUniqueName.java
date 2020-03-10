@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.misc;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -33,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTest {
 
@@ -51,23 +49,21 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
     protected static final String USER_SKELLINGTON_FULL_NAME = "Jack Skellington";
 
     String accountJackSparrowUid;
-    String accountJackSkellingtonUid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
 
-        initDummyResourcePirate(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_NAME,
-                RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_FILE, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, initTask, initResult);
+        initDummyResourcePirate(
+                RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_NAME, RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_FILE,
+                RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, initTask, initResult);
 
         importObjectFromFile(USER_SKELLINGTON_FILE);
     }
 
     @Test
     public void test010TestResourceConnection() throws Exception {
-        final String TEST_NAME = "test010TestResourceConnection";
-
         // GIVEN
         Task task = getTestTask();
 
@@ -80,14 +76,12 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
-            .displayXml()
-            .assertHasSchema();
+                .displayXml()
+                .assertHasSchema();
     }
 
     @Test
     public void test020RefinedSchema() throws Exception {
-        final String TEST_NAME = "test020RefinedSchema";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -101,9 +95,10 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         assertSuccess(result);
 
         assertResourceAfter(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID)
-            .displayXml()
-            .assertHasSchema();
+                .displayXml()
+                .assertHasSchema();
 
+        // @formatter:off
         assertRefinedResourceSchema(resource, "after")
             .assertNamespace(MidPointConstants.NS_RI)
             .defaultAccountDefinition()
@@ -115,13 +110,11 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
                     .assertNotPrimaryIdentifier()
                     .assertNotSecondaryIdentifier()
                     .end();
-
+        // @formatter:on
     }
 
     @Test
     public void test100AssignAccountToJackSparrow() throws Exception {
-        final String TEST_NAME = "test100AssignAccountToJackSparrow";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -134,6 +127,7 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         then();
         assertSuccess(result);
 
+        // @formatter:off
         accountJackSparrowUid = assertUserAfter(USER_JACK_OID)
             .singleLink()
                 .target()
@@ -141,26 +135,26 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
                     .attributes()
                         .assertValue(SchemaConstants.ICFS_NAME, USER_JACK_GIVEN_NAME)
                         .getValue(SchemaConstants.ICFS_UID);
+        // @formatter:on
 
         assertDummyAccountById(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_NAME, accountJackSparrowUid)
-            .assertName(USER_JACK_GIVEN_NAME)
-            .assertId(accountJackSparrowUid)
-            .assertFullName(USER_JACK_FULL_NAME);
+                .assertName(USER_JACK_GIVEN_NAME)
+                .assertId(accountJackSparrowUid)
+                .assertFullName(USER_JACK_FULL_NAME);
 
-        assertFalse("Same sparrow's name and uid", USER_JACK_GIVEN_NAME.equals(accountJackSparrowUid));
+        assertThat(accountJackSparrowUid).withFailMessage("Same sparrow's name and uid")
+                .isNotEqualTo(USER_JACK_GIVEN_NAME);
     }
 
     @Test
     public void test102GetAccountJackSparrow() throws Exception {
-        final String TEST_NAME = "test102GetAccountJackSparrow";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackSparrowOid = assertUserBefore(USER_JACK_OID)
                 .singleLink()
-                    .getOid();
+                .getOid();
 
         // WHEN
         when();
@@ -170,13 +164,15 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertShadow(shadow, "getObject")
-                    .assertName(USER_JACK_GIVEN_NAME)
-                    .attributes()
-                        .assertValue(SchemaConstants.ICFS_NAME, USER_JACK_GIVEN_NAME)
-                        .assertValue(SchemaConstants.ICFS_UID, accountJackSparrowUid)
-                        .assertHasPrimaryIdentifier()
-                        .assertNoSecondaryIdentifier();
+            .assertName(USER_JACK_GIVEN_NAME)
+            .attributes()
+                .assertValue(SchemaConstants.ICFS_NAME, USER_JACK_GIVEN_NAME)
+                .assertValue(SchemaConstants.ICFS_UID, accountJackSparrowUid)
+                .assertHasPrimaryIdentifier()
+                .assertNoSecondaryIdentifier();
+        // @formatter:on
     }
 
     /**
@@ -184,8 +180,6 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
      */
     @Test
     public void test110AssignAccountToJackSkellington() throws Exception {
-        final String TEST_NAME = "test110AssignAccountToJackSkellington";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -200,21 +194,24 @@ public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTe
         then();
         assertSuccess(result);
 
-        accountJackSkellingtonUid = assertUserAfter(USER_SKELLINGTON_OID)
+        // @formatter:off
+        String accountJackSkellingtonUid = assertUserAfter(USER_SKELLINGTON_OID)
             .singleLink()
                 .target()
                     .assertName(USER_SKELLINGTON_GIVEN_NAME)
                     .attributes()
                         .assertValue(SchemaConstants.ICFS_NAME, USER_SKELLINGTON_GIVEN_NAME)
                         .getValue(SchemaConstants.ICFS_UID);
+        // @formatter:on
 
         assertDummyAccountById(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_NAME, accountJackSkellingtonUid)
-            .assertName(USER_SKELLINGTON_GIVEN_NAME)
-            .assertId(accountJackSkellingtonUid)
-            .assertFullName(USER_SKELLINGTON_FULL_NAME);
+                .assertName(USER_SKELLINGTON_GIVEN_NAME)
+                .assertId(accountJackSkellingtonUid)
+                .assertFullName(USER_SKELLINGTON_FULL_NAME);
 
-        assertFalse("Same skellington's name and uid", USER_SKELLINGTON_GIVEN_NAME.equals(accountJackSkellingtonUid));
-        assertFalse("Same skellington's and sparow's uid", accountJackSparrowUid.equals(accountJackSkellingtonUid));
+        assertThat(accountJackSkellingtonUid).withFailMessage("Same skellington's name and uid")
+                .isNotEqualTo(USER_SKELLINGTON_GIVEN_NAME);
+        assertThat(accountJackSkellingtonUid).withFailMessage("Same skellington's and sparow's uid")
+                .isNotEqualTo(accountJackSparrowUid);
     }
-
 }

@@ -6,6 +6,17 @@
  */
 package com.evolveum.midpoint.model.impl.misc;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -14,22 +25,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
-import java.io.File;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
-/**
- * @author mederly
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegrationTest {
 
@@ -64,8 +61,6 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
 
     @Test
     public void test100FixDuplicatesWithDifferentObjectClasses() throws Exception {
-        final String TEST_NAME = "test100FixDuplicatesWithDifferentObjectClasses";
-
         login(userAdministrator);
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -97,6 +92,4 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
                 .filter(o -> "intent1".equals(o.asObjectable().getIntent())).findFirst().orElse(null);
         assertNotNull("intent1 shadow was removed", intent1);
     }
-
-
 }

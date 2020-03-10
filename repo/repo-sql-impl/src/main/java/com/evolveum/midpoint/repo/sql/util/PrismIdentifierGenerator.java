@@ -82,7 +82,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
                 return;
             }
 
-            PrismContainer container = (PrismContainer) visitable;
+            PrismContainer<?> container = (PrismContainer) visitable;
             PrismContainerDefinition def = container.getDefinition();
             if (def.isSingleValue()) {
                 return;

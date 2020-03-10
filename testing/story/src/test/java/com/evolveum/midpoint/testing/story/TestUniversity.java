@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.testing.story;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import javax.xml.namespace.QName;
+
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
@@ -20,40 +33,20 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-
-import java.io.File;
-
-import static org.testng.AssertJUnit.assertNotNull;
-
 /**
  * @author Radovan Semancik
  * @author mederly
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUniversity extends AbstractStoryTest {
 
@@ -69,7 +62,6 @@ public class TestUniversity extends AbstractStoryTest {
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
     protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-    protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
     private static final String DUMMY_PRIVILEGE_ATTRIBUTE_HR_ORGPATH = "orgpath";
 
@@ -82,20 +74,8 @@ public class TestUniversity extends AbstractStoryTest {
     protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dummy-hr-livesync.xml");
     protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
 
-    protected static final File TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-opendj-default-single.xml");
-    protected static final String TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID = "10000000-0000-0000-5555-555500000004";
-
-    protected static final File TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-opendj-ldapgroup-single.xml");
-    protected static final String TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID = "10000000-0000-0000-5555-555500000014";
-
-    private static final File SCABB_OU_LDIF_FILE = new File(TEST_DIR, "scabb.ldif");
-    private static final File BOOTY_OU_LDIF_FILE = new File(TEST_DIR, "booty.ldif");
-    private static final File BOOTY_LOOKOUT_OU_LDIF_FILE = new File(TEST_DIR, "booty-lookout.ldif");
-
     @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
-
-    private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
 
     protected static DummyResource dummyResourceHr;
     protected static DummyResourceContoller dummyResourceCtlHr;
@@ -124,7 +104,7 @@ public class TestUniversity extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
+        DebugReconciliationTaskResultListener reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
         reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
 
         // Resources
@@ -141,11 +121,6 @@ public class TestUniversity extends AbstractStoryTest {
         resourceOpenDjType = resourceOpenDj.asObjectable();
         openDJController.setResource(resourceOpenDj);
 
-//        // LDAP content
-//        openDJController.addEntryFromLdifFile(SCABB_OU_LDIF_FILE);
-//        openDJController.addEntryFromLdifFile(BOOTY_OU_LDIF_FILE);
-//        openDJController.addEntryFromLdifFile(BOOTY_LOOKOUT_OU_LDIF_FILE);
-//
         // Object Templates
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
         setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
@@ -162,8 +137,7 @@ public class TestUniversity extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -178,8 +152,6 @@ public class TestUniversity extends AbstractStoryTest {
 
     @Test
     public void test100AddComeniusUniversity() throws Exception {
-        final String TEST_NAME = "test100AddComeniusUniversity";
-
         DummyPrivilege comenius = new DummyPrivilege("UK");
 
         // WHEN
@@ -201,8 +173,6 @@ public class TestUniversity extends AbstractStoryTest {
 
     @Test
     public void test110AddComeniusStructure() throws Exception {
-        final String TEST_NAME = "test110AddComeniusStructure";
-
         DummyPrivilege srcFmfi = new DummyPrivilege("FMFI");
         srcFmfi.addAttributeValue(DUMMY_PRIVILEGE_ATTRIBUTE_HR_ORGPATH, "UK");
 
@@ -271,11 +241,8 @@ public class TestUniversity extends AbstractStoryTest {
         assertNoAttribute(groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
     }
 
-
     @Test
     public void test120MoveComputingCentre() throws Exception {
-        final String TEST_NAME = "test120MoveComputingCentre";
-
         DummyPrivilege srcVc = dummyResourceHr.getPrivilegeByName("VC");
 
         // WHEN
@@ -335,18 +302,18 @@ public class TestUniversity extends AbstractStoryTest {
 
         String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
         PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-        display("Org "+orgName+" group shadow", groupShadow);
+        display("Org " + orgName + " group shadow", groupShadow);
         // TODO assert shadow content
 
-        Entry ouEntry = openDJController.searchSingle("ou="+orgName);
-        assertNotNull("No ou LDAP entry for "+orgName, ouEntry);
+        Entry ouEntry = openDJController.searchSingle("ou=" + orgName);
+        assertNotNull("No ou LDAP entry for " + orgName, ouEntry);
         display("OU entry", ouEntry);
-        openDJController.assertObjectClass(ouEntry, "organizationalUnit");
+        OpenDJController.assertObjectClass(ouEntry, "organizationalUnit");
 
-        Entry groupEntry = openDJController.searchSingle("cn=DL-"+orgName);
-        assertNotNull("No group LDAP entry for "+orgName, groupEntry);
+        Entry groupEntry = openDJController.searchSingle("cn=DL-" + orgName);
+        assertNotNull("No group LDAP entry for " + orgName, groupEntry);
         display("OU GROUP entry", groupEntry);
-        openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
+        OpenDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
 
         return org;
     }

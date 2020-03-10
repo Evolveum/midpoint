@@ -21,9 +21,6 @@ import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -53,11 +50,13 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
     private static final String ID_EDIT_XML = "editXml";
     private static final String ID_PREVIEW_CHANGES = "previewChanges";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
+    //private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
 
-    private Form mainForm;
+    private Form<PrismObjectWrapper<O>> mainForm;
 
     private LoadableModel<PrismObjectWrapper<O>> objectModel;
+    //get rid of it.
+    private PageAdminObjectDetails<O> parentPage;
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
         private static final long serialVersionUID = 1L;
@@ -72,6 +71,13 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         super(id, objectModel);
         Validate.notNull(objectModel, "Null object model");
         this.objectModel = objectModel;
+        this.parentPage = parentPage;
+
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout(parentPage);
     }
 
@@ -79,7 +85,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
     protected void onConfigure() {
         super.onConfigure();
 
-        TabbedPanel tabbedPanel = (TabbedPanel) get(ID_MAIN_FORM + ":" + ID_TAB_PANEL);
+        TabbedPanel<ITab> tabbedPanel = (TabbedPanel<ITab>) get(ID_MAIN_FORM + ":" + ID_TAB_PANEL);
         WebComponentUtil.setSelectedTabFromPageParameters(tabbedPanel, getPage().getPageParameters(),
                 PARAMETER_SELECTED_TAB);
     }
@@ -96,7 +102,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         return objectModel.getObject().getObject();
     }
 
-    public Form getMainForm() {
+    public Form<PrismObjectWrapper<O>> getMainForm() {
         return mainForm;
     }
 
@@ -110,8 +116,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
     protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
         List<ITab> tabs = createTabs(parentPage);
-        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null,
-                PARAMETER_SELECTED_TAB);
+        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null, PARAMETER_SELECTED_TAB);
         mainForm.add(tabPanel);
     }
 
@@ -231,7 +236,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                backPerformed(target);
+                backPerformed();
             }
 
         };
@@ -284,24 +289,21 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         return executeOptionsModel.getObject();
     }
 
-    private void backPerformed(AjaxRequestTarget target) {
+    private void backPerformed() {
         getDetailsPage().redirectBack();
     }
 
+    @SuppressWarnings("unchecked")
     protected PageAdminObjectDetails<O> getDetailsPage() {
-        return (PageAdminObjectDetails<O>)getPage();
+        return (PageAdminObjectDetails<O>) getPage();
     }
 
     protected boolean getOptionsPanelVisibility(){
         if (getObjectWrapper().isReadOnly()){
             return false;
         }
-//        PrismContainerDefinition def = getObjectWrapper().getDefinition();
-        if (ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
-                && !getObjectWrapper().canModify()){
-            return false;
-        }
-        return true;
+        return ItemStatus.NOT_CHANGED != getObjectWrapper().getStatus()
+                || getObjectWrapper().canModify();
     }
 
     public void reloadSavePreviewButtons(AjaxRequestTarget target){

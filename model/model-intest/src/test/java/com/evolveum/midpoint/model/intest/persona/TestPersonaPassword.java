@@ -38,7 +38,6 @@ public class TestPersonaPassword extends AbstractPersonaTest {
     protected static final String SECURITY_POLICY_PERSONA_OID = "51545f14-b4df-11e7-a37a-d37b7c2b3f4c";
 
     protected static final File PASSWORD_POLICY_PERSONA_FILE = new File(TEST_DIR, "password-policy-persona.xml");
-    protected static final String PASSWORD_POLICY_PERSONA_OID = "5d9e068a-b4df-11e7-be31-a7b0fef77d95";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
@@ -57,20 +56,19 @@ public class TestPersonaPassword extends AbstractPersonaTest {
     }
 
     @Override
-    protected void assertPersonaInitialPassword(PrismObject<UserType> persona, String userPassword) throws Exception {
+    protected void assertPersonaInitialPassword(PrismObject<UserType> persona, String userPassword) {
         assertUserNoPassword(persona);
     }
 
     @Override
-    protected void assertPersonaAfterUserPasswordChange(PrismObject<UserType> persona, String oldPersonaPassword, String newUserPassword) throws Exception {
+    protected void assertPersonaAfterUserPasswordChange(
+            PrismObject<UserType> persona, String oldPersonaPassword, String newUserPassword) {
         assertUserNoPassword(persona);
     }
 
     @Test
     @Override
     public void test145ModifyPersonaPasswordBack() throws Exception {
-        final String TEST_NAME = "test145ModifyPersonaPasswordBack";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -95,8 +93,6 @@ public class TestPersonaPassword extends AbstractPersonaTest {
         // THEN
         then();
         assertFailure(result);
-
-        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after change execution", userAfter);
