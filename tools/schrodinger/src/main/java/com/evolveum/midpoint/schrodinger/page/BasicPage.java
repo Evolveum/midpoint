@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schrodinger.page.self.RequestRolePage;
 import com.evolveum.midpoint.schrodinger.page.service.ListServicesPage;
 import com.evolveum.midpoint.schrodinger.page.service.NewServicePage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
-import com.evolveum.midpoint.schrodinger.page.task.NewTaskPage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.FormSubmittablePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
@@ -223,9 +223,9 @@ public class BasicPage {
         return new ListTasksPage();
     }
 
-    public NewTaskPage newTask() {
+    public TaskPage newTask() {
         clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.new");
-        return new NewTaskPage();
+        return new TaskPage();
     }
 
     public ListReportsPage listReports() {

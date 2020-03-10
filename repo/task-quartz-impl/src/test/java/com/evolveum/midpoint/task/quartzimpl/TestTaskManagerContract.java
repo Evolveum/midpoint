@@ -821,8 +821,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         taskManager.getClusterManager().startClusterManagerThread();
 
         try {
-            Task rootTask = taskManager.createTaskInstance(
-                    addObjectFromFile(taskFilename()), result);
+            Task rootTask = createTaskFromFile(taskFilename(), result);
             display("root task", rootTask);
             waitForTaskClose(taskOid(), result, 40000, 3000);
         } finally {
@@ -908,7 +907,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
     public void test020QueryByExecutionStatus() throws Exception {
         final OperationResult result = createOperationResult();
 
-        taskManager.createTaskInstance(addObjectFromFile(taskFilename()), result);
+        addObjectFromFile(taskFilename());
 
         ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
         ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();

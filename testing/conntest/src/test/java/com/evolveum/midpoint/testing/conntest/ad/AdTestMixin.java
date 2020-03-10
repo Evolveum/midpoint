@@ -44,6 +44,7 @@ public interface AdTestMixin extends MidpointTestMixin {
     QName ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
     String ATTRIBUTE_TITLE_NAME = "title";
     String ATTRIBUTE_PROXY_ADDRESSES_NAME = "proxyAddresses";
+    String ATTRIBUTE_USER_PARAMETERS_NAME = "userParameters";
 
     QName OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME = new QName(MidPointConstants.NS_RI, "msExchBaseClass");
 

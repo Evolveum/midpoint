@@ -94,6 +94,7 @@ public class ChangeProcessor {
             ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, result);
             if (ctx == null) {
                 request.setSuccess(true);
+                request.onSuccess();
                 return;
             }
 
@@ -145,6 +146,7 @@ public class ChangeProcessor {
                 LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
                         + "deleted on the resource meantime).");
                 request.setSuccess(true);
+                request.onSuccess();
                 // Are we OK with the result being automatically computed here? (i.e. most probably SUCCESS?)
                 return;
             }

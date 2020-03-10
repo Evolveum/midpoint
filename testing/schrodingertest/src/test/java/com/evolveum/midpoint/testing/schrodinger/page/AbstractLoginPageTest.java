@@ -7,13 +7,10 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
-import com.evolveum.midpoint.schrodinger.component.configuration.NotificationsTab;
 import com.evolveum.midpoint.schrodinger.component.report.AuditRecordTable;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -27,7 +24,7 @@ import static com.codeborne.selenide.Selenide.*;
  * @author skublik
  */
 
-public class AbstractLoginPageTest extends TestBase {
+public class AbstractLoginPageTest extends AbstractSchrodingerTest {
 
     private static final File ENABLED_USER = new File("src/test/resources/configuration/objects/users/enabled-user.xml");
     private static final File DISABLED_USER = new File("src/test/resources/configuration/objects/users/disabled-user.xml");
@@ -35,7 +32,7 @@ public class AbstractLoginPageTest extends TestBase {
 
     @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
+    public void beforeClass() throws IOException{
         super.beforeClass();
         importObject(ENABLED_USER, true);
         importObject(DISABLED_USER, true);

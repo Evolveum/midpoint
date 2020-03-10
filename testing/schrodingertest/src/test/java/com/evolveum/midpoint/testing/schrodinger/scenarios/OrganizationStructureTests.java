@@ -11,7 +11,7 @@ import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -22,7 +22,7 @@ import java.io.IOException;
 /**
  * Created by matus on 5/11/2018.
  */
-public class OrganizationStructureTests extends TestBase {
+public class OrganizationStructureTests extends AbstractSchrodingerTest {
 
     private static File csvTargetFile;
 
@@ -61,7 +61,7 @@ public class OrganizationStructureTests extends TestBase {
                     .getObjectsFromFile()
                     .chooseFile(ORG_MONKEY_ISLAND_SOURCE_FILE)
                     .checkOverwriteExistingObject()
-                    .clickImport()
+                    .clickImportFileButton()
                         .feedback()
                         .isSuccess()
         );
@@ -111,7 +111,7 @@ public class OrganizationStructureTests extends TestBase {
                 .clickByName(TEST_USER_GUYBRUSH_NAME)
                     .selectTabAssignments()
                         .table()
-                        .unassignByName(NAME_ORG_UNIT_UNASSIGN)
+                        .removeByName(NAME_ORG_UNIT_UNASSIGN)
                     .and()
                 .and();
         userPage.checkKeepDisplayingResults()
