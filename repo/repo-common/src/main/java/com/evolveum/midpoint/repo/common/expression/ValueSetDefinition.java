@@ -6,12 +6,10 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.lang3.Validate;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -96,7 +94,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 
     private <IV extends PrismValue> boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();
-        Object value = pval.getRealValue();
+        Object value = getInputValue(pval);
         variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);
         if (additionalVariableName != null) {
             variables.addVariableDefinition(additionalVariableName, value, itemDefinition);
@@ -106,10 +104,26 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         }
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context, result);
+
+        //noinspection SimplifiableIfStatement
         if (outputTriple == null) {
             return false;
+        } else {
+            return ExpressionUtil.computeConditionResult(outputTriple.getNonNegativeValues());
         }
-        return ExpressionUtil.computeConditionResult(outputTriple.getNonNegativeValues());
+    }
+
+    private <IV extends PrismValue> Object getInputValue(IV pval) {
+        if (pval instanceof PrismContainerValue) {
+            PrismContainerValue<?> pcv = (PrismContainerValue<?>) pval;
+            if (pcv.getCompileTimeClass() != null) {
+                return pcv.asContainerable();
+            } else {
+                return pcv;
+            }
+        } else {
+            return pval.getRealValue();
+        }
     }
 
 }

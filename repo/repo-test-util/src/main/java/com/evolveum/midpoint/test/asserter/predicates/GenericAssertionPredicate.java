@@ -5,34 +5,35 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.test.asserter.predicate;
+package com.evolveum.midpoint.test.asserter.predicates;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
- * Generic assertion predicate defined using function that generates the failure description (or null if test passes).
+ * Generic assertion predicate defined using Java Predicate and a function that generates the failure description.
  *
  * Experimental.
  */
-public class SimplifiedGenericAssertionPredicate<T> implements AssertionPredicate<T> {
+public class GenericAssertionPredicate<T> implements AssertionPredicate<T> {
 
+    @NotNull private final Predicate<T> predicate;
     @NotNull private final Function<T, String> failureDescriptionGenerator;
 
     @SuppressWarnings("WeakerAccess")   // useful for general public
-    public SimplifiedGenericAssertionPredicate(@NotNull Function<T, String> failureDescriptionGenerator) {
+    public GenericAssertionPredicate(@NotNull Predicate<T> predicate, @NotNull Function<T, String> failureDescriptionGenerator) {
+        this.predicate = predicate;
         this.failureDescriptionGenerator = failureDescriptionGenerator;
     }
 
     @Override
     public AssertionPredicateEvaluation evaluate(T value) {
-        String failureDescription = failureDescriptionGenerator.apply(value);
-        if (failureDescription != null) {
-            return AssertionPredicateEvaluation.failure(failureDescription);
-        } else {
+        if (predicate.test(value)) {
             return AssertionPredicateEvaluation.success();
+        } else {
+            return AssertionPredicateEvaluation.failure(failureDescriptionGenerator.apply(value));
         }
     }
 }
