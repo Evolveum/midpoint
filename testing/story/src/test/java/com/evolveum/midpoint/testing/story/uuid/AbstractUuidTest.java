@@ -6,14 +6,7 @@ package com.evolveum.midpoint.testing.story.uuid;
  * and European Union Public License. See LICENSE file for details.
  */
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -22,15 +15,16 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-/**
- * @author Radovan Semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public abstract class AbstractUuidTest extends AbstractStoryTest {
@@ -50,16 +44,13 @@ public abstract class AbstractUuidTest extends AbstractStoryTest {
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
 
-    protected String userRappOid;
-    protected String userMancombOid;
-
     @Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -86,7 +77,6 @@ public abstract class AbstractUuidTest extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);

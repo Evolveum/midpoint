@@ -137,8 +137,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -341,7 +340,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test310RenameUserGorc() throws Exception {
-        final String TEST_NAME = "test310RenameUserGorc";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -364,7 +362,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test320AddOrgRoyulaDiabolica() throws Exception {
-        final String TEST_NAME = "test320AddOrgRoyulaDiabolica";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -393,7 +390,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
     @Test
     public void test322MoveOrgZblo() throws Exception {
-        final String TEST_NAME = "test322MoveOrgZblo";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
