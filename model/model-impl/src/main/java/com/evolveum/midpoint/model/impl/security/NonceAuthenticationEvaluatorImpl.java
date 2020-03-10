@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.security;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,7 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
     }
 
     @Override
-    protected boolean suportsAuthzCheck() {
+    protected boolean supportsAuthzCheck() {
         return false;
     }
 
@@ -46,17 +47,17 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
     }
 
     @Override
-    protected void validateCredentialNotNull(ConnectionEnvironment connEnv, MidPointPrincipal principal,
-            NonceType credential) {
+    protected void validateCredentialNotNull(ConnectionEnvironment connEnv,
+            @NotNull MidPointPrincipal principal, NonceType credential) {
         if (credential.getValue() == null) {
             recordAuthenticationFailure(principal, connEnv, "no stored password value");
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
-
     }
 
     @Override
-    protected boolean passwordMatches(ConnectionEnvironment connEnv, MidPointPrincipal principal,
+    protected boolean passwordMatches(
+            ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal,
             NonceType passwordType, NonceAuthenticationContext authCtx) {
         return decryptAndMatch(connEnv, principal, passwordType.getValue(), authCtx.getNonce());
     }

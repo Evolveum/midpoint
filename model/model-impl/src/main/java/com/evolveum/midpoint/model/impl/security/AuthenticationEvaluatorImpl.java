@@ -60,7 +60,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialType, T extends AbstractAuthenticationContext> implements AuthenticationEvaluator<T>, MessageSourceAware {
+public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialType, T extends AbstractAuthenticationContext>
+        implements AuthenticationEvaluator<T>, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuthenticationEvaluatorImpl.class);
 
@@ -80,11 +81,12 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     protected abstract void checkEnteredCredentials(ConnectionEnvironment connEnv, T authCtx);
-    protected abstract boolean suportsAuthzCheck();
+    protected abstract boolean supportsAuthzCheck();
     protected abstract C getCredential(CredentialsType credentials);
-    protected abstract void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credential);
-    protected abstract boolean passwordMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C passwordType,
-            T authCtx);
+    protected abstract void validateCredentialNotNull(
+            ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credential);
+    protected abstract boolean passwordMatches(ConnectionEnvironment connEnv,
+            @NotNull MidPointPrincipal principal, C passwordType, T authCtx);
     protected abstract CredentialPolicyType getEffectiveCredentialPolicy(SecurityPolicyType securityPolicy, T authnCtx) throws SchemaException;
     protected abstract boolean supportsActivation();
 
@@ -197,7 +199,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throw new LockedException("web.security.provider.locked");
         }
 
-        if (suportsAuthzCheck()) {
+        if (supportsAuthzCheck()) {
             // Authorizations
             if (!hasAnyAuthorization(principal)) {
                 recordAuthenticationFailure(principal, connEnv, "no authorizations");
