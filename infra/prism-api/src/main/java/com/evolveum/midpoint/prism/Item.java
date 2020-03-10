@@ -227,6 +227,16 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     V getValue();
 
     /**
+     * Returns a value matching given selector (or null if none exists).
+     */
+    default V getAnyValue(@NotNull ValueSelector<V> selector) {
+        return getValues().stream()
+                .filter(selector)
+                .findAny()
+                .orElse(null);
+    }
+
+    /**
      * Returns the "real value" (content) of this item:
      *  - value contained in PrismPropertyValue
      *  - Referencable in PrismReferenceValue

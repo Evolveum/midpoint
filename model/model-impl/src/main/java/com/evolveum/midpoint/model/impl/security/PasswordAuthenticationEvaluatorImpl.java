@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @Component("passwordAuthenticationEvaluator")
-public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<PasswordType, PasswordAuthenticationContext>{
+public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<PasswordType, PasswordAuthenticationContext> {
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
@@ -35,7 +34,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     }
 
     @Override
-    protected boolean suportsAuthzCheck() {
+    protected boolean supportsAuthzCheck() {
         return true;
     }
 
@@ -45,7 +44,8 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     }
 
     @Override
-    protected void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType credential) {
+    protected void validateCredentialNotNull(ConnectionEnvironment connEnv,
+            @NotNull MidPointPrincipal principal, PasswordType credential) {
 
         ProtectedStringType protectedString = credential.getValue();
 
@@ -57,15 +57,15 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     }
 
     @Override
-    protected boolean passwordMatches(ConnectionEnvironment connEnv, MidPointPrincipal principal,
+    protected boolean passwordMatches(
+            ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal,
             PasswordType passwordType, PasswordAuthenticationContext authCtx) {
         return decryptAndMatch(connEnv, principal, passwordType.getValue(), authCtx.getPassword());
     }
 
-
     @Override
     protected CredentialPolicyType getEffectiveCredentialPolicy(SecurityPolicyType securityPolicy,
-            PasswordAuthenticationContext authnCtx) throws SchemaException {
+            PasswordAuthenticationContext authnCtx) {
         return SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
     }
 
@@ -73,6 +73,4 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     protected boolean supportsActivation() {
         return true;
     }
-
-
 }

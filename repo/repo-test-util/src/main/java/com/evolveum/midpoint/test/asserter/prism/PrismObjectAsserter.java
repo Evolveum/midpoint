@@ -19,6 +19,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -220,9 +222,27 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 
     public PrismObjectAsserter<O,RA> assertExtensionValue(String localName, Object realValue) {
         Item extensionItem = getObject().findExtensionItem(localName);
-        assertNotNull("No extension property " + localName, extensionItem);
+        assertNotNull("No extension item " + localName, extensionItem);
         assertTrue("Real value " + realValue + " not in " + extensionItem, extensionItem.getRealValues().contains(realValue));
         return this;
+    }
+
+    public PrismContainerAsserter<?, ? extends PrismObjectAsserter<O,RA>> extensionContainer(String localName) {
+        return createExtensionContainerAsserter(localName, getObject().findExtensionItem(localName));
+    }
+
+    public PrismContainerAsserter<?, ? extends PrismObjectAsserter<O,RA>> extensionContainer(ItemName name) {
+        return createExtensionContainerAsserter(name, getObject().findExtensionItem(name));
+    }
+
+    @NotNull
+    private PrismContainerAsserter<?, ? extends PrismObjectAsserter<O, RA>> createExtensionContainerAsserter(Object localName,
+            Item<?, ?> extensionItem) {
+        assertNotNull("No extension item " + localName, extensionItem);
+        assertTrue("Extension item " + localName + " is not a container: " + extensionItem.getClass(), extensionItem instanceof PrismContainer);
+        PrismContainerAsserter<?, ? extends PrismObjectAsserter<O,RA>> asserter = new PrismContainerAsserter<>((PrismContainer<?>) extensionItem, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 
     public PrismObjectAsserter<O,RA> assertExtensionValues(int count) {

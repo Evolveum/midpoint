@@ -1282,7 +1282,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     /**
-     * This should create account with a group. And the account shoudl be disabled.
+     * This should create account with a group. And the account should be disabled.
      */
     @Test
     public void test250AssignGuybrushPirates() throws Exception {

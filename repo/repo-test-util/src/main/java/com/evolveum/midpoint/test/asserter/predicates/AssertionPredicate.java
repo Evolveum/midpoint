@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.test.asserter.predicate;
+package com.evolveum.midpoint.test.asserter.predicates;
 
 /**
  * Predicate to be used in assertions.

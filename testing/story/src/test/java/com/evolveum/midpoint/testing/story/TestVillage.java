@@ -45,14 +45,13 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author Radovan Semancik
- */
+@UnusedTestElement("disabled in suite in 2019-09, fails on setup")
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestVillage extends AbstractStoryTest {
@@ -205,7 +204,7 @@ public class TestVillage extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -320,8 +319,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test022ResourceOpenDjRefinedSchema() throws Exception {
-        final String TEST_NAME = "test022ResourceOpenDjRefinedSchema";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
@@ -769,8 +767,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test310ProjectJollyRogerNestedGroup() throws Exception {
-        final String TEST_NAME = "test310ProjectJollyRogerNestedGroup";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         openDJController.addEntry("dn: " + GROUP_JOLLYROGERS_DN + "\n" +
@@ -806,8 +803,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test319DeleteProjectJollyRoger() throws Exception {
-        final String TEST_NAME = "test319DeleteProjectJollyRoger";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -830,8 +826,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test350AddRepoUserNoEmployeeNumberRecompute() throws Exception {
-        final String TEST_NAME = "test350AddRepoUserNoEmployeeNumberRecompute";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_MURRAY_FILE);

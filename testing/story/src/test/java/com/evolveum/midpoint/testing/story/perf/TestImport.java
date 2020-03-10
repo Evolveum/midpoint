@@ -16,6 +16,7 @@ import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.mysql.cj.jdbc.Driver;
@@ -37,6 +38,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  * This test is not meant to be run automatically.
  * It requires externally-configured MySQL database with the data to be imported.
  */
+@UnusedTestElement("not in suite, failing on spring init")
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml","classpath:ctx-interceptor.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestImport extends AbstractStoryTest {
@@ -109,8 +111,7 @@ public class TestImport extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_SOURCE_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -122,8 +123,7 @@ public class TestImport extends AbstractStoryTest {
 
     @Test
     public void test100RunImport() throws Exception {
-        final String TEST_NAME = "test100RunImport";
-        Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

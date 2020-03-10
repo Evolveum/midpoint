@@ -14,18 +14,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 
 import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 
 /**
  * @author skublik
  */
-
 public class PreLogoutFilter implements FilterChain {
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !((HttpServletRequest) request).getServletPath().endsWith("/logout")) {
@@ -44,8 +42,8 @@ public class PreLogoutFilter implements FilterChain {
                 }
             }
         } else {
-            String message = "Unsuported type " + (authentication == null ? null : authentication.getClass().getName())
-                    + " of authenticacion for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
+            String message = "Unsupported type " + authentication.getClass().getName()
+                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
             throw new IllegalArgumentException(message);
         }
 

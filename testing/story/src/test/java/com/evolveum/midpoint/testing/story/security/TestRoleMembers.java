@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story.security;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collections;
@@ -31,14 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -46,9 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Tests for privacy-enhancing setup. E.g. broad get authorizations, but limited search.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRoleMembers extends AbstractStoryTest {
 
@@ -72,8 +61,6 @@ public class TestRoleMembers extends AbstractStoryTest {
     protected static final String ROLE_GOVERNOR_OID = "78a76270-cafd-11e8-ba0c-4f7b8e8b4e57";
 
     protected static final String ROLE_PIRATE_OID = "31d5bdce-cafd-11e8-b41d-b373e6c564cb";
-    protected static final String ROLE_PIRATE_NAME = "Pirate";
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -82,37 +69,34 @@ public class TestRoleMembers extends AbstractStoryTest {
         importObjectsFromFileNotRaw(USERS_ROLES_FILE, initTask, initResult);
     }
 
-
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-
         // WHEN
         when();
 
         assertUserBefore(USER_GUYBRUSH_OID)
-            .assertName(USER_GUYBRUSH_USERNAME)
-            .roleMembershipRefs()
+                .assertName(USER_GUYBRUSH_USERNAME)
+                .roleMembershipRefs()
                 .assertRole(ROLE_END_USER_OID, SchemaConstants.ORG_DEFAULT)
                 .assertRoleMemberhipRefs(1);
 
         assertUserBefore(USER_ELAINE_OID)
-            .assertName(USER_ELAINE_USERNAME)
-            .roleMembershipRefs()
+                .assertName(USER_ELAINE_USERNAME)
+                .roleMembershipRefs()
                 .assertRole(ROLE_PIRATE_OID, SchemaConstants.ORG_OWNER)
                 .assertRole(ROLE_GOVERNOR_OID, SchemaConstants.ORG_DEFAULT)
                 .assertRole(ROLE_END_USER_OID, SchemaConstants.ORG_DEFAULT)
                 .assertRoleMemberhipRefs(3);
 
         assertUserBefore(USER_MANCOMB_OID)
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertFullName(USER_MANCOMB_FULL_NAME)
-            .assertGivenName(USER_MANCOMB_GIVEN_NAME)
-            .assignments()
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertFullName(USER_MANCOMB_FULL_NAME)
+                .assertGivenName(USER_MANCOMB_GIVEN_NAME)
+                .assignments()
                 .assertAssignments(1)
                 .assertRole(ROLE_PIRATE_OID)
                 .end()
-            .roleMembershipRefs()
+                .roleMembershipRefs()
                 .assertRole(ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT)
                 .assertRoleMemberhipRefs(1);
 
@@ -133,8 +117,6 @@ public class TestRoleMembers extends AbstractStoryTest {
      */
     @Test
     public void test100AutzGuybrushNoMembers() throws Exception {
-        final String TEST_NAME = "test100AutzGuybrushNoMembers";
-
         login(USER_GUYBRUSH_USERNAME);
 
         // WHEN
@@ -142,9 +124,9 @@ public class TestRoleMembers extends AbstractStoryTest {
 
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertAssignments(0)
-            .assertRoleMemberhipRefs(0);
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertAssignments(0)
+                .assertRoleMemberhipRefs(0);
 
         assertCanSearchPirateMembers(false);
 
@@ -155,17 +137,17 @@ public class TestRoleMembers extends AbstractStoryTest {
         // in the object.
         SearchResultList<PrismObject<UserType>> members = searchPirateMembers(1);
         assertUser(members.get(0), "pirate role member")
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertFullName(USER_MANCOMB_FULL_NAME)
-            .assertNoGivenName()
-            .assertRoleMemberhipRefs(0);
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertFullName(USER_MANCOMB_FULL_NAME)
+                .assertNoGivenName()
+                .assertRoleMemberhipRefs(0);
 
         ModelContext<UserType> previewContext = previewUser(USER_MANCOMB_OID);
 
         assertUser(previewContext.getFocusContext().getObjectOld(), "preview user old")
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertFullName(USER_MANCOMB_FULL_NAME)
-            .assertNoGivenName();
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertFullName(USER_MANCOMB_FULL_NAME)
+                .assertNoGivenName();
         DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
         assertNull("Preview evaluated assignment triple sneaked in", evaluatedAssignmentTriple);
 
@@ -183,7 +165,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         result.computeStatus();
         if (!result.isSuccess() && !result.isHandledError() && !result.isWarning()) {
             display("Unexpected preview result", result);
-            fail("Unexpected preview result: "+result.getStatus());
+            fail("Unexpected preview result: " + result.getStatus());
         }
         return previewContext;
     }
@@ -193,8 +175,6 @@ public class TestRoleMembers extends AbstractStoryTest {
      */
     @Test
     public void test105AutzElaineMembers() throws Exception {
-        final String TEST_NAME = "test105AutzElaineMembers";
-
         login(USER_ELAINE_USERNAME);
 
         // WHEN
@@ -202,9 +182,9 @@ public class TestRoleMembers extends AbstractStoryTest {
 
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
-            .assertName(USER_MANCOMB_USERNAME)
-            .assertAssignments(0)
-            .roleMembershipRefs()
+                .assertName(USER_MANCOMB_USERNAME)
+                .assertAssignments(0)
+                .roleMembershipRefs()
                 .assertRole(ROLE_PIRATE_OID)
                 .assertRoleMemberhipRefs(1);
 
@@ -212,8 +192,8 @@ public class TestRoleMembers extends AbstractStoryTest {
 
         SearchResultList<PrismObject<UserType>> members = searchPirateMembers(1);
         assertUser(members.get(0), "pirate role member")
-            .assertName(USER_MANCOMB_USERNAME)
-            .roleMembershipRefs()
+                .assertName(USER_MANCOMB_USERNAME)
+                .roleMembershipRefs()
                 .assertRole(ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT)
                 .assertRoleMemberhipRefs(1);
 
@@ -221,8 +201,6 @@ public class TestRoleMembers extends AbstractStoryTest {
         then();
 
     }
-
-
 
     private void assertCanSearchPirateMembers(boolean expected) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertEquals("Wrong canSearch on pirate members", expected, canSearchPirateMembers());

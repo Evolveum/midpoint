@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -19,29 +33,16 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Performance tests for accounts with large number of role assignments and group associations; using assignmentTargetSearch,
  * associationFromLink and similar mappings.
- *
+ * <p>
  * MID-5341
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
@@ -93,9 +94,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     private static final String SUMMARY_LINE_FORMAT = "%50s: %5d ms (%4d ms/user, %7.2f ms/user/role)\n";
     private static final String REPO_LINE_FORMAT = "%6d (%8.1f/%s)\n";
 
-    private Map<String,Long> durations = new LinkedHashMap<>();
-
-    private PrismObject<ResourceType> resourceOpenDj;
+    private Map<String, Long> durations = new LinkedHashMap<>();
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -113,7 +112,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -127,7 +126,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         importObjectFromFile(ROLE_LDAP_FILE);
@@ -156,9 +155,10 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
             CloneUtil.clone(systemConfiguration.asObjectable().getGlobalPolicyRule());
         }
         long duration = System.currentTimeMillis() - start;
-        System.out.println("Time per clone = " + duration*1000.0/COUNT + " us");
+        System.out.println("Time per clone = " + duration * 1000.0 / COUNT + " us");
 
     }
+
     @Test
     public void test010Sanity() throws Exception {
         Task task = getTestTask();
@@ -170,8 +170,8 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         addObject(ROLE_TEST_FILE, task, result);
         addObject(USER_TEST_FILE, task, result);
 
-         // THEN
-         then();
+        // THEN
+        then();
 
         dumpLdap();
         openDJController.assertUniqueMember("cn=role-test,ou=groups,dc=example,dc=com", "uid=user-test,ou=people,dc=example,dc=com");
@@ -183,8 +183,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test020GenerateRoles() throws Exception {
-        final String TEST_NAME = "test020GenerateRoles";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -212,7 +210,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor()
                 .getThreadLocalPerformanceInformation();
-        dumpRepoSnapshot("SQL operations for " + TEST_NAME, performanceInformation, "role", NUMBER_OF_GENERATED_ROLES);
+        dumpRepoSnapshot(performanceInformation, "role", NUMBER_OF_GENERATED_ROLES);
         dumpGlobalCachePerformanceData();
 
         result.computeStatus();
@@ -231,8 +229,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test100AddUsers() throws Exception {
-        final String TEST_NAME = "test100AddUsers";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -282,12 +278,14 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     }
 
     private void dumpRepoSnapshotPerUser(PerformanceInformation performanceInformation) {
-        dumpRepoSnapshot("SQL operations for " + getTestNameShort(),
-                performanceInformation, "user", NUMBER_OF_GENERATED_USERS);
+        dumpRepoSnapshot(performanceInformation, "user", NUMBER_OF_GENERATED_USERS);
     }
 
-    private void dumpRepoSnapshot(String label, PerformanceInformation performanceInformation, String unit, int unitCount) {
-        display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) (got from global monitor)", performanceInformation);
+    private void dumpRepoSnapshot(
+            PerformanceInformation performanceInformation, String unit, int unitCount) {
+        String label = "SQL operations for " + getTestNameShort();
+        display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES
+                + " roles) (got from global monitor)", performanceInformation);
 
         // per unit:
         Map<String, OperationPerformanceInformation> counters = performanceInformation.getAllData();
@@ -295,7 +293,10 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         kinds.sort(String::compareToIgnoreCase);
         int max = kinds.stream().mapToInt(String::length).max().orElse(0);
         StringBuilder sb = new StringBuilder();
-        kinds.forEach(kind -> sb.append(String.format("%" + (max+2) + "s: " + REPO_LINE_FORMAT, kind, counters.get(kind).getInvocationCount(), (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
+        kinds.forEach(kind -> sb.append(
+                String.format("%" + (max + 2) + "s: " + REPO_LINE_FORMAT,
+                        kind, counters.get(kind).getInvocationCount(),
+                        (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
         display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) - per " + unit, sb.toString());
     }
 
@@ -339,12 +340,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test120RecomputeUsersNoRoleAndShadowCache() throws Exception {
-        final String TEST_NAME = "test120RecomputeUsersNoRoleAndShadowCache";
-
         rememberConnectorResourceCounters();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         // WHEN
         when();
@@ -383,12 +379,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test130RecomputeUsersMultinode() throws Exception {
-        final String TEST_NAME = "test130RecomputeUsersMultinode";
-
         rememberConnectorResourceCounters();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         // WHEN
         when();
@@ -431,12 +422,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test140RecomputeUsersMultinodeMultithreaded() throws Exception {
-        final String TEST_NAME = "test140RecomputeUsersMultinodeMultithreaded";
-
         rememberConnectorResourceCounters();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         // WHEN
         when();
@@ -480,8 +466,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test200RecomputeUsersNoDefaultRoleCache() throws Exception {
-        final String TEST_NAME = "test200RecomputeUsersNoDefaultRoleCache";
-
         rememberConnectorResourceCounters();
 
         Task task = getTestTask();
@@ -526,22 +510,17 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     }
 
     @Test
-    public void test900Summarize() throws Exception {
-        final String TEST_NAME = "test900Summarize";
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
+    public void test900Summarize() {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
         }
-        display("Summary ("+NUMBER_OF_GENERATED_USERS+" users, "+NUMBER_OF_GENERATED_ROLES+" roles)", sb.toString());
+        display("Summary (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles)", sb.toString());
 
-         // THEN
-         then();
+        // THEN
+        then();
 
-         // TODO: more thresholds
+        // TODO: more thresholds
 
     }
 
@@ -573,6 +552,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     }
 
     private Object summary(String label, long duration) {
-        return String.format(SUMMARY_LINE_FORMAT, label, duration, duration/NUMBER_OF_GENERATED_USERS, (double) duration/(NUMBER_OF_GENERATED_USERS * NUMBER_OF_GENERATED_ROLES));
+        return String.format(SUMMARY_LINE_FORMAT, label, duration, duration / NUMBER_OF_GENERATED_USERS, (double) duration / (NUMBER_OF_GENERATED_USERS * NUMBER_OF_GENERATED_ROLES));
     }
 }

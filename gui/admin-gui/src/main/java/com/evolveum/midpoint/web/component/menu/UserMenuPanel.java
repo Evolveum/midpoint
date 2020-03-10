@@ -291,8 +291,8 @@ public class UserMenuPanel extends BasePanel {
                 }
             }
         } else {
-            String message = "Unsuported type " + (authentication == null ? null : authentication.getClass().getName())
-                    + " of authenticacion for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
+            String message = "Unsupported type " + (authentication == null ? null : authentication.getClass().getName())
+                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
             throw new IllegalArgumentException(message);
         }
         String message = "Unauthenticated request";

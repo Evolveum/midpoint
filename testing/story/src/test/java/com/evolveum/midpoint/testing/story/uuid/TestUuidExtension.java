@@ -73,7 +73,6 @@ public class TestUuidExtension extends AbstractUuidTest {
 
     @Test
     public void test100AddUserRapp() throws Exception {
-        final String TEST_NAME = "test100AddUserRapp";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -93,7 +92,6 @@ public class TestUuidExtension extends AbstractUuidTest {
 
     @Test
     public void test101RappAssignRoleEmployee() throws Exception {
-        final String TEST_NAME = "test101RappAssignRoleEmployee";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -112,9 +110,6 @@ public class TestUuidExtension extends AbstractUuidTest {
 
     @Test
     public void test107RappUnAssignRoleEmployee() throws Exception {
-        final String TEST_NAME = "test107RappUnAssignRoleEmployee";
-        Task task = getTestTask();
-
         // WHEN
         unassignRole(userRappOid, ROLE_EMPLOYEE_OID);
 
@@ -129,7 +124,6 @@ public class TestUuidExtension extends AbstractUuidTest {
      */
     @Test
     public void test110AddKateWithRoleEmployee() throws Exception {
-        final String TEST_NAME = "test110AddKateWithRoleEmployee";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

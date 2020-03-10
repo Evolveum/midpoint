@@ -88,7 +88,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     }
 
     public boolean isUserRelated() {
-        return false;             // overriden in ModelEvent
+        return false; // overridden in ModelEvent
     }
 
     public boolean isWorkItemRelated() {
