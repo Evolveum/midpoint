@@ -8,17 +8,11 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
-import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
+
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.login.SamlSelectPage;
 import org.openqa.selenium.By;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
-
-import java.io.File;
-import java.io.IOException;
 
 import static com.codeborne.selenide.Selenide.*;
 

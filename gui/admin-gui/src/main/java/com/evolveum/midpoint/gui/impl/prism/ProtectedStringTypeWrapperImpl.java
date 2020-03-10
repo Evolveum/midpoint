@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -32,6 +33,10 @@ public class ProtectedStringTypeWrapperImpl extends PrismPropertyWrapperImpl<Pro
         PrismPropertyValueWrapper<ProtectedStringType> valueWrapper = getValue();
         if (valueWrapper != null && valueWrapper.getRealValue() == null && valueWrapper.getOldValue().getRealValue() != null){
             valueWrapper.setStatus(ValueStatus.DELETED);
+        }
+        if (getParent() != null && getParent().getParent() != null && getParent().getParent().getTypeClass().isAssignableFrom(ShadowType.class)
+            && valueWrapper.getStatus().equals(ValueStatus.ADDED)) {
+            valueWrapper.setStatus(ValueStatus.MODIFIED);
         }
         return super.getDelta();
     }

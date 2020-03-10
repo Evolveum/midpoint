@@ -15,18 +15,16 @@ import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import com.evolveum.midpoint.testing.schrodinger.scenarios.AccountTests;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
 
@@ -34,7 +32,7 @@ import static com.codeborne.selenide.Selenide.$;
  * Created by honchar
  * covers LAB 3-1: Viewing Resources
  */
-public class ImportResourceTest extends TestBase {
+public class ImportResourceTest extends AbstractSchrodingerTest {
 
     private static final File CSV_RESOURCE = new File("./src/test/resources/labs/resources/localhost-csvfile-1-document-access.xml");
     public static final String RESOURCE_NAME = "CSV-1 (Document Access)";
@@ -56,7 +54,7 @@ public class ImportResourceTest extends TestBase {
                         .getObjectsFromFile()
                         .chooseFile(CSV_RESOURCE)
                         .checkOverwriteExistingObject()
-                        .clickImport()
+                        .clickImportFileButton()
                         .feedback()
                         .isSuccess()
         );

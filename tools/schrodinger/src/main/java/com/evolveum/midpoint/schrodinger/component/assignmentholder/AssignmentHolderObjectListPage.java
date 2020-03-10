@@ -8,16 +8,19 @@ package com.evolveum.midpoint.schrodinger.component.assignmentholder;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
 /**
- * Created by honchar
+ * @author skublik
  */
+
 public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderObjectListTable> extends BasicPage {
 
     public abstract T table();

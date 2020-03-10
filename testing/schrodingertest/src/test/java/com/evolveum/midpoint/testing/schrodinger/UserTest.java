@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
+import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
@@ -15,18 +17,17 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.screenshot;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserTest extends TestBase {
+public class UserTest extends AbstractSchrodingerTest {
 
     private static final String LOCALIZATION_TEST_USER_NAME_ORIG = "localizationTestUserName";
     private static final String LOCALIZATION_TEST_USER_NAME_DE = "localizationTestUserNameDe";
     private static final String LOCALIZATION_VALUE = "de";
 
-    @Test(enabled = false)
+    @Test
     public void createUser() {
 
         //@formatter:off
@@ -40,6 +41,21 @@ public class UserTest extends TestBase {
                 .and()
             .clickSave();
 
+        ListUsersPage usersPage = basicPage.listUsers();
+        PrismForm<AssignmentHolderBasicTab<UserPage>> userForm = usersPage
+                .table()
+                .search()
+                .byName()
+                .inputValue("jdoe222323")
+                .updateSearch()
+                .and()
+                .clickByName("jdoe222323")
+                .selectTabBasic()
+                .form();
+        Assert.assertTrue(userForm.compareInputAttributeValue("name", "jdoe222323"));
+        Assert.assertTrue(userForm.compareInputAttributeValue("givenName", "john"));
+        Assert.assertTrue(userForm.compareInputAttributeValue("familyName", "doe"));
+
 //        user.selectTabProjections().and()
 //            .selectTabPersonas().and()
 //            .selectTabAssignments().and()
@@ -48,11 +64,6 @@ public class UserTest extends TestBase {
 //            .selectTabDelegatedToMe().and()
         //@formatter:on
 
-        screenshot("create");
-
-        ListUsersPage users = user.listUsers();
-
-        // todo validation
     }
 
     @Test //covers MID-5845

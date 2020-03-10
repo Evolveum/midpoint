@@ -104,7 +104,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 
     @Override
     protected IModel<String> getDefaltParentOrgModel() {
-        return new ReadOnlyModel<String>(() -> {
+        return new ReadOnlyModel<>(() -> {
             O focusObject = FocusSummaryPanel.this.getModel().getObject();
             List<OrgType> parentOrgs = focusObject != null ? WebComponentUtil.loadReferencedObjectList(focusObject.getParentOrgRef(),
                     OPERATION_LOAD_PARENT_ORGS, FocusSummaryPanel.this.getPageBase()) : null;

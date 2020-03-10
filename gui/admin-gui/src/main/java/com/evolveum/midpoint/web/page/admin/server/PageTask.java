@@ -4,14 +4,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
-
-import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -22,14 +14,15 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -44,12 +37,15 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -107,8 +103,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     @Override
-    protected ObjectSummaryPanel<TaskType> createSummaryPanel() {
-        return new TaskSummaryPanel(ID_SUMMARY_PANEL, createSummaryPanelModel(), this, this);
+    protected ObjectSummaryPanel<TaskType> createSummaryPanel(IModel<TaskType> summaryModel) {
+        return new TaskSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this, this);
     }
 
     @Override
@@ -123,12 +119,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 .item(TaskType.F_NEXT_RETRY_TIMESTAMP).retrieve()
                 .item(TaskType.F_RESULT).retrieve()         // todo maybe only when it is to be displayed
                 .build();
-    }
-
-    private void afterOperation(AjaxRequestTarget target, OperationResult result) {
-        showResult(result);
-        getObjectModel().reset();
-        refresh(target);
     }
 
     protected void initOperationalButtons(RepeatingView repeatingView) {
@@ -230,7 +220,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         manageLivesyncToken.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return WebComponentUtil.isLiveSync(getTask()) && isNotRunning();
+                return WebComponentUtil.isLiveSync(getTask()) && isNotRunning() && getTask().asPrismObject().findProperty(LivesyncTokenEditorPanel.PATH_TOKEN) != null;
             }
 
             @Override
@@ -410,8 +400,13 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot save tasks changes", e);
             result.recordFatalError("Cannot save tasks changes, " + e.getMessage(), e);
         }
-//        showResult(result);
         afterOperation(target, result);
+    }
+
+    private void afterOperation(AjaxRequestTarget target, OperationResult result) {
+        showResult(result);
+        getObjectModel().reset();
+        refresh(target);
     }
 
     public void saveAndRunPerformed(AjaxRequestTarget target) {
@@ -470,21 +465,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return "fa fa-play";
     }
 
-    private IModel<TaskType> createSummaryPanelModel() {
-        return isEditingFocus() ?
-
-                new LoadableModel<TaskType>(true) {
-                    @Override
-                    protected TaskType load() {
-                        PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
-                        if (taskWrapper == null) {
-                            return null;
-                        }
-                        return taskWrapper.getObject().asObjectable();
-                    }
-                } : Model.of();
-    }
-
     @Override
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
         return new TaskMainPanel(id, getObjectModel(), this);
@@ -507,25 +487,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     @Override
     public int getRefreshInterval() {
         return REFRESH_INTERVAL;
-    }
-
-    public void refresh(AjaxRequestTarget target) {
-
-        getObjectModel().reset();
-        target.add(getSummaryPanel());
-        target.add(getOperationalButtonsPanel());
-        target.add(getFeedbackPanel());
-//        target.add(getMainPanel());
-
-        for (Component component : getMainPanel().getTabbedPanel()) {
-            if (component instanceof RefreshableTabPanel) {
-
-                for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
-                    target.add(c);
-                }
-            }
-        }
-
     }
 
     private boolean isNotRunning(){

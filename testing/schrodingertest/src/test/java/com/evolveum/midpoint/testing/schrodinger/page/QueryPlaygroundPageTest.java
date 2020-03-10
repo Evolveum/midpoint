@@ -9,14 +9,14 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 import com.evolveum.midpoint.schrodinger.page.configuration.QueryPlaygroundPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
  * Created by Kate Honchar.
  */
-public class QueryPlaygroundPageTest extends TestBase{
+public class QueryPlaygroundPageTest extends AbstractSchrodingerTest {
 
     @Test //covers MID-5346
     public void test001useInObjectListOptionTest() {

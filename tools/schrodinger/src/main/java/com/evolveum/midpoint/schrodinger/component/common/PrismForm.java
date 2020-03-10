@@ -50,6 +50,12 @@ public class PrismForm<T> extends Component<T> {
 
     public PrismForm<T> addProtectedAttributeValue(String protectedAttributeName, String value) {
         SelenideElement property = findProperty(protectedAttributeName);
+
+        boolean existValue = $(Schrodinger.byDataId("changePasswordLink")).exists();
+        if (existValue) {
+            $(Schrodinger.byDataId("changePasswordLink")).click();
+        }
+
         ElementsCollection values = property.$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
         for (SelenideElement valueElemen : values) {
             valueElemen.setValue(value).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);

@@ -36,7 +36,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.Profili
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigurationSummaryPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 /**
@@ -333,8 +331,8 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
     }
 
     @Override
-    protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel() {
-        return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel(IModel<SystemConfigurationType> summaryModel) {
+        return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, summaryModel, this);
     }
 
     @Override

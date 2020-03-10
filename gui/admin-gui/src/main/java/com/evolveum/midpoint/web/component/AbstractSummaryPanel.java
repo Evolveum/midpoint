@@ -82,11 +82,16 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         box = new WebMarkupContainer(ID_BOX);
         add(box);
 
-        String archetypePolicyAdditionalCssClass = getArchetypePolicyAdditionalCssClass();
+        IModel<String> archetypePolicyAdditionalCssClassModel = () -> {
+            String archetypePolicyAdditionalCssClass = getArchetypePolicyAdditionalCssClass();
+            if (archetypePolicyAdditionalCssClass == null) {
+                return "";
+            }
+            return "border-color: " + archetypePolicyAdditionalCssClass + ";";
+        };
+
         box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
-        if (StringUtils.isNotEmpty(archetypePolicyAdditionalCssClass)){
-            box.add(AttributeModifier.append("style", "border-color: " + archetypePolicyAdditionalCssClass + ";"));
-        }
+        box.add(AttributeModifier.append("style", archetypePolicyAdditionalCssClassModel));
 
         if (getDisplayNameModel() != null) {
             box.add(new Label(ID_DISPLAY_NAME, getDisplayNameModel()));
@@ -173,9 +178,8 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         if (StringUtils.isNotEmpty(iconAdditionalCssClass)) {
             iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + iconAdditionalCssClass));
         }
-        if (StringUtils.isNotEmpty(archetypePolicyAdditionalCssClass)){
-            iconBox.add(AttributeModifier.append("style", "background-color: " + archetypePolicyAdditionalCssClass + ";"));
-        }
+
+        iconBox.add(AttributeModifier.append("style", createArchetypeBackgroundModel()));
 
         Label icon = new Label(ID_ICON, "");
 
@@ -223,6 +227,16 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         box.add(tagBox);
     }
 
+    private IModel<String> createArchetypeBackgroundModel() {
+        return () -> {
+
+            String archetypePolicyAdditionalCssClass = getArchetypePolicyAdditionalCssClass();
+            if (archetypePolicyAdditionalCssClass == null) {
+                return "";
+            }
+            return "background-color: " + archetypePolicyAdditionalCssClass + ";";
+        };
+    }
     private FlexibleLabelModel<C> createLabelModel(QName modelPropertyName, QName configurationPropertyName) {
         return createFlexibleLabelModel(modelPropertyName, getLabelConfiguration(configurationPropertyName));
     }
@@ -268,6 +282,21 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
                         setIconCssClass(archetypeIconCssClass);
                         setLabel(createStringResource(archetypeLabel).getString());
                         setColor(archetypeIconColor);
+                }
+
+                @Override
+                public String getIconCssClass() {
+                    return getArchetypeIconCssClass();
+                }
+
+                @Override
+                public String getColor() {
+                    return getArchetypePolicyAdditionalCssClass();
+                }
+
+                @Override
+                public String getLabel() {
+                    return getArchetypeLabel();
                 }
             };
             return archetypeSummaryTag;

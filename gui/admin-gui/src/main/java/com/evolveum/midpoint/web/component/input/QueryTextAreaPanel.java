@@ -62,6 +62,10 @@ public class QueryTextAreaPanel extends InputPanel {
 
             @Override
             public void setObject(String object) {
+                if (object == null) {
+                    model.setObject(null);
+                    return;
+                }
                 try {
                     model.setObject(((PageBase)getPage()).getPrismContext()
                             .parserFor(object).xml().parseRealValue(QueryType.class));

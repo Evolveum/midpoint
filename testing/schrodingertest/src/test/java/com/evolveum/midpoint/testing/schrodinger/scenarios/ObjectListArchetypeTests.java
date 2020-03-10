@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
@@ -14,7 +15,7 @@ import com.evolveum.midpoint.schrodinger.component.configuration.AdminGuiTab;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -26,7 +27,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by honchar
  */
-public class ObjectListArchetypeTests extends TestBase {
+public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
 
     private static final File EMPLOYEE_ARCHETYPE_FILE = new File("src/test/resources/configuration/objects/archetypes/archetype-employee.xml");
     private static final String ARCHETYPE_OBJECT_NAME = "Employee";
@@ -159,6 +160,7 @@ public class ObjectListArchetypeTests extends TestBase {
     @Test(priority = 4, dependsOnMethods ={"actualizeArchetypeConfiguration"})
     public void checkNewObjectButtonWithDropdown(){
         ListUsersPage userListPage = basicPage.listUsers();
+        Selenide.sleep(2000);
         Assert.assertTrue(userListPage
                             .table()
                                 .getToolbarButton("fa fa-plus")
