@@ -7,19 +7,21 @@
 package com.evolveum.midpoint.schrodinger.component.task;
 
 import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
+
+import org.openqa.selenium.By;
 
 /**
- * Created by matus on 3/21/2018.
+ * @author lskublik
  */
-public class TaskBasicTab extends Component<EditTaskPage> {
-    public TaskBasicTab(EditTaskPage parent, SelenideElement parentElement) {
+public class TaskBasicTab extends AssignmentHolderBasicTab<TaskPage> {
+    public TaskBasicTab(TaskPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
     public String utility() {
-        return getParentElement().$(Schrodinger.byDataId("category")).getText();
+        return form().findProperty("category").$(By.tagName("input")).getValue();
     }
 }

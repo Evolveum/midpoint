@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 /**
  * Created by matus on 3/16/2018.
  */
-public class AboutPageTest extends TestBase {
+public class AboutPageTest extends AbstractSchrodingerTest {
 
     private static final String VERSION_EXPECTED = "4.1-SNAPSHOT"; // Static value, should be changed each version change.
     private static final String HIBERNATE_DIALECT_EXPECTED = "org.hibernate.dialect.H2Dialect";
@@ -107,7 +107,7 @@ public class AboutPageTest extends TestBase {
     @Test
     public void checkJVMPropertiesMidpointHome(){
         Assert.assertFalse(
-                aboutPage.getJVMproperty(TestBase.PROPERTY_NAME_MIDPOINT_HOME).isEmpty());
+                aboutPage.getJVMproperty(AbstractSchrodingerTest.PROPERTY_NAME_MIDPOINT_HOME).isEmpty());
     }
 
     @Test
@@ -118,6 +118,6 @@ public class AboutPageTest extends TestBase {
     @Test
     public void checkSystemProperty(){
         Assert.assertFalse(
-                aboutPage.getSystemProperty(TestBase.PROPERTY_NAME_USER_HOME).isEmpty());
+                aboutPage.getSystemProperty(AbstractSchrodingerTest.PROPERTY_NAME_USER_HOME).isEmpty());
     }
 }

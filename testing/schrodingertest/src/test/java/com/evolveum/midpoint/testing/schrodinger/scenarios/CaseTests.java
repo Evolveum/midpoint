@@ -21,12 +21,12 @@ import com.evolveum.midpoint.schrodinger.page.cases.*;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
 /**
  * Created by honchar.
  */
-public class CaseTests extends TestBase {
+public class CaseTests extends AbstractSchrodingerTest {
 
     public static final File ROLE_WITH_ADMIN_APPROVER_XML = new File("./src/test/resources/role-with-admin-approver.xml");
     public static final String CASE_CREATION_TEST_USER_NAME = "caseCreationTestUser";

@@ -11,7 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.task.TaskBasicTab;
-import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -93,7 +93,7 @@ public class FeedbackBox<T> extends Component<T> {
 
         $(Schrodinger.byDataId("backgroundTask")).click();
         SelenideElement taskBasicTab = $(Schrodinger.byDataResourceKey("pageTaskEdit.basic"));
-        return new TaskBasicTab(new EditTaskPage(), taskBasicTab);
+        return new TaskBasicTab(new TaskPage(), taskBasicTab);
     }
 
     public Boolean isFeedbackBoxPresent() {

@@ -14,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import java.io.IOException;
 /**
  * Created by matus on 3/22/2018.
  */
-public class AccountTests extends TestBase {
+public class AccountTests extends AbstractSchrodingerTest {
 
     private static File csvTargetFile;
 
@@ -66,6 +66,7 @@ public class AccountTests extends TestBase {
                         .addAttributeValue("name", TEST_USER_MIKE_NAME)
                         .addAttributeValue(UserType.F_GIVEN_NAME, "Michelangelo")
                         .addAttributeValue(UserType.F_FAMILY_NAME, "di Lodovico Buonarroti Simoni")
+                        .addProtectedAttributeValue("value","5ecr3tPassword")
                         .and()
                     .and()
                 .checkKeepDisplayingResults()
@@ -84,7 +85,7 @@ public class AccountTests extends TestBase {
                 .getObjectsFromFile()
                 .chooseFile(CSV_RESOURCE_MEDIUM)
                 .checkOverwriteExistingObject()
-                .clickImport()
+                .clickImportFileButton()
                     .feedback()
                     .isSuccess()
         );
@@ -123,8 +124,7 @@ public class AccountTests extends TestBase {
                 .and()
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
-                    .clickHeaderActionDropDown()
-                    .addProjection()
+                    .clickAddProjection()
                             .table()
                             .selectCheckboxByName(CSV_RESOURCE_NAME)
                         .and()
@@ -150,7 +150,7 @@ public class AccountTests extends TestBase {
                     .clickByName(TEST_USER_MIKE_NAME)
                         .selectTabProjections()
                             .table()
-                            .clickByName(CSV_RESOURCE_NAME)
+                            .clickByName(TEST_USER_MIKE_NAME)
                                 .changeAttributeValue("lastname",TEST_USER_MIKE_LAST_NAME_OLD,TEST_USER_MIKE_LAST_NAME_NEW)
                             .and()
                         .and()
@@ -174,9 +174,9 @@ public class AccountTests extends TestBase {
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
                         .table()
-                        .clickByName(CSV_RESOURCE_NAME)
+                        .clickByName(TEST_USER_MIKE_NAME)
                             .showEmptyAttributes("Password")
-                            .addProtectedAttributeValue("Value","5ecr3t")
+                            .addProtectedAttributeValue("value","5ecr3t")
                         .and()
                     .and()
                 .and()
@@ -199,8 +199,8 @@ public class AccountTests extends TestBase {
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
                         .table()
-                        .clickByName(CSV_RESOURCE_NAME)
-                            .selectOption("Administrative status","Disabled")
+                        .clickByName(TEST_USER_MIKE_NAME)
+                            .selectOption("administrativeStatus","Disabled")
                         .and()
                     .and()
                 .and()
@@ -223,8 +223,8 @@ public class AccountTests extends TestBase {
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
                         .table()
-                        .clickByName(CSV_RESOURCE_NAME)
-                            .selectOption("Administrative status","Enabled")
+                        .clickByName(TEST_USER_MIKE_NAME)
+                            .selectOption("administrativeStatus","Enabled")
                         .and()
                     .and()
                 .and()
@@ -247,7 +247,7 @@ public class AccountTests extends TestBase {
                     .clickByName(TEST_USER_MIKE_NAME)
                         .selectTabProjections()
                             .table()
-                            .selectCheckboxByName(CSV_RESOURCE_NAME)
+                            .selectCheckboxByName(TEST_USER_MIKE_NAME)
                         .and()
                             .clickHeaderActionDropDown()
                             .delete()

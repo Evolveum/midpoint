@@ -7,8 +7,12 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schrodinger.component.common.Paging;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+
 import org.testng.annotations.Test;
 
 import static com.codeborne.selenide.Selenide.screenshot;
@@ -16,13 +20,18 @@ import static com.codeborne.selenide.Selenide.screenshot;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UsersTest extends TestBase {
+public class UsersTest extends AbstractSchrodingerTest {
 
     @Test
     public void testUserTablePaging() {
         ListUsersPage users = basicPage.listUsers();
 
         screenshot("listUsers");
+
+        for (int i = 0; i < 21; i++) {
+            addUser("john" + i);
+            Selenide.sleep(3000);
+        }
 
         Paging paging = users
                 .table()
@@ -40,5 +49,15 @@ public class UsersTest extends TestBase {
                 .actualPagePlusTwo()
                 .actualPageMinusTwo()
                 .actualPageMinusOne();
+    }
+
+    private void addUser(String name) {
+        UserPage user = basicPage.newUser();
+        user.selectTabBasic()
+                .form()
+                .addAttributeValue("name", name)
+                .and()
+                .and()
+                .clickSave();
     }
 }

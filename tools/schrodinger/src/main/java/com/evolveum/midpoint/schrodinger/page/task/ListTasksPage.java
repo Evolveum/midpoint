@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.page.task;
 
 import com.codeborne.selenide.SelenideElement;
+
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListPage;
 import com.evolveum.midpoint.schrodinger.component.task.TasksPageTable;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;

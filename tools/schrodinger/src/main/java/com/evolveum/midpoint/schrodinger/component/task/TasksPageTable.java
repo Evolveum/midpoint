@@ -11,25 +11,25 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
-import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by matus on 6/25/2018.
  */
-public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPage, EditTaskPage> {
+public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPage, TaskPage> {
     public TasksPageTable(ListTasksPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
     @Override
-    public EditTaskPage clickByName(String name) {
+    public TaskPage clickByName(String name) {
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
 
-        return new EditTaskPage();
+        return new TaskPage();
     }
 
     @Override
@@ -40,8 +40,8 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
     }
 
     @Override
-    public EditTaskPage getObjectDetailsPage(){
-        return new EditTaskPage();
+    public TaskPage getObjectDetailsPage(){
+        return new TaskPage();
     }
 
 }

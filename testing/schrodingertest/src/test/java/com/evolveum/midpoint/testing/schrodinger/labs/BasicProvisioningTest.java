@@ -18,7 +18,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Created by honchar
  * covers LAB 4-1
  */
-public class BasicProvisioningTest extends TestBase {
+public class BasicProvisioningTest extends AbstractSchrodingerTest {
 
     private static final String USER_NAME_ATTRIBUTE = "Name";
     private static final String USER_GIVEN_NAME_ATTRIBUTE = "Given name";
@@ -113,8 +113,7 @@ public class BasicProvisioningTest extends TestBase {
                 .and()
                 .clickByName(USER_NAME)
                 .selectTabProjections()
-                .clickHeaderActionDropDown()
-                .addProjection()
+                .clickAddProjection()
                 .table()
                 .selectCheckboxByName(ImportResourceTest.RESOURCE_NAME)
                 .and()

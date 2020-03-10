@@ -8,7 +8,7 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
 import com.evolveum.midpoint.schrodinger.page.configuration.BulkActionsPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -18,7 +18,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Kate Honchar
  */
-public class BulkActionsTest extends TestBase {
+public class BulkActionsTest extends AbstractSchrodingerTest {
 
     private static final String PARSING_ERROR_MESSAGE = "Couldn't parse bulk action object";
 

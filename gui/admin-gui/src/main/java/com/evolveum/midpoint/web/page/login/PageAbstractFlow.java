@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -140,7 +142,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     }
 
     private boolean validateCaptcha(AjaxRequestTarget target) {
-        String value = System.getProperty("midpoint.schrodinger");
+        String value = System.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
         boolean isSchrodingerTesting = Boolean.parseBoolean(value);
         if (isSchrodingerTesting) {
             LOGGER.trace("Skipping CAPTCHA Validation, because system variable (midpoint.schrodinget) for schrodinger testing is TRUE");

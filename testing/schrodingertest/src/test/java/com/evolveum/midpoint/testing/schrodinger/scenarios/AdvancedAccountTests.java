@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.apache.commons.io.FileUtils;
 import org.testng.annotations.Test;
 
@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class AdvancedAccountTests extends TestBase {
+public class AdvancedAccountTests extends AbstractSchrodingerTest {
 // TODO in progress
   private static File csvTargetFile;
 
@@ -49,8 +49,7 @@ public class AdvancedAccountTests extends TestBase {
               .and()
               .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                 .selectTabProjections()
-                  .clickHeaderActionDropDown()
-                    .addProjection()
+                  .clickAddProjection()
                       .table()
                         .search()
                           .byName()
@@ -77,7 +76,7 @@ public class AdvancedAccountTests extends TestBase {
               .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                 .selectTabProjections()
                   .table()
-                    .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
+                    .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME);
 
     }
 
