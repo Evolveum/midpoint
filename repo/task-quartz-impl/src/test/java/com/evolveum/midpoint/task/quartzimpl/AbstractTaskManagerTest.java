@@ -140,8 +140,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest
 
     protected <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath) throws Exception {
         PrismObject<T> object = unmarshallJaxbFromFile(filePath);
-        System.out.println("obj: " + object.getElementName());
-        OperationResult result = new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".addObjectFromFile");
+        OperationResult result = createOperationResult("addObjectFromFile");
         try {
             add(object, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -301,7 +300,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest
     protected int getTotalItemsProcessed(String coordinatorTaskOid) {
         OperationResult result = new OperationResult("getTotalItemsProcessed");
         try {
-            Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
+            Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
             List<Task> tasks = coordinatorTask.listSubtasks(result);
             int total = 0;
             for (Task task : tasks) {

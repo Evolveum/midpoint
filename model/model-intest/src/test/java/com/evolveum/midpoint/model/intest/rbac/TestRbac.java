@@ -1572,7 +1572,7 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        assertNotAssignedRole(userAfter, ROLE_WANNABE_OID, result);
+        assertNotAssignedRole(userAfter, ROLE_WANNABE_OID);
         assertRoleMembershipRef(userAfter);
         assertDelegatedRef(userAfter);
 
@@ -2655,7 +2655,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
 
-        assertNotAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID, result);
+        assertNotAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID);
 
         assertHasNoOrg(userAfter);
     }

@@ -10,10 +10,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,8 +20,8 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
@@ -32,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
@@ -40,7 +38,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     protected static final File RESOURCE_DUMMY_CLASSIFIER_FILE = new File(TEST_DIR, "resource-dummy-classifier.xml");
     protected static final String RESOURCE_DUMMY_CLASSIFIER_OID = "1169ac14-8377-11e8-b404-5b5a1a8af0db";
-    private static final String RESOURCE_DUMMY_CLASSIFIER_NS = MidPointConstants.NS_RI;
 
     private static final File ROLE_EMPLOYEE_FILE = new File(TEST_DIR, "role-employee.xml");
     private static final String ROLE_EMPLOYEE_OID = "23d90f70-1924-419e-9beb-78a8bde6d261";
@@ -77,9 +74,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     }
 
     @Test
-    public void test001assigneJackEmployeeRole() throws Exception {
-        final String TEST_NAME = "test001assigneJackEmployeeRole";
-
+    public void test001assignJackEmployeeRole() throws Exception {
         //WHEN
         when();
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_OID);
@@ -93,8 +88,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test100createServiceJira() throws Exception {
-        final String TEST_NAME = "test100createServiceJira";
-
         //WHEN
         addObject(SERVICE_JIRA_FILE);
 
@@ -109,7 +102,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test101jiraAssignResourceNoneEnforcement() throws Exception {
-        final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -131,8 +123,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test150StartReconTask() throws Exception {
-        final String TEST_NAME = "test150StartReconTask";
-
         assertUsers(getNumberOfUsers());
         assertServices(1);
 
@@ -152,8 +142,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test151LinkServiceAccountRecon() throws Exception {
-        final String TEST_NAME = "test151LinkServiceAccountRecon";
-
         // Preconditions
         assertServices(1);
 
@@ -171,18 +159,17 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         then();
 
         assertServices(1);
-        PrismObject<ServiceType> serviceJirafter = getObject(ServiceType.class, SERVICE_JIRA_OID);
-        display("Service magazine after", serviceJirafter);
-        assertNotNull("No magazine service", serviceJirafter);
-        PrismAsserts.assertPropertyValue(serviceJirafter, ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
-        assertLinks(serviceJirafter, 1);
+        PrismObject<ServiceType> serviceJiraAfter = getObject(ServiceType.class, SERVICE_JIRA_OID);
+        display("Service magazine after", serviceJiraAfter);
+        assertNotNull("No magazine service", serviceJiraAfter);
+        PrismAsserts.assertPropertyValue(serviceJiraAfter,
+                ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
+        assertLinks(serviceJiraAfter, 1);
 
     }
 
     @Test
     public void test152InactivateUnmatchedAccountRecon() throws Exception {
-        final String TEST_NAME = "test152InactivateUnmatchedAccountRecon";
-
         // Preconditions
         assertServices(1);
 
@@ -207,8 +194,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test200createServiceGithub() throws Exception {
-        final String TEST_NAME = "test200createServiceGithub";
-
         //WHEN
         addObject(SERVICE_GITHUB_FILE);
 
@@ -223,8 +208,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test210createAccountGithub() throws Exception {
-        final String TEST_NAME = "test210createAccountGithub";
-
         //WHEN
         when();
         addObject(SHADOW_GITHUB_FILE);
@@ -242,7 +225,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test215githubAssignResourceNoneEnforcement() throws Exception {
-        final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -264,7 +246,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
     @Test
     public void test220linkAccountGithubAndFixIntent() throws Exception {
-        final String TEST_NAME = "test220linkAccountGithubAndFixIntent";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -295,7 +276,5 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         assertNotNull("No magazine service", shadowGithub);
         ShadowAsserter.forShadow(shadowGithub).assertIntent("service");
     }
-
-
 
 }

@@ -2617,18 +2617,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="subtask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Set of task's subtasks.
-                                TRANSIENT attribute. In the repository the parent-child relationship is stored using "parent" property.
-                                TODO: do we still need this?
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReference>tns:subtaskRef</a:objectReference>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="subtaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>

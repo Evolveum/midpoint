@@ -58,7 +58,7 @@ public class WorkersManager {
 
     public void reconcileWorkers(String coordinatorTaskOid, WorkersReconciliationOptions options, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
+        Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
         if (coordinatorTask.getKind() != TaskKindType.COORDINATOR) {
             throw new IllegalArgumentException("Task is not a coordinator task: " + coordinatorTask);
         }
@@ -419,7 +419,7 @@ public class WorkersManager {
             // TODO less harsh handling
             throw new IllegalStateException("Not all tasks could be suspended. Please retry to operation.");
         }
-        Task rootTask = taskManager.getTask(rootTaskOid, result);
+        Task rootTask = taskManager.getTaskPlain(rootTaskOid, result);
         deleteWorkersAndWorkState(rootTask, deleteWorkers, result);
     }
 

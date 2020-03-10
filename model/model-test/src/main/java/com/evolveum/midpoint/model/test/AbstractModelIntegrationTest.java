@@ -164,9 +164,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected DashboardService dashboardService;
     @Autowired protected ModelAuditService modelAuditService;
     @Autowired protected ModelPortType modelWeb;
+
     @Autowired
     @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
+
     @Autowired
     @Qualifier("sqlRepositoryServiceImpl")
     protected RepositoryService plainRepositoryService;
@@ -1558,8 +1560,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String resourceOid, ShadowKindType kind, String intent, boolean add) throws SchemaException {
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(resourceOid, kind, intent, add));
-        ObjectDelta<F> userDelta = prismContext.deltaFactory().object().createModifyDelta(focusOid, modifications, type
-        );
+        ObjectDelta<F> userDelta = prismContext.deltaFactory().object()
+                .createModifyDelta(focusOid, modifications, type);
         return userDelta;
     }
 
@@ -1599,7 +1601,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return modelInteractionService.previewChanges(deltas, options, task, result);
     }
 
-    protected <F extends FocusType> void assignAccountToUser(
+    protected void assignAccountToUser(
             String focusOid, String resourceOid, String intent)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
@@ -1749,6 +1751,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
+        // TODO any assert about this unused variable?
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
@@ -1868,9 +1871,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
-    protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name,
-            PrismObject<ResourceType> resource, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
-            OperationResult result)
+    protected PrismObject<ShadowType> findShadowByNameViaModel(
+            ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
@@ -2190,11 +2193,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             assertNotNull("Missing type in delegatedRef " + ref.getOid() + " in " + focus, ref.getType());
         }
         PrismAsserts.assertSets("Wrong values in delegatedRef in " + focus, refOids, oids);
-    }
-
-    protected <F extends FocusType> void assertNotAssignedRole(
-            PrismObject<F> focus, String roleOid, OperationResult result) {
-        MidPointAsserts.assertNotAssignedRole(focus, roleOid);
     }
 
     protected void assertNotAssignedRole(String userOid, String roleOid, OperationResult result)
@@ -2807,42 +2805,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     }
 
-    private void assertResolvedResourceRefs(ObjectDelta<ShadowType> delta, String desc) {
-        if (delta == null) {
-            return;
-        }
-        if (delta.isAdd()) {
-            assertResolvedResourceRefs(delta.getObjectToAdd(), desc);
-        } else if (delta.isModify()) {
-            ReferenceDelta referenceDelta = delta.findReferenceModification(ShadowType.F_RESOURCE_REF);
-            if (referenceDelta != null) {
-                assertResolvedResourceRefs(referenceDelta.getValuesToAdd(), "valuesToAdd in " + desc);
-                assertResolvedResourceRefs(referenceDelta.getValuesToDelete(), "valuesToDelete in " + desc);
-                assertResolvedResourceRefs(referenceDelta.getValuesToReplace(), "valuesToReplace in " + desc);
-            }
-        }
-    }
-
-    private void assertResolvedResourceRefs(PrismObject<ShadowType> shadow, String desc) {
-        if (shadow == null) {
-            return;
-        }
-        PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
-        if (resourceRef == null) {
-            AssertJUnit.fail("No resourceRef in " + desc);
-        }
-        assertResolvedResourceRefs(resourceRef.getValues(), desc);
-    }
-
-    private void assertResolvedResourceRefs(Collection<PrismReferenceValue> values, String desc) {
-        if (values == null) {
-            return;
-        }
-        for (PrismReferenceValue pval : values) {
-            assertNotNull("resourceRef in " + desc + " does not contain object", pval.getObject());
-        }
-    }
-
     /**
      * Breaks user assignment delta in the context by inserting some empty value. This may interfere with comparing the values to
      * existing user values.
@@ -3130,7 +3092,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectNotFoundException,
             SchemaException {
         Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> task = taskManager.getObject(TaskType.class, oid, options, result);
         dumpTaskAndSubtasks(task.asObjectable(), 0);
@@ -3162,8 +3124,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .max().orElse(0);
     }
 
-    protected void displayOperationStatistics(String label, OperationStatsType statistics) {
-        display(label, StatisticsUtil.format(statistics));
+    protected void displayOperationStatistics(OperationStatsType statistics) {
+        display("Task operation statistics for " + getTestNameShort(), StatisticsUtil.format(statistics));
     }
 
     @Nullable
@@ -3259,7 +3221,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         IntegrationTestTools.waitFor("Waiting for task " + taskOid + " start", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected void waitForTaskNextStart(String taskOid, boolean checkSubresult, int timeout, boolean kickTheTask) throws Exception {
+    protected void waitForTaskNextStart(
+            String taskOid, boolean checkSubresult, int timeout, boolean kickTheTask) throws Exception {
         OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskNextStart");
         Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
         Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
@@ -3672,7 +3635,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
-        Task task = taskManager.getTask(taskOid, result);
+        Task task = taskManager.getTaskPlain(taskOid, result);
         assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionStatus());
     }
 
@@ -3822,7 +3785,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = createPlainTask("getTaskTree");
         OperationResult result = task.getResult();
-        PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK), task, result);
+        PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK_REF), task, result);
         result.computeStatus();
         TestUtil.assertSuccess("getObject(Task) result not success", result);
         return retTask;
@@ -5831,9 +5794,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return TaskAsserter.forTask(task.asPrismObject(), message);
     }
 
-    protected RepoOpAsserter createRepoOpAsserter(String details) {
-        PerformanceInformation repoPerformanceInformation = repositoryService.getPerformanceMonitor().getThreadLocalPerformanceInformation();
-        return new RepoOpAsserter(repoPerformanceInformation, details);
+    protected RepoOpAsserter createRepoOpAsserter() {
+        PerformanceInformation repoPerformanceInformation =
+                repositoryService.getPerformanceMonitor().getThreadLocalPerformanceInformation();
+        return new RepoOpAsserter(repoPerformanceInformation, getTestNameShort());
     }
 
     protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) {

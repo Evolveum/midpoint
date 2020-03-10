@@ -81,7 +81,7 @@ public class MemberOperationsHelper {
         try {
             value.applyDefinition(def);
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Can not aply definition " + def, e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Can not apply definition " + def, e);
             operationalTask.getResult().recordFatalError(pageBase.createStringResource("MemberOperationsHelper.message.unassignMembersPerformed.fatalError", def).getString(), e);
         }
         expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
@@ -126,16 +126,16 @@ public class MemberOperationsHelper {
         executeMemberOperation(pageBase, operationalTask, type, query, script, null, target);
     }
 
-    public static <R extends AbstractRoleType> void deleteMembersPerformed(PageBase pageBase, QueryScope scope,
-            ObjectQuery query, QName type, AjaxRequestTarget target) {
+    public static void deleteMembersPerformed(
+            PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
         Task task = createRecomputeOrDeleteMembersTask(pageBase, scope, query, target, "delete", DELETE_OPERATION);
         if (task != null) {
             executeMemberOperation(pageBase, task, target);
         }
     }
 
-    public static <R extends AbstractRoleType> void recomputeMembersPerformed(PageBase pageBase, QueryScope scope,
-            ObjectQuery query, AjaxRequestTarget target) {
+    public static void recomputeMembersPerformed(
+            PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
         Task task = createRecomputeMembersTask(pageBase, scope, query, target);
         if (task != null) {
             executeMemberOperation(pageBase, task, target);

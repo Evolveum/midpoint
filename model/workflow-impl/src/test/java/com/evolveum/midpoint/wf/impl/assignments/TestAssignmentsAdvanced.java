@@ -1226,6 +1226,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             result.tracingProfile(tracer.compileProfile(addWorkflowLogging(createModelLoggingTracingProfile()), result));
         }
 
+        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
+
         List<AssignmentType> assignmentsToAdd = new ArrayList<>();
         assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext));
         assignmentsToAdd.add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext));
@@ -1303,7 +1305,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ApprovalSchemaExecutionInformationType found = null;
         for (ApprovalSchemaExecutionInformationType info : infos) {
             assertNotNull("No taskRef", info.getCaseRef());
-            PrismObject object = info.getCaseRef().asReferenceValue().getObject();
+            PrismObject<?> object = info.getCaseRef().asReferenceValue().getObject();
             assertNotNull("No case in caseRef", object);
             CaseType aCase = (CaseType) object.asObjectable();
             ApprovalContextType wfc = aCase.getApprovalContext();

@@ -204,7 +204,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         }
         List<Task> subtasks = new ArrayList<>(subtaskOids.size());
         for (String subtaskOid : subtaskOids) {
-            subtasks.add(taskManager.getTask(subtaskOid, opResult));
+            subtasks.add(taskManager.getTaskPlain(subtaskOid, opResult));
         }
         for (int i = 1; i <= count; i++) {
             Task subtask = subtasks.get(i - 1);

@@ -33,8 +33,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -99,7 +97,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 "mapping-script-system-variables-condition-groovy.xml",
                 shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -130,7 +128,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -161,7 +159,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -191,7 +189,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -220,7 +218,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         user.asObjectable().getEmployeeType().add("CAPTAIN");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -247,7 +245,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -273,7 +271,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -305,7 +303,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         user.asObjectable().getEmployeeType().add("CAPTAIN");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -357,7 +355,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         user.asObjectable().setEmployeeNumber(null);
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -381,8 +379,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         testScriptSystemVariablesConditionEmptyFalseToTrue(shortTestName, "mapping-script-system-variables-condition-empty-single-function.xml");
     }
 
-    public void testScriptSystemVariablesConditionEmptyFalseToTrue(final String shortTestName, String filename) throws Exception {
-
+    public void testScriptSystemVariablesConditionEmptyFalseToTrue(
+            final String shortTestName, String filename) throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -396,7 +394,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         user.asObjectable().setEmployeeNumber("666");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -448,7 +446,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         user.asObjectable().setEmployeeNumber("666");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -470,7 +468,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         testScriptSystemVariablesConditionEmptyTrueToFalse(shortTestName, "mapping-script-system-variables-condition-empty-single-function.xml");
     }
 
-    public void testScriptSystemVariablesConditionEmptyTrueToFalse(final String shortTestName, String filename) throws Exception {
+    public void testScriptSystemVariablesConditionEmptyTrueToFalse(
+            final String shortTestName, String filename) throws Exception {
 
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -485,7 +484,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         user.asObjectable().setEmployeeNumber(null);
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -508,7 +507,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping("mapping-npe.xml", shortTestName, "title", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -535,7 +534,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         user.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Sultan of the Caribbean"));
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -558,7 +557,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping =
                 evaluator.createMapping("mapping-path-enum.xml", shortTestName, "costCenter", delta);
 
-        OperationResult opResult = new OperationResult(shortTestName);
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         System.out.println("WHEN");
@@ -708,7 +707,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         setEmployeeType(user.asObjectable(), "A");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(getTestNameShort());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -736,7 +735,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         setEmployeeType(user.asObjectable());
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(getTestNameShort());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -764,7 +763,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         setEmployeeType(user.asObjectable(), "B");
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(getTestNameShort());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -840,7 +839,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         setEmployeeType(user.asObjectable(), oldVals);
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(getTestNameShort());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);
@@ -920,7 +919,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         setEmployeeType(user.asObjectable(), oldVals);
         mapping.getSourceContext().recompute();
 
-        OperationResult opResult = new OperationResult(getTestNameShort());
+        OperationResult opResult = createOperationResult();
 
         // WHEN
         mapping.evaluate(createTask(), opResult);

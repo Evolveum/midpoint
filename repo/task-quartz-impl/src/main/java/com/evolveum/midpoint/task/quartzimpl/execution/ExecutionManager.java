@@ -130,7 +130,7 @@ public class ExecutionManager {
         List<Task> tasks = new ArrayList<>();
         for (ClusterStatusInformation.TaskInfo taskInfo : taskInfoList) {
             try {
-                tasks.add(taskManager.getTask(taskInfo.getOid(), result));
+                tasks.add(taskManager.getTaskPlain(taskInfo.getOid(), result));
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Task {} that was about to be stopped does not exist. Ignoring it.", e, taskInfo.getOid());
             } catch (SchemaException e) {
@@ -832,7 +832,7 @@ public class ExecutionManager {
         StringBuilder output = new StringBuilder();
         OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "getTaskThreadsDump");
         try {
-            TaskQuartzImpl task = taskManager.getTask(taskOid, parentResult);
+            TaskQuartzImpl task = taskManager.getTaskPlain(taskOid, parentResult);
             RunningTask localTask = taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
             Thread rootThread = taskManager.getTaskThread(taskOid);
             if (localTask == null || rootThread == null) {

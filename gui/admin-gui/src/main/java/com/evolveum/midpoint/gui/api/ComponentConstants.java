@@ -93,4 +93,37 @@ public class ComponentConstants {
     public static final QName UI_CASE_TAB_OVERVIEW_APPROVAL = new QName(NS_COMPONENTS_PREFIX, "caseTabOverviewApproval");
     public static final String UI_CASE_TAB_OVERVIEW_APPROVAL_URL = QNameUtil.qNameToUri(UI_CASE_TAB_OVERVIEW_APPROVAL);
 
+    public static final QName UI_TASK_TAB_BASIC = new QName(NS_COMPONENTS_PREFIX, "taskTabBasic");
+    public static final String UI_TASK_TAB_BASIC_URL = QNameUtil.qNameToUri(UI_TASK_TAB_BASIC);
+
+    public static final QName UI_TASK_TAB_SCHEDULE = new QName(NS_COMPONENTS_PREFIX, "taskTabSchedule");
+    public static final String UI_TASK_TAB_SCHEDULE_URL = QNameUtil.qNameToUri(UI_TASK_TAB_SCHEDULE);
+
+    public static final QName UI_TASK_TAB_WORK_MANAGEMENT = new QName(NS_COMPONENTS_PREFIX, "taskTabWorkManagement");
+    public static final String UI_TASK_TAB_WORK_MANAGEMENT_URL = QNameUtil.qNameToUri(UI_TASK_TAB_WORK_MANAGEMENT);
+
+    public static final QName UI_TASK_TAB_CLEANUP_POLICIES = new QName(NS_COMPONENTS_PREFIX, "taskTabCleanupPolicies");
+    public static final String UI_TASK_TAB_CLEANUP_POLICIES_URL = QNameUtil.qNameToUri(UI_TASK_TAB_CLEANUP_POLICIES);
+
+    public static final QName UI_TASK_TAB_SUBTASKS = new QName(NS_COMPONENTS_PREFIX, "taskTabSubtasks");
+    public static final String UI_TASK_TAB_SUBTASKS_URL = QNameUtil.qNameToUri(UI_TASK_TAB_SUBTASKS);
+
+    public static final QName UI_TASK_TAB_OPERATION_STATISTICS = new QName(NS_COMPONENTS_PREFIX, "taskTabOperationStatistics");
+    public static final String UI_TASK_TAB_OPERATION_STATISTICS_URL = QNameUtil.qNameToUri(UI_TASK_TAB_OPERATION_STATISTICS);
+
+    public static final QName UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE = new QName(NS_COMPONENTS_PREFIX, "taskTabEnvironmentalPerformance");
+    public static final String UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE_URL = QNameUtil.qNameToUri(UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE);
+
+    public static final QName UI_TASK_TAB_OPERATION = new QName(NS_COMPONENTS_PREFIX, "taskTabOperation");
+    public static final String UI_TASK_TAB_OPERATION_URL = QNameUtil.qNameToUri(UI_TASK_TAB_OPERATION);
+
+    public static final QName UI_TASK_TAB_INTERNAL_PERFORMANCE = new QName(NS_COMPONENTS_PREFIX, "taskTabInternalPerformance");
+    public static final String UI_TASK_TAB_INTERNAL_PERFORMANCE_URL = QNameUtil.qNameToUri(UI_TASK_TAB_INTERNAL_PERFORMANCE);
+
+    public static final QName UI_TASK_TAB_RESULT = new QName(NS_COMPONENTS_PREFIX, "taskTabResult");
+    public static final String UI_TASK_TAB_RESULT_URL = QNameUtil.qNameToUri(UI_TASK_TAB_RESULT);
+
+    public static final QName UI_TASK_TAB_ERRORS = new QName(NS_COMPONENTS_PREFIX, "taskTabErrors");
+    public static final String UI_TASK_TAB_ERRORS_URL = QNameUtil.qNameToUri(UI_TASK_TAB_ERRORS);
+
 }

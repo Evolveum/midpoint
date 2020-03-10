@@ -159,7 +159,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
 
-        Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
+        Task taskBefore = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_UUID_OID, result);
 
         // WHEN
         when();
@@ -233,7 +233,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         display("Old shadow OID", augustusShadowOid);
         display("Account ID " + oldAccount.getId() + " -> " + newAccount.getId());
 
-        Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
+        Task taskBefore = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_UUID_OID, result);
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
@@ -318,7 +318,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         display("Old shadow OID", augustusShadowOid);
         display("Account ID " + oldAccount.getId() + " -> " + account.getId());
 
-        Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
+        Task taskBefore = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_UUID_OID, result);
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();

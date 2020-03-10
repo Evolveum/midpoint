@@ -102,7 +102,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         System.out.println("Task tree suspended.");
         Collection<SelectorOptions<GetOperationOptions>> getSubtasks = getOperationOptionsBuilder()
-                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
         display("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
@@ -189,7 +189,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         System.out.println("Task tree suspended.");
         Collection<SelectorOptions<GetOperationOptions>> getSubtasks = getOperationOptionsBuilder()
-                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, recomputationTask.oid, getSubtasks, result);
         display("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));

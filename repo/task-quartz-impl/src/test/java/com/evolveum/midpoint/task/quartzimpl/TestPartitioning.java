@@ -72,7 +72,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
         try {
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-            TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
+            TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<Task> partitions = masterTask.listSubtasks(result);
 
             display("master task", masterTask);
@@ -91,7 +91,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
             waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 2);
             waitForTaskRunnable(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-            masterTask = taskManager.getTask(masterTaskOid, result);
+            masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             partitions = masterTask.listSubtasks(result);
             display("master task (after 2nd run)", masterTask);
             display("partition tasks (after 2nd run)", partitions);

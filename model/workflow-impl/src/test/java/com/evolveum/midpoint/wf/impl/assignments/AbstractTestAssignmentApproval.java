@@ -168,7 +168,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         assertEquals("Wrong context state", ModelState.FINAL, context.getState());
         result.computeStatusIfUnknown();
         TestUtil.assertSuccess(result);
-        assertNotAssignedRole(getUser(userJackOid), getRoleOid(1), result);
+        assertNotAssignedRole(getUser(userJackOid), getRoleOid(1));
     }
 
     /**

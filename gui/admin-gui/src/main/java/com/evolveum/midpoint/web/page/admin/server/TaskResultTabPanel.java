@@ -39,7 +39,7 @@ import java.util.*;
 /**
  * @author semancik
  */
-public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements TaskTabPanel {
+public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OPERATION_RESULT = "operationResult";

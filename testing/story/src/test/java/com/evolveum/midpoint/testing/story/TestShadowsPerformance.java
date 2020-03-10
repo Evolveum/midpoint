@@ -27,12 +27,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Tests creation and deletion of shadows.
  */
+@UnusedTestElement("Not in suite, test210 fails")
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestShadowsPerformance extends AbstractStoryTest {
@@ -97,8 +99,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
     @Test
     public void test010Sanity() throws Exception {
-        final String TEST_NAME = "test010Sanity";
-
         Task task = getTestTask();
 
         // WHEN
@@ -113,8 +113,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
     @Test
     public void test100ImportAccounts() throws Exception {
-        final String TEST_NAME = "test100ImportAccounts";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -135,7 +133,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_IMPORT_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         int shadows = repositoryService.countObjects(ShadowType.class, null, null, result);
@@ -144,8 +142,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
     @Test(enabled = false)
     public void test200DeleteAccountsAndReconcile() throws Exception {
-        final String TEST_NAME = "test200DeleteAccountsAndReconcile";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -165,7 +161,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECONCILIATION_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         int shadows = repositoryService.countObjects(ShadowType.class, null, null, result);
@@ -174,8 +170,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
     @Test
     public void test210DeleteShadows() throws Exception {
-        final String TEST_NAME = "test210DeleteShadows";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -195,7 +189,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_BULK_DELETE_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         int shadows = repositoryService.countObjects(ShadowType.class, null, null, result);
@@ -204,11 +198,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
     @Test
     public void test900Summarize() {
-        final String TEST_NAME = "test900Summarize";
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
@@ -222,6 +211,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
     }
 
+    // TODO use it or let it go :-)
     private long recordDuration(String label, long duration) {
         durations.put(label, duration);
         return duration;
@@ -230,5 +220,4 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     private Object summary(String label, long duration) {
         return String.format(SUMMARY_LINE_FORMAT, label, duration, duration / NUMBER_OF_GENERATED_USERS);
     }
-
 }

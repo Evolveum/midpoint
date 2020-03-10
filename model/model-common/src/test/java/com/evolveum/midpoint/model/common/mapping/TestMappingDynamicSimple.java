@@ -1167,7 +1167,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                         null)
                 .build();
 
-        OperationResult opResult = new OperationResult(contextName());
+        OperationResult opResult = createOperationResult();
 
         // WHEN (1)
         mapping.evaluate(createTask(), opResult);
