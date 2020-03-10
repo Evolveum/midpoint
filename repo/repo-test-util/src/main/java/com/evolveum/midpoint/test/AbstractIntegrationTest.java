@@ -1406,17 +1406,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected void assertSyncToken(String syncTaskOid, Object expectedValue) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
         Task task = taskManager.getTask(syncTaskOid, result);
-        assertSyncToken(task, expectedValue, result);
+        assertSyncToken(task, expectedValue);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
 
     protected void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
         Task task = taskManager.getTask(syncTaskOid, result);
-        assertSyncToken(task, expectedValue, result);
+        assertSyncToken(task, expectedValue);
     }
 
-    protected void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    protected void assertSyncToken(Task task, Object expectedValue) {
         PrismProperty<Object> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         if (expectedValue == null && syncTokenProperty == null) {
             return;

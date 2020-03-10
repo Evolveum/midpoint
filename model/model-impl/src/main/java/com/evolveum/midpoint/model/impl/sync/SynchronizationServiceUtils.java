@@ -50,7 +50,7 @@ public class SynchronizationServiceUtils {
 
     public static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, ObjectSynchronizationDiscriminatorType discriminator, ExpressionFactory expressionFactory, SynchronizationContext<F> syncCtx) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        boolean isApplicablePolicy = false;
+        boolean isApplicablePolicy;
         if (discriminator != null) {
             isApplicablePolicy = isPolicyApplicable(discriminator, synchronizationPolicy, syncCtx.getResource());
         } else {

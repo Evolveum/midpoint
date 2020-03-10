@@ -82,6 +82,7 @@ public class ChangeProcessor {
             ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, result);
             if (ctx == null) {
                 request.setSuccess(true);
+                request.onSuccess();
                 return;
             }
 
@@ -113,6 +114,7 @@ public class ChangeProcessor {
                 LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
                         + "deleted on the resource meantime).");
                 request.setSuccess(true);
+                request.onSuccess();
                 // Are we OK with the result being automatically computed here? (i.e. most probably SUCCESS?)
                 return;
             }
@@ -138,7 +140,7 @@ public class ChangeProcessor {
 
             notifyChangeResult.computeStatus("Error in notify change operation.");
 
-            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
+            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError() || notifyChangeResult.isNotApplicable()) {
                 // Do not delete dead shadows. Keep dead shadow around because they contain results
                 // of the synchronization. Usual shadow refresh process should delete them eventually.
                 // TODO: review. Maybe make this configuration later on.
@@ -337,7 +339,7 @@ public class ChangeProcessor {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
             PreconditionViolationException {
 
-        if (result.isSuccess() || result.isHandledError()) {
+        if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
             return;
         }
 
