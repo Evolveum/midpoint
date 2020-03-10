@@ -746,7 +746,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     /**
      * Add "fraudster" user with an archetypeRef. In this case the archetypeRef does not match the assignment.
-     * This operation shoudl be denied.
+     * This operation should be denied.
      * MID-5909
      */
     @Test

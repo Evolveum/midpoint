@@ -508,8 +508,8 @@
             <xsd:enumeration value="none">
                 <xsd:annotation>
                     <xsd:documentation>
-                        There is no special requrement for attribute content. E.g. only the changed attributes
-                        shoudl be passed into the update operation.
+                        There is no special requirement for attribute content. E.g. only the changed attributes
+                        should be passed into the update operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>
@@ -699,7 +699,7 @@
             <xsd:documentation>
                 Indication that ADD and REMOVE of attribute values is reliably supported.
                 If this capability is not present or disabled, READ+REPLACE mode is assumed.
-                (Can be overriden at the level of individual attributes via readReplaceMode property.)
+                (Can be overridden at the level of individual attributes via readReplaceMode property.)
 
                 BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
 

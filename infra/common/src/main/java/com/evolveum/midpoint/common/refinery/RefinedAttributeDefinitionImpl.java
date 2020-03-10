@@ -470,7 +470,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
             previousLimitations = limitations;
             if (schemaHandlingAttrDefType != null) {
                 if (layer != LayerType.SCHEMA) {
-                    // SCHEMA is a pseudo-layer. It cannot be overriden ... unless specified explicitly
+                    // SCHEMA is a pseudo-layer. It cannot be overridden ... unless specified explicitly
                     PropertyLimitationsType genericLimitationsType = MiscSchemaUtil.getLimitationsType(schemaHandlingAttrDefType.getLimitations(), null);
                     if (genericLimitationsType != null) {
                         applyLimitationsType(limitations, genericLimitationsType);

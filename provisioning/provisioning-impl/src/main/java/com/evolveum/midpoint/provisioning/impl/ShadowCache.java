@@ -522,7 +522,7 @@ public class ShadowCache {
 //            // HACK HACK HACK, not really right solution.
 //            // We need this for reliable uniqueness check in preAddChecks() and addResourceObject()
 //            // Maybe the right solution would be to pass opState as a parameter to addResourceObject()?
-//            // Or maybe addResourceObject() should not check uniqueness and we shoudl check it here?
+//            // Or maybe addResourceObject() should not check uniqueness and we should check it here?
 //            shadowToAdd.setOid(opState.getRepoShadow().getOid());
 //        }
 

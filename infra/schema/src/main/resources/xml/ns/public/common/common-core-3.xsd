@@ -23750,7 +23750,7 @@
                                <xsd:documentation>
                                    <p>
                                        Symbolic name for this view. It is used as a view identifier. Views with the same name will be merged together.
-                                       The name is used to detect whether a particular view is overriden, e.g. if view defined in system configuraiton
+                                       The name is used to detect whether a particular view is overridden, e.g. if view defined in system configuraiton
                                        is overridden in the role. It may also be used by other system components (e.g. dashboard widgets, reports)
                                        to refer to this view. It will also be used for diagnostics, logging and so on.
                                    </p>
