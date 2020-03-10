@@ -77,7 +77,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
                         token = task.findOrCreateProperty(PATH_TOKEN);
                     } catch (SchemaException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Cannot create token property", e);
-                        getSession().error("Cannot create token property: " + e.getMessage());
+                        getSession().error(getString("LivesyncTokenEditorPanel.create.token.failed", e.getMessage()));
                         return;
                     }
                 }
@@ -90,14 +90,14 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
         tokenPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(tokenPanel);
 
-        AjaxButton okButton = new AjaxButton(ID_OK, createStringResource("button.ok")) {
+        AjaxButton okButton = new AjaxButton(ID_OK, createStringResource("Button.ok")) {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 getPageBase().hideMainPopup(ajaxRequestTarget);
                 ObjectDelta<TaskType> tokenDelta = getTokenDelta(ajaxRequestTarget);
                 if (tokenDelta == null) {
-                    getSession().warn("Nothing to save. Token was not changed");
+                    getSession().warn(getString("LivesyncTokenEditorPanel.token.delta.empty"));
                     return;
                 }
                 saveTokenPerformed(tokenDelta, ajaxRequestTarget);
@@ -105,7 +105,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
         };
         add(okButton);
 
-        AjaxButton cancelButton = new AjaxButton(ID_CANCEL, createStringResource("button.cancel")) {
+        AjaxButton cancelButton = new AjaxButton(ID_CANCEL, createStringResource("Button.cancel")) {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -132,7 +132,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
             return valuesEntry.replace(newTokenValue).asObjectDelta(getModelObject().getOid());
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot modify token", e);
-            getSession().error("Cannot modify token: " + e.getMessage());
+            getSession().error(getString("LivesyncTokenEditorPanel.modify.token.failed", e.getMessage()));
             target.add(getPageBase().getFeedbackPanel());
             return null;
         }

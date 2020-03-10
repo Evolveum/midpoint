@@ -292,7 +292,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
     protected void initLayoutSaveAndRunButton() {
-        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_AND_RUN, getDetailsPage().createStringResource("pageAdminFocus.button.saveAndRun")) {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_AND_RUN, getDetailsPage().createStringResource("TaskMainPanel.button.saveAndRun")) {
             private static final long serialVersionUID = 1L;
 
             @Override
