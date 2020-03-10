@@ -59,13 +59,10 @@ public class TestOperationCounts extends AbstractStoryTest {
     private static final String RESOURCE_DUMMY_THREE_OID = "f0c6cff1-30f6-46ca-b5a1-88c2dc47862c";
 
     private static final File ROLE_ONE_FILE = new File(TEST_DIR, "role-one.xml");
-    private static final String ROLE_ONE_OID = "369d1192-cb12-4cf9-90ea-0111895e9cb5";
 
     private static final File ROLE_TWO_FILE = new File(TEST_DIR, "role-two.xml");
-    private static final String ROLE_TWO_OID = "8a1e3f58-1fb8-451e-a251-126385ddfa0a";
 
     private static final File ROLE_THREE_FILE = new File(TEST_DIR, "role-three.xml");
-    private static final String ROLE_THREE_OID = "ce741b1a-0181-4c99-aaad-3d3a5f9eb48b";
 
     private static final File USER_ALICE_FILE = new File(TEST_DIR, "user-alice.xml");
     private static final String USER_ALICE_OID = "84851118-7579-46aa-a1c7-5b22eec1e443";
@@ -111,8 +108,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestOperationCounts.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOne = modelService.testResource(RESOURCE_DUMMY_ONE_OID, task);
         TestUtil.assertSuccess(testResultOne);
@@ -124,8 +120,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 
     @Test
     public void test100AddAlice() throws Exception {
-        final String TEST_NAME = "test100AddAlice";
-        Task task = createTracedTask(TEST_NAME);
+        Task task = createTracedTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -141,8 +136,8 @@ public class TestOperationCounts extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        RepoOpAsserter repoOpAsserter = createRepoOpAsserter(TEST_NAME).display();
-        dumpThreadLocalCachePerformanceData(TEST_NAME);
+        RepoOpAsserter repoOpAsserter = createRepoOpAsserter().display();
+        dumpThreadLocalCachePerformanceData();
 
         assertUser(USER_ALICE_OID, "alice")
                 .assertFullName("Alice White")
@@ -171,8 +166,7 @@ public class TestOperationCounts extends AbstractStoryTest {
     // Some objects should be cached now
     @Test
     public void test110AddBob() throws Exception {
-        final String TEST_NAME = "test110AddBob";
-        Task task = createTracedTask(TEST_NAME);
+        Task task = createTracedTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -188,8 +182,8 @@ public class TestOperationCounts extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        RepoOpAsserter repoOpAsserter = createRepoOpAsserter(TEST_NAME).display();
-        dumpThreadLocalCachePerformanceData(TEST_NAME);
+        RepoOpAsserter repoOpAsserter = createRepoOpAsserter().display();
+        dumpThreadLocalCachePerformanceData();
 
         assertUser(USER_BOB_OID, "bob")
                 .assertFullName("Bob Black")
@@ -215,8 +209,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 
     @Test
     public void test120ModifyBob() throws Exception {
-        final String TEST_NAME = "test120ModifyBob";
-        Task task = createTracedTask(TEST_NAME);
+        Task task = createTracedTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -236,8 +229,8 @@ public class TestOperationCounts extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        RepoOpAsserter repoOpAsserter = createRepoOpAsserter(TEST_NAME).display();
-        dumpThreadLocalCachePerformanceData(TEST_NAME);
+        RepoOpAsserter repoOpAsserter = createRepoOpAsserter().display();
+        dumpThreadLocalCachePerformanceData();
 
         assertUser(USER_BOB_OID, "bob")
                 .assertFullName("Bob Brown")

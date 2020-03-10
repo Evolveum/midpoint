@@ -6,6 +6,20 @@ package com.evolveum.midpoint.testing.story;
  * and European Union Public License. See LICENSE file for details.
  */
 
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -35,25 +49,11 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.List;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestVillage extends AbstractStoryTest {
 
@@ -122,14 +122,14 @@ public class TestVillage extends AbstractStoryTest {
     private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
     private static final String ACCOUNT_HERMAN_LOC = "Monkey Island";
     private static final String ACCOUNT_HERMAN_ORG = "Gov";
-    private static final String USER_HERMAN_NAME = "G."+ACCOUNT_HERMAN_FIST_NAME+"."+ACCOUNT_HERMAN_LAST_NAME;
+    private static final String USER_HERMAN_NAME = "G." + ACCOUNT_HERMAN_FIST_NAME + "." + ACCOUNT_HERMAN_LAST_NAME;
 
     private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
     private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
     private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
     private static final String ACCOUNT_LEMONHEAD_LOC = "Monkey Island";
     private static final String ACCOUNT_LEMONHEAD_ORG = "Exec";
-    private static final String USER_LEMONHEAD_NAME = "E."+ACCOUNT_LEMONHEAD_FIST_NAME+"."+ACCOUNT_LEMONHEAD_LAST_NAME;
+    private static final String USER_LEMONHEAD_NAME = "E." + ACCOUNT_LEMONHEAD_FIST_NAME + "." + ACCOUNT_LEMONHEAD_LAST_NAME;
 
     private static final String ACCOUNT_SHARPTOOTH_USERNAME = "sharptooth";
     private static final String ACCOUNT_SHARPTOOTH_FIST_NAME = "Sharptooth";
@@ -144,7 +144,7 @@ public class TestVillage extends AbstractStoryTest {
     private static final String ACCOUNT_MANCOMB_LAST_NAME = "Seepgood";
     private static final String ACCOUNT_MANCOMB_LOC = "-";
     private static final String ACCOUNT_MANCOMB_ORG = "-";
-    private static final String USER_MANCOMB_NAME = ACCOUNT_MANCOMB_FIST_NAME+"."+ACCOUNT_MANCOMB_LAST_NAME;
+    private static final String USER_MANCOMB_NAME = ACCOUNT_MANCOMB_FIST_NAME + "." + ACCOUNT_MANCOMB_LAST_NAME;
 
     private static final String ACCOUNT_COBB_USERNAME = "cobb";
     private static final String ACCOUNT_COBB_FIST_NAME = "Cobb";
@@ -165,7 +165,7 @@ public class TestVillage extends AbstractStoryTest {
     private static final String ACCOUNT_WALLY_USERNAME = "wally";
     private static final String ACCOUNT_WALLY_FIST_NAME = "Wally";
     private static final String ACCOUNT_WALLY_LAST_NAME = "Feed";
-    private static final String USER_WALLY_NAME = ACCOUNT_WALLY_FIST_NAME+"."+ACCOUNT_WALLY_LAST_NAME;
+    private static final String USER_WALLY_NAME = ACCOUNT_WALLY_FIST_NAME + "." + ACCOUNT_WALLY_LAST_NAME;
 
     private static final String ACCOUNT_AUGUSTUS_USERNAME = "augustus";
     private static final String ACCOUNT_AUGUSTUS_FIST_NAME = "Augustus";
@@ -190,7 +190,6 @@ public class TestVillage extends AbstractStoryTest {
     private static final String GROUP_JOLLYROGERS_DN = "cn=jollyrogers,ou=groups,dc=example,dc=com";
 
     private static final String GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN = "cn=admins,ou=Jolly Roger,dc=example,dc=com";
-
 
     protected static DummyResource dummyResourceSrc;
     protected static DummyResourceContoller dummyResourceCtlSrc;
@@ -263,8 +262,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_SOURCE_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -286,8 +284,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test020ResourceOpenDjGet() throws Exception {
-        final String TEST_NAME = "test020ResourceOpenDjGet";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -356,8 +353,8 @@ public class TestVillage extends AbstractStoryTest {
         RefinedResourceSchema refinedSchemaAfter = RefinedResourceSchema.getRefinedSchema(resourceAfter);
         long t4 = System.currentTimeMillis();
 
-        display("Times", "getObject(RESOURCE_OPENDJ_OID): "+(t1-t0)+"ms\ngetResourceSchema: "+(t3-t2)
-                +"ms\ngetRefinedSchema: "+(t4-t3)+"ms");
+        display("Times", "getObject(RESOURCE_OPENDJ_OID): " + (t1 - t0) + "ms\ngetResourceSchema: " + (t3 - t2)
+                + "ms\ngetRefinedSchema: " + (t4 - t3) + "ms");
 
         // variable number of clones: 1 or 2 because of trigger scanner task
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 1, 2);
@@ -369,15 +366,12 @@ public class TestVillage extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 
-        assertTrue("Resource schema has changed", resourceSchemaBefore == resourceSchemaAfter );
-        assertTrue("Refined schema has changed", refinedSchemaBefore == refinedSchemaAfter );
+        assertSame("Resource schema has changed", resourceSchemaBefore, resourceSchemaAfter);
+        assertSame("Refined schema has changed", refinedSchemaBefore, refinedSchemaAfter);
     }
 
     @Test
     public void test100AddSrcAccountHerman() throws Exception {
-        final String TEST_NAME = "test100AddSrcAccountHerman";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
@@ -396,9 +390,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test101HermanAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test101HermanAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
         // WHEN
@@ -413,9 +404,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test102HermanUnAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test102HermanUnAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
         // WHEN
@@ -430,9 +418,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test103HermanAssignBasicAndSimpleRole() throws Exception {
-        final String TEST_NAME = "test103HermanAssignBasicAndSimpleRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
         // WHEN
@@ -449,9 +434,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test104HermanUnAssignSimpleRoleThenBasic() throws Exception {
-        final String TEST_NAME = "test104HermanUnAssignSimpleRoleThenBasic";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
         // WHEN
@@ -474,12 +456,8 @@ public class TestVillage extends AbstractStoryTest {
         assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
     }
 
-
     @Test
     public void test105ModifySrcAccountHermanRemoveLoc() throws Exception {
-        final String TEST_NAME = "test105ModifySrcAccountHermanRemoveLoc";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
@@ -494,9 +472,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test106HermanAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test106HermanAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
         // WHEN
@@ -511,9 +486,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test107ModifySrcAccountHermanAddLoc() throws Exception {
-        final String TEST_NAME = "test107ModifySrcAccountHermanAddLoc";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
@@ -529,9 +501,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test108ModifySrcAccountHermanRemoveLoc() throws Exception {
-        final String TEST_NAME = "test108ModifySrcAccountHermanRemoveLoc";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
@@ -547,9 +516,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test109HermanUnAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test109HermanUnAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
         // WHEN
@@ -564,9 +530,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test110AddSrcAccountLemonhead() throws Exception {
-        final String TEST_NAME = "test110AddSrcAccountLemonhead";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
@@ -590,9 +553,6 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test120AddSrcAccountWally() throws Exception {
-        final String TEST_NAME = "test120AddSrcAccountWally";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_WALLY_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_WALLY_LAST_NAME);
@@ -609,9 +569,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test121WallyAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test121WallyAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
         // WHEN
@@ -625,9 +582,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test122WallyUnAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test122WallyUnAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
         // WHEN
@@ -644,9 +598,6 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test130AddSrcAccountMancomb() throws Exception {
-        final String TEST_NAME = "test130AddSrcAccountMancomb";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
@@ -665,9 +616,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test131MancombAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test131WallyAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
 
         // WHEN
@@ -681,9 +629,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test132MancombUnAssignBasicRole() throws Exception {
-        final String TEST_NAME = "test132MancombUnAssignBasicRole";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
 
         // WHEN
@@ -695,15 +640,11 @@ public class TestVillage extends AbstractStoryTest {
         assertLocGov(userAfter, ACCOUNT_MANCOMB_LOC, ACCOUNT_MANCOMB_ORG);
     }
 
-
     /**
      * Change of org should trigger rename
      */
     @Test
     public void test150ModifySrcAccountHermanReplaceOrg() throws Exception {
-        final String TEST_NAME = "test150ModifySrcAccountHermanReplaceOrg";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
@@ -724,9 +665,6 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test152ModifySrcAccountHermanDeleteOrg() throws Exception {
-        final String TEST_NAME = "test152ModifySrcAccountHermanDeleteOrg";
-        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
-
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
@@ -748,7 +686,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
-        final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
         Task task = getTestTask();
         OperationResult result = createOperationResult();
 
@@ -783,22 +720,19 @@ public class TestVillage extends AbstractStoryTest {
 
         //TODO: assert added user
         PrismObject<UserType> userMikeAfter = getUser(USER_MIKE_OID);
-         UserAsserter.forUser(userMikeAfter).
-             assertAssignments(2).
-             assertLinks(0);
+        UserAsserter.forUser(userMikeAfter).
+                assertAssignments(2).
+                assertLinks(0);
     }
 
     @Test
-    public void test201unassignRole() throws Exception{
-        final String TEST_NAME = "test201unassignRole";
+    public void test201unassignRole() throws Exception {
         unassignRole(USER_MIKE_OID, ROLE_BASIC_OID);
         //TODO: assertions
     }
 
     @Test
-    public void test202assignRoleOrgPwdPolicy() throws Exception{
-        final String TEST_NAME = "test202assignRoleOrgPwdPolicy";
-
+    public void test202assignRoleOrgPwdPolicy() throws Exception {
         //this will throw exception, if incorrect pwd policy is selected...but some assertion will be nice :)
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -810,7 +744,6 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test300AddProjectJollyRoger() throws Exception {
-        final String TEST_NAME = "test300AddProjectJollyRoger";
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -828,7 +761,7 @@ public class TestVillage extends AbstractStoryTest {
 
         Entry ouEntry = openDJController.fetchAndAssertEntry("ou=Jolly Roger,dc=example,dc=com", "organizationalUnit");
         Entry groupEntry = openDJController.fetchAndAssertEntry(GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME);
-      //TODO: more assertions
+        //TODO: more assertions
     }
 
     /**
@@ -840,10 +773,10 @@ public class TestVillage extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        openDJController.addEntry("dn: "+GROUP_JOLLYROGERS_DN+"\n"+
-                                  "objectclass: "+GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME+"\n"+
-                                  "cn: jollyrogers\n"+
-                                  GROUP_MEMBER_ATTRIBUTE_NAME+": "+GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN+"\n");
+        openDJController.addEntry("dn: " + GROUP_JOLLYROGERS_DN + "\n" +
+                "objectclass: " + GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME + "\n" +
+                "cn: jollyrogers\n" +
+                GROUP_MEMBER_ATTRIBUTE_NAME + ": " + GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN + "\n");
 
         display("LDAP entries", openDJController.dumpEntries());
 
@@ -919,44 +852,44 @@ public class TestVillage extends AbstractStoryTest {
 
     private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         UserType userType = user.asObjectable();
-        PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
+        PrismAsserts.assertEqualsPolyString("Wrong locality in " + user, expLoc, userType.getLocality());
         if (expOrg == null) {
-            assertTrue("Unexpected organization in "+user+": "+userType.getOrganization(), userType.getOrganization().isEmpty());
+            assertTrue("Unexpected organization in " + user + ": " + userType.getOrganization(), userType.getOrganization().isEmpty());
         } else {
-            PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in "+user, userType.getOrganization(),
-                PrismTestUtil.createPolyStringType(expOrg));
+            PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in " + user, userType.getOrganization(),
+                    PrismTestUtil.createPolyStringType(expOrg));
         }
         if (expLoc == null || expOrg == null) {
-            assertNull("Wrong costCenter in "+user+", expected empty but was "+userType.getCostCenter(), userType.getCostCenter());
+            assertNull("Wrong costCenter in " + user + ", expected empty but was " + userType.getCostCenter(), userType.getCostCenter());
         } else {
-            assertEquals("Wrong costCenter in "+user, userType.getCostCenter(), expOrg+":"+expLoc);
+            assertEquals("Wrong costCenter in " + user, userType.getCostCenter(), expOrg + ":" + expLoc);
         }
         if (expOrg != null && !expOrg.equals("-")) {
             PrismObject<OrgType> org = findObjectByName(OrgType.class, expOrg);
             assertAssigned(user, org.getOid(), OrgType.COMPLEX_TYPE);
             String orgId = org.asObjectable().getIdentifier();
-            PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in "+user,
+            PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in " + user,
                     userType.getOrganizationalUnit(), PrismTestUtil.createPolyStringType(orgId));
-            assertEquals("Wrong title in "+user, "Member of "+orgId, userType.getTitle().getOrig());
+            assertEquals("Wrong title in " + user, "Member of " + orgId, userType.getTitle().getOrig());
         } else {
             assertAssignments(user, OrgType.class, 0);
-            assertTrue("Unexpected organizationalUnit in "+user+": "+userType.getOrganizationalUnit(), userType.getOrganizationalUnit().isEmpty());
-            assertNull("Unexpected title in "+user+": "+userType.getDescription(), userType.getTitle());
+            assertTrue("Unexpected organizationalUnit in " + user + ": " + userType.getOrganizationalUnit(), userType.getOrganizationalUnit().isEmpty());
+            assertNull("Unexpected title in " + user + ": " + userType.getDescription(), userType.getTitle());
         }
     }
 
     private void assertUserNoRole(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
         String username = getUsername(firstName, lastName, orgName);
-        assertNotNull("No "+username+" user", user);
+        assertNotNull("No " + username + " user", user);
         display("User", user);
-           assertUser(user, user.getOid(), username, firstName+" "+lastName,
-                   firstName, lastName);
-           assertEmployeeNumber(user);
-           assertLinks(user, 1);
+        assertUser(user, user.getOid(), username, firstName + " " + lastName,
+                firstName, lastName);
+        assertEmployeeNumber(user);
+        assertLinks(user, 1);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         assertAssignments(user, RoleType.class, 0);
 
-        openDJController.assertNoEntry("uid="+username+",ou=people,dc=example,dc=com");
+        openDJController.assertNoEntry("uid=" + username + ",ou=people,dc=example,dc=com");
     }
 
     private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -965,11 +898,11 @@ public class TestVillage extends AbstractStoryTest {
 
     private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName, int assignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String username = getUsername(firstName, lastName, orgName);
-        assertNotNull("No "+username+" user", user);
+        assertNotNull("No " + username + " user", user);
         display("User", user);
-           assertUser(user, user.getOid(), username, firstName+" "+lastName,
-                   firstName, lastName);
-           assertEmployeeNumber(user);
+        assertUser(user, user.getOid(), username, firstName + " " + lastName,
+                firstName, lastName);
+        assertEmployeeNumber(user);
         assertLinks(user, 2);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
 
@@ -979,29 +912,27 @@ public class TestVillage extends AbstractStoryTest {
         assertAccount(user, RESOURCE_OPENDJ_OID);
         PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
-        display("OpenDJ shadow linked to "+user, shadow);
-        IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+username+",ou=people,dc=example,dc=com");
+        display("OpenDJ shadow linked to " + user, shadow);
+        IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid=" + username + ",ou=people,dc=example,dc=com");
     }
 
     private void assertEmployeeNumber(PrismObject<UserType> user) {
         String employeeNumber = user.asObjectable().getEmployeeNumber();
-        assertEquals("Wrong employeeNumber in "+user, user.getOid(), employeeNumber);
+        assertEquals("Wrong employeeNumber in " + user, user.getOid(), employeeNumber);
     }
 
     private String getUsername(String firstName, String lastName, String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String username = firstName+"."+lastName;
+        String username = firstName + "." + lastName;
         if (orgName != null) {
             PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-            username = org.asObjectable().getIdentifier()+"."+username;
+            username = org.asObjectable().getIdentifier() + "." + username;
         }
         return username;
     }
 
     private void assertLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
-        UserType userType = user.asObjectable();
-
-        String groupCn = expOrg+":"+expLoc;
-        String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
+        String groupCn = expOrg + ":" + expLoc;
+        String groupDn = "cn=" + groupCn + ",ou=groups," + openDJController.getSuffix();
         Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
         display("Group entry", groupEntry);
 
@@ -1011,15 +942,15 @@ public class TestVillage extends AbstractStoryTest {
         openDJController.assertUniqueMember(groupEntry, accountDn);
     }
 
-    private void assertNoLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+    private void assertNoLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg)
+            throws DirectoryException {
         UserType userType = user.asObjectable();
 
-        String groupCn = expOrg+":"+expLoc;
-        String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
+        String groupCn = expOrg + ":" + expLoc;
+        String groupDn = "cn=" + groupCn + ",ou=groups," + openDJController.getSuffix();
         Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
         display("Group entry", groupEntry);
-        String accountDn = "uid="+userType.getName()+",ou=people,"+openDJController.getSuffix();
+        String accountDn = "uid=" + userType.getName() + ",ou=people," + openDJController.getSuffix();
         openDJController.assertNoUniqueMember(groupEntry, accountDn);
     }
-
 }

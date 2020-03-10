@@ -21,13 +21,10 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-import static org.testng.AssertJUnit.assertNotNull;
-
 /**
  * Test for various livesync scenarios and corner cases.
  *
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -96,7 +93,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
@@ -112,8 +108,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
 
     @Test
     public void test100AddHrAccountHerman() throws Exception {
-        final String TEST_NAME = "test100AddHrAccountHerman";
-
         dummyAuditService.clear();
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
@@ -151,8 +145,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
 
     @Test
     public void test110RenameHrAccountHerman() throws Exception {
-        final String TEST_NAME = "test110RenameHrAccountHerman";
-
         dummyAuditService.clear();
 
         DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
@@ -193,7 +185,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
      */
     @Test
     public void test112HrAccountHermanEmptyDelta() throws Exception {
-        final String TEST_NAME = "test112HrAccountHermanEmptyDelta";
         dummyAuditService.clear();
 
         dummyResourceHr.recordEmptyDeltaForAccountByUsername(ACCOUNT_HERMAN_USERNAME, DummyDeltaType.MODIFY);

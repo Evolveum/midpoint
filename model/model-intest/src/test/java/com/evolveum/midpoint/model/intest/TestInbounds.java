@@ -110,7 +110,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Switch subtype from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
-     * true. For the same role assignement value. So nothing should be changed.
+     * true. For the same role assignment value. So nothing should be changed.
      */
     @Test
     public void test102ModifyUserSubtypeBuccaneer() throws Exception {

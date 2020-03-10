@@ -7,18 +7,25 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.util.Properties;
 
 import com.codeborne.selenide.Selenide;
+
 import com.codeborne.selenide.testng.BrowserPerClass;
+
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+
+import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
@@ -33,11 +40,17 @@ import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 
+import static com.codeborne.selenide.Selenide.open;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ActiveProfiles("default")
+@SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@TestPropertySource(properties = {"server.port=8180", "midpoint.schrodinger=true"})
 @Listeners({ BrowserPerClass.class })
-public abstract class TestBase {
+public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
     public static final String PROPERTY_NAME_USER_HOME = "user.home";
@@ -47,7 +60,7 @@ public abstract class TestBase {
 
     private static final String SCHRODINGER_PROPERTIES = "./src/test/resources/configuration/schrodinger.properties";
 
-    private static final Logger LOG = LoggerFactory.getLogger(TestBase.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractSchrodingerTest.class);
 
     protected static File csvTargetDir;
 
@@ -79,9 +92,8 @@ public abstract class TestBase {
 
         if (midPoint == null) {
             Properties props = new Properties();
-            try (InputStream is = new FileInputStream(new File(SCHRODINGER_PROPERTIES))) {
-                props.load(is);
-            }
+            InputStream is = new FileInputStream(new File(SCHRODINGER_PROPERTIES));
+            props.load(is);
 
             configuration = buildEnvironmentConfiguration(props);
             midPoint = new MidPoint(configuration);
@@ -92,7 +104,7 @@ public abstract class TestBase {
 
         FormLoginPage login = midPoint.formLogin();
 
-        basicPage = login.loginWithReloadLoginPage(username, password);
+        basicPage = login.loginIfUserIsNotLog(username, password);
     }
 
     private EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) {
@@ -147,7 +159,7 @@ public abstract class TestBase {
                 importPage
                         .getObjectsFromFile()
                         .chooseFile(source)
-                        .clickImport()
+                        .clickImportFileButton()
                         .feedback()
                         .isSuccess());
     }

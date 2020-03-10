@@ -221,4 +221,7 @@
             </reaction>
         </objectSynchronization>
     </synchronization>
+    <consistency>
+        <deadShadowRetentionPeriod>PT0H</deadShadowRetentionPeriod>
+    </consistency>
 </resource>

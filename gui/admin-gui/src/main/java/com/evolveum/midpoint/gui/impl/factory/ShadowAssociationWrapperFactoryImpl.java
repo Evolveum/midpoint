@@ -24,23 +24,9 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationReferenceWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,20 +37,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
- *
  */
 @Component
-public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
+public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapperFactoryImpl.class);
 
@@ -102,7 +81,6 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
         return itemWrapper;
     }
 
-
     protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
             ItemStatus status) {
 
@@ -112,10 +90,10 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
             if (objectType instanceof ShadowType) {
                 shadow = (ShadowType) objectType;
             } else {
-                throw new SchemaException("Something very strange happenned. Association contianer in the " + objectType.getClass().getSimpleName() + "?");
+                throw new SchemaException("Something very strange happened. Association container in the " + objectType.getClass().getSimpleName() + "?");
             }
 
-            if(shadow.getResourceRef().getOid() == null) {
+            if (shadow.getResourceRef().getOid() == null) {
                 return super.createWrapper(parent, childContainer, status);
             }
             Task task = taskManager.createTaskInstance("Load resource ref");
@@ -135,7 +113,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 
             if (association == null || association.getDefinition() == null
                     || (!(association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class))
-                    && !(association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)))){
+                    && !(association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)))) {
                 LOGGER.debug("Association for {} is not supported", association.getComplexTypeDefinition().getTypeClass());
                 return super.createWrapper(parent, childContainer, status);
             }
@@ -175,8 +153,8 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                     associationTransformed.createNewValue(),
                     ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
 
-            List<ItemWrapper<?,?,?,?>> items = new ArrayList<>();
-            for (RefinedAssociationDefinition refinedAssociationDefinition: refinedAssociationDefinitions) {
+            List<ItemWrapper<?, ?, ?, ?>> items = new ArrayList<>();
+            for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
                 MutablePrismReferenceDefinition shadowRefDef = prismContext
                         .definitionFactory().createReferenceDefinition(refinedAssociationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE);
                 shadowRefDef.toMutable().setMaxOccurs(-1);
@@ -185,7 +163,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                 ItemPath itemPath = null;
                 for (PrismContainerValue<C> associationValue : association.getValues()) {
                     if (association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class)) {
-                        ShadowAssociationType shadowAssociation = (ShadowAssociationType)associationValue.asContainerable();
+                        ShadowAssociationType shadowAssociation = (ShadowAssociationType) associationValue.asContainerable();
                         if (shadowAssociation.getName().equals(refinedAssociationDefinition.getName())) {
                             itemPath = associationValue.getPath();
                             shadowAss.add(associationValue.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
@@ -206,7 +184,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                         shadowAss.isEmpty() ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED);
                 item.setDisplayName(displayName);
                 List<PrismReferenceValueWrapperImpl> refValues = new ArrayList<PrismReferenceValueWrapperImpl>();
-                for(PrismReferenceValue prismValue : shadowAss.getValues()) {
+                for (PrismReferenceValue prismValue : shadowAss.getValues()) {
                     PrismReferenceValueWrapperImpl refValue = new PrismReferenceValueWrapperImpl(item, prismValue,
                             prismValue.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED);
                     refValue.setEditEnabled(isEmpty(prismValue));
@@ -220,7 +198,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                     refValue.setEditEnabled(true);
                     refValues.add(refValue);
                 }
-                item.getValues().addAll((Collection)refValues);
+                item.getValues().addAll((Collection) refValues);
                 item.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssociationDefinition,
                         prismContext, resource.getOid()));
 //                item.setReadOnly(true);
@@ -228,7 +206,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                 items.add(item);
             }
             shadowValueWrapper.setExpanded(true);
-            shadowValueWrapper.getItems().addAll((Collection)items);
+            shadowValueWrapper.getItems().addAll((Collection) items);
             associationWrapper.getValues().addAll(Arrays.asList(shadowValueWrapper));
             return associationWrapper;
         } catch (Exception e) {
@@ -243,16 +221,5 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
         }
 
         return prismValue.isEmpty();
-
-    }
-
-    private <C extends Containerable> boolean isItemReadOnly(ItemDefinition def, PrismContainerValueWrapper<C> cWrapper) {
-        if (cWrapper == null || cWrapper.getStatus() == ValueStatus.NOT_CHANGED) {
-
-            return cWrapper.isReadOnly() || !def.canModify();
-        }
-
-        return cWrapper.isReadOnly() || !def.canAdd();
-
     }
 }

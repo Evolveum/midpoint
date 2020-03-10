@@ -50,7 +50,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
 
     @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
+    public void beforeClass() throws IOException{
         super.beforeClass();
         importObject(MAIL_NONCE_VALUE_POLICY, true);
         importObject(FLEXIBLE_AUTHENTICATION_MAIL_NONCE_RESET_PASS_SECURITY_POLICY, true);
@@ -63,7 +63,11 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         infrastructureForm.showEmptyAttributes("Infrastructure");
         infrastructureForm.addAttributeValue("publicHttpUrlPattern", getConfiguration().getBaseUrl());
         File notificationFile = NOTIFICATION_FILE;
-        notificationFile.createNewFile();
+        try {
+            notificationFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         NotificationsTab notificationTab = systemPage.notificationsTab();
         notificationTab.setRedirectToFile(notificationFile.getAbsolutePath());
         systemPage.save();

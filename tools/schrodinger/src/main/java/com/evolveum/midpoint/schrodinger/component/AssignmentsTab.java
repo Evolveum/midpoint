@@ -53,8 +53,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
                 return this;
             }
 
-            @Override
-            public AbstractTableWithPrismView<AssignmentsTab<P>> unassignByName(String name) {
+            public AbstractTableWithPrismView<AssignmentsTab<P>> removeByName(String name) {
 
                 $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("button", "title", "Unassign", null, null, name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();

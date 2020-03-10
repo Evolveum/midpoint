@@ -38,5 +38,7 @@
 
     <logger name="com.evolveum.midpoint.schrodinger" level="DEBUG"/>
 <logger name="com.evolveum.midpoint.testing.schrodinger" level="DEBUG"/>
+    <logger name="PROFILING" level="TRACE" />
+    <logger name="com.evolveum.polygon.connector.csv" level="TRACE" />
 </configuration>
 

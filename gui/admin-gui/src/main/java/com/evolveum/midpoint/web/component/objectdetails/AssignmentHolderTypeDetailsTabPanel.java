@@ -6,28 +6,29 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.panel.Panel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.markup.html.panel.Panel;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author semancik
  */
-public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> {
+public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_PANEL = "main";
@@ -36,7 +37,7 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderTypeDetailsTabPanel.class);
 
-    public AssignmentHolderTypeDetailsTabPanel(String id, Form mainForm,
+    public AssignmentHolderTypeDetailsTabPanel(String id, Form<PrismObjectWrapper<AHT>> mainForm,
             LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
         super(id, mainForm, focusWrapperModel);
 
@@ -69,4 +70,9 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
         }
     }
 
+    @Override
+    public Collection<Component> getComponentsToUpdate() {
+        getObjectWrapperModel().reset();
+        return Collections.singleton(this);
+    }
 }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schrodinger.component.assignmentholder;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
@@ -40,7 +41,7 @@ public abstract class AssignmentHolderObjectListTable<P extends AssignmentHolder
 
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+//        Selenide.sleep(2000);
         return getObjectDetailsPage();
     }
 

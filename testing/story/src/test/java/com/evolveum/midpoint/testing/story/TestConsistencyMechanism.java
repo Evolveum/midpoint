@@ -2888,7 +2888,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, File requestFile, String objectOid) throws IOException, SchemaException, JAXBException {
 
         try {
-            ObjectDeltaType objectChange = unmarshallValueFromFile(requestFile, ObjectDeltaType.class);
+            ObjectDeltaType objectChange = unmarshalValueFromFile(requestFile, ObjectDeltaType.class);
             objectChange.setOid(objectOid);
 
             ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, prismContext);

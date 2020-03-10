@@ -9,9 +9,10 @@ package com.evolveum.midpoint.schrodinger.component.user;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.modal.FocusSetProjectionModal;
+import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -19,9 +20,9 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by matus on 5/2/2018.
  */
-public class UserProjectionsDropDown<T> extends DropDown<T> {
+public class ProjectionsDropDown<T> extends DropDown<T> {
 
-    public UserProjectionsDropDown(T parent, SelenideElement parentElement) {
+    public ProjectionsDropDown(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
@@ -53,16 +54,16 @@ public class UserProjectionsDropDown<T> extends DropDown<T> {
         return this.getParent();
     }
 
-    public FocusSetProjectionModal<T> addProjection() {
-        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Add projection")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//    public FocusSetProjectionModal<T> addProjection() {
+//        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+//                "        Add projection")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//
+//        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"));
+//
+//        return new FocusSetProjectionModal<>(this.getParent(), actualModal);
+//    }
 
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"));
-
-        return new FocusSetProjectionModal<>(this.getParent(), actualModal);
-    }
-
-    public ConfirmationModal<UserProjectionsDropDown<T>> delete() {
+    public ConfirmationModal<ProjectionsDropDown<T>> delete() {
         $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
                 "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 

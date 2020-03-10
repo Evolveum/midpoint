@@ -26,7 +26,7 @@ import org.w3c.dom.Node;
 public interface EventHandler {
 
     /**
-     * Call-back called after deserializing to DOM and static schema validation but before unmarshall to JAXB.
+     * Call-back called after deserializing to DOM and static schema validation but before unmarshal to JAXB.
      * It can be used for extra DOM-based checks or transformations of the object.
      *
      * @param objectElement DOM tree parsed from file

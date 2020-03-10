@@ -1180,7 +1180,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // Add default dummy account to jack without assigning it.
         // In relative mode this account should shay untouched while we play with assignments and
-        // unsassignements of other accounts
+        // unassignments of other accounts
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(UserType.class, USER_JACK_OID);

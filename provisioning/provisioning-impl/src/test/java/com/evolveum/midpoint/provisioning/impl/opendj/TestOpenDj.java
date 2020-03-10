@@ -905,7 +905,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ShadowType object = unmarshallValueFromFile(ACCOUNT_JACK_FILE, ShadowType.class);
+        ShadowType object = unmarshalValueFromFile(ACCOUNT_JACK_FILE, ShadowType.class);
 
         System.out.println(SchemaDebugUtil.prettyPrint(object));
         System.out.println(object.asPrismObject().debugDump());

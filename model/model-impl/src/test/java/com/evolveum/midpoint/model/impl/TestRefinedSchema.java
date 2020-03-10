@@ -115,7 +115,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test110DetermineObjectClassObjectClass() throws Exception {
-        OperationResult result = new OperationResult(getTestNameShort());
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
 
@@ -135,7 +135,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test112DetermineObjectClassKindIntent() throws Exception {
-        OperationResult result = new OperationResult(getTestNameShort());
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
 
@@ -155,7 +155,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test114DetermineObjectClassKindIntentObjectClass() throws Exception {
-        OperationResult result = new OperationResult(getTestNameShort());
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
 
@@ -175,7 +175,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test120DetermineObjectClassObjectClassModel() throws Exception {
-        OperationResult result = new OperationResult(getTestNameShort());
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
 
@@ -196,7 +196,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test122DetermineObjectClassKindIntentModel() throws Exception {
-        OperationResult result = new OperationResult(getTestNameShort());
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
 
@@ -218,7 +218,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test124DetermineObjectClassKindIntentObjectClassModel() throws Exception {
-        OperationResult result = new OperationResult(getTestNameShort());
+        OperationResult result = createOperationResult();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
 

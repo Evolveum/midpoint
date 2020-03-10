@@ -7,6 +7,27 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tracing;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Objects;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -18,7 +39,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.TestNameHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -31,25 +51,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.text.StringSubstitutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Manages tracing requests.
@@ -58,11 +59,10 @@ import java.util.stream.Collectors;
 public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(TracerImpl.class);
+
     private static final String MACRO_TIMESTAMP = "timestamp";
     private static final String MACRO_OPERATION_NAME = "operationName";
     private static final String MACRO_OPERATION_NAME_SHORT = "operationNameShort";
-    private static final String MACRO_TEST_NAME = "testName";
-    private static final String MACRO_TEST_NAME_SHORT = "testNameShort";
     private static final String MACRO_FOCUS_NAME = "focusName";
     private static final String MACRO_MILLISECONDS = "milliseconds";
     private static final String MACRO_RANDOM = "random";
@@ -78,7 +78,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
 
-    private SystemConfigurationType systemConfiguration;            // can be null during some tests
+    private SystemConfigurationType systemConfiguration; // can be null during some tests
 
     private static final String OP_STORE_TRACE = TracerImpl.class.getName() + ".storeTrace";
 
@@ -86,6 +86,11 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     private static final String ZIP_ENTRY_NAME = "trace.xml";
 
     private static final String DEFAULT_FILE_NAME_PATTERN = "trace-%{timestamp}";
+
+    public static final Consumer<Map<String, String>> DEFAULT_TEMPLATE_PARAMETERS_CUSTOMIZER = params -> {
+    };
+
+    @NotNull private Consumer<Map<String, String>> templateParametersCustomizer = DEFAULT_TEMPLATE_PARAMETERS_CUSTOMIZER;
 
     @PostConstruct
     public void init() {
@@ -113,7 +118,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
             if (!Boolean.FALSE.equals(tracingProfile.isCreateTraceFile())) {
                 boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
-                Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
+                Map<String, String> templateParameters = createTemplateParameters(result); // todo evaluate lazily if needed
                 File file = createFileName(zip, tracingProfile, templateParameters);
                 try {
                     long start = System.currentTimeMillis();
@@ -282,7 +287,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
             }
             int newEntryId = maxEntryId + 1;
             LOGGER.trace("Inserting object as entry #{}:{}: {} [in {} ms]", dictionaryId, newEntryId, objectToStore,
-                    System.currentTimeMillis()-started);
+                    System.currentTimeMillis() - started);
 
             dictionary.beginEntry()
                     .identifier(newEntryId)
@@ -321,7 +326,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
         private void logDiagnosticInformation() {
             LOGGER.trace("Extracted dictionary: {} objects added in {} ms ({} total), using {} object comparisons while checking {} objects",
-                    objectsAdded, System.currentTimeMillis()-started, dictionary.getEntry().size(), comparisons, objectsChecked);
+                    objectsAdded, System.currentTimeMillis() - started, dictionary.getEntry().size(), comparisons, objectsChecked);
         }
     }
 
@@ -354,32 +359,30 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         resultBean.getPartialResults().forEach(partialResult -> extractDictionary(partialResult, extractingVisitor));
     }
 
-    private Map<String, String> createTemplateParameters(Task task, OperationResult result) {
+    private Map<String, String> createTemplateParameters(OperationResult result) {
         Map<String, String> rv = new HashMap<>();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
         rv.put(MACRO_TIMESTAMP, df.format(new Date()));
         String operationName = result.getOperation();
         rv.put(MACRO_OPERATION_NAME, operationName);
         rv.put(MACRO_OPERATION_NAME_SHORT, shorten(operationName));
-        String testName;
-        // TODO inttest: subclass TracerImpl in test scope with change here (use template method)
-        if (TestNameHolder.getCurrentTestName() != null) {
-            testName = TestNameHolder.getCurrentTestName();
-        } else {
-            testName = task.getResult().getOperation();
-        }
-        rv.put(MACRO_TEST_NAME, testName);  // e.g. com.evolveum.midpoint.model.intest.TestIteration.test532GuybrushModifyDescription or simply TestIteration.test532GuybrushModifyDescription
-        rv.put(MACRO_TEST_NAME_SHORT, shorten(testName));
         rv.put(MACRO_FOCUS_NAME, getFocusName(result));
         rv.put(MACRO_MILLISECONDS, getMilliseconds(result));
-        rv.put(MACRO_RANDOM, String.valueOf((long) (Math.random() * 1000000000000000L)));
+        rv.put(MACRO_RANDOM, String.valueOf((long) (Math.random() * 1_000_000_000_000_000L)));
+        templateParametersCustomizer.accept(rv);
         return rv;
+    }
+
+    @Override
+    public void setTemplateParametersCustomizer(
+            @NotNull Consumer<Map<String, String>> customizer) {
+        templateParametersCustomizer = Objects.requireNonNull(customizer, "templateParametersCustomizer");
     }
 
     private String shorten(String qualifiedName) {
         if (qualifiedName != null) {
             int secondLastDotIndex = StringUtils.lastOrdinalIndexOf(qualifiedName, ".", 2);
-            return secondLastDotIndex >= 0 ? qualifiedName.substring(secondLastDotIndex+1) : qualifiedName;
+            return secondLastDotIndex >= 0 ? qualifiedName.substring(secondLastDotIndex + 1) : qualifiedName;
         } else {
             return null;
         }
@@ -471,7 +474,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         }
         resolutionPath.add(ref);
         TracingProfileType profile = findProfile(ref, tracingConfiguration);
-        resolutionPath.remove(resolutionPath.size()-1);
+        resolutionPath.remove(resolutionPath.size() - 1);
         TracingProfileType rv = resolveProfile(profile, tracingConfiguration, resolutionPath);
         LOGGER.info("Resolved '{}' into:\n{}", ref, rv.asPrismContainerValue().debugDump());
         return rv;

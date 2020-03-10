@@ -8,7 +8,7 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.component.configuration.ClockTab;
 import com.evolveum.midpoint.schrodinger.page.configuration.InternalsConfigurationPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 /**
  * @author Hiroyuki Wada
  */
-public class InternalsConfigurationPageTest extends TestBase {
+public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
 
     private InternalsConfigurationPage configPage;
 

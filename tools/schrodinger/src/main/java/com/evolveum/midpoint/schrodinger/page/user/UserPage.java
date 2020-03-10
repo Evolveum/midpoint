@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
+import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.SummaryPanel;
 import com.evolveum.midpoint.schrodinger.component.user.*;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
@@ -72,10 +73,10 @@ public class UserPage extends AssignmentHolderDetailsPage {
     }
 
 
-    public UserProjectionsTab selectTabProjections() {
+    public ProjectionsTab<UserPage> selectTabProjections() {
         SelenideElement element = findTabPanel().clickTab("pageAdminFocus.projections");
 
-        return new UserProjectionsTab(this, element);
+        return new ProjectionsTab<UserPage>(this, element);
     }
 
     public UserPersonasTab selectTabPersonas() {

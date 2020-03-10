@@ -20,16 +20,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-
 /**
  * testing inducements, no resources, no accounts in use.
  * role "processor" is assigned to user, it contains inducements for role1, role2, role3 having following conditions
- *
+ * <p>
  * role1: no condition
  * role2: should not be induced when description of user equals "NO"
  * role3: should not be induced when user is member of role named "lock" (directly or indirectly, therefore condition runs against roleMembershipRef)
  */
-
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInducement extends AbstractStoryTest {
@@ -72,7 +70,6 @@ public class TestInducement extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
         //no resource, no extension definition
         //anything to check?
 
@@ -84,8 +81,6 @@ public class TestInducement extends AbstractStoryTest {
      */
     @Test
     public void test010InducementConditionsTrue() throws Exception {
-        final String TEST_NAME = "test010InducementConditionsTrue";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -114,8 +109,6 @@ public class TestInducement extends AbstractStoryTest {
      */
     @Test
     public void test020InducementRole2ConditionFalse() throws Exception {
-        final String TEST_NAME = "test020InducementRole2ConditionFalse";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -141,12 +134,10 @@ public class TestInducement extends AbstractStoryTest {
 
     /**
      * assign role "lock" to user
-     * condition in "processor" for inducing role3 returns false if lock is contained in rolemembership
+     * condition in "processor" for inducing role3 returns false if lock is contained in role membership
      */
     @Test
     public void test030InducementRole3ConditionFalse() throws Exception {
-        final String TEST_NAME = "test030InducementRole3ConditionFalse";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -154,7 +145,6 @@ public class TestInducement extends AbstractStoryTest {
 
         // WHEN
         assignRole(USER_SIMPLE_OID, ROLE_LOCK_OID, task, result);
-
 
         // THEN
         assertSuccess(result);
@@ -175,8 +165,6 @@ public class TestInducement extends AbstractStoryTest {
      */
     @Test
     public void test040Recomputed() throws Exception {
-        final String TEST_NAME = "test040Recomputed";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -204,8 +192,6 @@ public class TestInducement extends AbstractStoryTest {
      */
     @Test
     public void test050InducementRole3ConditionTrue() throws Exception {
-        final String TEST_NAME = "test050InducementRole3ConditionTrue";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -233,8 +219,6 @@ public class TestInducement extends AbstractStoryTest {
      */
     @Test
     public void test060Recomputed() throws Exception {
-        final String TEST_NAME = "test060Recomputed";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -259,8 +243,6 @@ public class TestInducement extends AbstractStoryTest {
 
     @Test
     public void test070DeleteUser() throws Exception {
-        final String TEST_NAME = "test070DeleteUser";
-
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

@@ -132,9 +132,8 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected FocusSummaryPanel<UserType> createSummaryPanel() {
-        return new UserSummaryPanel(ID_SUMMARY_PANEL, isEditingFocus() ?
-                Model.of(getObjectModel().getObject().getObject().asObjectable()) : Model.of(), this);
+    protected FocusSummaryPanel<UserType> createSummaryPanel(IModel<UserType> summaryModel) {
+        return new UserSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
     }
 
     protected void cancelPerformed() {

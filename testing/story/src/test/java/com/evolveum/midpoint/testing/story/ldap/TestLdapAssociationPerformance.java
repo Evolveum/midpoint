@@ -28,7 +28,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -146,8 +145,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test000ClonePerformance() throws SchemaException {
-        final String TEST_NAME = "test000ClonePerformance";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -164,8 +161,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     }
     @Test
     public void test010Sanity() throws Exception {
-        final String TEST_NAME = "test010Sanity";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -213,12 +208,12 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         then();
 
         long endMillis = System.currentTimeMillis();
-        recordDuration(TEST_NAME, (endMillis - startMillis));
+        recordDuration((endMillis - startMillis));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor()
                 .getThreadLocalPerformanceInformation();
         dumpRepoSnapshot("SQL operations for " + TEST_NAME, performanceInformation, "role", NUMBER_OF_GENERATED_ROLES);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpGlobalCachePerformanceData();
 
         result.computeStatus();
         assertSuccess(result);
@@ -274,11 +269,11 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         then();
 
         long endMillis = System.currentTimeMillis();
-        recordDuration(TEST_NAME, (endMillis - startMillis));
+        recordDuration((endMillis - startMillis));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getThreadLocalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         result.computeStatus();
         assertSuccess(result);
@@ -286,8 +281,9 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         assertLdapConnectorInstances(1);
     }
 
-    private void dumpRepoSnapshotPerUser(String label, PerformanceInformation performanceInformation) {
-        dumpRepoSnapshot(label, performanceInformation, "user", NUMBER_OF_GENERATED_USERS);
+    private void dumpRepoSnapshotPerUser(PerformanceInformation performanceInformation) {
+        dumpRepoSnapshot("SQL operations for " + getTestNameShort(),
+                performanceInformation, "user", NUMBER_OF_GENERATED_USERS);
     }
 
     private void dumpRepoSnapshot(String label, PerformanceInformation performanceInformation, String unit, int unitCount) {
@@ -305,12 +301,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test110RecomputeUsers() throws Exception {
-        final String TEST_NAME = "test110RecomputeUsers";
-
         rememberConnectorResourceCounters();
-
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
 
         // WHEN
         when();
@@ -325,14 +316,13 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         // THEN
         then();
 
-        recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_1_OID));
-
+        recordDuration(getRunDurationMillis(TASK_RECOMPUTE_1_OID));
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_1_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -369,14 +359,14 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         // THEN
         then();
 
-        recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_NO_CACHE_OID));
+        recordDuration(getRunDurationMillis(TASK_RECOMPUTE_NO_CACHE_OID));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_NO_CACHE_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -415,14 +405,14 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         // THEN
         then();
 
-        recordDuration(TEST_NAME, getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_OID));
+        recordDuration(getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_OID));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_MULTINODE_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -463,15 +453,15 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         // THEN
         then();
 
-        recordDuration(TEST_NAME, getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID));
+        recordDuration(getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID));
 
         // todo retrieve this information from finished task
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -512,15 +502,15 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         // THEN
         then();
 
-        recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_4_OID));
+        recordDuration(getRunDurationMillis(TASK_RECOMPUTE_4_OID));
 
         // todo retrieve this information from finished task
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_4_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -577,12 +567,8 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
     }
 
-    protected void assertLdapConnectorInstances() throws NumberFormatException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException, InterruptedException {
-        assertLdapConnectorInstances(2,4);
-    }
-
-    private long recordDuration(String label, long duration) {
-        durations.put(label, duration);
+    private long recordDuration(long duration) {
+        durations.put(getTestNameShort(), duration);
         return duration;
     }
 

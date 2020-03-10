@@ -6,12 +6,10 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
-
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,9 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -33,14 +28,13 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -48,7 +42,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskConstants;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.test.Checker;
@@ -127,8 +125,8 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals("Progress is not 0", 0, task.getProgress());
     }
 
-    @Test(enabled = false)          // this is probably OK to fail, so do not enable it (at least for now)
-    public void test004aTaskBigProperty() throws Exception {
+    @Test
+    public void test004TaskBigProperty() throws Exception {
         OperationResult result = createOperationResult();
 
         String string300 = "123456789-123456789-123456789-123456789-123456789-"
@@ -149,77 +147,13 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
 
         // property definition
-        ItemName bigStringQName = new ItemName("http://midpoint.evolveum.com/repo/test", "bigString");
-        MutablePrismPropertyDefinition<?> bigStringDefinition = prismContext.definitionFactory()
-                .createPropertyDefinition(bigStringQName, DOMUtil.XSD_STRING);
-        bigStringDefinition.setIndexed(false);
-        bigStringDefinition.setMinOccurs(0);
-        bigStringDefinition.setMaxOccurs(1);
-        System.out.println("bigstring property definition = " + bigStringDefinition);
-
-        PrismProperty<String> bigStringProperty = (PrismProperty<String>) bigStringDefinition.instantiate();
-        bigStringProperty.setRealValue(string300);
-        task.setExtensionProperty(bigStringProperty);
-
-        task.flushPendingModifications(result);
-
-        System.out.println("1st round: Task = " + task.debugDump());
-
-        logger.trace("Retrieving the task and comparing its properties...");
-
-        Task task001 = getTaskWithResult(taskOid(), result);
-        System.out.println("1st round: Task from repo: " + task001.debugDump());
-
-        PrismProperty<String> bigString001 = task001.getExtensionPropertyOrClone(bigStringQName);
-        assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
-
-        // second round
-
-        bigStringProperty.setRealValue(string300a);
-        task001.setExtensionProperty(bigStringProperty);
-
-        // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
-        task001.getExtensionPropertyOrClone(bigStringQName).getDefinition().toMutable().setIndexed(false);
-
-        System.out.println("2nd round: Task before save = " + task001.debugDump());
-        task001.flushPendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
-
-        Task task002 = getTaskWithResult(taskOid(), result);
-        System.out.println("2nd round: Task from repo: " + task002.debugDump());
-
-        PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(bigStringQName);
-        assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
-    }
-
-    @Test
-    public void test004bTaskBigProperty() throws Exception {
-        OperationResult result = createOperationResult();
-
-        String string300 = "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-";
-        String string300a = "AAAAAAAAA-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-"
-                + "123456789-123456789-123456789-123456789-123456789-";
-
-        // TODO inttest: TEST_NAME was set to "test004aTaskBigProperty"; WHY a and not b? it fails with B now.
-        // TODO fix B file or what, so we can have this here: addObjectFromFile(taskFilename());
-        addObjectFromFile("src/test/resources/basic/task-004aTaskBigProperty.xml");
-
-        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
-
-        // property definition
         ItemName shipStateQName = new ItemName("http://myself.me/schemas/whatever", "shipState");
-        PrismPropertyDefinition<?> shipStateDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
+        //noinspection unchecked
+        PrismPropertyDefinition<String> shipStateDefinition = (PrismPropertyDefinition<String>)
+                prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
         assertNotNull("Cannot find property definition for shipState", shipStateDefinition);
 
-        PrismProperty<String> shipStateProperty = (PrismProperty<String>) shipStateDefinition.instantiate();
+        PrismProperty<String> shipStateProperty = shipStateDefinition.instantiate();
         shipStateProperty.setRealValue(string300);
         task.setExtensionProperty(shipStateProperty);
 
@@ -249,183 +183,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(shipStateQName);
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
-
-    @Test(enabled = false)
-    public void test004cReferenceInExtension() throws Exception {               // ok to fail
-        OperationResult result = createOperationResult();
-        addObjectFromFile(taskFilename());
-
-        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
-
-        System.out.println("Task extension = " + task.getExtensionOrClone());
-
-        //PrismObject<UserType> requestee = task.getOwner();
-        //task.setRequesteeRef(requestee);
-
-        //LOGGER.trace("Saving modifications...");
-        //task.flushPendingModifications(result);          // here it crashes
-
-        //LOGGER.trace("Retrieving the task and comparing its properties...");
-        //Task task001 = getTask(taskOid(test), result);
-        //LOGGER.trace("Task from repo: " + task001.debugDump());
-        //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
-    }
-
-    @Test(enabled = false)
-    public void test004TaskProperties() throws Exception {
-        OperationResult result = createOperationResult();
-
-        addObjectFromFile(taskFilename());
-
-        TaskQuartzImpl task = getTaskWithResult(taskOid(), result);
-
-        System.out.println("Task extension = " + task.getExtensionOrClone());
-
-        PrismPropertyDefinition<?> delayDefinition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT);
-        System.out.println("property definition = " + delayDefinition);
-
-        PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
-        property.setRealValue(100);
-
-        PropertyDelta delta = prismContext.deltaFactory().property().create(ItemPath.create(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition());
-        //delta.addV(property.getValues());
-        delta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(property.getValues()));
-
-        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
-        modifications.add(delta);
-
-        // TODO fix this code
-//        Collection<ItemDeltaType> idts = DeltaConvertor.toPropertyModificationTypes(delta);
-//        for (ItemDeltaType idt : idts) {
-//            String idtxml = prismContext.getParserDom().marshalElementToString(idt, new QName("http://a/", "A"));
-//            System.out.println("item delta type = " + idtxml);
-//
-//            ItemDeltaType idt2 = prismContext.getPrismJaxbProcessor().unmarshalObject(idtxml, ItemDeltaType.class);
-//            ItemDelta id2 = DeltaConvertor.createItemDelta(idt2, TaskType.class, prismContext);
-//            System.out.println("unwrapped item delta = " + id2.debugDump());
-//
-//            task.modifyExtension(id2);
-//        }
-
-        task.flushPendingModifications(result);
-        System.out.println("Task = " + task.debugDump());
-
-        repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
-
-        task.setBindingImmediate(TaskBinding.LOOSE, result);
-
-        // other properties will be set in batched mode
-        String newname = "Test task, name changed";
-        task.setName(PrismTestUtil.createPolyStringType(newname));
-        task.setProgress(10L);
-        long currentTime = System.currentTimeMillis();
-        long currentTime1 = currentTime + 10000;
-        long currentTime2 = currentTime + 25000;
-        task.setLastRunStartTimestamp(currentTime);
-        task.setLastRunFinishTimestamp(currentTime1);
-        task.setExecutionStatus(TaskExecutionStatus.SUSPENDED);
-        task.setHandlerUri("http://no-handler.org/");
-        //task.setOwner(owner2);
-
-        ScheduleType st0 = task.getSchedule();
-
-        ScheduleType st1 = new ScheduleType();
-        st1.setInterval(1);
-        st1.setMisfireAction(MisfireActionType.RESCHEDULE);
-        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, createExtensionDelta(delayDefinition, 1,
-                prismContext));
-
-        ScheduleType st2 = new ScheduleType();
-        st2.setInterval(2);
-        st2.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, createExtensionDelta(delayDefinition, 2,
-                prismContext));
-
-        task.setRecurrenceStatus(TaskRecurrence.RECURRING);
-
-        OperationResultType ort = result.createOperationResultType();            // to be compared with later
-
-        task.setResult(result);
-
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setType(UserType.COMPLEX_TYPE);
-        String objectOid = "some-oid...";
-        objectReferenceType.setOid(objectOid);
-        task.setObjectRef(objectReferenceType);
-
-        logger.trace("Saving modifications...");
-
-        task.flushPendingModifications(result);
-
-        logger.trace("Retrieving the task (second time) and comparing its properties...");
-
-        Task task001 = getTaskWithResult(taskOid(), result);
-        logger.trace("Task from repo: " + task001.debugDump());
-        AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
-        PrismAsserts.assertEqualsPolyString("Name not", newname, task001.getName());
-//        AssertJUnit.assertEquals(newname, task001.getName());
-        assertEquals(task001.getProgress(), 10);
-        AssertJUnit.assertNotNull(task001.getLastRunStartTimestamp());
-        AssertJUnit.assertEquals("Start time is not correct", (Long) (currentTime / 1000L), (Long) (task001.getLastRunStartTimestamp() / 1000L));   // e.g. MySQL cuts off millisecond information
-        AssertJUnit.assertNotNull(task001.getLastRunFinishTimestamp());
-        AssertJUnit.assertEquals("Finish time is not correct", (Long) (currentTime1 / 1000L), (Long) (task001.getLastRunFinishTimestamp() / 1000L));
-//        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
-        AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Handler after 2xPUSH is not OK", "http://no-handler.org/2", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Schedule after 2xPUSH is not OK", st2, task001.getSchedule());
-        AssertJUnit.assertEquals("Number of handlers is not OK", 3, task.getHandlersCount());
-        UriStack us = task.getOtherHandlersUriStack();
-        AssertJUnit.assertEquals("First handler from the handler stack does not match", "http://no-handler.org/", us.getUriStackEntry().get(0).getHandlerUri());
-        AssertJUnit.assertEquals("First schedule from the handler stack does not match", st0, us.getUriStackEntry().get(0).getSchedule());
-        AssertJUnit.assertEquals("Second handler from the handler stack does not match", "http://no-handler.org/1", us.getUriStackEntry().get(1).getHandlerUri());
-        AssertJUnit.assertEquals("Second schedule from the handler stack does not match", st1, us.getUriStackEntry().get(1).getSchedule());
-        AssertJUnit.assertTrue(task001.isRecurring());
-        OperationResult r001 = task001.getResult();
-        AssertJUnit.assertNotNull(r001);
-        //AssertJUnit.assertEquals("Owner OID is not correct", TASK_OWNER2_OID, task001.getOwner().getOid());
-
-        PrismProperty<?> d = task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
-        AssertJUnit.assertNotNull("delay extension property was not found", d);
-        AssertJUnit.assertEquals("delay extension property has wrong value", (Integer) 100, d.getRealValue(Integer.class));
-
-        OperationResultType ort1 = r001.createOperationResultType();
-
-        // handling of operation result in tasks is extremely fragile now...
-        // in case of problems, just uncomment the following line ;)
-        AssertJUnit.assertEquals(ort, ort1);
-
-        //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
-        //AssertJUnit.assertEquals("RequesteeOid was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeOid());
-
-        AssertJUnit.assertEquals("ObjectRef OID was not stored/retrieved correctly", objectReferenceType.getOid(), task001.getObjectRefOrClone().getOid());
-        AssertJUnit.assertEquals("ObjectRef ObjectType was not stored/retrieved correctly", objectReferenceType.getType(), task001.getObjectRefOrClone().getType());
-
-        // now pop the handlers
-
-        task001.finishHandler(result);
-        task001.refresh(result);
-        AssertJUnit.assertEquals("Handler URI after first POP is not correct", "http://no-handler.org/1", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Schedule after first POP is not correct", st1, task001.getSchedule());
-        AssertJUnit.assertEquals("Binding after first POP is not correct", TaskBinding.TIGHT, task001.getBinding());
-        AssertJUnit.assertNotSame("Task state after first POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
-
-        task001.finishHandler(result);
-        task001.refresh(result);
-        AssertJUnit.assertEquals("Handler URI after second POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Schedule after second POP is not correct", st0, task001.getSchedule());
-        AssertJUnit.assertEquals("Binding after second POP is not correct", TaskBinding.LOOSE, task001.getBinding());
-        AssertJUnit.assertNotSame("Task state after second POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
-
-        task001.finishHandler(result);
-        task001.refresh(result);
-        //AssertJUnit.assertNull("Handler URI after third POP is not null", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Handler URI after third POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
-        AssertJUnit.assertEquals("Task state after third POP is not CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-
-    }
-
 
     /*
      * Execute a single-run task.
@@ -981,89 +738,80 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
             public void timeout() {
             }
         }, 10000, 2000);
-
     }
 
     @Test
     public void test016WaitForSubtasks() throws Exception {
         final OperationResult result = createOperationResult();
 
-        //taskManager.getClusterManager().startClusterManagerThread();
+        Task rootTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename()), result);
+        Task firstChildTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename("-child-1")), result);
 
-        try {
+        Task firstReloaded = taskManager.getTaskByIdentifier(firstChildTask.getTaskIdentifier(), result);
+        assertEquals("Didn't get correct task by identifier", firstChildTask.getOid(), firstReloaded.getOid());
 
-            Task rootTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename()), result);
-            Task firstChildTask = taskManager.createTaskInstance(addObjectFromFile(taskFilename("-child-1")), result);
+        Task secondChildTask = rootTask.createSubtask();
+        secondChildTask.setName("Second child");
+        secondChildTask.setOwner(rootTask.getOwner());
+        secondChildTask.pushHandlerUri(SINGLE_TASK_HANDLER_URI, new ScheduleType(), null);
+        secondChildTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
+        taskManager.switchToBackground(secondChildTask, result);
 
-            Task firstReloaded = taskManager.getTaskByIdentifier(firstChildTask.getTaskIdentifier(), result);
-            assertEquals("Didn't get correct task by identifier", firstChildTask.getOid(), firstReloaded.getOid());
+        Task firstPrerequisiteTask = taskManager.createTaskInstance(
+                addObjectFromFile(taskFilename("-prerequisite-1")), result);
 
-            Task secondChildTask = rootTask.createSubtask();
-            secondChildTask.setName("Second child");
-            secondChildTask.setOwner(rootTask.getOwner());
-            secondChildTask.pushHandlerUri(SINGLE_TASK_HANDLER_URI, new ScheduleType(), null);
-            secondChildTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
-            taskManager.switchToBackground(secondChildTask, result);
+        List<Task> prerequisities = rootTask.listPrerequisiteTasks(result);
+        assertEquals("Wrong # of prerequisite tasks", 1, prerequisities.size());
+        assertEquals("Wrong OID of prerequisite task", firstPrerequisiteTask.getOid(), prerequisities.get(0).getOid());
 
-            Task firstPrerequisiteTask = taskManager.createTaskInstance(
-                    addObjectFromFile(taskFilename("-prerequisite-1")), result);
+        Task secondPrerequisiteTask = taskManager.createTaskInstance();
+        secondPrerequisiteTask.setName("Second prerequisite");
+        secondPrerequisiteTask.setOwner(rootTask.getOwner());
+        secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
+        secondPrerequisiteTask.pushHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI, new ScheduleType(), null);
+        secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
+        secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
+        secondPrerequisiteTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
+        secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
+        taskManager.switchToBackground(secondPrerequisiteTask, result);
 
-            List<Task> prerequisities = rootTask.listPrerequisiteTasks(result);
-            assertEquals("Wrong # of prerequisite tasks", 1, prerequisities.size());
-            assertEquals("Wrong OID of prerequisite task", firstPrerequisiteTask.getOid(), prerequisities.get(0).getOid());
+        logger.info("Starting waiting for child/prerequisite tasks");
+        rootTask.startWaitingForTasksImmediate(result);
 
-            Task secondPrerequisiteTask = taskManager.createTaskInstance();
-            secondPrerequisiteTask.setName("Second prerequisite");
-            secondPrerequisiteTask.setOwner(rootTask.getOwner());
-            secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
-            secondPrerequisiteTask.pushHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI, new ScheduleType(), null);
-            secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
-            secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
-            secondPrerequisiteTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
-            secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
-            taskManager.switchToBackground(secondPrerequisiteTask, result);
+        firstChildTask.refresh(result);
+        assertEquals("Parent is not set correctly on 1st child task", rootTask.getTaskIdentifier(), firstChildTask.getParent());
+        secondChildTask.refresh(result);
+        assertEquals("Parent is not set correctly on 2nd child task", rootTask.getTaskIdentifier(), secondChildTask.getParent());
+        firstPrerequisiteTask.refresh(result);
+        assertEquals("Dependents are not set correctly on 1st prerequisite task (count differs)", 1, firstPrerequisiteTask.getDependents().size());
+        assertEquals("Dependents are not set correctly on 1st prerequisite task (value differs)", rootTask.getTaskIdentifier(), firstPrerequisiteTask.getDependents().get(0));
+        List<Task> deps = firstPrerequisiteTask.listDependents(result);
+        assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (count differs)", 1, deps.size());
+        assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
+        secondPrerequisiteTask.refresh(result);
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task (count differs)", 1, secondPrerequisiteTask.getDependents().size());
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task (value differs)", rootTask.getTaskIdentifier(), secondPrerequisiteTask.getDependents().get(0));
+        deps = secondPrerequisiteTask.listDependents(result);
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (count differs)", 1, deps.size());
+        assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
 
-            logger.info("Starting waiting for child/prerequisite tasks");
-            rootTask.startWaitingForTasksImmediate(result);
+        logger.info("Resuming suspended child/prerequisite tasks");
+        taskManager.resumeTask(secondChildTask, result);
+        taskManager.resumeTask(secondPrerequisiteTask, result);
 
-            firstChildTask.refresh(result);
-            assertEquals("Parent is not set correctly on 1st child task", rootTask.getTaskIdentifier(), firstChildTask.getParent());
-            secondChildTask.refresh(result);
-            assertEquals("Parent is not set correctly on 2nd child task", rootTask.getTaskIdentifier(), secondChildTask.getParent());
-            firstPrerequisiteTask.refresh(result);
-            assertEquals("Dependents are not set correctly on 1st prerequisite task (count differs)", 1, firstPrerequisiteTask.getDependents().size());
-            assertEquals("Dependents are not set correctly on 1st prerequisite task (value differs)", rootTask.getTaskIdentifier(), firstPrerequisiteTask.getDependents().get(0));
-            List<Task> deps = firstPrerequisiteTask.listDependents(result);
-            assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (count differs)", 1, deps.size());
-            assertEquals("Dependents are not set correctly on 1st prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
-            secondPrerequisiteTask.refresh(result);
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task (count differs)", 1, secondPrerequisiteTask.getDependents().size());
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task (value differs)", rootTask.getTaskIdentifier(), secondPrerequisiteTask.getDependents().get(0));
-            deps = secondPrerequisiteTask.listDependents(result);
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (count differs)", 1, deps.size());
-            assertEquals("Dependents are not set correctly on 2nd prerequisite task - listDependents - (value differs)", rootTask.getOid(), deps.get(0).getOid());
+        final String rootOid = taskOid();
 
-            logger.info("Resuming suspended child/prerequisite tasks");
-            taskManager.resumeTask(secondChildTask, result);
-            taskManager.resumeTask(secondPrerequisiteTask, result);
+        waitForTaskClose(rootOid, result, 60000, 3000);
 
-            final String rootOid = taskOid();
+        firstChildTask.refresh(result);
+        secondChildTask.refresh(result);
+        firstPrerequisiteTask.refresh(result);
+        secondPrerequisiteTask.refresh(result);
 
-            waitForTaskClose(rootOid, result, 60000, 3000);
-
-            firstChildTask.refresh(result);
-            secondChildTask.refresh(result);
-            firstPrerequisiteTask.refresh(result);
-            secondPrerequisiteTask.refresh(result);
-
-            assertEquals("1st child task should be closed", TaskExecutionStatus.CLOSED, firstChildTask.getExecutionStatus());
-            assertEquals("2nd child task should be closed", TaskExecutionStatus.CLOSED, secondChildTask.getExecutionStatus());
-            assertEquals("1st prerequisite task should be closed", TaskExecutionStatus.CLOSED, firstPrerequisiteTask.getExecutionStatus());
-            assertEquals("2nd prerequisite task should be closed", TaskExecutionStatus.CLOSED, secondPrerequisiteTask.getExecutionStatus());
-
-        } finally {
-//            taskManager.getClusterManager().stopClusterManagerThread(10000L, result);
-        }
+        assertEquals("1st child task should be closed", TaskExecutionStatus.CLOSED, firstChildTask.getExecutionStatus());
+        assertEquals("2nd child task should be closed", TaskExecutionStatus.CLOSED, secondChildTask.getExecutionStatus());
+        assertEquals("1st prerequisite task should be closed", TaskExecutionStatus.CLOSED, firstPrerequisiteTask.getExecutionStatus());
+        assertEquals("2nd prerequisite task should be closed", TaskExecutionStatus.CLOSED, secondPrerequisiteTask.getExecutionStatus());
     }
 
     @Test
@@ -1073,8 +821,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         taskManager.getClusterManager().startClusterManagerThread();
 
         try {
-            Task rootTask = taskManager.createTaskInstance(
-                    addObjectFromFile(taskFilename()), result);
+            Task rootTask = createTaskFromFile(taskFilename(), result);
             display("root task", rootTask);
             waitForTaskClose(taskOid(), result, 40000, 3000);
         } finally {
@@ -1160,7 +907,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
     public void test020QueryByExecutionStatus() throws Exception {
         final OperationResult result = createOperationResult();
 
-        taskManager.createTaskInstance(addObjectFromFile(taskFilename()), result);
+        addObjectFromFile(taskFilename());
 
         ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
         ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
@@ -1566,9 +1313,9 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         checkLeftover(leftovers, "test108", "b", result);
         checkLeftover(leftovers, "test110", result);
         checkLeftover(leftovers, "test110", "a", result);
-		checkLeftover(leftovers, "test120", result);
-		checkLeftover(leftovers, "test130", result);
-		checkLeftover(leftovers, "test200", result);
+        checkLeftover(leftovers, "test120", result);
+        checkLeftover(leftovers, "test130", result);
+        checkLeftover(leftovers, "test200", result);
 
         StringBuilder message = new StringBuilder("Leftover task(s) found:");
         for (String leftover : leftovers) {

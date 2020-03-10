@@ -6,12 +6,23 @@
  */
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.executeJavaScript;
+
 import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
 
 /**
@@ -132,19 +143,52 @@ public class ImportObjectPage extends BasicPage {
         return this;
     }
 
-    public ImportObjectPage setEditorText(String text) {
-        // todo implement, nothing works yet
+    public ImportObjectPage setEditorXmlText(String text) {
+        $(By.xpath("/html/body/div[2]/div/section/form/div[4]/div/div[1]/div/button[1]")).click();
+        int lastIndex = 0;
+        SelenideElement aceEditor = $(By.className("ace_text-input"));
+        while (lastIndex < text.length() && text.substring(lastIndex, text.length()-1).contains("<")) {
+            text = text.substring(lastIndex, text.length());
+            int actualIndex = text.indexOf("<");
+            if (actualIndex != 0) {
+                aceEditor.setValue(text.substring(0, actualIndex));
+            }
+            lastIndex = actualIndex;
+            text = text.substring(actualIndex);
+            if (text.startsWith("</")) {
+                lastIndex = text.indexOf(">") + 1;
+                aceEditor.setValue(text.substring(0, lastIndex));
+            } else if (text.startsWith("<?")) {
+                lastIndex = text.indexOf("?>") + 2;
+                aceEditor.setValue(text.substring(0, lastIndex));
+            } else if (text.startsWith("<!--")) {
+                lastIndex = text.indexOf("-->") + 3;
+                aceEditor.setValue(text.substring(0, lastIndex));
+            } else {
+
+                lastIndex = text.indexOf(">") + 1;
+                String tag = text.substring(0, lastIndex);
+                aceEditor.setValue(tag);
+                String endTag = "</" + tag.substring(1, (tag.contains(" ") ? (tag.indexOf(" ")) : (tag.length()-1))) + ">";
+                for (int i = 0; i < endTag.length(); i++) {
+                    aceEditor.sendKeys(Keys.DELETE);
+                }
+
+            }
+        }
+
+
 //        executeJavaScript(
 //                "const ta = document.querySelector(\"textarea\"); " +
 //                        "ta.value = \"asdf\";" +
 //                        "ta.dispatchEvent(new Event(\"input\"));");
-
+//
 //        text = "asdf";
 //        executeJavaScript(
 //                "var ta = $(\"textarea[name='input:inputAce:aceEditor']\"); " +
 //                        "ta.value('" + text + "'); " +
 //                        "ta.dispatchEvent(new Event(\"input\"));");
-
+//
 //        $(".ace_content").shouldBe(Condition.visible);
 //        $(".ace_content").click();
 //        $(".ace_content").sendKeys("asdf");
@@ -153,11 +197,14 @@ public class ImportObjectPage extends BasicPage {
         return this;
     }
 
-    public ImportObjectPage clickImport() {
-        $(".main-button-bar").$x("//a[@about='importFileButton']").click();
+    public ImportObjectPage clickImportFileButton() {
+        $(".main-button-bar").$x("//a[@data-s-id='importFileButton']").click();
         return this;
     }
 
-
+    public ImportObjectPage clickImportXmlButton() {
+        $(".main-button-bar").$x("//a[@data-s-id='importXmlButton']").click();
+        return this;
+    }
 
 }
