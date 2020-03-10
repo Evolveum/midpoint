@@ -112,7 +112,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         });
 
         ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_WORK_MANAGEMENT_URL, parentPage){
 
             private static final long serialVersionUID = 1L;
 

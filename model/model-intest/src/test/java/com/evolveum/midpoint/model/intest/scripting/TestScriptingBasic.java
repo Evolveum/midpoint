@@ -36,7 +36,6 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -58,16 +57,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/scripting");
 
-    public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
     private static final File LOG_FILE = new File(TEST_DIR, "log.xml");
     private static final File SEARCH_FOR_USERS_FILE = new File(TEST_DIR, "search-for-users.xml");
@@ -182,7 +178,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        ExecuteScriptType executeScript = parseRealValue(ECHO_FILE);
+        ExecuteScriptType executeScript = parseExecuteScript(ECHO_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
@@ -201,14 +197,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> logAction = parseAnyData(LOG_FILE);
+        ScriptingExpressionType logAction = parseScriptingExpression(LOG_FILE);
 
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
         tailer.tail();
         tailer.setExpecteMessage("Custom message:");
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(logAction.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(logAction, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -219,12 +215,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         tailer.assertExpectedMessage();
     }
 
-    private PrismProperty parseAnyData(File file) throws IOException, SchemaException {
-        return (PrismProperty) prismContext.parserFor(file).parseItem();
+    private ScriptingExpressionType parseScriptingExpression(File file) throws IOException, SchemaException {
+        // we cannot specify explicit type parameter here, as the parsed files contain subtypes of ScriptingExpressionType
+        return prismContext.parserFor(file).parseRealValue();
     }
 
-    private <T> T parseRealValue(File file) throws IOException, SchemaException {
-        return prismContext.parserFor(file).parseRealValue();
+    private ExecuteScriptType parseExecuteScript(File file) throws IOException, SchemaException {
+        return prismContext.parserFor(file).parseRealValue(ExecuteScriptType.class);
     }
 
     @Test
@@ -232,10 +229,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -264,7 +261,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertEquals(2, output.getFinalOutput().getData().size());
         assertEquals(new HashSet<>(Arrays.asList("administrator", "jack")),
                 output.getFinalOutput().getData().stream()
-                        .map(i -> ((PrismObjectValue) i.getValue()).getName().getOrig())
+                        .map(i -> ((PrismObjectValue<?>) i.getValue()).getName().getOrig())
                         .collect(Collectors.toSet()));
     }
 
@@ -273,10 +270,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_RESOURCES_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_RESOURCES_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -290,10 +287,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_ROLES_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_ROLES_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -306,10 +303,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_SHADOWS_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_SHADOWS_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -324,10 +321,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_SHADOWS_NOFETCH_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_SHADOWS_NOFETCH_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -342,10 +339,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_ACCOUNTS_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -360,10 +357,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -378,10 +375,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(DISABLE_JACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(DISABLE_JACK_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -397,10 +394,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(ENABLE_JACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(ENABLE_JACK_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -416,10 +413,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(DELETE_AND_ADD_JACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(DELETE_AND_ADD_JACK_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -435,10 +432,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(MODIFY_JACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(MODIFY_JACK_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -454,10 +451,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(MODIFY_JACK_BACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(MODIFY_JACK_BACK_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -473,10 +470,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(RECOMPUTE_JACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(RECOMPUTE_JACK_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -491,10 +488,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_JACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_TO_JACK_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -512,12 +509,12 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     public void test370AssignToJackInBackground() throws Exception {
         // GIVEN
         OperationResult result = getTestOperationResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_JACK_2_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_TO_JACK_2_FILE);
 
         // WHEN
         Task task = taskManager.createTaskInstance();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression.getAnyValue().getValue(), task, result);
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, result);
         waitForTaskFinish(task.getOid(), false);
         task.refresh(result);
 
@@ -558,10 +555,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_TO_WILL_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -578,10 +575,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(UNASSIGN_FROM_WILL_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -600,10 +597,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_2_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(UNASSIGN_FROM_WILL_2_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -622,10 +619,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_3_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(UNASSIGN_FROM_WILL_3_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -646,10 +643,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_2_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_TO_WILL_2_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -666,10 +663,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(PURGE_DUMMY_BLACK_SCHEMA_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(PURGE_DUMMY_BLACK_SCHEMA_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -687,10 +684,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(TEST_DUMMY_RESOURCE_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(TEST_DUMMY_RESOURCE_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -707,11 +704,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(NOTIFICATION_ABOUT_JACK_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(NOTIFICATION_ABOUT_JACK_FILE);
         prepareNotifications();
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -732,11 +729,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(NOTIFICATION_ABOUT_JACK_TYPE2_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(NOTIFICATION_ABOUT_JACK_TYPE2_FILE);
         prepareNotifications();
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -762,10 +759,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(SCRIPTING_USERS_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SCRIPTING_USERS_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -776,8 +773,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         Set<String> realOids = new HashSet<>();
         for (PipelineItem item : data.getData()) {
             PrismValue value = item.getValue();
-            PrismObject<UserType> user = ((PrismObjectValue<UserType>) value).asPrismObject();
-            assertEquals("Description not set", "Test", user.asObjectable().getDescription());
+            //noinspection unchecked
+            UserType user = ((PrismObjectValue<UserType>) value).asObjectable();
+            assertEquals("Description not set", "Test", user.getDescription());
             realOids.add(user.getOid());
             assertSuccess(item.getResult());
         }
@@ -869,7 +867,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(GENERATE_PASSWORDS_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(GENERATE_PASSWORDS_FILE);
 
         addObject(PASSWORD_POLICY_GLOBAL_FILE);
 
@@ -881,7 +879,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         modifySystemObjectInRepo(SecurityPolicyType.class, SECURITY_POLICY_OID, itemDeltas, result);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -892,6 +890,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         Set<String> realOids = new HashSet<>();
         for (PipelineItem item : data.getData()) {
             PrismValue value = item.getValue();
+            //noinspection unchecked
             UserType user = ((PrismObjectValue<UserType>) value).asObjectable();
             ProtectedStringType passwordValue = user.getCredentials().getPassword().getValue();
             assertNotNull("clearValue for password not set", passwordValue.getClearValue());
@@ -907,7 +906,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_2_FILE);
+        ExecuteScriptType executeScript = parseExecuteScript(GENERATE_PASSWORDS_2_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
@@ -930,7 +929,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_3_FILE);
+        ExecuteScriptType executeScript = parseExecuteScript(GENERATE_PASSWORDS_3_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
@@ -969,10 +968,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_RESOLVE_NAMES_FOR_ROLE_MEMBERSHIP_REF_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_RESOLVE_NAMES_FOR_ROLE_MEMBERSHIP_REF_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -982,8 +981,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
 
         for (PipelineItem item : output.getFinalOutput().getData()) {
-            PrismAsserts.assertHasTargetName((PrismContainerValue) item.getValue(), UserType.F_ROLE_MEMBERSHIP_REF);
-            PrismAsserts.assertHasNoTargetName((PrismContainerValue) item.getValue(), UserType.F_LINK_REF);
+            PrismAsserts.assertHasTargetName((PrismContainerValue<?>) item.getValue(), UserType.F_ROLE_MEMBERSHIP_REF);
+            PrismAsserts.assertHasNoTargetName((PrismContainerValue<?>) item.getValue(), UserType.F_LINK_REF);
         }
     }
 
@@ -992,21 +991,20 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_RESOLVE_ROLE_MEMBERSHIP_REF_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_RESOLVE_ROLE_MEMBERSHIP_REF_FILE);
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
 
         // THEN
         dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals(2, output.getFinalOutput().getData().size());
-        //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
 
         for (PipelineItem item : output.getFinalOutput().getData()) {
-            PrismAsserts.assertHasObject((PrismContainerValue) item.getValue(), UserType.F_ROLE_MEMBERSHIP_REF);
-            PrismAsserts.assertHasNoObject((PrismContainerValue) item.getValue(), UserType.F_LINK_REF);
+            PrismAsserts.assertHasObject((PrismContainerValue<?>) item.getValue(), UserType.F_ROLE_MEMBERSHIP_REF);
+            PrismAsserts.assertHasNoObject((PrismContainerValue<?>) item.getValue(), UserType.F_LINK_REF);
         }
     }
 
@@ -1015,7 +1013,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        ExecuteScriptType executeScript = parseRealValue(USE_VARIABLES_FILE);
+        ExecuteScriptType executeScript = parseExecuteScript(USE_VARIABLES_FILE);
 
         PrismContainer<? extends ExtensionType> taskExtension = task.getOrCreateExtension();
         taskExtension
@@ -1130,7 +1128,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertEquals("Unexpected # of items in output", 1, output.getFinalOutput().getData().size());
 
         PrismObject<TaskType> taskAfter = getObject(TaskType.class, taskToResume.getOid());
-        assertTrue("Task is still suspended", taskAfter.asObjectable().getExecutionStatus() != TaskExecutionStatusType.SUSPENDED);
+        assertNotSame("Task is still suspended", taskAfter.asObjectable().getExecutionStatus(), TaskExecutionStatusType.SUSPENDED);
     }
 
     // MID-5359
@@ -1138,7 +1136,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     public void test600ModifyJackPasswordInBackground() throws Exception {
         // GIVEN
         OperationResult result = getTestOperationResult();
-        PrismProperty<ScriptingExpressionType> expression = parseAnyData(MODIFY_JACK_PASSWORD_FILE);
+        ScriptingExpressionType expression = parseScriptingExpression(MODIFY_JACK_PASSWORD_FILE);
 
         prepareNotifications();
         dummyAuditService.clear();
@@ -1146,7 +1144,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // WHEN
         Task task = taskManager.createTaskInstance();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression.getAnyValue().getValue(), task, result);
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, result);
         waitForTaskFinish(task.getOid(), false);
         task.refresh(result);
 
@@ -1246,6 +1244,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertOutputData(ExecutionContext output, int size, OperationResultStatus status) {
         assertEquals("Wrong # of output items", size, output.getFinalOutput().getData().size());
         for (PipelineItem item : output.getFinalOutput().getData()) {
@@ -1258,6 +1257,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private void assertAttributesNotFetched(List<PipelineItem> data) {
         for (PipelineItem item : data) {
             PrismValue value = item.getValue();
+            //noinspection unchecked
             if (((PrismObjectValue<ShadowType>) value).asObjectable().getAttributes().getAny().size() > 2) {
                 throw new AssertionError("There are some unexpected attributes present in " + value.debugDump());
             }
@@ -1267,6 +1267,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private void assertAttributesFetched(List<PipelineItem> data) {
         for (PipelineItem item : data) {
             PrismValue value = item.getValue();
+            //noinspection unchecked
             if (((PrismObjectValue<ShadowType>) value).asObjectable().getAttributes().getAny().size() <= 2) {
                 throw new AssertionError("There are no attributes present in " + value.debugDump());
             }
