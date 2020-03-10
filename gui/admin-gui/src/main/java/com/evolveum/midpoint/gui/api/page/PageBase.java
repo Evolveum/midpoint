@@ -15,6 +15,8 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.ObjectUtils;
@@ -1876,14 +1878,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
 
-        MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTask.class, null,
-                new VisibleEnableBehaviour());
-        item.getItems().add(newTaskMenu);
-
-        MenuItem menuItem = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
-                PageTask.class, null, createVisibleDisabledBehaviorForEditMenu(PageTask.class));
-        item.getItems().add(menuItem);
-
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.serverTasks.new", "PageAdmin.menu.top.serverTasks.edit",
+                PageTask.class, false);
 
 
         return item;
@@ -2074,8 +2070,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     return false;
                 }
 
-                if (getPage() instanceof PageAdminFocus) {
-                    PageAdminFocus page = (PageAdminFocus) getPage();
+                if (getPage() instanceof PageAdminObjectDetails) {
+                    PageAdminObjectDetails page = (PageAdminObjectDetails) getPage();
                     return page.isOidParameterExists() || page.isEditingFocus();
                 } else if (getPage() instanceof PageResourceWizard) {
                     PageResourceWizard page = (PageResourceWizard) getPage();
@@ -2102,8 +2098,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     return false;
                 }
 
-                if (PageBase.this.getPage() instanceof PageAdminFocus) {
-                    PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
+                if (PageBase.this.getPage() instanceof PageAdminObjectDetails) {
+                    PageAdminObjectDetails page = (PageAdminObjectDetails) PageBase.this.getPage();
                     return !page.isOidParameterExists() && !page.isEditingFocus();
                 } else if (PageBase.this.getPage() instanceof PageResourceWizard) {
                     PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
