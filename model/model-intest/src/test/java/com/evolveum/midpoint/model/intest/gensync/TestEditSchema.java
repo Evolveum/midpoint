@@ -73,12 +73,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     private static final File LOOKUP_LANGUAGES_REPLACEMENT_FILE = new File(TEST_DIR, "lookup-languages-replacement.xml");
 
-    static {
-        // We need to have assignment/extension definition empty so it would be eliminated by archetype item visibility algorithm.
-        // See test900AddReconciliationTask.
-        ConfigurablePrismContextFactory.setExtensionFilesToIgnore(singleton("piracy-assignment.xsd"));
-    }
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -1527,6 +1521,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     }
 
+    /**
+     * This test no longer catches problematic case of empty assignment/extension definition,
+     * because we are not able to remove this definition from piracy.xsd (for now). Anyway,
+     * let us keep the test here.
+     */
     @Test
     public void test900AddReconciliationTask() throws Exception {
         Task task = getTestTask();
@@ -1677,24 +1676,5 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertTrue("Password not readable", passwordValDef.canRead());
         assertTrue("Password not creatable", passwordValDef.canAdd());
         assertTrue("Password not modifiable", passwordValDef.canModify());
-
-    }
-
-    @Test
-    public void testEmptyPath() {
-        /*
-         * Strange: The output of this method is
-         *
-         * UniformItemPath.EMPTY_PATH = null
-         * UniformItemPathImpl.EMPTY_PATH =
-         *
-         * although both values should be equal (and non-null).
-         *
-         * Also strange is that TestPath.testEmptyPath produces expected result:
-         *
-         * UniformItemPath.EMPTY_PATH =
-         * UniformItemPathImpl.EMPTY_PATH =
-         */
-        System.out.println("UniformItemPath.EMPTY_PATH = " + UniformItemPath.empty());
     }
 }

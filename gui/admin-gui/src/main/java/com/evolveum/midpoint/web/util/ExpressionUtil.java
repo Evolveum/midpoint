@@ -34,14 +34,11 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-/**
- *  @author shood
- * */
 public class ExpressionUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
-    public static enum ExpressionEvaluatorType{
+    public enum ExpressionEvaluatorType{
         LITERAL,
         AS_IS,
         PATH,
@@ -49,7 +46,7 @@ public class ExpressionUtil {
         GENERATE
     }
 
-    public static enum Language{
+    public enum Language{
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
         XPATH("http://www.w3.org/TR/xpath/"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");

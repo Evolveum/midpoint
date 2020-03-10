@@ -102,8 +102,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- Multivalued containers -->
+            <xsd:element name="riskVector" type="tns:RiskVectorType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:element name="riskVector" type="tns:RiskVectorType" />
 
     <xsd:simpleType name="MarkType">
         <xsd:restriction base="xsd:string">
@@ -128,9 +132,17 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <!-- assignment extension is in separate XSD file to allow it to be selectively disabled -->
+    <xsd:complexType name="AssignmentTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:AssignmentType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:sea"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
-    <!-- duplicates tns:sea in piracy-assignment.xsd (ugly!!!); hopefully all will be OK -->
     <xsd:element name="sea" type="xsd:string"/>
 
     <!-- role extension -->

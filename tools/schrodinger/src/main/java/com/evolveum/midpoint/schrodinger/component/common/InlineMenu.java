@@ -45,23 +45,48 @@ public class InlineMenu<T> extends Component<T> {
     public List<String> getItems() {
         List<String> items = new ArrayList<>();
 
-        ElementsCollection lis = getParentElement().findAll("div.btn-group ul.dropdown-menu li");
-        for (SelenideElement li : lis) {
-//            li.find()
+        ElementsCollection lis = getParentElement().findAll("div.btn-group ul.dropdown-menu li a");
+        for (SelenideElement a : lis) {
+            if (!a.isDisplayed()) {
+                continue;
+            }
+
+            String txt = a.getText();
+            if (txt != null) {
+                items.add(txt.trim());
+            }
         }
-        // todo implement
 
         return items;
     }
 
     public List<String> getItemKeys() {
-        // todo implement
-        return null;
+        List<String> items = new ArrayList<>();
+
+        ElementsCollection lis = getParentElement().findAll("div.btn-group ul.dropdown-menu li a schrodinger[data-s-resource-key]");
+        for (SelenideElement schrodinger : lis) {
+            if (!schrodinger.parent().isDisplayed()) {
+                continue;
+            }
+
+            String key = schrodinger.getAttribute("data-s-resource-key");
+            if (key != null) {
+                items.add(key.trim());
+            }
+        }
+
+        return items;
     }
 
-    public InlineMenu<T> clickItem(String itemName) {
+    public InlineMenu<T> clickItemByName(String itemName) {
         // todo implement
         SelenideElement dropdown = getParentElement().find("div.btn-group ul.dropdown-menu li");
+
+        return this;
+    }
+
+    public InlineMenu<T> clickItemByKey(String itemKey) {
+        // todo implement
 
         return this;
     }

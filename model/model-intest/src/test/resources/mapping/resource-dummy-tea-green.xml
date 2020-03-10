@@ -139,6 +139,38 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                 </inbound>
             </attribute>
             <attribute>
+                <ref>ri:treasonRisk</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.prism.path.ItemName
+
+                                piracy = 'http://midpoint.evolveum.com/xml/ns/samples/piracy'
+                                pcv = prismContext.schemaRegistry.findContainerDefinitionByType(new ItemName(piracy, 'RiskVectorType')).createValue()
+                                pcv.findOrCreateProperty(new ItemName(piracy, 'risk')).realValue = 'treason'
+                                pcv.findOrCreateProperty(new ItemName(piracy, 'value')).realValue = input
+                                pcv
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>extension/riskVector</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>import com.evolveum.midpoint.prism.path.ItemName
+
+                                    input?.findProperty(new ItemName('risk'))?.realValue == 'treason' // other risks are not covered by this mapping
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
                 <ref>ri:locker</ref>
                 <inbound>
                     <strength>strong</strength>

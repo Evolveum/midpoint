@@ -15,6 +15,11 @@ import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,28 +48,32 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * Tests inbound mappings. Uses live sync to do that.
  * These tests are much simpler and more focused than those in AbstractSynchronizationStoryTest.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMappingInbound extends AbstractMappingTest {
 
-    protected static final File RESOURCE_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "resource-dummy-tea-green.xml");
-    protected static final String RESOURCE_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-0000-00000000c404";
-    protected static final String RESOURCE_DUMMY_TEA_GREEN_NAME = "tea-green";
+    private static final File RESOURCE_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "resource-dummy-tea-green.xml");
+    private static final String RESOURCE_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-0000-00000000c404";
+    private static final String RESOURCE_DUMMY_TEA_GREEN_NAME = "tea-green";
 
-    protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
 
-    protected static final String ACCOUNT_LEELOO_USERNAME = "leeloo";
-    protected static final String ACCOUNT_LEELOO_FULL_NAME_MULTIPASS = "Leeloo Dallas Multipass";
-    protected static final String ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI = "Leeloominaï Lekatariba Lamina-Tchaï Ekbat De Sebat";
-    protected static final String ACCOUNT_LEELOO_PROOF_STRANGE = "Hereby and hèrěnow\nThis is a multi-line claim\nwith a sôme of špecial chäracters\nAnd even some CRLF file endings\r\nLike this\r\nAnd to be completely nuts, even some LFRC\n\rThis does not really proves anything\n   It is just trying to reproduce the problem\nIn addition to be quite long\nand ugly\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident,\nsunt in culpa qui officia deserunt mollit anim id est laborum.\nAnd so on …";
+    private static final String ACCOUNT_LEELOO_USERNAME = "leeloo";
+    private static final String ACCOUNT_LEELOO_FULL_NAME_MULTIPASS = "Leeloo Dallas Multipass";
+    private static final String ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI = "Leeloominaï Lekatariba Lamina-Tchaï Ekbat De Sebat";
+    private static final String ACCOUNT_LEELOO_PROOF_STRANGE = "Hereby and hèrěnow\nThis is a multi-line claim\nwith a sôme of špecial chäracters\nAnd even some CRLF file endings\r\nLike this\r\nAnd to be completely nuts, even some LFRC\n\rThis does not really proves anything\n   It is just trying to reproduce the problem\nIn addition to be quite long\nand ugly\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident,\nsunt in culpa qui officia deserunt mollit anim id est laborum.\nAnd so on …";
 
-    protected static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
-    protected static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
+    private static final String ACCOUNT_RISKY_USERNAME = "risky";
+
+    private static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
+    private static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
 
     private static final String LOCKER_BIG_SECRET = "BIG secret";
+
+    private static final ItemName RISK_VECTOR = new ItemName(NS_PIRACY, "riskVector");
+    private static final ItemName RISK = new ItemName(NS_PIRACY, "risk");
+    private static final ItemName VALUE = new ItemName(NS_PIRACY, "value");
 
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
@@ -82,6 +91,8 @@ public class TestMappingInbound extends AbstractMappingTest {
                             .setSensitive(true);
                     controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                             DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            DUMMY_ACCOUNT_ATTRIBUTE_TREASON_RISK_NAME, Integer.class, false, false);
                     controller.setSyncStyle(DummySyncStyle.SMART);
                 },
                 initTask, initResult);
@@ -105,7 +116,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         display("Parsed resource schema (tea-green)", returnedSchema);
         ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
-                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 2); // MID-5197
+                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 3); // MID-5197
 
         ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
         assertNotNull("No locker attribute definition", lockerDef);
@@ -683,16 +694,72 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertExecutionSuccess();
     }
 
+    @Test
+    public void test500UserRiskVector() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        /*
+         * State before: (death, 1); (treason, 2)
+         */
+        UserType user = new UserType(prismContext)
+                .name(ACCOUNT_RISKY_USERNAME);
+        PrismContainerValue<Containerable> riskVectorDeath =
+                user.asPrismObject().getOrCreateExtension().createNewValue()
+                        .findOrCreateContainer(RISK_VECTOR).createNewValue();
+        riskVectorDeath.findOrCreateProperty(RISK).setRealValue("death");
+        riskVectorDeath.findOrCreateProperty(VALUE).setRealValue(1);
+        PrismContainerValue<Containerable> riskVectorTreason =
+                user.asPrismObject().getExtensionContainerValue()
+                        .findContainer(RISK_VECTOR).createNewValue();
+        riskVectorTreason.findOrCreateProperty(RISK).setRealValue("treason");
+        riskVectorTreason.findOrCreateProperty(VALUE).setRealValue(2);
+
+        addObject(user.asPrismObject(), task, result);
+
+        DummyAccount account = new DummyAccount(ACCOUNT_RISKY_USERNAME);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Risky Risk");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TREASON_RISK_NAME, 999);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
+
+        when();
+
+        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        waitForTaskFinish(task, true);
+
+        then();
+
+        assertSuccess(task.getResult());
+
+        /*
+         * Expected state after: (death, 1); (treason, 999)
+         *
+         * The former was kept intact because of set specification.
+         * The latter was taken from treasonRisk value from dummy account (and overwritten because of set specification).
+         */
+        assertUserAfterByUsername(ACCOUNT_RISKY_USERNAME)
+                .assertExtensionItems(1)
+                .extensionContainer(RISK_VECTOR)
+                    .assertSize(2)
+                    .value(ValueSelector.itemEquals(RISK, "treason"))
+                        .assertPropertyEquals(VALUE, 999)
+                        .end()
+                    .value(ValueSelector.itemEquals(RISK, "death"))
+                        .assertPropertyEquals(VALUE, 1);
+    }
+
     protected void importSyncTask() throws FileNotFoundException {
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE);
     }
 
-    protected void waitForSyncTaskStart() throws Exception {
+    private void waitForSyncTaskStart() throws Exception {
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 10000);
     }
 
-    protected void waitForSyncTaskNextRun() throws Exception {
+    private void waitForSyncTaskNextRun() throws Exception {
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 10000);
     }
-
 }

@@ -577,8 +577,8 @@ public class ResourceManager {
         if (connectorSpec.getConnectorName() == null) {
             // Default connector, for compatibility
             // It does not make sense to update this for any other connectors.
-            // We cannot have one definition for addiitionalConnector[1]/connectorConfiguraiton and
-            // different definition for addiitionalConnector[2]/connectorConfiguraiton in the object definition.
+            // We cannot have one definition for additionalConnector[1]/connectorConfiguration and
+            // different definition for additionalConnector[2]/connectorConfiguration in the object definition.
             // The way to go is to set up definitions on the container level.
             resourceDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
         }
