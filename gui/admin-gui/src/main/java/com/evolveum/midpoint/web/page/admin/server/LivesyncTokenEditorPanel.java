@@ -38,7 +38,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
     private static final String ID_OK = "ok";
     private static final String ID_CANCEL = "cancel";
 
-    public static ItemPath PATH_TOKEN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN);
+    public static final ItemPath PATH_TOKEN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN);
 
     public LivesyncTokenEditorPanel(String id, IModel<PrismObjectWrapper<TaskType>> model) {
         super(id, model);
