@@ -604,7 +604,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     object = (PrismObject<O>) focusType.asPrismObject();
                 } else {
                     LOGGER.trace("Loading object: New object (supplied): {}", objectToEdit);
-                    object = objectToEdit;
+                    object = objectToEdit.clone();
                 }
             } else {
 
@@ -648,7 +648,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 
         try {
-            wrapper = factory.createObjectWrapper(object.clone(), itemStatus, context);
+            wrapper = factory.createObjectWrapper(object, itemStatus, context);
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
