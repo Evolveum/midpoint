@@ -164,6 +164,11 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-powershell</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-databasetable</artifactId>
             <scope>test</scope>
         </dependency>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016-2019 Evolveum and contributors
+  ~ Copyright (c) 2016-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -41,6 +41,7 @@
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
+            <icfcldap:baseContextToSynchronize>CN=Users,DC=ad,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -48,7 +49,7 @@
             <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
         </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
-    
+
     <additionalConnector>
         <name>powershell</name>
         <connectorRef>
@@ -813,7 +814,7 @@
         <validateSchema>true</validateSchema>
     </consistency>
 
-        <synchronization>
+    <synchronization>
 
         <objectSynchronization>
             <name>Account sync</name>
