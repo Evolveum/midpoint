@@ -2242,7 +2242,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
             throws ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult("assertStepSyncToken");
-        Task task = taskManager.getTask(syncTaskOid, result);
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         assertNotNull("No sync token", syncTokenProperty);
         assertNotNull("No sync token value", syncTokenProperty.getRealValue());
