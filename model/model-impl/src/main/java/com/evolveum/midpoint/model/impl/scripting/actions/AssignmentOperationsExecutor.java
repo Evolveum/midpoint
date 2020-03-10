@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -28,15 +27,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -45,11 +44,11 @@ public abstract class AssignmentOperationsExecutor extends BaseActionExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentOperationsExecutor.class);
 
-    protected static final String UNASSIGN_NAME = "unassign";
-    protected static final String ASSIGN_NAME = "assign";
-    protected static final String PARAM_RESOURCE = "resource";
-    protected static final String PARAM_ROLE = "role";
-    protected static final String PARAM_RELATION = "relation";
+    static final String UNASSIGN_NAME = "unassign";
+    static final String ASSIGN_NAME = "assign";
+    private static final String PARAM_RESOURCE = "resource";
+    private static final String PARAM_ROLE = "role";
+    private static final String PARAM_RELATION = "relation";
 
     @PostConstruct
     public void init() {
@@ -66,7 +65,18 @@ public abstract class AssignmentOperationsExecutor extends BaseActionExecutor {
 
         ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, getName());
         ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, getName());
-        Collection<String> relations = expressionHelper.getArgumentValues(expression.getParameter(), PARAM_RELATION, false, false, getName(), input, context, String.class, globalResult);
+        Collection<String> relationSpecificationUris = expressionHelper.getArgumentValues(expression.getParameter(), PARAM_RELATION, false, false, getName(), input, context, String.class, globalResult);
+
+        Collection<QName> relationSpecifications;
+        if (relationSpecificationUris.isEmpty()) {
+            QName defaultRelation = ObjectUtils.defaultIfNull(prismContext.getDefaultRelation(), RelationTypes.MEMBER.getRelation());
+            relationSpecifications = Collections.singleton(defaultRelation);
+        } else {
+            relationSpecifications = relationSpecificationUris.stream()
+                    .map(uri -> QNameUtil.uriToQName(uri, true))
+                    .collect(Collectors.toSet());
+        }
+        assert !relationSpecifications.isEmpty();
 
         Collection<ObjectReferenceType> resources;
         try {
@@ -114,13 +124,13 @@ public abstract class AssignmentOperationsExecutor extends BaseActionExecutor {
                 long started = operationsHelper.recordStart(context, objectType);
                 Throwable exception = null;
                 try {
-                    operationsHelper.applyDelta(createDelta(objectType, resources, roles, relations), executionOptions, dryRun, context, result);
+                    operationsHelper.applyDelta(createDelta(objectType, resources, roles, relationSpecifications), executionOptions, dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     exception = processActionException(ex, getName(), value, context);
                 }
-                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
+                context.println(createConsoleMessage(prismObject, executionOptions, dryRun, exception));
             } else {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Item is not a PrismObject of AssignmentHolderType"), getName(), value, context);
@@ -130,5 +140,13 @@ public abstract class AssignmentOperationsExecutor extends BaseActionExecutor {
         return input;           // TODO updated objects?
     }
 
-  protected abstract ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException;
+    @NotNull
+    private String createConsoleMessage(PrismObject<? extends ObjectType> object, ModelExecuteOptions executionOptions,
+            boolean dryRun, Throwable exception) {
+        return (exception != null ? "Attempted to modify " : "Modified ") + object
+                + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception);
+    }
+
+    protected abstract ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, Collection<ObjectReferenceType> resources,
+          Collection<ObjectReferenceType> roles, Collection<QName> relationSpecifications) throws SchemaException;
 }

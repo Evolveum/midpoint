@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -595,12 +596,16 @@ public class MiscUtil {
     }
 
     public static <T> T extractSingleton(Collection<T> collection) {
+        return extractSingleton(collection, () -> new IllegalArgumentException("Expected a collection with at most one item; got the one with " + collection.size() + " items"));
+    }
+
+    public static <T, E extends Throwable> T extractSingleton(Collection<T> collection, Supplier<E> exceptionSupplier) throws E {
         if (collection == null || collection.isEmpty()) {
             return null;
         } else if (collection.size() == 1) {
             return collection.iterator().next();
         } else {
-            throw new IllegalArgumentException("Expected a collection with at most one item; got the one with " + collection.size() + " items");
+            throw exceptionSupplier.get();
         }
     }
 

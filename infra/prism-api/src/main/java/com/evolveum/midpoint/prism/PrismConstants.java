@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import javax.xml.namespace.QName;
@@ -121,7 +123,7 @@ public class PrismConstants {
     public static final QName Q_RELATION = new QName(NS_QUERY, "relation");
     public static final QName Q_VALUE = new QName(NS_QUERY, "value");
     public static final QName Q_ORDER_BY = new QName(NS_QUERY, "orderBy");
-    public static final QName Q_ANY = new QName(NS_QUERY, "any");
+    public static final ItemName Q_ANY = new ItemName(NS_QUERY, "any");
 
     // Path constants
     public static final String T_PARENT_LOCAL_PART = "parent";
