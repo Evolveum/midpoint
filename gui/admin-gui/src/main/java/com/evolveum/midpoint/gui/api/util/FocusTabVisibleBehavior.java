@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -129,7 +130,7 @@ public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnable
 
     private boolean isApplicable(ObjectFormType form, PrismObject<O> object) {
         QName objectType = object.getDefinition().getTypeName();
-        if (!objectType.equals(form.getType())) {
+        if (!QNameUtil.match(objectType, form.getType())) {
             return false;
         }
         RoleRelationObjectSpecificationType roleRelation = form.getRoleRelation();
