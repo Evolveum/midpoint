@@ -67,18 +67,22 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeSubtasksAndThreadsVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
-        TaskType task = taskWrapper.getObject().asObjectable();
 
-        if (parentPage.isEditingFocus()) {
-            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable;
-        } else if (!parentPage.isAdd() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
-            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable
-                    || !CollectionUtils.isNotEmpty(task.getSubtaskRef());
-        } else {
-            subtasksAndThreadsVisible = false;
-        }
-        return subtasksAndThreadsVisible;
+        return subtasksAndThreadsVisible = taskWrapper.getObject().findReference(TaskType.F_SUBTASK_REF) != null;
+
+        // TODO we want to show subtasks always when subtasks exist. Following should be the behavior for tables on subtasks tab.
+//        boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+//        TaskType task = taskWrapper.getObject().asObjectable();
+//
+//        if (parentPage.isEditingFocus()) {
+//            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable;
+//        } else if (!parentPage.isAdd() && !WebComponentUtil.isWorkflowTask(taskWrapper.getObject().asObjectable())) {
+//            subtasksAndThreadsVisible = configuresWorkerThreads(task) && isThreadsReadable
+//                    || !CollectionUtils.isNotEmpty(task.getSubtaskRef());
+//        } else {
+//            subtasksAndThreadsVisible = false;
+//        }
+//        return subtasksAndThreadsVisible;
     }
 
     public boolean configuresWorkerThreads(TaskType task) {

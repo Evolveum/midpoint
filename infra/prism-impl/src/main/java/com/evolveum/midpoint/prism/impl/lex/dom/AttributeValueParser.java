@@ -56,6 +56,11 @@ class AttributeValueParser<T> implements ValueParser<T>, Serializable {
     }
 
     @Override
+    public boolean canParseAs(QName typeName) {
+        return DOMUtil.XSD_QNAME.equals(typeName) || XsdTypeMapper.getXsdToJavaMapping(typeName) != null;
+    }
+
+    @Override
     public boolean isEmpty() {
         return DOMUtil.isEmpty(attr);
     }

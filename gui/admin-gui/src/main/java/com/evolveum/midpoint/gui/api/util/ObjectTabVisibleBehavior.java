@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -98,7 +100,7 @@ public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnabl
 
     private boolean isApplicable(ObjectFormType form, PrismObject<O> object) {
         QName objectType = object.getDefinition().getTypeName();
-        if (!objectType.equals(form.getType())) {
+        if (!QNameUtil.match(objectType, form.getType())) {
             return false;
         }
         RoleRelationObjectSpecificationType roleRelation = form.getRoleRelation();

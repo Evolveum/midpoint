@@ -49,7 +49,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        assertSyncToken(taskAfter, 4, taskAfter.getResult());
+        assertSyncToken(taskAfter, 4);
 
         assertEquals(syncInfo.getCountUnmatched(), 5);
         assertEquals(syncInfo.getCountDeleted(), 0);
@@ -80,7 +80,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        assertSyncToken(taskAfter, 4, taskAfter.getResult());
+        assertSyncToken(taskAfter, 4);
 
         assertEquals(syncInfo.getCountUnmatched(), 5);
         assertEquals(syncInfo.getCountDeleted(), 0);

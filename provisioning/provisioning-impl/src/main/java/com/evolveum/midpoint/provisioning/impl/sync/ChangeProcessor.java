@@ -172,7 +172,7 @@ public class ChangeProcessor {
 
             notifyChangeResult.computeStatus("Error in notify change operation.");
 
-            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
+            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError() || notifyChangeResult.isNotApplicable()) {
                 // Do not delete dead shadows. Keep dead shadow around because they contain results
                 // of the synchronization. Usual shadow refresh process should delete them eventually.
                 // TODO: review. Maybe make this configuration later on.
@@ -387,7 +387,7 @@ public class ChangeProcessor {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
             PreconditionViolationException {
 
-        if (result.isSuccess() || result.isHandledError()) {
+        if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
             return;
         }
 

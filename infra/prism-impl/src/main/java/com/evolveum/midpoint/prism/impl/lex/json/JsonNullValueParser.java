@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json;
 
+import java.util.Map;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import javax.xml.namespace.QName;
-import java.util.Map;
 
 public class JsonNullValueParser<T> implements ValueParser<T> {
 
@@ -28,6 +28,11 @@ public class JsonNullValueParser<T> implements ValueParser<T> {
             throw new SchemaException("Unsupported type " + typeName);
         }
         return (T) JavaTypeConverter.convert(clazz, "");
+    }
+
+    @Override
+    public boolean canParseAs(QName typeName) {
+        return XsdTypeMapper.toJavaTypeIfKnown(typeName) != null;
     }
 
     @Override

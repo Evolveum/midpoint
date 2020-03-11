@@ -57,6 +57,11 @@ public class JsonValueParser<T> implements ValueParser<T> {
     }
 
     @Override
+    public boolean canParseAs(QName typeName) {
+        return XsdTypeMapper.toJavaTypeIfKnown(typeName) != null; // TODO do we have a reader for any relevant class?
+    }
+
+    @Override
     public boolean isEmpty() {
         return node == null || StringUtils.isBlank(node.asText());            // to be consistent with PrimitiveXNode.isEmpty for parsed values
     }

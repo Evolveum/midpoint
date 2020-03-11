@@ -27,7 +27,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDt
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -115,8 +116,8 @@ public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
     //TODO relocate the logic from the loop to some util method, code repeats in PreviewChangesTabPanel
     private boolean violationsEmpty() {
         for (ModelContext<O> modelContext : modelContextMap.values()) {
-            PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
-                    ? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
+            PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
+                    ? modelContext.getPolicyRuleEnforcerPreviewOutput()
                     : null;
             List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
                     ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
