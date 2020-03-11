@@ -1,4 +1,4 @@
-MidPoint 4.1 Development Branch
+MidPoint 4.1 Milestone 3
 -------------------------------
 
 General information:

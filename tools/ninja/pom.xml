@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.evolveum.midpoint.tools</groupId>
         <artifactId>tools</artifactId>
-        <version>4.1-SNAPSHOT</version>
+        <version>4.1-M3</version>
     </parent>
 
     <artifactId>ninja</artifactId>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.1-M3</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
