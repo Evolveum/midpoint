@@ -52,7 +52,7 @@ import java.util.Map.Entry;
  * @author semancik
  *
  */
-public class LensContext<F extends ObjectType> implements ModelContext<F> {
+public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
     private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
@@ -851,6 +851,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         }
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public LensContext<F> clone() {
         LensContext<F> clone = new LensContext<>(focusClass, prismContext, provisioningService);
         copyValues(clone);
