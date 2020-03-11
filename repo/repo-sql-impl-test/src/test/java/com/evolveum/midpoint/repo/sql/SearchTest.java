@@ -453,16 +453,8 @@ public class SearchTest extends BaseSQLRepoTest {
 
     }
 
-    @Test(enabled = false)
+    @Test
     public void testIndividualOwnerRef() throws Exception {
-        testOwnerRef(RoleType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned role");
-        testOwnerRef(RoleType.class, null, "Judge", "Pirate");
-        testOwnerRef(RoleType.class, "123");
-
-        testOwnerRef(OrgType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned org");
-        testOwnerRef(OrgType.class, null, "F0085");
-        testOwnerRef(OrgType.class, "123");
-
         testOwnerRef(TaskType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Synchronization: Embedded Test OpenDJ");
         testOwnerRef(TaskType.class, null, "Task with no owner");
         testOwnerRef(TaskType.class, "123");
@@ -476,16 +468,8 @@ public class SearchTest extends BaseSQLRepoTest {
         testOwnerRef(AccessCertificationDefinitionType.class, "123");
     }
 
-    @Test(enabled = false)
+    @Test
     public void testOwnerRefWithTypeRestriction() throws Exception {
-        testOwnerRefWithTypeRestriction(RoleType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned role");
-        testOwnerRefWithTypeRestriction(RoleType.class, null, "Judge", "Pirate");
-        testOwnerRefWithTypeRestriction(RoleType.class, "123");
-
-        testOwnerRefWithTypeRestriction(OrgType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned org");
-        testOwnerRefWithTypeRestriction(OrgType.class, null, "F0085");
-        testOwnerRefWithTypeRestriction(OrgType.class, "123");
-
         testOwnerRefWithTypeRestriction(TaskType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Synchronization: Embedded Test OpenDJ");
         testOwnerRefWithTypeRestriction(TaskType.class, null, "Task with no owner");
         testOwnerRefWithTypeRestriction(TaskType.class, "123");
@@ -528,12 +512,14 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong names of found objects", expectedNames, realNames);
     }
 
-    @Test(enabled = false)
+    @Test
     public void testWildOwnerRef() throws SchemaException {
         final String oid = SystemObjectsType.USER_ADMINISTRATOR.value();
-        ItemDefinition<?> delegatedRefDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class).findItemDefinition(RoleType.F_DELEGATED_REF);
+        ItemDefinition<?> ownerRefDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(TaskType.class)
+                .findItemDefinition(TaskType.F_OWNER_REF);
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
-                .item(ItemPath.create(new QName(SchemaConstants.NS_C, "delegatedRef")), delegatedRefDef).ref(oid)
+                .item(ItemPath.create(new QName(SchemaConstants.NS_C, "ownerRef")), ownerRefDef).ref(oid)
                 .build();
         OperationResult result = new OperationResult("search");
         try {
