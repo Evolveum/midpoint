@@ -49,7 +49,8 @@ public class MailNonceFormModuleWebSecurityConfig<C extends ModuleWebSecurityCon
                         getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl()));
 
         http.logout().clearAuthentication(true)
-                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
+                .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
+//                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());

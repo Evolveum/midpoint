@@ -21,9 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -43,7 +41,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.xml.namespace.QName;
@@ -224,7 +221,7 @@ public class UserMenuPanel extends BasePanel {
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override
             public String getObject() {
-                return getUrlForLogout();
+                return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), getAuthenticatedModule());
             }
         }));
         add(form);
@@ -281,22 +278,13 @@ public class UserMenuPanel extends BasePanel {
     }
 
     private ModuleAuthentication getAuthenticatedModule() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        ModuleAuthentication moduleAuthentication = SecurityUtils.getAuthenticatedModule();
 
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
-                if (StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
-                    return moduleAuthentication;
-                }
-            }
-        } else {
-            String message = "Unsuported type " + (authentication == null ? null : authentication.getClass().getName())
-                    + " of authenticacion for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
+        if (moduleAuthentication == null) {
+            String message = "Unauthenticated request";
             throw new IllegalArgumentException(message);
         }
-        String message = "Unauthenticated request";
-        throw new IllegalArgumentException(message);
+        return moduleAuthentication;
     }
 
     private String getShortUserName() {
