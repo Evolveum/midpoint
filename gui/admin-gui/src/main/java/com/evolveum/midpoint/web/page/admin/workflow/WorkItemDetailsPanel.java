@@ -101,7 +101,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     }
 
     private void initModels(){
-        sceneModel = new LoadableModel<SceneDto>() {
+        sceneModel = new LoadableModel<SceneDto>(false) {
             @Override
             protected SceneDto load() {
                 PageBase pageBase = WorkItemDetailsPanel.this.getPageBase();

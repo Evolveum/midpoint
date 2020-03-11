@@ -27,12 +27,19 @@
                     <a class="btn btn-primary" wicket:id="home" />
                     <a class="btn btn-primary" wicket:id="back" />
 
-                    <wicket:enclosure>
-                        <form method="post" action="logout" style="display: inline; margin-left: 20px;">
+<!--                    <wicket:enclosure>-->
+<!--                        <form method="post" action="logout" style="display: inline; margin-left: 20px;">-->
+<!--                            <div wicket:id="csrfField"/>-->
+<!--                            <input type="submit" class="btn btn-default btn-flat"  wicket:message="value:PageError.logout"/>-->
+<!--                        </form>-->
+
+                        <form method="post" style="display: inline; margin-left: 20px;" wicket:id="logoutForm">
+
                             <div wicket:id="csrfField"/>
+
                             <input type="submit" class="btn btn-default btn-flat"  wicket:message="value:PageError.logout"/>
                         </form>
-                    </wicket:enclosure>
+<!--                    </wicket:enclosure>-->
                 </div>
 
             </div>

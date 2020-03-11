@@ -49,7 +49,8 @@ public class SecurityQuestionsFormModuleWebSecurityConfig<C extends LoginFormMod
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/securityquestions"));
 
         http.logout().clearAuthentication(true)
-                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
+                .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
+//                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());

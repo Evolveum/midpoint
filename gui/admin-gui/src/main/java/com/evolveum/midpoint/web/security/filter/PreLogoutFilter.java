@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.security.filter;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -26,26 +28,16 @@ public class PreLogoutFilter implements FilterChain {
     public void doFilter(ServletRequest request, ServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !((HttpServletRequest) request).getServletPath().endsWith("/logout")) {
+        ModuleAuthentication moduleAuthentication = null;
+        if (authentication != null && authentication.isAuthenticated()) {
+            moduleAuthentication = SecurityUtils.getAuthenticatedModule();
+        }
+        if (authentication == null || ((moduleAuthentication == null || !moduleAuthentication.isInternalLogout())
+                && !((HttpServletRequest) request).getServletPath().endsWith("/logout"))) {
             return;
         }
-        String path = ((HttpServletRequest) request).getServletPath();
-        String prefix = path.substring(0, path.indexOf("/logout"));
-
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
-                if (prefix.equals(stripEndingSlases(moduleAuthentication.getPrefix()))
-                        && StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
-                    moduleAuthentication.setState(StateOfModule.LOGOUT_PROCESSING);
-                    break;
-                }
-            }
-        } else {
-            String message = "Unsupported type " + authentication.getClass().getName()
-                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
-            throw new IllegalArgumentException(message);
+        if (moduleAuthentication != null) {
+            moduleAuthentication.setState(StateOfModule.LOGOUT_PROCESSING);
         }
-
     }
 }
