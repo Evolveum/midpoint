@@ -131,7 +131,7 @@ public class PrismUnmarshaller {
         checkArgument(child instanceof MapXNodeImpl,
                 "Cannot parse object from element %s, we need Map", child.getClass());
         ItemDefinition<?> itemDef = checkSchemaNotNull(itemInfo.getItemDefinition(),
-                "Cannot parse obect from element %s, there is no definition for that element", itemInfo.getItemName());
+                "Cannot parse object from element %s, there is no definition for that element", itemInfo.getItemName());
         checkSchema(itemDef instanceof PrismObjectDefinition,
                 "Cannot parse object from element %s the element does not define an object, it is defined as %s", itemInfo.getItemName(), itemInfo.getItemDefinition());
         return (PrismObject<O>) parseItemInternal(child, itemInfo.getItemName(), itemDef, pc);
