@@ -319,36 +319,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private String getRealProgressDescription(SelectableBean<TaskType> task) {
-        if (isWorkStateHolder(task)) {
+        if (TaskTypeUtil.isWorkStateHolder(task.getValue())) {
             return getBucketedTaskProgressDescription(task.getValue());
         } else {
             return getPlainTaskProgressDescription(task.getValue());
         }
     }
-
-    private boolean isWorkStateHolder(SelectableBean<TaskType> taskType) {
-        return (TaskTypeUtil.isCoordinator(taskType.getValue()) || hasBuckets(taskType.getValue())) && !isCoordinatedWorker(taskType.getValue());
-    }
-
-    private boolean isCoordinatedWorker(TaskType taskType) {
-        return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
-    }
-
-    private boolean hasBuckets(TaskType taskType) {
-        if (taskType.getWorkState() == null) {
-            return false;
-        }
-        if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
-            return true;
-        }
-        List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
-        if (buckets.size() > 1) {
-            return true;
-        } else {
-            return buckets.size() == 1 && buckets.get(0).getContent() != null;
-        }
-    }
-
+    
     private String getBucketedTaskProgressDescription(TaskType taskType) {
         int completeBuckets = getCompleteBuckets(taskType);
         Integer expectedBuckets = getExpectedBuckets(taskType);
