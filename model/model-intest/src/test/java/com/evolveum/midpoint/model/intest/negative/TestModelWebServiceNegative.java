@@ -148,6 +148,11 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
             }
 
             @Override
+            public boolean canParseAs(QName typeName) {
+                return true;
+            }
+
+            @Override
             public boolean isEmpty() {
                 return false;
             }

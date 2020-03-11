@@ -29,7 +29,7 @@ public interface PrimitiveXNode<T> extends XNode {
      */
     String getStringValue();
 
-    T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass) throws SchemaException;
+    <X> X getParsedValue(@NotNull QName typeName, @Nullable Class<X> expectedClass) throws SchemaException;
 
     T getValue();
 
