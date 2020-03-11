@@ -17,12 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static org.springframework.util.StringUtils.hasText;
-
 /**
  * @author skublik
  */
-
 public class MidpointServiceProviderLogoutHandler extends ServiceProviderLogoutHandler {
 
     private SamlProviderProvisioning<ServiceProviderService> provisioning;
@@ -44,8 +41,8 @@ public class MidpointServiceProviderLogoutHandler extends ServiceProviderLogoutH
             ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
             super.spInitiatedLogout(request, response, moduleAuthentication.getAuthentication());
         } else {
-            String message = "Unsuported type " + (authentication == null ? null : authentication.getClass().getName())
-                    + " of authenticacion for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
+            String message = "Unsupported type " + (authentication == null ? null : authentication.getClass().getName())
+                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
             throw new IllegalArgumentException(message);
         }
 

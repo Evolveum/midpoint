@@ -47,7 +47,7 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O> {
+public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O>, Cloneable {
 
     private static final long serialVersionUID = 1649567559396392861L;
 

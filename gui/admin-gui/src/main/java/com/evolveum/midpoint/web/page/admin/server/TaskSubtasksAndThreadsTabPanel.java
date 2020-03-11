@@ -11,6 +11,9 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -25,6 +28,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.*;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -59,7 +63,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         add(subtasksLabel);
 
-        TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, UserProfileStorage.TableId.TABLE_SUBTASKS, null) {
+        TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, UserProfileStorage.TableId.TABLE_SUBTASKS, createOperationOptions()) {
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
 
@@ -122,6 +126,18 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
         };
         add(workerThreadsTable);
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
+        List<QName> propertiesToGet = new ArrayList<>();
+        propertiesToGet.add(TaskType.F_SUBTASK_REF);
+
+        GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaHelper().getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+        Collection<SelectorOptions<GetOperationOptions>> searchOptions = getOperationOptionsBuilder
+                .items(propertiesToGet.toArray(new Object[0])).retrieve()
+                .build();
+        return searchOptions;
     }
 
     private IModel<List<TaskType>> createWorkersModel() {

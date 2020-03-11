@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.component.*;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -29,10 +28,12 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
@@ -40,7 +41,6 @@ import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -246,7 +246,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
         initializeModel(objectToEdit, isNewObject, isReadonly);
-//        initLayout();
     }
 
     protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
@@ -315,15 +314,30 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         add(progressPanel);
     }
 
-    protected abstract ObjectSummaryPanel<O> createSummaryPanel();
+    protected abstract ObjectSummaryPanel<O> createSummaryPanel(IModel<O> summaryModel);
 
     protected void initLayoutSummaryPanel() {
 
-        ObjectSummaryPanel<O> summaryPanel = createSummaryPanel();
+        ObjectSummaryPanel<O> summaryPanel = createSummaryPanel(loadModelForSummaryPanel());
         summaryPanel.setOutputMarkupId(true);
 
         setSummaryPanelVisibility(summaryPanel);
         add(summaryPanel);
+    }
+
+    private IModel<O> loadModelForSummaryPanel() {
+        return new LoadableModel<O>(true) {
+
+            @Override
+            protected O load() {
+                PrismObjectWrapper<O> wrapper =  getObjectWrapper();
+                if (wrapper == null) {
+                    return null;
+                }
+
+                return wrapper.getObject().asObjectable();
+            }
+        };
     }
 
     protected void setSummaryPanelVisibility(ObjectSummaryPanel<O> summaryPanel){
@@ -374,7 +388,18 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
    }
 
     public void refresh(AjaxRequestTarget target) {
+        getObjectModel().reset();
+        target.add(getSummaryPanel());
+        target.add(getOperationalButtonsPanel());
+        target.add(getFeedbackPanel());
 
+        for (Component component : getMainPanel().getTabbedPanel()) {
+            if (component instanceof RefreshableTabPanel) {
+                for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
+                    target.add(c);
+                }
+            }
+        }
    }
 
    public int getRefreshInterval() {
@@ -440,6 +465,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
                 }
                 target.add(PageAdminObjectDetails.this.getFeedbackPanel());
+                refresh(target);
             }
 
             @Override

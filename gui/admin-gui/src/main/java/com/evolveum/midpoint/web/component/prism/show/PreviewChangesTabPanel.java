@@ -30,7 +30,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutio
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -126,8 +127,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             }
         };
 
-        PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
-                ? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
+        PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
+                ? modelContext.getPolicyRuleEnforcerPreviewOutput()
                 : null;
         List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
                 ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))

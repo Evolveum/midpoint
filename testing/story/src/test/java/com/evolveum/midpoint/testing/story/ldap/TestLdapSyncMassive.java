@@ -125,8 +125,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     @Test
     public void test080ImportSyncTask() throws Exception {
-        final String TEST_NAME = "test080ImportSyncTask";
-
         // WHEN
         when();
 
@@ -155,8 +153,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test110SyncAddWill() throws Exception {
-        final String TEST_NAME = "test110SyncAddWill";
-
         Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_WILL_LDIF_FILE);
         display("Entry from LDIF", entry);
 
@@ -196,8 +192,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test112SyncAddGoods() throws Exception {
-        final String TEST_NAME = "test112SyncAddGoods";
-
         // WHEN
         when();
 
@@ -223,8 +217,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test150AddGoblins() throws Exception {
-        final String TEST_NAME = "test150AddGoblins";
-
         // WHEN
         when();
 
@@ -292,8 +284,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test210SyncAddKraken() throws Exception {
-        final String TEST_NAME = "test210SyncAddKraken";
-
         Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_KRAKEN_LDIF_FILE);
         display("Entry from LDIF", entry);
 
@@ -330,8 +320,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test212SyncAddBads() throws Exception {
-        final String TEST_NAME = "test212SyncAddBads";
-
         // WHEN
         when();
 
@@ -352,8 +340,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      */
     @Test
     public void test219StopSyncTask() throws Exception {
-        final String TEST_NAME = "test219StopSyncTask";
-
         // WHEN
         when();
 
@@ -368,10 +354,9 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     }
 
+    // this runs for ~20+ minutes
     @Test
     public void test230UserRecomputeSequential() throws Exception {
-        final String TEST_NAME = "test230UserRecomputeSequential";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -393,8 +378,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     @Test
     public void test232UserRecomputeParallel() throws Exception {
-        final String TEST_NAME = "test232UserRecomputeParallel";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -512,5 +495,4 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
     protected void dumpLdap() throws DirectoryException {
         display("LDAP server tree", openDJController.dumpTree());
     }
-
 }

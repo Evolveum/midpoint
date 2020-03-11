@@ -1,22 +1,13 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -27,13 +18,18 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
 
@@ -41,9 +37,6 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
     private static final String ID_SYNCHORNIZATION_SITUATIONS = "synchronizationSituation";
     private static final String ID_ACTION_ENTRY = "actionEntry";
     private static final String ID_RESULTING_ENTRY = "resultingEntry";
-
-    private static final String DOT_CLASS = TaskOperationStatisticsPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_SUBTASKS = DOT_CLASS + "loadSubtasks";
 
     private static final Collection<String> WALL_CLOCK_AVG_CATEGORIES = Arrays.asList(
             TaskCategory.BULK_ACTIONS, TaskCategory.IMPORTING_ACCOUNTS, TaskCategory.RECOMPUTATION, TaskCategory.RECONCILIATION,
@@ -65,99 +58,9 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
            @Override
            protected OperationStatsType load() {
                PrismObject<TaskType> task = getModelObject().getObject();
-
                return TaskTypeUtil.getAggregatedOperationStats(task.asObjectable(), getPrismContext());
-//               IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
-//               SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
-//               ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
-//
-//               if (TaskTypeUtil.isPartitionedMaster(task.asObjectable())) {
-////                   List<TaskType> subTasks = resolveSubTasks();
-//                   Stream<TaskType> subTasks = TaskTypeUtil.getAllTasksStream(task.asObjectable());
-//                   subTasks.forEach(subTask -> {
-//                       OperationStatsType operationStatsType = subTask.getOperationStats();
-//                       if (operationStatsType != null) {
-//                           IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), true);
-//                           SynchronizationInformation.addTo(synchronizationInformation, operationStatsType.getSynchronizationInformation());
-//                           ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStatsType.getActionsExecutedInformation());
-//                       }
-//                   });
-////                   for (TaskType taskDto : subTasks) {
-////                       OperationStatsType operationStats = taskDto.getOperationStats();
-////                       if (operationStats != null) {
-////                           IterativeTaskInformation.addTo(iterativeTaskInformation, operationStats.getIterativeTaskInformation(), true);
-////                           SynchronizationInformation.addTo(synchronizationInformation, operationStats.getSynchronizationInformation());
-////                           ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStats.getActionsExecutedInformation());
-////                       }
-////                   }
-//
-//                   return new OperationStatsType(getPrismContext())
-//                           .iterativeTaskInformation(iterativeTaskInformation)
-//                           .synchronizationInformation(synchronizationInformation)
-//                           .actionsExecutedInformation(actionsExecutedInformation);
-//
-//               }
-//
-//               return task.asObjectable().getOperationStats();
-
            }
        };
-    }
-
-    private List<TaskType> resolveSubTasks() {
-        List<TaskType> loadedSubtasks =new ArrayList<>();
-        PrismObject<TaskType> taskType = getModelObject().getObject();
-        if (taskType == null) {
-            return loadedSubtasks; //TODO throw exception?
-        }
-
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SUBTASKS);
-        OperationResult result = task.getResult();
-        resolveSubTasks(taskType.asObjectable(), true, loadedSubtasks, task, result);
-        return loadedSubtasks;
-    }
-
-    private void resolveSubTasks(TaskType subTask, boolean alreadyLoaded, List<TaskType> allTasks, Task task, OperationResult result) {
-        List<TaskType> subTasks = new ArrayList<>();
-
-        PrismObject<TaskType> subTaskWithLoadedSubtasks;
-        if (alreadyLoaded) {
-            subTaskWithLoadedSubtasks = subTask.asPrismObject();
-        } else {
-            subTaskWithLoadedSubtasks = WebModelServiceUtils.loadObject(TaskType.class, subTask.getOid(),
-                    getSchemaHelper().getOperationOptionsBuilder().item(TaskType.F_SUBTASK_REF).retrieve().build(), getPageBase(), task, result);
-        }
-
-        if (subTaskWithLoadedSubtasks == null) {
-            return;
-        }
-
-        PrismReference subRefs = subTaskWithLoadedSubtasks.findReference(TaskType.F_SUBTASK_REF);
-        if (subRefs == null) {
-            return;
-        }
-        for (PrismReferenceValue refVal : subRefs.getValues()) {
-            addSubTasks(refVal, subTasks);
-        }
-
-        allTasks.addAll(subTasks);
-
-        for (TaskType subLoaded : subTasks) {
-            resolveSubTasks(subLoaded, false, allTasks, task, result);
-        }
-
-    }
-
-    private void addSubTasks(PrismReferenceValue subTaskRef, List<TaskType> loadedSubtasks) {
-        if (subTaskRef == null) {
-            return;
-        }
-        PrismObject<TaskType> subTask = subTaskRef.getObject();
-        if (subTask == null) {
-            return;
-        }
-
-        loadedSubtasks.add(subTask.asObjectable());
     }
 
     @Override
@@ -350,6 +253,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
 
     @Override
     public Collection<Component> getComponentsToUpdate() {
+        statisticsModel.reset();
         List<Component> components = new ArrayList<>();
         components.add(get(ID_ACTION_ENTRY));
         components.add(get(ID_PROCESSING_INFO));
@@ -373,15 +277,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             this.countBefore = countBefore;
             this.countAfter = countAfter;
         }
+
     }
 
-    @Override
-    protected void onDetach() {
-        super.onDetach();
-        statisticsModel.reset();
-        IModel<PrismObjectWrapper<TaskType>> taskModel = getModel();
-        if (taskModel instanceof LoadableModel) {
-            ((LoadableModel<PrismObjectWrapper<TaskType>>) taskModel).reset();
-        }
-    }
 }

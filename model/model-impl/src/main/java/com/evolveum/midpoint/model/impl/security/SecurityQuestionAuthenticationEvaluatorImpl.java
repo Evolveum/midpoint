@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationCo
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component("securityQuestionsAuthenticationEvaluator")
@@ -49,7 +49,7 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
     }
 
     @Override
-    protected boolean suportsAuthzCheck() {
+    protected boolean supportsAuthzCheck() {
         return true;
     }
 
@@ -59,8 +59,8 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
     }
 
     @Override
-    protected void validateCredentialNotNull(ConnectionEnvironment connEnv, MidPointPrincipal principal,
-            SecurityQuestionsCredentialsType credential) {
+    protected void validateCredentialNotNull(ConnectionEnvironment connEnv,
+            @NotNull MidPointPrincipal principal, SecurityQuestionsCredentialsType credential) {
         List<SecurityQuestionAnswerType> securityQuestionsAnswers = credential.getQuestionAnswer();
 
         if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
@@ -71,7 +71,8 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
     }
 
     @Override
-    protected boolean passwordMatches(ConnectionEnvironment connEnv, MidPointPrincipal principal,
+    protected boolean passwordMatches(
+            ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal,
             SecurityQuestionsCredentialsType passwordType, SecurityQuestionsAuthenticationContext authCtx) {
 
         SecurityQuestionsCredentialsPolicyType policy = authCtx.getPolicy();
@@ -83,9 +84,9 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
             return false;
         }
 
-        List<SecurityQuestionAnswerType> quetionsAnswers = passwordType.getQuestionAnswer();
+        List<SecurityQuestionAnswerType> questionsAnswers = passwordType.getQuestionAnswer();
         int matched = 0;
-        for (SecurityQuestionAnswerType questionAnswer : quetionsAnswers) {
+        for (SecurityQuestionAnswerType questionAnswer : questionsAnswers) {
             String enteredAnswer = enteredQuestionsAnswers.get(questionAnswer.getQuestionIdentifier());
             if (StringUtils.isNotBlank(enteredAnswer)) {
                 if (decryptAndMatch(connEnv, principal, questionAnswer.getQuestionAnswer(), enteredAnswer)) {
@@ -99,8 +100,8 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
     }
 
     @Override
-    protected CredentialPolicyType getEffectiveCredentialPolicy(SecurityPolicyType securityPolicy,
-            SecurityQuestionsAuthenticationContext authnCtx) throws SchemaException {
+    protected CredentialPolicyType getEffectiveCredentialPolicy(
+            SecurityPolicyType securityPolicy, SecurityQuestionsAuthenticationContext authnCtx) {
         SecurityQuestionsCredentialsPolicyType policy = authnCtx.getPolicy();
         if (policy == null) {
             policy = SecurityUtil.getEffectiveSecurityQuestionsCredentialsPolicy(securityPolicy);

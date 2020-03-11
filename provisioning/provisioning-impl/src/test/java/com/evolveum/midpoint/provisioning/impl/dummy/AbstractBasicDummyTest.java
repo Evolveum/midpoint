@@ -10,8 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
-import static com.evolveum.midpoint.test.asserter.predicate.StringAssertionPredicates.startsWith;
-import static com.evolveum.midpoint.test.asserter.predicate.TimeAssertionPredicates.approximatelyCurrent;
+import static com.evolveum.midpoint.test.asserter.predicates.StringAssertionPredicates.startsWith;
+import static com.evolveum.midpoint.test.asserter.predicates.TimeAssertionPredicates.approximatelyCurrent;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -7084,7 +7084,7 @@
                         Generic errors means that midPoint has absolutely no idea what is going on. Otherwise the
                         error would be classified to a more specific category. Continuing an operation where midPoint
                         has no idea what is going on may have severe consequences. The results are unpredictable.
-                        If you use this setting then you are on your own. Hic sunt liones.
+                        If you use this setting then you are on your own. Hic sunt leones.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:experimental>true</a:experimental>
@@ -15013,7 +15013,7 @@
                     <xsd:documentation>
                         <p>
                             Definition of GUI-related configuration for the archetyped objects. This is using
-                            principle similar to adminGuiConfiguration in system configuraiton.
+                            principle similar to adminGuiConfiguration in system configuration.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -19042,7 +19042,7 @@
                            <xsd:documentation>
                                <p>
                                    Free-form description (comment) intended for system administrator. Description will NOT be displayed as
-                                   any part of the UI feature. The purpose is to explain the purpose or configuraiton details.
+                                   any part of the UI feature. The purpose is to explain the purpose or configuration details.
                                </p>
                            </xsd:documentation>
                         <xsd:appinfo>
@@ -23031,7 +23031,7 @@
     <xsd:complexType name="JasperReportEngineConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuraiton of jasper-based reports.
+                Configuration of jasper-based reports.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -23225,7 +23225,7 @@
     <xsd:complexType name="DashboardReportEngineConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuraiton of dashboard-based reports.
+                Configuration of dashboard-based reports.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -23750,7 +23750,7 @@
                                <xsd:documentation>
                                    <p>
                                        Symbolic name for this view. It is used as a view identifier. Views with the same name will be merged together.
-                                       The name is used to detect whether a particular view is overriden, e.g. if view defined in system configuraiton
+                                       The name is used to detect whether a particular view is overridden, e.g. if view defined in system configuration
                                        is overridden in the role. It may also be used by other system components (e.g. dashboard widgets, reports)
                                        to refer to this view. It will also be used for diagnostics, logging and so on.
                                    </p>
@@ -23796,10 +23796,10 @@
                                <xsd:appinfo>
                                    <a:since>3.9</a:since>
                                    <a:deprecated>true</a:deprecated>
-                                   <!-- Reference target type defeinition is NOT here by purpose. Later on we might want
+                                   <!-- Reference target type definition is NOT here by purpose. Later on we might want
                                         archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
                                         this reference may point to various object types. By NOT specifying default ObjectCollectionType
-                                        here we will force everybody to specify it explicitly. So their configuraiton will work in
+                                        here we will force everybody to specify it explicitly. So their configuration will work in
                                         future versions when we add support for implicit collections. -->
                                 <a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
                                </xsd:appinfo>
@@ -24825,7 +24825,7 @@
                             MidPoint 3.x compatibility:
                             Plain string or a localization key may be used in
                             this field. The value of this field will be interpreted
-                            as a localizaton key and looked up in the localization
+                            as a localization key and looked up in the localization
                             tables. If no translation is found, then the literal
                             value is displayed.
                         </p>
@@ -24888,7 +24888,7 @@
                             MidPoint 3.x compatibility:
                             Plain string or a localization key may be used in
                             this field. The value of this field will be interpreted
-                            as a localizaton key and looked up in the localization
+                            as a localization key and looked up in the localization
                             tables. If no translation is found, then the literal
                             value is displayed.
                         </p>
@@ -24910,7 +24910,7 @@
                             MidPoint 3.x compatibility:
                             Plain string or a localization key may be used in
                             this field. The value of this field will be interpreted
-                            as a localizaton key and looked up in the localization
+                            as a localization key and looked up in the localization
                             tables. If no translation is found, then the literal
                             value is displayed.
                         </p>
@@ -24926,7 +24926,7 @@
                         <p>
                             Usual color of the display element that this data structure describes.
                             This color may be used in situation when colorful presentation
-                            of the lement is appropriate. The color
+                            of the element is appropriate. The color
                             may be used to color the decorations, background, icon, etc.
                             The color may also be ignored if monochrome presentation is
                             more appropriate.

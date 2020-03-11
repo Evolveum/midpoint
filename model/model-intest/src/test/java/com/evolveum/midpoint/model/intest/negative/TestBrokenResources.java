@@ -10,8 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import static com.evolveum.midpoint.test.asserter.predicate.StringAssertionPredicates.startsWith;
-import static com.evolveum.midpoint.test.asserter.predicate.TimeAssertionPredicates.approximatelyCurrent;
+import static com.evolveum.midpoint.test.asserter.predicates.StringAssertionPredicates.startsWith;
+import static com.evolveum.midpoint.test.asserter.predicates.TimeAssertionPredicates.approximatelyCurrent;
 
 import java.io.File;
 import java.util.Collection;

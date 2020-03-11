@@ -7,11 +7,29 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -21,41 +39,17 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @PageDescriptor(
         urls = {
@@ -112,6 +106,7 @@ public class PageNodes extends PageAdmin {
             }
 
         };
+        table.setOutputMarkupId(true);
         add(table);
     }
 
@@ -121,6 +116,7 @@ public class PageNodes extends PageAdmin {
         columns.add(new EnumPropertyColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.executionStatus"),
                 SelectableBeanImpl.F_VALUE + "." + NodeType.F_EXECUTION_STATUS) {
 
+            @SuppressWarnings("rawtypes")
             @Override
             protected String translate(Enum en) {
                 return createStringResource(en).getString();
@@ -225,7 +221,7 @@ public class PageNodes extends PageAdmin {
         if (xmlGregTime == null) {
             return "";
         }
-        Long time = MiscUtil.asDate(xmlGregTime).getTime();
+        long time = MiscUtil.asDate(xmlGregTime).getTime();
         if (time == 0) {
             return "";
         }
@@ -239,9 +235,8 @@ public class PageNodes extends PageAdmin {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction initAction() {
+            public ColumnMenuAction<SelectableBean<NodeType>> initAction() {
                 return new ColumnMenuAction<SelectableBean<NodeType>>() {
-                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -255,6 +250,7 @@ public class PageNodes extends PageAdmin {
                 return GuiStyleConstants.CLASS_START_MENU_ITEM;
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.startSchedulerAction").getString();
@@ -282,10 +278,11 @@ public class PageNodes extends PageAdmin {
                 return GuiStyleConstants.CLASS_STOP_MENU_ITEM;
             }
 
+            @SuppressWarnings({ "unchecked"})
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.stopSchedulerAction").getString();
-                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction<SelectableBean<NodeType>>) getAction(), actionName);
             }
         });
 
@@ -304,10 +301,11 @@ public class PageNodes extends PageAdmin {
                 };
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.stopSchedulerTasksAction").getString();
-                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction<SelectableBean<NodeType>>) getAction(), actionName);
             }
         });
 
@@ -326,10 +324,11 @@ public class PageNodes extends PageAdmin {
                 };
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.deleteAction").getString();
-                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction<SelectableBean<NodeType>>) getAction(), actionName);
             }
         });
 
@@ -418,7 +417,7 @@ public class PageNodes extends PageAdmin {
     }
 
     private void deleteNodesPerformed(AjaxRequestTarget target, IModel<SelectableBean<NodeType>> selectedNode) {
-        List<NodeType> selectedNodes = getSelectedNodes();
+        List<NodeType> selectedNodes = getSelectedNodes(target, selectedNode);
         if (CollectionUtils.isEmpty(selectedNodes)) {
             return;
         }
@@ -450,7 +449,7 @@ public class PageNodes extends PageAdmin {
 
     private List<NodeType> getSelectedNodes(AjaxRequestTarget target, IModel<SelectableBean<NodeType>> selectedNode) {
         if (selectedNode != null) {
-            return Arrays.asList(selectedNode.getObject().getValue());
+            return Collections.singletonList(selectedNode.getObject().getValue());
         }
 
         List<NodeType> selectedNodes = getSelectedNodes();
@@ -462,13 +461,14 @@ public class PageNodes extends PageAdmin {
     }
 
     private List<String> getNodeIdentifiers(List<NodeType> selectedNodes) {
-        return selectedNodes.stream().map(n -> n.getNodeIdentifier()).collect(Collectors.toList());
+        return selectedNodes.stream().map(NodeType::getNodeIdentifier).collect(Collectors.toList());
     }
 
     private List<NodeType> getSelectedNodes() {
         return getTable().getSelectedObjects();
     }
 
+    @SuppressWarnings("unchecked")
     private MainObjectListPanel<NodeType> getTable() {
         return (MainObjectListPanel<NodeType>) get(ID_TABLE);
     }

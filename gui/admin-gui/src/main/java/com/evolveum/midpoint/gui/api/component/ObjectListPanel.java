@@ -369,7 +369,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
                         @Override
                         public IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
-                            Item<?, ?> item = rowModel.getObject().getValue().asPrismContainerValue().findItem(columnPath);
+                            O value = rowModel.getObject().getValue();
+                            if (value == null) {
+                                return Model.of("");
+                            }
+                            Item<?, ?> item = value.asPrismContainerValue().findItem(columnPath);
                             if (item != null) {
                                 if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
                                         item.getDefinition().getValueEnumerationRef().getOid() != null){

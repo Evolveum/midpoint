@@ -75,10 +75,9 @@ public class PolicyRuleEnforcer {
     }
 
     private void executePreview(@NotNull ModelContext<? extends ObjectType> context, EvaluationContext evalCtx) {
-        PolicyRuleEnforcerHookPreviewOutputType output = new PolicyRuleEnforcerHookPreviewOutputType(prismContext);
+        PolicyRuleEnforcerPreviewOutputType output = new PolicyRuleEnforcerPreviewOutputType(prismContext);
         output.getRule().addAll(evalCtx.rules);
-        // deprecated
-        ((LensContext) context).addHookPreviewResults(HOOK_URI, Collections.singletonList(output));
+        ((LensContext) context).setPolicyRuleEnforcerPreviewOutput(output);
     }
 
     @NotNull

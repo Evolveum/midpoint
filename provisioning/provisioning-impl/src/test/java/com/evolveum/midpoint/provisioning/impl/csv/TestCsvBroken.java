@@ -8,8 +8,8 @@ package com.evolveum.midpoint.provisioning.impl.csv;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import static com.evolveum.midpoint.test.asserter.predicate.StringAssertionPredicates.startsWith;
-import static com.evolveum.midpoint.test.asserter.predicate.TimeAssertionPredicates.timeBetween;
+import static com.evolveum.midpoint.test.asserter.predicates.StringAssertionPredicates.startsWith;
+import static com.evolveum.midpoint.test.asserter.predicates.TimeAssertionPredicates.timeBetween;
 
 import java.io.File;
 import java.util.List;

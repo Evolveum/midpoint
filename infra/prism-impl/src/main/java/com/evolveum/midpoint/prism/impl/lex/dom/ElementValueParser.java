@@ -62,6 +62,13 @@ class ElementValueParser<T> implements ValueParser<T>, Serializable {
     }
 
     @Override
+    public boolean canParseAs(QName typeName) {
+        return ItemPathType.COMPLEX_TYPE.equals(typeName) ||
+                XsdTypeMapper.getXsdToJavaMapping(typeName) != null ||
+                DOMUtil.XSD_QNAME.equals(typeName);
+    }
+
+    @Override
     public boolean isEmpty() {
         return DOMUtil.isEmpty(element);
     }

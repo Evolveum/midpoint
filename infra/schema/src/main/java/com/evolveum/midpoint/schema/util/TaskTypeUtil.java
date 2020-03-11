@@ -94,7 +94,7 @@ public class TaskTypeUtil {
     }
 
     public static OperationStatsType getAggregatedOperationStats(TaskType task, PrismContext prismContext) {
-        if (!isPartitionedMaster(task)) {
+        if (!isPartitionedMaster(task) && !isWorkStateHolder(task)) {
            return task.getOperationStats();
         }
 
@@ -125,5 +125,28 @@ public class TaskTypeUtil {
             }
         }
         return null;
+    }
+
+    public static boolean isWorkStateHolder(TaskType taskType) {
+        return (isCoordinator(taskType) || hasBuckets(taskType)) && !isCoordinatedWorker(taskType);
+    }
+
+    private static boolean hasBuckets(TaskType taskType) {
+        if (taskType.getWorkState() == null) {
+            return false;
+        }
+        if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
+            return true;
+        }
+        List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
+        if (buckets.size() > 1) {
+            return true;
+        } else {
+            return buckets.size() == 1 && buckets.get(0).getContent() != null;
+        }
+    }
+
+    private static boolean isCoordinatedWorker(TaskType taskType) {
+        return taskType.getWorkManagement() != null && TaskKindType.WORKER == taskType.getWorkManagement().getTaskKind();
     }
 }
