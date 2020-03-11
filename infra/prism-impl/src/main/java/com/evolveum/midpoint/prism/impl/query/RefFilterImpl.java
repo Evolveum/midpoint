@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,7 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
     private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation; "false" is ignored by repo
     private boolean relationNullAsAny = false;          // currently ignored
 
-    public RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
+    private RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
             @Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
         super(fullPath, definition, null, values, expression, null, null);
     }
@@ -108,10 +109,7 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
                 return false;
             }
         }
-        if (!matchTargetType(filterValue.getTargetType(), objectValue.getTargetType())) {
-            return false;
-        }
-        return true;
+        return matchTargetType(filterValue.getTargetType(), objectValue.getTargetType());
     }
 
     private boolean matchOid(String filterOid, String objectOid) {
@@ -153,5 +151,14 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
     @Override
     public boolean isRelationNullAsAny() {
         return relationNullAsAny;
+    }
+
+    @Override
+    protected void debugDump(int indent, StringBuilder sb) {
+        super.debugDump(indent, sb);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Null OID means any", oidNullAsAny, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "Null target type means any", targetTypeNullAsAny, indent+1);
+        // relationNullAsAny is currently ignored anyway
     }
 }
