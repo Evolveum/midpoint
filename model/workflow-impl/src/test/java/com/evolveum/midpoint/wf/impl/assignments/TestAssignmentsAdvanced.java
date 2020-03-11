@@ -52,8 +52,6 @@ import static org.testng.AssertJUnit.*;
  * Role21 - uses default approval (org:approver)
  * Role22 - uses metarole 1 'default' induced approval (org:special-approver)
  * Role23 - uses both metarole 'default' and 'security' induced approval (org:special-approver and org:security-approver)
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -1248,9 +1246,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .previewChanges(singleton(primaryDelta), options, task, result);
 
         List<ApprovalSchemaExecutionInformationType> approvalInfo = modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class);
-        List<PolicyRuleEnforcerHookPreviewOutputType> enforceInfo = modelContext.getHookPreviewResults(PolicyRuleEnforcerHookPreviewOutputType.class);
+        PolicyRuleEnforcerPreviewOutputType enforceInfo = modelContext.getPolicyRuleEnforcerPreviewOutput();
         displayContainerablesCollection("Approval infos", approvalInfo);
-        displayContainerablesCollection("Enforce infos", enforceInfo);
+        display("Enforce info", enforceInfo);
         result.computeStatus();
         //noinspection ConstantConditions
         if (TRACE) {
@@ -1260,8 +1258,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         // we do not assert success here, because there are (intentional) exceptions in some of the expressions
 
         assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
-        assertEquals("Wrong # of enforcement hook preview output items", 1, enforceInfo.size());
-        List<EvaluatedPolicyRuleType> enforcementRules = enforceInfo.get(0).getRule();
+        assertNotNull("No enforcement preview output", enforceInfo);
+        List<EvaluatedPolicyRuleType> enforcementRules = enforceInfo.getRule();
         if (also24) {
             assertEquals("Wrong # of enforcement rules", 1, enforcementRules.size());
         } else {

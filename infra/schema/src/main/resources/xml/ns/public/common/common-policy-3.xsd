@@ -2111,7 +2111,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="PolicyRuleEnforcerHookPreviewOutputType">
+    <xsd:complexType name="PolicyRuleEnforcerPreviewOutputType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
