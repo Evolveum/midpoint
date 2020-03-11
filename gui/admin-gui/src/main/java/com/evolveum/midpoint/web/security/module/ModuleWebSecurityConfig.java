@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
@@ -13,6 +14,8 @@ import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthentication
 import com.evolveum.midpoint.web.security.filter.RedirectForLoginPagesWithAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +27,7 @@ import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.session.SessionRegistry;
@@ -31,7 +35,11 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
 
 /**
@@ -151,6 +159,28 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
         } else {
             super.configure(auth);
         }
+    }
+
+    protected RequestMatcher getLogoutMatcher(HttpSecurity http, String logoutUrl) {
+        return new RequestMatcher() {
+            @Override
+            public boolean matches(HttpServletRequest httpServletRequest) {
+                ModuleAuthentication module = SecurityUtils.getProcessingModule(false);
+                if (module != null && module.isInternalLogout()) {
+                    module.setInternalLogout(false);
+                    return true;
+                }
+                RequestMatcher logoutRequestMatcher;
+                if (http.getConfigurer(CsrfConfigurer.class) != null) {
+                    logoutRequestMatcher = new AntPathRequestMatcher(logoutUrl, "POST");
+                } else {
+                    logoutRequestMatcher = new OrRequestMatcher(new RequestMatcher[] { new AntPathRequestMatcher(logoutUrl, "GET"),
+                            new AntPathRequestMatcher(logoutUrl, "POST"), new AntPathRequestMatcher(logoutUrl, "PUT"),
+                            new AntPathRequestMatcher(logoutUrl, "DELETE") });
+                }
+                return logoutRequestMatcher.matches(httpServletRequest);
+            }
+        };
     }
 
     protected LogoutSuccessHandler createLogoutHandler() {

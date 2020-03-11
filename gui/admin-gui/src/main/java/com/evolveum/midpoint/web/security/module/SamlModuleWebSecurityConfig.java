@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -18,6 +19,8 @@ import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHa
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.SamlAuthenticationEntryPoint;
 
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +29,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.saml.SamlRequestMatcher;
 import org.springframework.security.saml.provider.SamlProviderLogoutFilter;
 import org.springframework.security.saml.provider.SamlServerConfiguration;
 import org.springframework.security.saml.provider.provisioning.SamlProviderProvisioning;
@@ -40,6 +44,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -170,6 +175,17 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
             return new SamlProviderLogoutFilter(
                     getSamlProvisioning(),
                     new CompositeLogoutHandler(handlers),
+                    new SamlRequestMatcher(getSamlProvisioning(), "logout") {
+                        @Override
+                        public boolean matches(HttpServletRequest request) {
+                            ModuleAuthentication module = SecurityUtils.getProcessingModule(false);
+                            if (module != null && module.isInternalLogout()) {
+                                module.setInternalLogout(false);
+                                return true;
+                            }
+                            return super.matches(request);
+                        }
+                    },
                     createLogoutHandler()
             );
         }

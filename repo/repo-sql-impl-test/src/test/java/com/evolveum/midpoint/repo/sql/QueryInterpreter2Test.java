@@ -110,8 +110,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(
                 new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         OperationResult result = new OperationResult("add objects");
-        for (PrismObject object : objects) {
-            repositoryService.addObject(object, null, result);
+        for (PrismObject<?> object : objects) {
+            //noinspection unchecked
+            repositoryService.addObject((PrismObject<? extends ObjectType>) object, null, result);
         }
 
         prepareItemDefinitions();
@@ -2165,7 +2166,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         List<PrismObject<? extends Objectable>> orgStruct = prismContext.parserFor(objects).parseObjects();
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
-            repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
+            //noinspection unchecked
+            repositoryService.addObject((PrismObject<? extends ObjectType>) o, null, opResult);
         }
         opResult.computeStatusIfUnknown();
         assertTrue(opResult.isSuccess());
@@ -2207,16 +2209,15 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("checkQueryResult");
         List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, null, result);
-        for (PrismObject object : objects) {
+        for (PrismObject<T> object : objects) {
             logger.info("{}", object.getOid());
         }
-        int realCount = objects.size();
-        assertEquals("Expected count doesn't match for searchObjects " + query, count, realCount);
+        assertEquals("Expected count doesn't match for searchObjects " + query, count, objects.size());
 
         result.computeStatusIfUnknown();
         assertTrue(result.isSuccess());
 
-        realCount = repositoryService.countObjects(type, query, null, result);
+        int realCount = repositoryService.countObjects(type, query, null, result);
         assertEquals("Expected count doesn't match for countObjects " + query, count, realCount);
 
         result.computeStatusIfUnknown();
@@ -2323,8 +2324,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            TypeFilter type = prismContext.queryFactory().createType(UserType.COMPLEX_TYPE, null);
-            String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createQuery(type));
+            ObjectQuery query = prismContext.queryFor(ObjectType.class)
+                    .type(UserType.class)
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2343,8 +2346,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            TypeFilter type = prismContext.queryFactory().createType(AbstractRoleType.COMPLEX_TYPE, null);
-            String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createQuery(type));
+            ObjectQuery query = prismContext.queryFor(ObjectType.class)
+                    .type(AbstractRoleType.class)
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2382,7 +2387,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0570queryObjectypeByTypeUserAndLocality() throws Exception {
+    public void test0570QueryObjectTypeByTypeUserAndLocality() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2597,28 +2602,31 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
-    public void test0605QueryObjectypeByTypeAndReference() throws Exception {
+    @Test
+    public void test0605QueryObjectTypeByTypeAndReference() throws Exception {
         Session session = open();
         try {
             PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .id("c0c010c0-d34d-b33f-f00d-111111111111")
                     .or().type(RoleType.class)
-                    .item(roleDef, RoleType.F_DELEGATED_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
+                    .item(roleDef, RoleType.F_ROLE_MEMBERSHIP_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
-            String expected = "select o.oid, o.fullObject\n"
+            String expected = "select\n"
+                    + "  o.oid,\n"
+                    + "  o.fullObject\n"
                     + "from\n"
                     + "  RObject o\n"
+                    + "    left join o.roleMembershipRef r\n"
                     + "where\n"
                     + "  (\n"
                     + "    o.oid in :oid or\n"
                     + "    (\n"
                     + "      o.objectTypeClass = :objectTypeClass and\n"
                     + "      (\n"
-                    + "        o.ownerRef.targetOid = :targetOid and\n"  // TODO: change ownerRef -> delegatedRef
-                    + "        o.ownerRef.relation in (:relation)\n"
+                    + "        r.targetOid = :targetOid and\n"
+                    + "        r.relation in (:relation)\n"
                     + "      )\n"
                     + "    )\n"
                     + "  )\n";
@@ -2629,12 +2637,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
-    public void test0606QueryObjectypeByTypeAndOwnerRefOverloaded() throws Exception {
+    @Test
+    public void test0606QueryObjectTypeByTypeAndOwnerRefOverloaded() throws Exception {
         Session session = open();
         try {
-            PrismObjectDefinition<RoleType> roleDef =
-                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
             PrismObjectDefinition<AccessCertificationCampaignType> campaignDef =
                     prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationCampaignType.class);
             PrismObjectDefinition<AccessCertificationDefinitionType> definitionDef =
@@ -2644,14 +2650,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .id("c0c010c0-d34d-b33f-f00d-111111111111")
-//                    .or().type(RoleType.class).item(roleDef, RoleType.F_OWNER_REF).ref("role-owner-oid")
                     .or().type(AccessCertificationCampaignType.class).item(campaignDef, AccessCertificationCampaignType.F_OWNER_REF).ref("campaign-owner-oid")
                     .or().type(AccessCertificationDefinitionType.class).item(definitionDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("definition-owner-oid")
                     .or().type(TaskType.class).item(taskDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("task-owner-oid")
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n"
-                    + "  o.oid, o.fullObject\n"
+                    + "  o.oid,\n"
+                    + "  o.fullObject\n"
                     + "from\n"
                     + "  RObject o\n"
                     + "where\n"
@@ -2660,29 +2666,22 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "    (\n"
                     + "      o.objectTypeClass = :objectTypeClass and\n"
                     + "      (\n"
-                    + "        o.ownerRef.targetOid = :targetOid and\n"  // TODO: fix for missing RoleType.F_OWNER_REF
-                    + "        o.ownerRef.relation in (:relation)\n"
+                    + "        o.ownerRefCampaign.targetOid = :targetOid and\n"
+                    + "        o.ownerRefCampaign.relation in (:relation)\n"
                     + "      )\n"
                     + "    ) or\n"
                     + "    (\n"
                     + "      o.objectTypeClass = :objectTypeClass2 and\n"
                     + "      (\n"
-                    + "        o.ownerRefCampaign.targetOid = :targetOid2 and\n"
-                    + "        o.ownerRefCampaign.relation in (:relation2)\n"
+                    + "        o.ownerRefDefinition.targetOid = :targetOid2 and\n"
+                    + "        o.ownerRefDefinition.relation in (:relation2)\n"
                     + "      )\n"
                     + "    ) or\n"
                     + "    (\n"
                     + "      o.objectTypeClass = :objectTypeClass3 and\n"
                     + "      (\n"
-                    + "        o.ownerRefDefinition.targetOid = :targetOid3 and\n"
-                    + "        o.ownerRefDefinition.relation in (:relation3)\n"
-                    + "      )\n"
-                    + "    ) or\n"
-                    + "    (\n"
-                    + "      o.objectTypeClass = :objectTypeClass4 and\n"
-                    + "      (\n"
-                    + "        o.ownerRefTask.targetOid = :targetOid4 and\n"
-                    + "        o.ownerRefTask.relation in (:relation4)\n"
+                    + "        o.ownerRefTask.targetOid = :targetOid3 and\n"
+                    + "        o.ownerRefTask.relation in (:relation3)\n"
                     + "      )\n"
                     + "    )\n"
                     + "  )\n";
@@ -2804,7 +2803,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             assertEquals(1, objects.size());
 
             PrismObject<GenericObjectType> obj = objects.get(0);
-            assertTrue(obj.getCompileTimeClass().equals(GenericObjectType.class));
+            assertEquals(GenericObjectType.class, obj.getCompileTimeClass());
 
             result = new OperationResult("count");
             long count = repositoryService.countObjects(GenericObjectType.class, objectQuery, null, result);
@@ -2820,7 +2819,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test0640queryAssignmentExtensionBoolean() throws Exception {
         Session session = open();
         try {
-            PrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(
+            PrismPropertyDefinition<?> propDef = prismContext.definitionFactory().createPropertyDefinition(
                     SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN);
 
             ObjectQuery objectQuery = prismContext.queryFor(UserType.class)
@@ -2865,7 +2864,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             assertEquals(1, objects.size());
 
             PrismObject<UserType> obj = objects.get(0);
-            assertTrue(obj.getCompileTimeClass().equals(UserType.class));
+            assertEquals(UserType.class, obj.getCompileTimeClass());
 
             result = new OperationResult("count");
             long count = repositoryService.countObjects(UserType.class, objectQuery, null, result);
@@ -2990,8 +2989,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test0710QueryCertCaseOwner() throws Exception {
         Session session = open();
         try {
-            InOidFilter filter = prismContext.queryFactory().createOwnerHasOidIn("123456");
-            ObjectQuery query = prismContext.queryFactory().createQuery(filter);
+            ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
+                    .ownerId("123456")
+                    .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
@@ -4567,47 +4567,47 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     // TODO negative tests - order by entity, reference, any, collection
     // TODO implement checks for "order by" for non-singletons
 
-    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file) throws
+    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file) throws
             Exception {
         return getInterpretedQuery2(session, type, file, false);
     }
 
-    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file,
+    @SuppressWarnings("SameParameterValue")
+    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file,
             boolean interpretCount) throws Exception {
         ObjectQuery query = getQuery(file, type);
         return getInterpretedQuery2(session, type, query, interpretCount);
     }
 
     @Nullable
-    private ObjectQuery getQuery(File file, Class type)
+    private ObjectQuery getQuery(File file, Class<? extends Containerable> type)
             throws SchemaException, IOException {
         QueryType queryType = PrismTestUtil.parseAtomicValue(file, QueryType.COMPLEX_TYPE);
 
         logger.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType, prismContext));
 
-        ObjectQuery query = null;
         try {
-            query = getQueryConverter().createObjectQuery(type, queryType);        // TODO
+            return getQueryConverter().createObjectQuery(type, queryType);
         } catch (Exception ex) {
             logger.info("error while converting query: " + ex.getMessage(), ex);
+            return null;
         }
-        return query;
     }
 
     private QueryConverter getQueryConverter() {
         return prismContext.getQueryConverter();
     }
 
-    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
+    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
         return getInterpretedQuery2(session, type, query, false);
     }
 
-    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
+    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
             boolean interpretCount) throws Exception {
         return getInterpretedQuery2(session, type, query, interpretCount, null);
     }
 
-    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
+    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
             boolean interpretCount, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
         RQuery rQuery = getInterpretedQuery2Whole(session, type, query, interpretCount, options);
         return ((RQueryImpl) rQuery).getQuery().getQueryString();

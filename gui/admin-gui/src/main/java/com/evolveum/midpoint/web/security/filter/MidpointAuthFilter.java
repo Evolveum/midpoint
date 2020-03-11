@@ -27,12 +27,14 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
@@ -107,8 +109,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
-        getPreLogoutFilter().doFilter(request, response);
-
         AuthenticationsPolicyType authenticationsPolicy;
         CredentialsPolicyType credentialsPolicy = null;
         PrismObject<SecurityPolicyType> authPolicy = null;
@@ -146,16 +146,24 @@ public class MidpointAuthFilter extends GenericFilterBean {
             sequence = SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy);
         }
 
+
         if (mpAuthentication != null && !mpAuthentication.getSequence().equals(sequence) && mpAuthentication.isAuthenticated()
-                 && ((sequence != null && sequence.getChannel() != null
-                && mpAuthentication.getAuthenticationChannel().getChannelId().equals(sequence.getChannel().getChannelId()))
-        || mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest)))) {
-            sequence = mpAuthentication.getSequence();
+            && (((sequence != null && sequence.getChannel() != null && mpAuthentication.getAuthenticationChannel().matchChannel(sequence)))
+                || mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest)))) {
+                if (SecurityUtils.isBasePathForSequence(httpRequest, sequence)) {
+                    mpAuthentication.getAuthenticationChannel().setPathAfterLogout(((HttpServletRequest) request).getServletPath());
+                    ModuleAuthentication authenticatedModule = SecurityUtils.getAuthenticatedModule();
+                    authenticatedModule.setInternalLogout(true);
+                }
+                sequence = mpAuthentication.getSequence();
+
         }
 
         if (sequence == null) {
             throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in authentication of Security Policy with oid " + authPolicy.getOid());
         }
+
+        getPreLogoutFilter().doFilter(request, response);
 
         AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
 

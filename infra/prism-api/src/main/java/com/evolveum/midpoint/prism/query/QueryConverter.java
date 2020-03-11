@@ -34,16 +34,14 @@ public interface QueryConverter {
      * Tries to parse as much from filter as possible, without knowing the definition of object(s) to which the
      * filter will be applied. It is used mainly to parse path specifications, in order to avoid namespace loss
      * when serializing raw (unparsed) paths and QNames - see MID-1969.
-     * @param xfilter
-     * @param pc
      */
     void parseFilterPreliminarily(MapXNode xfilter, ParsingContext pc) throws SchemaException;
 
     // 1b. Parsing queries
 
-    <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, QueryType queryType) throws SchemaException;
+    <C extends Containerable> ObjectQuery createObjectQuery(Class<C> clazz, QueryType queryType) throws SchemaException;
 
-    <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, SearchFilterType filterType) throws SchemaException;
+    <C extends Containerable> ObjectQuery createObjectQuery(Class<C> clazz, SearchFilterType filterType) throws SchemaException;
 
     // 2. Serializing
 
@@ -51,10 +49,10 @@ public interface QueryConverter {
 
     SearchFilterType createSearchFilterType(ObjectFilter filter) throws SchemaException;
 
-    <O extends Objectable> ObjectFilter createObjectFilter(Class<O> clazz, SearchFilterType filterType)
+    <C extends Containerable> ObjectFilter createObjectFilter(Class<C> clazz, SearchFilterType filterType)
             throws SchemaException;
 
-    <O extends Objectable> ObjectFilter createObjectFilter(PrismObjectDefinition<O> objectDefinition, SearchFilterType filterType)
+    <C extends Containerable> ObjectFilter createObjectFilter(PrismContainerDefinition<C> containerDefinition, SearchFilterType filterType)
             throws SchemaException;
 
     MapXNode serializeFilter(ObjectFilter filter) throws SchemaException;

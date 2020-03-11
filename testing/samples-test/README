@@ -1,4 +1,0 @@
-Test module that tests consistency and validity of midpoint-samples
-
-WARNING: this module is not adapted after the separation of samples to
-a dedicated project. It is NOT part of the build now.

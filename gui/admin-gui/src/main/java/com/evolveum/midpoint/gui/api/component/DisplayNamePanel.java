@@ -10,6 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
+import com.evolveum.midpoint.util.DOMUtil;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -138,31 +144,41 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     private IModel<String> createHeaderModel() {
         // TODO: align with DisplayNameModel
-        if (getModelObject() == null) {
-            return Model.of("");
-        }
-        if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
-            return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
-        }
-        if (isObjectPolicyConfigurationType()) {
-            QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
-            ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType) getModel().getObject()).getObjectTemplateRef();
-            if (objectTemplate == null || objectTemplate.getTargetName() == null) {
-                return Model.of("");
+        return new ReadOnlyModel<String>(() -> {
+            if (getModelObject() == null) {
+                return "";
             }
-            String objectTemplateNameValue = objectTemplate.getTargetName().toString();
-            StringBuilder sb = new StringBuilder();
-            if (typeValue != null) {
-                sb.append(typeValue.getLocalPart()).append(" - ");
+            if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
+                return WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME);
             }
-            sb.append(objectTemplateNameValue);
-            return Model.of(sb.toString());
-        }
-        PrismProperty<PolyString> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
-        if (name == null || name.isEmpty()) {
-            return Model.of("");
-        }
-        return Model.of(WebComponentUtil.getTranslatedPolyString(name.getRealValue()));
+            if (isObjectPolicyConfigurationType()) {
+                QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
+                ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType) getModel().getObject()).getObjectTemplateRef();
+                if (objectTemplate == null || objectTemplate.getTargetName() == null) {
+                    return "";
+                }
+                String objectTemplateNameValue = objectTemplate.getTargetName().toString();
+                StringBuilder sb = new StringBuilder();
+                if (typeValue != null) {
+                    sb.append(typeValue.getLocalPart()).append(" - ");
+                }
+                sb.append(objectTemplateNameValue);
+                return sb.toString();
+            }
+            PrismProperty<?> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
+            if (name == null || name.isEmpty()) {
+                return "";
+            }
+
+            if (QNameUtil.match(DOMUtil.XSD_STRING,name.getDefinition().getTypeName())) {
+                return (String) name.getRealValue();
+            } else if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, name.getDefinition().getTypeName())) {
+                return WebComponentUtil.getTranslatedPolyString((PolyString) name.getRealValue());
+            }
+
+            return name.getRealValue().toString();
+        });
+
     }
 
     private IModel<String> createIdentifierModel() {

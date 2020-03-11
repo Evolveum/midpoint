@@ -32,6 +32,8 @@ public class ModuleAuthentication {
 
     private QName focusType;
 
+    private boolean internalLogout = false;
+
     public ModuleAuthentication(NameOfModuleType nameOfType) {
         Validate.notNull(nameOfType);
         this.nameOfType = nameOfType;
@@ -103,6 +105,14 @@ public class ModuleAuthentication {
         module.setType(this.getType());
         module.setPrefix(this.getPrefix());
         module.setFocusType(this.getFocusType());
+    }
+
+    public void setInternalLogout(boolean internalLogout) {
+        this.internalLogout = internalLogout;
+    }
+
+    public boolean isInternalLogout() {
+        return internalLogout;
     }
 
     @Override
