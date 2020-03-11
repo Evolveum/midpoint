@@ -1868,7 +1868,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.serverTasks"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
+        addObjectListPageMenuItem(item, "PageAdmin.menu.top.serverTasks.list", GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC, PageTasks.class);
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL)) {
