@@ -51,11 +51,6 @@ public class CertReviewEvent extends AccessCertificationEvent {
                 EventCategoryType.CERT_CASE_EVENT.equals(eventCategoryType);
     }
 
-    @Deprecated    // obsolete name
-    public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromRequestee() {
-        return getCasesAwaitingResponseFromActualReviewer();
-    }
-
     public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromActualReviewer() {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : cases) {

@@ -134,6 +134,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);

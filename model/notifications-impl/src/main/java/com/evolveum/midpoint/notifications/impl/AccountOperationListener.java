@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -148,6 +149,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         notificationManager.processEvent(request, task, result);
     }
 
+    @NotNull
     private ResourceObjectEvent createRequest(OperationStatus status,
                                               ResourceOperationDescription operationDescription,
                                               Task task,

@@ -21,19 +21,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordResetNotifie
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @Component
-public class PasswordResetNotifier extends ConfirmationNotifier {
+public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
 
     @Override
-    public void init() {
-        register(PasswordResetNotifierType.class);
+    public Class<PasswordResetNotifierType> getEventHandlerConfigurationType() {
+        return PasswordResetNotifierType.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
+    protected boolean quickCheckApplicability(ModelEvent event, PasswordResetNotifierType configuration,
             OperationResult result) {
-        if (!(super.quickCheckApplicability(event, generalNotifierType, result)) || !((ModelEvent) event).hasFocusOfType(UserType.class)) {
+        // TODO generalize to FocusType
+        if (!event.hasFocusOfType(UserType.class)) {
             LOGGER.trace(
                     "PasswordResetNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
                             + event.getClass());
@@ -44,19 +45,15 @@ public class PasswordResetNotifier extends ConfirmationNotifier {
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType,
+    protected boolean checkApplicability(ModelEvent event, PasswordResetNotifierType configuration,
             OperationResult result) {
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
-        }
-
-        ModelEvent modelEvent = (ModelEvent) event;
-        if (modelEvent.getFocusDeltas().isEmpty()) {
+        } else if (event.getFocusDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
             return false;
-        }
-        if (SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI.equals(modelEvent.getChannel())) {
+        } else if (SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI.equals(event.getChannel())) {
             LOGGER.trace("Found change from reset password channel.");
             return true;
         } else {
@@ -66,18 +63,17 @@ public class PasswordResetNotifier extends ConfirmationNotifier {
     }
 
     @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
+    protected String getSubject(ModelEvent event, PasswordResetNotifierType configuration, String transport,
             Task task, OperationResult result) {
         return "Password reset";
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-
+    protected String getBody(ModelEvent event, PasswordResetNotifierType generalNotifierType, String transport, Task task,
+            OperationResult result) {
         UserType userType = getUser(event);
-
-      return "Did you request password reset? If yes, click on the link bellow \n\n" + createConfirmationLink(userType, generalNotifierType, result);
-
+        return "Did you request password reset? If yes, click on the link bellow \n\n"
+                + createConfirmationLink(userType, generalNotifierType, result);
     }
 
     @Override

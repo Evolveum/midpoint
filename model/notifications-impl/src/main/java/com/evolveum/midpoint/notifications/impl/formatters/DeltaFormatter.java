@@ -39,8 +39,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class DeltaFormatter {
 
     @Autowired private ValueFormatter valueFormatter;
-    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
-    @Autowired private PrismContext prismContext;
     @Autowired protected NotificationFunctionsImpl functions;
     @Autowired private LocalizationService localizationService;
 
