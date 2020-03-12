@@ -8,11 +8,7 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -41,27 +37,10 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditSearchType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetDataFieldTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetPresentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetVariationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IntegerStatType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -99,77 +78,77 @@ public class DashboardServiceImpl implements DashboardService {
         return data;
     }
 
-    private DisplayType combinateDisplay(DisplayType display, DisplayType variationDisplay) {
-        DisplayType combinatedDisplay = new DisplayType();
+    private DisplayType combineDisplay(DisplayType display, DisplayType variationDisplay) {
+        DisplayType combinedDisplay = new DisplayType();
         if (variationDisplay == null) {
             return display;
         }
-        if(display == null) {
+        if (display == null) {
             return variationDisplay;
         }
-        if(StringUtils.isBlank(variationDisplay.getColor())) {
-            combinatedDisplay.setColor(display.getColor());
+        if (StringUtils.isBlank(variationDisplay.getColor())) {
+            combinedDisplay.setColor(display.getColor());
         } else {
-            combinatedDisplay.setColor(variationDisplay.getColor());
+            combinedDisplay.setColor(variationDisplay.getColor());
         }
-        if(StringUtils.isBlank(variationDisplay.getCssClass())) {
-            combinatedDisplay.setCssClass(display.getCssClass());
+        if (StringUtils.isBlank(variationDisplay.getCssClass())) {
+            combinedDisplay.setCssClass(display.getCssClass());
         } else {
-            combinatedDisplay.setCssClass(variationDisplay.getCssClass());
+            combinedDisplay.setCssClass(variationDisplay.getCssClass());
         }
-        if(StringUtils.isBlank(variationDisplay.getCssStyle())) {
-            combinatedDisplay.setCssStyle(display.getCssStyle());
+        if (StringUtils.isBlank(variationDisplay.getCssStyle())) {
+            combinedDisplay.setCssStyle(display.getCssStyle());
         } else {
-            combinatedDisplay.setCssStyle(variationDisplay.getCssStyle());
+            combinedDisplay.setCssStyle(variationDisplay.getCssStyle());
         }
-        if(variationDisplay.getHelp() == null) {
-            combinatedDisplay.setHelp(display.getHelp());
+        if (variationDisplay.getHelp() == null) {
+            combinedDisplay.setHelp(display.getHelp());
         } else {
-            combinatedDisplay.setHelp(variationDisplay.getHelp());
+            combinedDisplay.setHelp(variationDisplay.getHelp());
         }
-        if(variationDisplay.getLabel() == null) {
-            combinatedDisplay.setLabel(display.getLabel());
+        if (variationDisplay.getLabel() == null) {
+            combinedDisplay.setLabel(display.getLabel());
         } else {
-            combinatedDisplay.setLabel(variationDisplay.getLabel());
+            combinedDisplay.setLabel(variationDisplay.getLabel());
         }
-        if(variationDisplay.getSingularLabel() == null) {
-            combinatedDisplay.setSingularLabel(display.getSingularLabel());
+        if (variationDisplay.getSingularLabel() == null) {
+            combinedDisplay.setSingularLabel(display.getSingularLabel());
         } else {
-            combinatedDisplay.setSingularLabel(variationDisplay.getSingularLabel());
+            combinedDisplay.setSingularLabel(variationDisplay.getSingularLabel());
         }
-        if(variationDisplay.getPluralLabel() == null) {
-            combinatedDisplay.setPluralLabel(display.getPluralLabel());
+        if (variationDisplay.getPluralLabel() == null) {
+            combinedDisplay.setPluralLabel(display.getPluralLabel());
         } else {
-            combinatedDisplay.setPluralLabel(variationDisplay.getPluralLabel());
+            combinedDisplay.setPluralLabel(variationDisplay.getPluralLabel());
         }
-        if(variationDisplay.getTooltip() == null) {
-            combinatedDisplay.setTooltip(display.getTooltip());
+        if (variationDisplay.getTooltip() == null) {
+            combinedDisplay.setTooltip(display.getTooltip());
         } else {
-            combinatedDisplay.setTooltip(variationDisplay.getTooltip());
+            combinedDisplay.setTooltip(variationDisplay.getTooltip());
         }
-        if(variationDisplay.getIcon() == null) {
-            combinatedDisplay.setIcon(display.getIcon());
-        } else if(display.getIcon() != null){
+        if (variationDisplay.getIcon() == null) {
+            combinedDisplay.setIcon(display.getIcon());
+        } else if (display.getIcon() != null) {
             IconType icon = new IconType();
-            if(StringUtils.isBlank(variationDisplay.getIcon().getCssClass())) {
+            if (StringUtils.isBlank(variationDisplay.getIcon().getCssClass())) {
                 icon.setCssClass(display.getIcon().getCssClass());
             } else {
                 icon.setCssClass(variationDisplay.getIcon().getCssClass());
             }
-            if(StringUtils.isBlank(variationDisplay.getIcon().getColor())) {
+            if (StringUtils.isBlank(variationDisplay.getIcon().getColor())) {
                 icon.setColor(display.getIcon().getColor());
             } else {
                 icon.setColor(variationDisplay.getIcon().getColor());
             }
-            if(StringUtils.isBlank(variationDisplay.getIcon().getImageUrl())) {
+            if (StringUtils.isBlank(variationDisplay.getIcon().getImageUrl())) {
                 icon.setImageUrl(display.getIcon().getImageUrl());
             } else {
                 icon.setImageUrl(variationDisplay.getIcon().getImageUrl());
             }
-            combinatedDisplay.setIcon(icon);
+            combinedDisplay.setIcon(icon);
         }
 
-        return combinatedDisplay;
+        return combinedDisplay;
     }
 
     public DashboardWidgetSourceTypeType getSourceType(DashboardWidgetType widget) {
@@ -227,7 +206,7 @@ public class DashboardServiceImpl implements DashboardService {
             return null;
         }
 
-        Map<String, Object> parameters = new HashMap<String, Object>();
+        Map<String, Object> parameters = new HashMap<>();
         String query = getQueryForCount(createQuery(collection,
                 parameters, false, clock));
         LOGGER.debug("Parameters for select: " + parameters);
@@ -237,7 +216,7 @@ public class DashboardServiceImpl implements DashboardService {
         if(auditSearch.getDomainQuery() == null) {
             LOGGER.error("DomainQuery of auditSearch is not defined");
         } else {
-            parameters = new HashMap<String, Object>();
+            parameters = new HashMap<>();
             query = getQueryForCount(createQuery(collection,
                     parameters, true, clock));
             LOGGER.debug("Parameters for select: " + parameters);
@@ -251,7 +230,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private String getQueryForCount(String query) {
         int index = query.toLowerCase().indexOf("from");
-        query = "select count (*) " + query.substring(index);
+        query = "select count(*) " + query.substring(index);
         query = query.split("order")[0];
         LOGGER.debug("Query for select: " + query);
         return query;
@@ -273,7 +252,7 @@ public class DashboardServiceImpl implements DashboardService {
 
             Collection<EvaluatedPolicyRule> evalPolicyRules = modelInteractionService.evaluateCollectionPolicyRules(
                     valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
-            Collection<String> policySituations = new ArrayList<String>();
+            Collection<String> policySituations = new ArrayList<>();
             for(EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
                 if(!evalPolicyRule.getAllTriggers().isEmpty()) {
                     policySituations.add(evalPolicyRule.getPolicySituation());
@@ -317,7 +296,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private String generateNumberMessage(DashboardWidgetType widget, ExpressionVariables variables, DashboardWidget data) {
-        Map<DashboardWidgetDataFieldTypeType, String> numberMessagesParts = new HashMap<DashboardWidgetDataFieldTypeType, String>();
+        Map<DashboardWidgetDataFieldTypeType, String> numberMessagesParts = new HashMap<>();
         widget.getPresentation().getDataField().forEach(dataField -> {
             switch(dataField.getFieldType()) {
 
@@ -375,7 +354,7 @@ public class DashboardServiceImpl implements DashboardService {
 
                         if(usingVariation != null && usingVariation.getRealValue() != null
                                 && usingVariation.getRealValue().equals(Boolean.TRUE)) {
-                            data.setDisplay(combinateDisplay(widget.getDisplay(), variation.getDisplay()));
+                            data.setDisplay(combineDisplay(widget.getDisplay(), variation.getDisplay()));
                         } else {
                             data.setDisplay(widget.getDisplay());
                         }
@@ -416,8 +395,7 @@ public class DashboardServiceImpl implements DashboardService {
             return null;
         }
         ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
-        ObjectCollectionType collection = objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection from "+widget, task, result);
-        return collection;
+        return objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection from "+widget, task, result);
     }
 
     private ObjectType getObjectFromObjectRef(DashboardWidgetType widget, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

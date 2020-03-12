@@ -11,11 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -26,10 +21,15 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -37,12 +37,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,6 +49,8 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -63,12 +60,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public abstract class PageAbstractSelfCredentials extends PageSelf {
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageAbstractSelfCredentials.class);
+
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageAbstractSelfCredentials.class);
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
@@ -101,20 +99,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         Breadcrumb bc = getLastBreadcrumb();
         bc.setIcon(new Model<>("fa fa-shield"));
     }
-
-    public PageAbstractSelfCredentials(final MyPasswordsDto myPasswordsDto) {
-        model = new LoadableModel<MyPasswordsDto>(myPasswordsDto, false) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected MyPasswordsDto load() {
-                return myPasswordsDto;
-            }
-        };
-
-        initLayout();
-    }
-
+    
     private MyPasswordsDto loadPageModel() {
         LOGGER.debug("Loading user and accounts.");
         MyPasswordsDto dto = new MyPasswordsDto();
@@ -153,6 +138,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 }
 
                 final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                        .noFetch()
                         .item(ShadowType.F_RESOURCE_REF).resolve()
                         .build();
                 List<PrismReferenceValue> values = reference.getValues();
@@ -396,17 +382,34 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
-            RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
-                    shadow.asObjectable().getResourceRef().asReferenceValue().getObject(),
-                    AuthorizationPhaseType.REQUEST, task, result);
 
-            if (rOCDef != null && !CollectionUtils.isEmpty(rOCDef.getPasswordOutbound())){
+            //TODO cannot be null?
+            PrismObject<ResourceType> resource = shadow.asObjectable().getResourceRef().asReferenceValue().getObject();
+
+            RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
+                    resource, AuthorizationPhaseType.REQUEST, task, result);
+
+            List<MappingType> passwordOutbound = rOCDef.getPasswordOutbound();
+            for (MappingType mapping : passwordOutbound) {
+                if (MappingStrengthType.WEAK == mapping.getStrength()) {
+                    CredentialsCapabilityType capability = ResourceTypeUtil.getEffectiveCapability(resource.asObjectable(), CredentialsCapabilityType.class);
+                    if (CapabilityUtil.isPasswordReadable(capability)) {
+                        return true;
+                    }
+                    continue;
+                }
+                // at least one mapping which is not WEAK
                 return true;
             }
-        } catch (SchemaException ex) {
 
+        } catch (SchemaException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to compute password propagation for {} ", ex, shadow);
+            result.recordFatalError("Faile to compute password propagation for " + shadow, ex);
+            showResult(result);
         }
+
         return false;
+
     }
 
 
