@@ -53,6 +53,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
+    private static final String KEY_CERT_DECISIONS = "certDecisions";
 
     /**
      * Contains state for first level menu items. Key is menu label text, value if true then
@@ -205,6 +206,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());
         }
         return (CertCampaignsStorage)pageStorageMap.get(KEY_CERT_CAMPAIGNS);
+    }
+
+    public CertDecisionsStorage getCertDecisions() {
+        if (pageStorageMap.get(KEY_CERT_DECISIONS) == null) {
+            pageStorageMap.put(KEY_CERT_DECISIONS, new CertDecisionsStorage());
+        }
+        return (CertDecisionsStorage)pageStorageMap.get(KEY_CERT_DECISIONS);
     }
 
     public ReportsStorage getReports() {
