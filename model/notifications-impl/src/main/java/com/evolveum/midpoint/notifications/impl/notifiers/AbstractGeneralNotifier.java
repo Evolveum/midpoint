@@ -345,7 +345,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     boolean isWatchAuxiliaryAttributes(N configuration) {
-        return Boolean.TRUE.equals((configuration).isWatchAuxiliaryAttributes());
+        return Boolean.TRUE.equals(configuration.isWatchAuxiliaryAttributes());
     }
 
     String formatRequester(E event, OperationResult result) {

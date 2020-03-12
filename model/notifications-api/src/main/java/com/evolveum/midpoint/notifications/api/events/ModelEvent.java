@@ -22,11 +22,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
@@ -149,23 +146,24 @@ public class ModelEvent extends BaseEvent {
         return getFocusContext() != null ? getFocusContext().getSecondaryDelta() : null;
     }
 
-    public List<ObjectDelta<FocusType>> getFocusDeltas() {
-        List<ObjectDelta<FocusType>> retval = new ArrayList<>();
+    public List<ObjectDelta<AssignmentHolderType>> getFocusDeltas() {
+        List<ObjectDelta<AssignmentHolderType>> retval = new ArrayList<>();
         Class c = modelContext.getFocusClass();
-        if (c != null && FocusType.class.isAssignableFrom(c)) {
+        if (c != null && AssignmentHolderType.class.isAssignableFrom(c)) {
             for (Object o : getFocusExecutedDeltas()) {
                 ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
+                //noinspection unchecked
                 retval.add(objectDeltaOperation.getObjectDelta());
             }
         }
         return retval;
     }
 
-    public ObjectDelta<? extends FocusType> getSummarizedFocusDeltas() throws SchemaException {
+    public ObjectDelta<? extends AssignmentHolderType> getSummarizedFocusDeltas() throws SchemaException {
         return ObjectDeltaCollectionsUtil.summarize(getFocusDeltas());
     }
 
-    public boolean hasFocusOfType(Class<? extends FocusType> clazz) {
+    public boolean hasFocusOfType(Class<? extends AssignmentHolderType> clazz) {
         return getFocusContext() != null && clazz.isAssignableFrom(getFocusContext().getObjectTypeClass());
     }
 

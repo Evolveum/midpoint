@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -27,16 +29,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleFocalObjectNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- *
+ * This is the "main" notifier that deals with modifications of focal objects i.e. AssignmentHolderType and below.
  */
 @Component
-public abstract class AbstractFocalObjectNotifier<C extends SimpleFocalObjectNotifierType, F extends FocusType> extends AbstractGeneralNotifier<ModelEvent, C> {
+public abstract class AbstractFocalObjectNotifier<C extends SimpleFocalObjectNotifierType, F extends AssignmentHolderType> extends AbstractGeneralNotifier<ModelEvent, C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractFocalObjectNotifier.class);
 
@@ -60,14 +58,14 @@ public abstract class AbstractFocalObjectNotifier<C extends SimpleFocalObjectNot
 
     @Override
     protected boolean checkApplicability(ModelEvent event, C configuration, OperationResult result) {
-        List<ObjectDelta<FocusType>> deltas = event.getFocusDeltas();
+        List<ObjectDelta<AssignmentHolderType>> deltas = event.getFocusDeltas();
         if (deltas.isEmpty()) {
             LOGGER.trace("No deltas found, skipping the notification");
             return false;
         } else if (isWatchAuxiliaryAttributes(configuration)) {
             return true;
         } else {
-            for (ObjectDelta<FocusType> delta : deltas) {
+            for (ObjectDelta<AssignmentHolderType> delta : deltas) {
                 if (!delta.isModify() || deltaContainsOtherPathsThan(delta, functions.getAuxiliaryPaths())) {
                     return true;
                 }
@@ -103,15 +101,15 @@ public abstract class AbstractFocalObjectNotifier<C extends SimpleFocalObjectNot
         boolean techInfo = Boolean.TRUE.equals(configuration.isShowTechnicalInformation());
 
         //noinspection unchecked
-        ModelContext<FocusType> modelContext = (ModelContext<FocusType>) modelEvent.getModelContext();
-        ModelElementContext<FocusType> focusContext = modelContext.getFocusContext();
-        PrismObject<FocusType> focusObject = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
-        FocusType focus = focusObject.asObjectable();
+        ModelContext<AssignmentHolderType> modelContext = (ModelContext<AssignmentHolderType>) modelEvent.getModelContext();
+        ModelElementContext<AssignmentHolderType> focusContext = modelContext.getFocusContext();
+        PrismObject<AssignmentHolderType> focusObject = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
+        AssignmentHolderType focus = focusObject.asObjectable();
         String oid = focusContext.getOid();
 
         String fullName = emptyIfNull(getFullName(focus));
 
-        ObjectDelta<FocusType> delta = ObjectDeltaCollectionsUtil.summarize(modelEvent.getFocusDeltas());
+        ObjectDelta<AssignmentHolderType> delta = ObjectDeltaCollectionsUtil.summarize(modelEvent.getFocusDeltas());
 
         StringBuilder body = new StringBuilder();
 
@@ -150,14 +148,14 @@ public abstract class AbstractFocalObjectNotifier<C extends SimpleFocalObjectNot
     }
 
     @Nullable
-    private String getFullName(FocusType focus) {
+    private String getFullName(AssignmentHolderType focus) {
         String fullName;
         if (focus instanceof UserType) {
             fullName = PolyString.getOrig(((UserType) focus).getFullName());
         } else if (focus instanceof AbstractRoleType) {
             fullName = PolyString.getOrig(((AbstractRoleType) focus).getDisplayName());
         } else {
-            fullName = "";          // TODO (currently it's not possible to get here)
+            fullName = "";          // TODO
         }
         return fullName;
     }
