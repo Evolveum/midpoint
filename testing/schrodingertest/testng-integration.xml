@@ -7,94 +7,26 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="integration" parallel="false" verbose="1">
-    <test name="Schrodinger.scenarios.UserPhotoTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+    <test name="schrodinger" preserve-order="true" parallel="false" verbose="3" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.UserPhotoTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.OrganizationStructureTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.OrganizationStructureTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.UserAccountTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.UserAccountTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.OrgMembersTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.OrgMembersTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.PolyStringTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.PolyStringTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.PostAuthenticationTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.PostAuthenticationTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.SynchronizationTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.SynchronizationTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.ObjectListArchetypeTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.ObjectListArchetypeTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.scenarios.CaseTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.CaseTests"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.UserTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.UserTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.UsersTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.UsersTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.page.QueryPlaygroundPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.testing.schrodinger.page.QueryPlaygroundPageTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.page.InternalsConfigurationPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.testing.schrodinger.page.InternalsConfigurationPageTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.page.LoginPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.testing.schrodinger.page.LoginPageTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.page.LoginPageWithAuthenticationConfigTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.testing.schrodinger.page.LoginPageWithAuthenticationConfigTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.page.AboutPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.testing.schrodinger.page.AboutPageTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.page.BulkActionsTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.testing.schrodinger.page.BulkActionsTest"/>
-        </classes>
-    </test>
-    <test name="Schrodinger.ImportTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
-        <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.ImportTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.QueryPlaygroundPageTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.InternalsConfigurationPageTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.LoginPageTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.LoginPageWithAuthenticationConfigTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.AboutPageTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.BulkActionsTest"/>
         </classes>
     </test>
 </suite>
