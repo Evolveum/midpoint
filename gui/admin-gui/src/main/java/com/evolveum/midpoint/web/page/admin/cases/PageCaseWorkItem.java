@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -98,6 +99,10 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private WorkItemId workItemId;
     private PageParameters pageParameters;
 
+    public PageCaseWorkItem() {
+        this(null);
+    }
+
     public PageCaseWorkItem(CaseWorkItemType workItem) {
         this(workItem, null);
     }
@@ -108,7 +113,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
             @Override
             protected CaseWorkItemType load() {
-                return workItem;
+                if (workItem != null) {
+                    return workItem;
+                } else {
+                    getSession().error("Workitem model cannot be null");
+                    throw redirectBackViaRestartResponseException();
+                }
             }
         };
 
