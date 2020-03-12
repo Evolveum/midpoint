@@ -173,8 +173,13 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                         return originConverter.convertToObject(row.getKey(), locale);
                     }
                 }
+                boolean differentValue = true;
+                if (getBaseFormComponent() != null && getBaseFormComponent().getModelObject() != null
+                        && getBaseFormComponent().getModelObject().equals(value)) {
+                    differentValue = false;
+                }
 
-                if (strict) {
+                if (differentValue && strict) {
                     throw new ConversionException("Cannot convert " + value);
                 }
 
