@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -51,17 +52,11 @@ public class GeneralNotifier extends BaseHandler {
 
     private static final Trace DEFAULT_LOGGER = TraceManager.getTrace(GeneralNotifier.class);
 
-    @Autowired
-    protected NotificationManager notificationManager;
-
-    @Autowired
-    protected NotificationFunctionsImpl functions;
-
-    @Autowired
-    protected TextFormatter textFormatter;
-
-    @Autowired
-    protected AggregatedEventHandler aggregatedEventHandler;
+    @Autowired protected NotificationManager notificationManager;
+    @Autowired protected NotificationFunctionsImpl functions;
+    @Autowired protected TextFormatter textFormatter;
+    @Autowired protected ValueFormatter valueFormatter;
+    @Autowired protected AggregatedEventHandler aggregatedEventHandler;
 
     @PostConstruct
     public void init() {

@@ -39,11 +39,8 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleReviewerNotifier.class);
 
-    @Autowired
-    private MidpointFunctions midpointFunctions;
-
-    @Autowired
-    private CertHelper certHelper;
+    @Autowired private MidpointFunctions midpointFunctions;
+    @Autowired private CertHelper certHelper;
 
     @PostConstruct
     public void init() {
@@ -97,9 +94,9 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
 
         body.append("You have been requested to provide a review in a certification campaign.");
         body.append("\n");
-        body.append("\nReviewer: ").append(textFormatter.formatUserName(reviewEvent.getActualReviewer(), result));
+        body.append("\nReviewer: ").append(valueFormatter.formatUserName(reviewEvent.getActualReviewer(), result));
         if (!reviewEvent.getActualReviewer().getOid().equals(reviewEvent.getRequesteeOid())) {
-            body.append("\nDeputy: ").append(textFormatter.formatUserName(reviewEvent.getRequestee(), result));
+            body.append("\nDeputy: ").append(valueFormatter.formatUserName(reviewEvent.getRequestee(), result));
         }
         body.append("\n");
         body.append("\nCampaign: ").append(certHelper.getCampaignNameAndOid(reviewEvent));
