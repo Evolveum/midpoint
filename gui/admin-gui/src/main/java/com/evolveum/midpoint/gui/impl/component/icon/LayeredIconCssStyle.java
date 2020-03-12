@@ -12,8 +12,8 @@ package com.evolveum.midpoint.gui.impl.component.icon;
  */
 public interface LayeredIconCssStyle extends IconCssStyle {
 
-    public String getBasicLayerCssClass();
+    String getBasicLayerCssClass();
 
-    public String getStrokeLayerCssClass();
+    String getStrokeLayerCssClass();
 
 }

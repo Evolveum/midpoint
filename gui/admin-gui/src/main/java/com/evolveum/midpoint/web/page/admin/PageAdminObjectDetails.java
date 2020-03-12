@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
@@ -407,7 +408,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
    }
 
     protected void initOperationalButtons(RepeatingView repeatingView){
-        if (getObjectArchetypeRef() != null) {
+        if (getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())) {
             AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
                 @Override
                 public void onClick(AjaxRequestTarget target) {
@@ -526,7 +527,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                                 if (query == null) {
                                     query = getPrismContext().queryFactory().createQuery();
                                 }
-                                List<String> archetypeOidsList = getFilteredArchetypeOidsList();
+                                List<String> archetypeOidsList = getArchetypeOidsListToAssign();
                                 ObjectFilter filter = getPrismContext().queryFor(ArchetypeType.class)
                                         .id(archetypeOidsList.toArray(new String[0]))
                                         .buildFilter();
@@ -543,6 +544,18 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         changeArchetypePopup.setOutputMarkupPlaceholderTag(true);
         showMainPopup(changeArchetypePopup, target);
 
+    }
+
+    private List<String> getArchetypeOidsListToAssign(){
+        List<String> archetypeOidsList = getFilteredArchetypeOidsList();
+
+        ObjectReferenceType archetypeRef = getObjectArchetypeRef();
+        if (archetypeRef != null && StringUtils.isNotEmpty(archetypeRef.getOid())){
+            if (archetypeOidsList.contains(archetypeRef.getOid())){
+                archetypeOidsList.remove(archetypeRef.getOid());
+            }
+        }
+        return archetypeOidsList;
     }
 
     private List<String> getFilteredArchetypeOidsList(){
