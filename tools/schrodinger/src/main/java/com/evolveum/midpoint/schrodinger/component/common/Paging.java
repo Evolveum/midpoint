@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schrodinger.component.common;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.SchrodingerException;
 import com.evolveum.midpoint.schrodinger.component.Component;
@@ -27,21 +28,25 @@ public class Paging<T> extends Component<T> {
 
     public Paging<T> first() {
         getParentElement().$(Schrodinger.byElementValue("a", "<<")).click();
+        Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> previous() {
         getParentElement().$(Schrodinger.byElementValue("a", "<")).click();
+        Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> next() {
         getParentElement().$(Schrodinger.byElementValue("a", ">")).click();
+        Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> last() {
         getParentElement().$(Schrodinger.byElementValue("a", ">>")).click();
+        Selenide.sleep(1000);
         return this;
     }
 
@@ -63,21 +68,25 @@ public class Paging<T> extends Component<T> {
 
     public Paging<T> actualPageMinusOne() {
         moveThroughPages(-1);
+        Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> actualPageMinusTwo() {
         moveThroughPages(-2);
+        Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> actualPagePlusOne() {
         moveThroughPages(1);
+        Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> actualPagePlusTwo() {
         moveThroughPages(2);
+        Selenide.sleep(1000);
         return this;
     }
 
@@ -96,7 +105,7 @@ public class Paging<T> extends Component<T> {
 
         popover.$(By.tagName("input")).setValue(Integer.toString(size));
         popover.$(By.tagName("button")).click();
-
+        Selenide.sleep(2000);
         return this;
     }
 
