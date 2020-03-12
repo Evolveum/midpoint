@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.notifications.api.events.*;
-import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -185,11 +184,11 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     private void appendDeadlineInformation(StringBuilder sb, WorkItemEvent event) {
         CaseWorkItemType workItem = event.getWorkItem();
         if (!isDone(event) && workItem.getDeadline() != null) {
-            appendDeadlineInformation(sb, workItem, textFormatter);
+            appendDeadlineInformation(sb, workItem);
         }
     }
 
-    static void appendDeadlineInformation(StringBuilder sb, AbstractWorkItemType workItem, TextFormatter textFormatter) {
+    void appendDeadlineInformation(StringBuilder sb, AbstractWorkItemType workItem) {
         XMLGregorianCalendar deadline = workItem.getDeadline();
         long before = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
         long beforeRounded = Math.round((double) before / 60000.0) * 60000L;
@@ -202,7 +201,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         } else {
             beforePhrase = "";
         }
-        sb.append("Deadline: ").append(textFormatter.formatDateTime(deadline)).append(beforePhrase).append("\n");
+        sb.append("Deadline: ").append(valueFormatter.formatDateTime(deadline)).append(beforePhrase).append("\n");
         sb.append("\n");
     }
 
@@ -224,7 +223,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
             SimpleObjectRef initiator = event.getInitiator();
             if (initiator != null && !isCancelled(event)) {
                 UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
-                sb.append("Carried out by: ").append(textFormatter.formatUserName(initiatorFull, initiator.getOid())).append("\n");
+                sb.append("Carried out by: ").append(valueFormatter.formatUserName(initiatorFull, initiator.getOid())).append("\n");
                 atLeastOne = true;
             }
         }
@@ -241,7 +240,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         if (currentAssignees.size() != 1 || !java.util.Objects.equals(originalAssignee.getOid(), currentAssignees.get(0).getOid())) {
             UserType originalAssigneeObject = (UserType) functions.getObjectType(originalAssignee, true, result);
             sb.append("Originally allocated to: ").append(
-                    textFormatter.formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
+                    valueFormatter.formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
             atLeastOne = true;
         }
         if (!workItem.getAssigneeRef().isEmpty()) {
@@ -253,7 +252,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
             }
             sb.append(": ");
             sb.append(workItem.getAssigneeRef().stream()
-                    .map(ref -> textFormatter.formatUserName(ref, result))
+                    .map(ref -> valueFormatter.formatUserName(ref, result))
                     .collect(Collectors.joining(", ")));
             sb.append("\n");
             atLeastOne = true;
