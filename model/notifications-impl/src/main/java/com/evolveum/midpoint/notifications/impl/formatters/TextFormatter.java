@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,7 @@ import java.util.*;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 /**
- * @author mederly
+ * Prepares text output for notification purposes.
  */
 @Component
 public class TextFormatter {
@@ -57,15 +58,15 @@ public class TextFormatter {
     private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
 
     @SuppressWarnings("unused")
-    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths,
+            boolean showOperationalAttributes) {
         return formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, null, null);
     }
 
     // objectOld and objectNew are used for explaining changed container values, e.g. assignment[1]/tenantRef (see MID-2047)
     // if null, they are ignored
-    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes,
-                                                PrismObject objectOld, PrismObject objectNew) {
-        Validate.notNull(objectDelta, "objectDelta is null");
+    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths,
+            boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
         Validate.isTrue(objectDelta.isModify(), "objectDelta is not a modification delta");
 
         PrismObjectDefinition objectDefinition;
@@ -77,23 +78,22 @@ public class TextFormatter {
             objectDefinition = null;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("formatObjectModificationDelta: objectDelta = " + objectDelta.debugDump() + ", hiddenPaths = " + PrettyPrinter.prettyPrint(hiddenPaths));
-        }
+        LOGGER.trace("formatObjectModificationDelta: objectDelta:\n{}\n\nhiddenPaths:\n{}",
+                objectDelta.debugDumpLazily(), PrettyPrinter.prettyPrintLazily(hiddenPaths));
 
-        StringBuilder retval = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
 
         List<ItemDelta> toBeDisplayed = filterAndOrderItemDeltas(objectDelta, hiddenPaths, showOperationalAttributes);
         for (ItemDelta itemDelta : toBeDisplayed) {
-            retval.append(" - ");
-            retval.append(getItemDeltaLabel(itemDelta, objectDefinition));
-            retval.append(":\n");
-            formatItemDeltaContent(retval, itemDelta, objectOld, hiddenPaths, showOperationalAttributes);
+            sb.append(" - ");
+            sb.append(getItemDeltaLabel(itemDelta, objectDefinition));
+            sb.append(":\n");
+            formatItemDeltaContent(sb, itemDelta, objectOld, hiddenPaths, showOperationalAttributes);
         }
 
-        explainPaths(retval, toBeDisplayed, objectDefinition, objectOld, objectNew, hiddenPaths, showOperationalAttributes);
+        explainPaths(sb, toBeDisplayed, objectDefinition, objectOld, objectNew, hiddenPaths, showOperationalAttributes);
 
-        return retval.toString();
+        return sb.toString();
     }
 
     private void explainPaths(StringBuilder sb, List<ItemDelta> deltas, PrismObjectDefinition objectDefinition, PrismObject objectOld, PrismObject objectNew, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {

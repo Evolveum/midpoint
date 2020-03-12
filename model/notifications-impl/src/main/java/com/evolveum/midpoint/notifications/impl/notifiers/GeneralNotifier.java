@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,7 +44,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.N
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 /**
- * @author mederly
+ *
  */
 @Component
 public class GeneralNotifier extends BaseHandler {
@@ -112,15 +111,23 @@ public class GeneralNotifier extends BaseHandler {
 
                             if (!recipientsAddresses.isEmpty()) {
 
-                                String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
+                                String body;
+                                ExpressionType bodyExpression = generalNotifierType.getBodyExpression();
+                                if (bodyExpression != null) {
+                                    body = getBodyFromExpression(event, bodyExpression, variables, task, result);
+                                } else {
+                                    body = getBody(event, generalNotifierType, transportName, task, result);
+                                }
+                                if (body == null) {
+                                    getLogger().debug("Skipping notification as null body was provided for transport={}", transportName);
+                                    continue;
+                                }
+
                                 String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
                                 String from = getFromFromExpression(event, generalNotifierType, variables, task, result);
                                 String contentType = getContentTypeFromExpression(event, generalNotifierType, variables, task, result);
-                                List<NotificationMessageAttachmentType> attachments = getAttachementsFromExpression(event, generalNotifierType, variables, task, result);
+                                List<NotificationMessageAttachmentType> attachments = getAttachmentsFromExpression(event, generalNotifierType, variables, task, result);
 
-                                if (body == null) {
-                                    body = getBody(event, generalNotifierType, transportName, task, result);
-                                }
                                 if (subject == null) {
                                     subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
                                     subject += getSubject(event, generalNotifierType, transportName, task, result);
@@ -128,15 +135,15 @@ public class GeneralNotifier extends BaseHandler {
 
                                 if (attachments == null) {
                                     attachments = generalNotifierType.getAttachment();
-                                    if(attachments == null) {
+                                    if (attachments == null) {
                                         attachments = getAttachment(event, generalNotifierType, transportName, task, result);
                                     }
-                                } else if(generalNotifierType.getAttachment() != null) {
+                                } else if (generalNotifierType.getAttachment() != null) {
                                     attachments.addAll(generalNotifierType.getAttachment());
                                 }
 
                                 Message message = new Message();
-                                message.setBody(body != null ? body : "");
+                                message.setBody(body);
                                 if (contentType != null) {
                                     message.setContentType(contentType);
                                 } else if (generalNotifierType.getContentType() != null) {
@@ -197,6 +204,7 @@ public class GeneralNotifier extends BaseHandler {
         return null;
     }
 
+    @SuppressWarnings("WeakerAccess") // open for future extension
     protected List<NotificationMessageAttachmentType> getAttachment(Event event, GeneralNotifierType generalNotifierType,
             String transportName, Task task, OperationResult result) {
         return null;
@@ -287,26 +295,23 @@ public class GeneralNotifier extends BaseHandler {
         }
     }
 
-    protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
+    @NotNull
+    private String getBodyFromExpression(Event event, @NotNull ExpressionType bodyExpression, ExpressionVariables variables,
             Task task, OperationResult result) {
-        if (generalNotifierType.getBodyExpression() != null) {
-            List<String> bodyList = evaluateExpressionChecked(generalNotifierType.getBodyExpression(), variables,
-                    "body expression", task, result);
-            if (bodyList == null || bodyList.isEmpty()) {
-                getLogger().warn("Body expression for event " + event.getId() + " returned nothing.");
-                return "";
-            }
-            StringBuilder body = new StringBuilder();
-            for (String s : bodyList) {
-                body.append(s);
-            }
-            return body.toString();
-        } else {
-            return null;
+        List<String> bodyList = evaluateExpressionChecked(bodyExpression, variables,
+                "body expression", task, result);
+        if (bodyList == null || bodyList.isEmpty()) {
+            getLogger().warn("Body expression for event " + event.getId() + " returned nothing.");
+            return "";
         }
+        StringBuilder body = new StringBuilder();
+        for (String s : bodyList) {
+            body.append(s);
+        }
+        return body.toString();
     }
 
-    protected List<NotificationMessageAttachmentType> getAttachementsFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
+    private List<NotificationMessageAttachmentType> getAttachmentsFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
             Task task, OperationResult result) {
         if (generalNotifierType.getAttachmentExpression() != null) {
             List<NotificationMessageAttachmentType> attachment = evaluateNotificationMessageAttachmentTypeExpressionChecked(generalNotifierType.getAttachmentExpression(), variables, "contentType expression",
@@ -323,7 +328,7 @@ public class GeneralNotifier extends BaseHandler {
 
     // TODO implement more efficiently
     // precondition: delta is MODIFY delta
-    protected boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
+    boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
 
         for (ItemDelta itemDelta : delta.getModifications()) {
             if (!NotificationFunctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
@@ -333,7 +338,7 @@ public class GeneralNotifier extends BaseHandler {
         return false;
     }
 
-    protected boolean isWatchAuxiliaryAttributes(GeneralNotifierType generalNotifierType) {
+    boolean isWatchAuxiliaryAttributes(GeneralNotifierType generalNotifierType) {
         return Boolean.TRUE.equals((generalNotifierType).isWatchAuxiliaryAttributes());
     }
 

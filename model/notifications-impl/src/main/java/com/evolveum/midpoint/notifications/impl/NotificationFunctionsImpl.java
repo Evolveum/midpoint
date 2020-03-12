@@ -53,25 +53,17 @@ import java.util.*;
 import static java.util.Collections.singletonList;
 
 /**
- * @author mederly
+ *
  */
 @Component
 public class NotificationFunctionsImpl implements NotificationFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationFunctionsImpl.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private MidpointFunctions midpointFunctions;
-
-    @Autowired
-    protected TextFormatter textFormatter;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
+    @Autowired private MidpointFunctions midpointFunctions;
+    @Autowired protected TextFormatter textFormatter;
+    @Autowired private PrismContext prismContext;
 
     private static final List<ItemPath> SYNCHRONIZATION_PATHS = Collections.unmodifiableList(Arrays.asList(
             ShadowType.F_SYNCHRONIZATION_SITUATION,
@@ -135,10 +127,7 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
         try {
             PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, oid, null, result);
             return PolyString.getOrig(resource.asObjectable().getName());
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
-            return null;
-        } catch (SchemaException e) {
+        } catch (ObjectNotFoundException | SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
             return null;
         }
