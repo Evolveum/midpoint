@@ -308,7 +308,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return false;
     }
 
-    public boolean containsItem(List<ObjectDelta<FocusType>> deltas, ItemPath itemPath) {
+    boolean containsItem(List<ObjectDelta<AssignmentHolderType>> deltas, ItemPath itemPath) {
         for (ObjectDelta objectDelta : deltas) {
             if (containsItem(objectDelta, itemPath)) {
                 return true;

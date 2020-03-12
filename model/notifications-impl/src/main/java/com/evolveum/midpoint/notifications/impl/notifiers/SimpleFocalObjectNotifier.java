@@ -7,15 +7,16 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleFocalObjectNotifierType;
 
 @Component
-public class SimpleFocalObjectNotifier extends AbstractFocalObjectNotifier<SimpleFocalObjectNotifierType, FocusType> {
+public class SimpleFocalObjectNotifier extends AbstractFocalObjectNotifier<SimpleFocalObjectNotifierType, AssignmentHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleFocalObjectNotifier.class);
 
@@ -25,8 +26,8 @@ public class SimpleFocalObjectNotifier extends AbstractFocalObjectNotifier<Simpl
     }
 
     @Override
-    Class<FocusType> getFocusClass() {
-        return FocusType.class;
+    Class<AssignmentHolderType> getFocusClass() {
+        return AssignmentHolderType.class;
     }
 
     @Override

@@ -294,7 +294,7 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
             final ModelEvent modelEvent = (ModelEvent) event;
             ModelContext<FocusType> modelContext = (ModelContext) modelEvent.getModelContext();
             ModelElementContext<FocusType> focusContext = modelContext.getFocusContext();
-            ObjectDelta<? extends FocusType> summarizedDelta;
+            ObjectDelta<? extends ObjectType> summarizedDelta;
             try {
                 summarizedDelta = modelEvent.getSummarizedFocusDeltas();
             } catch (SchemaException e) {
@@ -369,7 +369,12 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
             LOGGER.trace("getFocusPasswordFromEvent: No user deltas in event");
             return null;
         }
-        String password = getPasswordFromDeltas(modelEvent.getFocusDeltas());
+        if (modelEvent.getFocusContext() == null || !modelEvent.getFocusContext().isOfType(FocusType.class)) {
+            LOGGER.trace("getFocusPasswordFromEvent: Not a FocusType context");
+            return null;
+        }
+        //noinspection unchecked,rawtypes
+        String password = getPasswordFromDeltas((List) modelEvent.getFocusDeltas());
         if (password != null) {
             LOGGER.trace("getFocusPasswordFromEvent: Found password in user executed delta(s)");
             return password;
@@ -402,10 +407,9 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
         return null;
     }
 
-    private String getPasswordFromDeltas(List<ObjectDelta<FocusType>> deltas) {
+    private String getPasswordFromDeltas(List<ObjectDelta<? extends FocusType>> deltas) {
         try {
-            //noinspection unchecked
-            return midpointFunctions.getPlaintextUserPasswordFromDeltas((List) deltas);
+            return midpointFunctions.getPlaintextUserPasswordFromDeltas(deltas);
         } catch (EncryptionException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt password from user deltas: {}", e, DebugUtil.debugDump(deltas));
             return null;
