@@ -12,9 +12,12 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
@@ -128,6 +131,24 @@ public class CapabilityUtil {
             return true;
         }
         return password.isReturnedByDefault();
+    }
+
+    public static boolean isPasswordReadable(CredentialsCapabilityType capabilityType) {
+        if (capabilityType == null) {
+            return false;
+        }
+
+        PasswordCapabilityType passwordCapabilityType = capabilityType.getPassword();
+        if (passwordCapabilityType == null) {
+            return false;
+        }
+
+        if (BooleanUtils.isFalse(passwordCapabilityType.isEnabled())) {
+            return false;
+        }
+
+        Boolean readable = passwordCapabilityType.isReadable();
+        return BooleanUtils.isTrue(readable);
     }
 
     public static boolean isActivationStatusReturnedByDefault(ActivationCapabilityType capability) {
