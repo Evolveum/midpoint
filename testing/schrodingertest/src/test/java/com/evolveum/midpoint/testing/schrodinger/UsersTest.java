@@ -30,7 +30,7 @@ public class UsersTest extends AbstractSchrodingerTest {
 
         for (int i = 0; i < 21; i++) {
             addUser("john" + i);
-            Selenide.sleep(3000);
+            Selenide.sleep(5000);
         }
 
         Paging paging = users
@@ -38,17 +38,18 @@ public class UsersTest extends AbstractSchrodingerTest {
                 .paging();
 
         paging.pageSize(5);
+        Selenide.sleep(3000);
 
         screenshot("paging");
 
-        paging.next()
-                .last()
-                .previous()
-                .first()
-                .actualPagePlusOne()
-                .actualPagePlusTwo()
-                .actualPageMinusTwo()
-                .actualPageMinusOne();
+        paging.next();
+        paging.last();
+        paging.previous();
+        paging.first();
+        paging.actualPagePlusOne();
+        paging.actualPagePlusTwo();
+        paging.actualPageMinusTwo();
+        paging.actualPageMinusOne();
     }
 
     private void addUser(String name) {

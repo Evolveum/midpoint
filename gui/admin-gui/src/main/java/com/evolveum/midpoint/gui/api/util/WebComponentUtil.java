@@ -18,13 +18,16 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -84,6 +87,7 @@ import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
@@ -122,6 +126,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
@@ -150,6 +155,7 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -1574,6 +1580,10 @@ public final class WebComponentUtil {
         return str != null ? str.getOrig() : null;
     }
 
+    public static String getOrigStringFromPolyOrEmpty(PolyStringType str) {
+        return str != null ? str.getOrig() : "";
+    }
+
     public static <T> T getValue(PrismContainerValue object, QName propertyName, Class<T> type) {
         if (object == null) {
             return null;
@@ -1907,6 +1917,8 @@ public final class WebComponentUtil {
             return createTaskIcon((PrismObject<TaskType>) object);
         } else if (type.equals(ResourceType.class)) {
             return createResourceIcon((PrismObject<ResourceType>) object);
+        } else if (type == ShadowType.class) {
+            return createShadowIcon((PrismObject<ShadowType>) object);
         }
 
         return "";
@@ -3496,17 +3508,7 @@ public final class WebComponentUtil {
             return ((ArchetypeType)obj).getArchetypePolicy().getDisplay();
         }
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
-//        if (displayType != null){
-//            String disabledStyle = "";
-//            if (obj instanceof FocusType) {
-//                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)obj).asPrismObject());
-//                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
-//                        disabledStyle != null){
-//                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
-//                    displayType.getIcon().setColor("");
-//                }
-//            }
-//        } else {
+
         if (displayType == null){
             displayType = WebComponentUtil.createDisplayType(createDefaultIcon(obj.asPrismObject()),
                     "", ColumnUtils.getIconColumnTitle(obj, result));
@@ -3514,37 +3516,22 @@ public final class WebComponentUtil {
         return displayType;
     }
 
+    //TODO unify createAccountIcon with createCompositeIconForObject
     public static <O extends ObjectType> CompositedIcon createCompositeIconForObject(O obj, OperationResult result, PageBase pageBase){
+        if (obj instanceof ShadowType) {
+            return createAccountIcon((ShadowType) obj, pageBase);
+        }
+
         DisplayType basicIconDisplayType = getDisplayTypeForObject(obj, result, pageBase);
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
         if (basicIconDisplayType == null){
             return new CompositedIconBuilder().build();
         }
+        //TODO trigger
+
         IconType lifecycleStateIcon = getIconForLifecycleState(obj);
         IconType activationStatusIcon = getIconForActivationStatus(obj);
-        StringBuilder title = new StringBuilder(basicIconDisplayType.getTooltip() != null ? basicIconDisplayType.getTooltip().getOrig() : "");
 
-        if (StringUtils.isNotEmpty(lifecycleStateIcon.getCssClass())){
-            if (title.length() > 0){
-                title.append("\n");
-            }
-            title.append(pageBase.createStringResource("ObjectType.lifecycleState").getString())
-                    .append(": ")
-                    .append(obj.getLifecycleState());
-        }
-        if (StringUtils.isNotEmpty(activationStatusIcon.getCssClass()) && obj instanceof FocusType
-                && ((FocusType)obj).getActivation() != null){
-            if (title.length() > 0){
-                title.append("\n");
-            }
-            String lockedStatus = LockoutStatusType.LOCKED.equals(((FocusType)obj).getActivation().getLockoutStatus()) ?
-                    ((FocusType)obj).getActivation().getLockoutStatus().value() : "";
-            String effectiveStatus = ((FocusType)obj).getActivation().getEffectiveStatus() != null ?
-                    ((FocusType)obj).getActivation().getEffectiveStatus().value() : "";
-            title.append(pageBase.createStringResource("CapabilitiesType.activationStatus").getString())
-                    .append(": ")
-                    .append(StringUtils.isNotEmpty(lockedStatus) ? lockedStatus : effectiveStatus);
-        }
         String iconColor = getIconColor(basicIconDisplayType);
 
         CompositedIconBuilder builder = iconBuilder.setBasicIcon(
@@ -3553,10 +3540,145 @@ public final class WebComponentUtil {
                 .appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE)
                 .appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
 
+        StringBuilder title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getTooltip()));
+        appendLifecycleState(title, lifecycleStateIcon, obj, pageBase);
+        appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         if (StringUtils.isNotEmpty(title.toString())){
             builder.setTitle(title.toString());
         }
         return builder.build();
+    }
+
+    public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase) {
+        List<TriggerType> triggerType = shadow.getTrigger();
+        String iconCssClass = WebComponentUtil.createShadowIcon(shadow.asPrismObject());
+        CompositedIconBuilder builder = new CompositedIconBuilder();
+        String title = createTriggerTooltip(triggerType, pageBase);
+        if(StringUtils.isNotBlank(title)) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
+            builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
+        }
+        builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+
+        if (BooleanUtils.isTrue(shadow.isDead())) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+            return builder.build();
+        }
+
+        ActivationType activation = shadow.getActivation();
+        if (activation == null) {
+            builder.setTitle(pageBase.createStringResource("ActivationStatusType.null").getString()
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+            appendUndefinedIcon(builder);
+            return builder.build();
+        }
+        LockoutStatusType lockoutStatus = activation.getLockoutStatus();
+        XMLGregorianCalendar lockoutExpirationTimestamp = activation.getLockoutExpirationTimestamp();
+        if((lockoutStatus != null && LockoutStatusType.LOCKED == lockoutStatus)
+                || (lockoutExpirationTimestamp != null && pageBase.getClock().isPast((lockoutExpirationTimestamp)))) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+            return builder.build();
+        }
+
+
+        ActivationStatusType value = activation.getAdministrativeStatus();
+        builder.setTitle(pageBase.createStringResource("ActivationStatusType." +value).getString()
+                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+        if(value == null) {
+            appendUndefinedIcon(builder);
+            return builder.build();
+        }
+
+        switch (value) {
+            case DISABLED:
+                appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
+                return builder.build();
+            case ARCHIVED:
+                appendIcon(builder, "fa fa-archive " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                return builder.build();
+        }
+
+        return builder.build();
+    }
+
+    private static void appendUndefinedIcon(CompositedIconBuilder builder) {
+        appendIcon(builder,"fa fa-question " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+
+    }
+
+    private static void appendIcon(CompositedIconBuilder builder, String cssClass, LayeredIconCssStyle iconCssStyle) {
+        IconType icon = new IconType();
+        icon.setCssClass(cssClass);
+        builder.appendLayerIcon(icon, iconCssStyle);
+    }
+
+    private static String createTriggerTooltip(List<TriggerType> triggers, PageBase pageBase) {
+        if (CollectionUtils.isEmpty(triggers)) {
+            return null;
+        }
+
+        List<String> triggerTooltips = new ArrayList<>();
+        for (TriggerType trigger : triggers) {
+            XMLGregorianCalendar time = trigger.getTimestamp();
+
+            if (time == null) {
+                triggerTooltips.add(pageBase.getString("CheckTableHeader.triggerUnknownTime"));
+            } else {
+                triggerTooltips.add(pageBase.getString("CheckTableHeader.triggerPlanned", WebComponentUtil.formatDate(time)));
+            }
+        }
+
+        return StringUtils.join(triggers, '\n');
+    }
+
+    private static <O extends ObjectType> void appendLifecycleState(StringBuilder title, IconType lifecycleStateIcon, O obj, PageBase pageBase) {
+        if (StringUtils.isEmpty(lifecycleStateIcon.getCssClass())) {
+            return;
+        }
+
+        if (title.length() > 0){
+            title.append("\n");
+        }
+        title.append(pageBase.createStringResource("ObjectType.lifecycleState.title", obj.getLifecycleState()).getString());
+    }
+
+    private static <O extends ObjectType> void appendActivationStatus(StringBuilder title, IconType activationStatusIcon, O obj, PageBase pageBase) {
+        ActivationType activation = getActivation(obj);
+        if (StringUtils.isEmpty(activationStatusIcon.getCssClass()) || activation == null) {
+            return;
+        }
+
+        if (title.length() > 0){
+            title.append("\n");
+        }
+        String lockedStatus = LockoutStatusType.LOCKED == activation.getLockoutStatus() ? activation.getLockoutStatus().value() : "";
+        String effectiveStatus = activation.getEffectiveStatus() != null ? activation.getEffectiveStatus().value() : "";
+        title.append(pageBase.createStringResource("CapabilitiesType.activationStatus").getString())
+                .append(": ")
+                .append(StringUtils.isNotEmpty(lockedStatus) ? lockedStatus : effectiveStatus);
+
+    }
+
+    private static <O extends ObjectType> ActivationType getActivation(O obj) {
+        if (obj instanceof FocusType) {
+            return ((FocusType) obj).getActivation();
+        }
+
+        if (obj instanceof ShadowType) {
+            return ((ShadowType) obj).getActivation();
+        }
+
+        return null;
+
     }
 
     public static <O extends ObjectType> IconType getIconForLifecycleState(O obj){
@@ -3565,13 +3687,21 @@ public final class WebComponentUtil {
             icon.setCssClass("");
             return icon;
         }
-        if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(obj.getLifecycleState())){
-            icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
-        } else if (SchemaConstants.LIFECYCLE_DRAFT.equals(obj.getLifecycleState())){
-            icon.setCssClass(GuiStyleConstants.CLASS_FILE_BLACK_FILLED);
-        } else if (SchemaConstants.LIFECYCLE_PROPOSED.equals(obj.getLifecycleState())){
-            icon.setCssClass(GuiStyleConstants.CLASS_FILE_WHITE_FILLED);
+        String lifecycle = obj.getLifecycleState();
+        if (lifecycle != null) {
+            switch (lifecycle) {
+                case SchemaConstants.LIFECYCLE_ARCHIVED:
+                    icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
+                    break;
+                case SchemaConstants.LIFECYCLE_DRAFT:
+                    icon.setCssClass(GuiStyleConstants.CLASS_FILE_BLACK_FILLED);
+                    break;
+                case SchemaConstants.LIFECYCLE_PROPOSED:
+                    icon.setCssClass(GuiStyleConstants.CLASS_FILE_WHITE_FILLED);
+                    break;
+            }
         }
+
         if (icon.getCssClass() == null){
             icon.setCssClass("");
         }

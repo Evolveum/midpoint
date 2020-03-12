@@ -392,4 +392,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     public void setExportSize(boolean exportSize) {
         this.exportSize = exportSize;
     }
+
+    public boolean isUseCache() {
+        return useCache;
+    }
 }

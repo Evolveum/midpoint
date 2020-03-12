@@ -88,7 +88,7 @@ public abstract class AssignmentHolderObjectListTable<P extends AssignmentHolder
         getToolbarButton(iconCssClass)
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
-
+        Selenide.sleep(2000);
         return getObjectDetailsPage();
     }
 
