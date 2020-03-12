@@ -51,6 +51,8 @@ public class NotificationHook implements ChangeHook {
 
     private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/notification-hook-3";
 
+    private static final String OP_INVOKE = NotificationHook.class.getName() + ".invoke";
+
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private NotificationManager notificationManager;
@@ -59,36 +61,37 @@ public class NotificationHook implements ChangeHook {
     @PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Notifier change hook registered.");
-        }
+        LOGGER.trace("Notifier change hook registered.");
     }
 
     @Override
-    public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult result) {
-
-        // todo in the future we should perhaps act in POSTEXECUTION state, but currently the clockwork skips this state
-        if (context.getState() != ModelState.FINAL) {
-            return HookOperationMode.FOREGROUND;
-        }
-        if (notificationManager.isDisabled()) {
-            LOGGER.trace("Notifications are temporarily disabled, exiting the hook.");
-            return HookOperationMode.FOREGROUND;
-        }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Notification change hook called with model context: " + context.debugDump());
-        }
-        if (context.getFocusContext() == null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Focus context is null, exiting the hook.");
+    public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
+            @NotNull OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(OP_INVOKE);
+        try {
+            if (context.getState() != ModelState.FINAL) {
+                return HookOperationMode.FOREGROUND;
             }
+            if (notificationManager.isDisabled()) {
+                LOGGER.trace("Notifications are temporarily disabled, exiting the hook.");
+                return HookOperationMode.FOREGROUND;
+            }
+            LOGGER.trace("Notification change hook called with model context:\n{}", context.debugDumpLazily());
+            if (context.getFocusContext() == null) {
+                LOGGER.trace("Focus context is null, exiting the hook.");
+                return HookOperationMode.FOREGROUND;
+            }
+
+            emitModelEvent(context, task, result);
+            emitPolicyRulesEvents(context, task, result);
+
             return HookOperationMode.FOREGROUND;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-
-        emitModelEvent(context, task, result);
-        emitPolicyRulesEvents(context, task, result);
-
-        return HookOperationMode.FOREGROUND;
     }
 
     private void emitPolicyRulesEvents(ModelContext<?> context, Task task, OperationResult result) {

@@ -7,25 +7,24 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.events.*;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of a notifier dealing with workflow events (related to both work items and process instances).
@@ -33,26 +32,22 @@ import java.util.stream.Collectors;
  * @author mederly
  */
 @Component
-public class SimpleWorkflowNotifier extends GeneralNotifier {
+public class SimpleWorkflowNotifier extends AbstractGeneralNotifier<WorkflowEvent, SimpleWorkflowNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleWorkflowNotifier.class);
 
-    @PostConstruct
-    public void init() {
-        register(SimpleWorkflowNotifierType.class);
+    @Override
+    public Class<WorkflowEvent> getEventType() {
+        return WorkflowEvent.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof WorkflowEvent)) {
-            LOGGER.trace("SimpleWorkflowNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
-            return false;
-        }
-        return true;
+    public Class<SimpleWorkflowNotifierType> getEventHandlerConfigurationType() {
+        return SimpleWorkflowNotifierType.class;
     }
 
     @Override
-    protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+    protected UserType getDefaultRecipient(WorkflowEvent event, SimpleWorkflowNotifierType configuration, OperationResult result) {
         @Nullable SimpleObjectRef recipientRef;
         if (event instanceof WorkflowProcessEvent) {
             recipientRef = event.getRequester();
@@ -70,18 +65,17 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
+    protected String getSubject(WorkflowEvent event, SimpleWorkflowNotifierType configuration, String transport, Task task, OperationResult result) {
         if (event instanceof WorkflowProcessEvent) {
             return event.isAdd() ? "Workflow process instance has been started" : "Workflow process instance has finished";
         } else if (event instanceof WorkItemEvent) {
-            return getSubjectFromWorkItemEvent((WorkItemEvent) event, generalNotifierType, transport, task, result);
+            return getSubjectFromWorkItemEvent((WorkItemEvent) event);
         } else {
             throw new UnsupportedOperationException("Unsupported event type for event=" + event);
         }
     }
 
-    private String getSubjectFromWorkItemEvent(WorkItemEvent event, GeneralNotifierType generalNotifierType, String transport,
-            Task task, OperationResult result) {
+    private String getSubjectFromWorkItemEvent(WorkItemEvent event) {
         if (event instanceof WorkItemLifecycleEvent) {
             if (event.isAdd()) {
                 return "A new work item has been created";
@@ -118,40 +112,39 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
+    protected String getBody(WorkflowEvent event, SimpleWorkflowNotifierType configuration,
+            String transport, Task task, OperationResult result) {
 
-        WorkflowEvent workflowEvent = (WorkflowEvent) event;
-
-        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
+        boolean techInfo = Boolean.TRUE.equals(configuration.isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 
-        body.append(getSubject(event, generalNotifierType, transport, task, result));
+        body.append(getSubject(event, configuration, transport, task, result));
         body.append("\n\n");
 
-        appendGeneralInformation(body, workflowEvent);        // process instance name, work item name, stage, escalation level
+        appendGeneralInformation(body, event); // process instance name, work item name, stage, escalation level
 
-        if (workflowEvent instanceof WorkItemEvent) {
-            WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
+        if (event instanceof WorkItemEvent) {
+            WorkItemEvent workItemEvent = (WorkItemEvent) event;
             appendAssigneeInformation(body, workItemEvent, result);
             appendResultAndOriginInformation(body, workItemEvent, result);
             appendDeadlineInformation(body, workItemEvent);
         } else {
-            appendResultInformation(body, workflowEvent, true);
+            appendResultInformation(body, event, true);
         }
         body.append("\nNotification created on: ").append(new Date()).append("\n\n");
 
         if (techInfo) {
             body.append("----------------------------------------\n");
             body.append("Technical information:\n\n");
-            if (workflowEvent instanceof WorkItemEvent) {
-                WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
+            if (event instanceof WorkItemEvent) {
+                WorkItemEvent workItemEvent = (WorkItemEvent) event;
                 body.append("WorkItem:\n")
                         .append(PrismUtil.serializeQuietly(prismContext, workItemEvent.getWorkItem()))
                         .append("\n");
             }
             body.append("Workflow context:\n")
-                    .append(PrismUtil.serializeQuietly(prismContext, ((WorkflowEvent) event).getApprovalContext()));
+                    .append(PrismUtil.serializeQuietly(prismContext, event.getApprovalContext()));
         }
         return body.toString();
     }
@@ -188,7 +181,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         }
     }
 
-    void appendDeadlineInformation(StringBuilder sb, AbstractWorkItemType workItem) {
+    private void appendDeadlineInformation(StringBuilder sb, AbstractWorkItemType workItem) {
         XMLGregorianCalendar deadline = workItem.getDeadline();
         long before = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
         long beforeRounded = Math.round((double) before / 60000.0) * 60000L;
@@ -263,6 +256,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     }
 
     // a bit of heuristics...
+    @SuppressWarnings("SimplifiableIfStatement")
     private boolean isDone(WorkItemEvent event) {
         if (event instanceof WorkItemLifecycleEvent) {
             return event.isDelete();

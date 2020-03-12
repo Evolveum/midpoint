@@ -126,6 +126,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+
         // WHEN
         when();
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
@@ -206,6 +208,9 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test119ModifyUserDeleteAccount() throws Exception {
+
+        unsetGlobalTracingOverride();
+
         // GIVEN
         Task task = createPlainTask();
         OperationResult result = task.getResult();

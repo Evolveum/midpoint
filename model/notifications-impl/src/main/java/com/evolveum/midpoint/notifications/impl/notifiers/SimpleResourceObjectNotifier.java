@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import java.util.Date;
+
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -18,48 +21,36 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
-import java.util.Date;
-
 /**
- * @author mederly
+ *
  */
 @Component
-public class SimpleResourceObjectNotifier extends GeneralNotifier {
+public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<ResourceObjectEvent, SimpleResourceObjectNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleResourceObjectNotifier.class);
 
-    @PostConstruct
-    public void init() {
-        register(SimpleResourceObjectNotifierType.class);
+    @Override
+    public Class<ResourceObjectEvent> getEventType() {
+        return ResourceObjectEvent.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof ResourceObjectEvent)) {
-            LOGGER.trace("SimpleResourceObjectNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
-            return false;
-        } else {
-            return true;
-        }
+    public Class<SimpleResourceObjectNotifierType> getEventHandlerConfigurationType() {
+        return SimpleResourceObjectNotifierType.class;
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+    protected boolean checkApplicability(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, OperationResult result) {
 
-        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
-        ObjectDelta<ShadowType> delta = resourceObjectEvent.getShadowDelta();
+        ObjectDelta<ShadowType> delta = event.getShadowDelta();
         if (!delta.isModify()) {
             return true;
         }
 
         boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, functions.getSynchronizationPaths());
         boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, functions.getAuxiliaryPaths());
-        boolean watchSync = isWatchSynchronizationAttributes((SimpleResourceObjectNotifierType) generalNotifierType);
-        boolean watchAux = isWatchAuxiliaryAttributes(generalNotifierType);
+        boolean watchSync = isWatchSynchronizationAttributes(configuration);
+        boolean watchAux = isWatchAuxiliaryAttributes(configuration);
         if ((watchSync || otherThanSyncPresent) && (watchAux || otherThanAuxPresent)) {
             return true;
         }
@@ -69,19 +60,17 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
         return false;
     }
 
-    private boolean isWatchSynchronizationAttributes(SimpleResourceObjectNotifierType generalNotifierType) {
-        return Boolean.TRUE.equals((generalNotifierType).isWatchSynchronizationAttributes());
+    private boolean isWatchSynchronizationAttributes(SimpleResourceObjectNotifierType configuration) {
+        return Boolean.TRUE.equals((configuration).isWatchSynchronizationAttributes());
     }
 
     @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-
-        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
-
-        ResourceOperationDescription rod = resourceObjectEvent.getAccountOperationDescription();
+    protected String getSubject(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, String transport, Task task, OperationResult result) {
+        ResourceOperationDescription rod = event.getAccountOperationDescription();
+        //noinspection unchecked
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
-        String objectTypeDescription = resourceObjectEvent.isShadowKind(ShadowKindType.ACCOUNT) ? "Account" : "Resource object";
+        String objectTypeDescription = event.isShadowKind(ShadowKindType.ACCOUNT) ? "Account" : "Resource object";
 
         if (delta.isAdd()) {
             return objectTypeDescription + " creation notification";
@@ -95,39 +84,38 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
+    protected String getBody(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, String transport, Task task, OperationResult result) {
 
-        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
+        boolean techInfo = Boolean.TRUE.equals(configuration.isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 
-        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
-
-        FocusType owner = (FocusType) resourceObjectEvent.getRequesteeObject();
-        ResourceOperationDescription rod = resourceObjectEvent.getAccountOperationDescription();
+        FocusType owner = (FocusType) event.getRequesteeObject();
+        ResourceOperationDescription rod = event.getAccountOperationDescription();
+        //noinspection unchecked
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
-        boolean isAccount = resourceObjectEvent.isShadowKind(ShadowKindType.ACCOUNT);
+        boolean isAccount = event.isShadowKind(ShadowKindType.ACCOUNT);
         String objectTypeDescription = isAccount ? "account" : "resource object";
         String userOrOwner = owner instanceof UserType ? "User" : "Owner";
 
         body.append("Notification about ").append(objectTypeDescription).append("-related operation\n\n");
         if (isAccount) {
             if (owner != null) {
-                body.append(userOrOwner).append(": ").append(resourceObjectEvent.getRequesteeDisplayName());
+                body.append(userOrOwner).append(": ").append(event.getRequesteeDisplayName());
                 body.append(" (").append(owner.getName()).append(", oid ").append(owner.getOid()).append(")\n");
             } else {
                 body.append(userOrOwner).append(": unknown\n");
             }
         }
-        body.append("Notification created on: " + new Date() + "\n\n");
-        body.append("Resource: " + resourceObjectEvent.getResourceName() + " (oid " + resourceObjectEvent.getResourceOid() + ")\n");
+        body.append("Notification created on: ").append(new Date()).append("\n\n");
+        body.append("Resource: ").append(event.getResourceName()).append(" (oid ").append(event.getResourceOid()).append(")\n");
         boolean named;
         if (rod.getCurrentShadow() != null && rod.getCurrentShadow().asObjectable().getName() != null) {
             if (isAccount) {
-                body.append("Account: " + rod.getCurrentShadow().asObjectable().getName() + "\n");
+                body.append("Account: ").append(rod.getCurrentShadow().asObjectable().getName()).append("\n");
             } else {
-                body.append("Resource object: " + rod.getCurrentShadow().asObjectable().getName() + " (kind: " + rod.getCurrentShadow().asObjectable().getKind() + ")\n");
+                body.append("Resource object: ").append(rod.getCurrentShadow().asObjectable().getName()).append(" (kind: ").append(rod.getCurrentShadow().asObjectable().getKind()).append(")\n");
             }
             named = true;
         } else {
@@ -136,35 +124,35 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
         body.append("\n");
 
         if (isAccount) {
-            body.append((named ? "The" : "An") + " account ");
+            body.append(named ? "The" : "An").append(" account ");
         } else {
-            body.append((named ? "The" : "A") + " resource object ");
+            body.append(named ? "The" : "A").append(" resource object ");
         }
-        switch (resourceObjectEvent.getOperationStatus()) {
+        switch (event.getOperationStatus()) {
             case SUCCESS: body.append("has been successfully "); break;
             case IN_PROGRESS: body.append("has been ATTEMPTED to be "); break;
             case FAILURE: body.append("FAILED to be "); break;
         }
 
-        final boolean watchSynchronizationAttributes = isWatchSynchronizationAttributes((SimpleResourceObjectNotifierType) generalNotifierType);
-        final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(generalNotifierType);
+        final boolean watchSynchronizationAttributes = isWatchSynchronizationAttributes(configuration);
+        final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration);
 
         if (delta.isAdd()) {
             body.append("created on the resource with attributes:\n");
-            body.append(resourceObjectEvent.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes));
             body.append("\n");
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");
-            body.append(resourceObjectEvent.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes));
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("removed from the resource.\n\n");
         }
 
-        if (resourceObjectEvent.getOperationStatus() == OperationStatus.IN_PROGRESS) {
+        if (event.getOperationStatus() == OperationStatus.IN_PROGRESS) {
             body.append("The operation will be retried.\n\n");
-        } else if (resourceObjectEvent.getOperationStatus() == OperationStatus.FAILURE) {
-            body.append("Error: " + resourceObjectEvent.getAccountOperationDescription().getResult().getMessage() + "\n\n");
+        } else if (event.getOperationStatus() == OperationStatus.FAILURE) {
+            body.append("Error: ").append(event.getAccountOperationDescription().getResult().getMessage()).append("\n\n");
         }
 
         body.append("\n\n");
@@ -179,49 +167,8 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
         return body.toString();
     }
 
-
-//    private String getLocalPart(QName name) {
-//        if (name == null) {
-//            return null;
-//        } else {
-//            return name.getLocalPart();
-//        }
-//    }
-//
-//    private String getResourceName(AccountShadowType account) {
-//        String oid = null;
-//        if (account.getResource() != null) {
-//            if (account.getResource().getName() != null) {
-//                return account.getResource().getName().getOrig();
-//            }
-//            oid = account.getResource().getOid();
-//        } else {
-//            if (account.getResourceRef() != null) {
-//                oid = account.getResourceRef().getOid();
-//            }
-//        }
-//        if (oid == null) {
-//            return ("(unknown resource)");
-//        }
-//        return NotificationsUtil.getResourceNameFromRepo(cacheRepositoryService, oid, new OperationResult("dummy"));
-//    }
-//
-//    private void listAccounts(StringBuilder messageText, List<String> lines) {
-//        boolean first = true;
-//        for (String line : lines) {
-//            if (first) {
-//                first = false;
-//            } else {
-//                messageText.append(",\n");
-//            }
-//            messageText.append(line);
-//        }
-//        messageText.append(".\n\n");
-//    }
-
     @Override
     protected Trace getLogger() {
         return LOGGER;
     }
-
 }
