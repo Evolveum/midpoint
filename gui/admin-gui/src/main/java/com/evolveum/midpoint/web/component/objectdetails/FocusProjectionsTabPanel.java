@@ -303,94 +303,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         return new PropertyModel<ShadowWrapper>(model, "parent");
     }
 
-    private String createTriggerTooltip(PrismContainer<TriggerType> container) {
-        if (container == null || container.isEmpty()) {
-            return null;
-        }
-
-        List<String> triggers = new ArrayList<>();
-        for (PrismContainerValue<TriggerType> val : container.getValues()) {
-            XMLGregorianCalendar time = val.getPropertyRealValue(TriggerType.F_TIMESTAMP, XMLGregorianCalendar.class);
-
-            if (time == null) {
-                triggers.add(getString("CheckTableHeader.triggerUnknownTime"));
-            } else {
-                triggers.add(getString("CheckTableHeader.triggerPlanned", WebComponentUtil.formatDate(time)));
-            }
-        }
-
-        return StringUtils.join(triggers, '\n');
-    }
-
-    private CompositedIcon createAccountIcon(IModel<PrismContainerValueWrapper<ShadowType>> prismContainerValue) {
-        PrismObject obj = ((PrismObjectWrapper)prismContainerValue.getObject().getParent()).getObject();
-        PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
-        String iconCssClass = WebComponentUtil.createShadowIcon(prismContainerValue.getObject().getNewValue());
-        CompositedIconBuilder builder = new CompositedIconBuilder();
-        String title = createTriggerTooltip(container);
-        if(StringUtils.isNotBlank(title)) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
-        }
-        builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-
-        IModel<PrismValueWrapper> deadStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
-                 prismContainerValue, ItemPath.create(ShadowType.F_DEAD)), "value");
-        if(deadStatus != null && Boolean.TRUE.equals(deadStatus.getObject().getRealValue())) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            builder.setTitle(getPageBase().createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
-            return builder.build();
-        }
-
-        IModel<PrismValueWrapper> lockoutStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
-                prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)), "value");
-        IModel<PrismValueWrapper> lockoutTimeStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
-                 prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)), "value");
-        if((lockoutStatus != null && LockoutStatusType.LOCKED.equals(lockoutStatus.getObject().getRealValue()))
-                || (lockoutTimeStatus.getObject() != null && lockoutTimeStatus.getObject().getRealValue() != null
-                && getPageBase().getClock().isPast(((XMLGregorianCalendar)lockoutTimeStatus.getObject().getRealValue())))) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            builder.setTitle(getPageBase().createStringResource("LockoutStatusType.LOCKED").getString()
-                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
-            return builder.build();
-        }
-
-        IModel<PrismValueWrapper> status = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
-                prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)), "value");
-        ActivationStatusType value = null;
-        if (status != null) {
-                value = (ActivationStatusType) status.getObject().getRealValue();
-        }
-        builder.setTitle(getPageBase().createStringResource("ActivationStatusType." +value).getString()
-                + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
-        if(value == null) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-question " + GuiStyleConstants.RED_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            return builder.build();
-        }
-        if (ActivationStatusType.DISABLED.equals(value)) {
-            IconType icon = new IconType();
-            icon.setCssClass("fe fe-slash " + GuiStyleConstants.RED_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
-            return builder.build();
-        }
-
-        if (ActivationStatusType.ARCHIVED.equals(value)) {
-            IconType icon = new IconType();
-            icon.setCssClass("fa fa-archive " + GuiStyleConstants.RED_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            return builder.build();
-        }
-        return builder.build();
-    }
-
     private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns() {
 
         IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
@@ -403,7 +315,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
             @Override
             protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                return createAccountIcon(rowModel);
+                if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
+                    return new CompositedIconBuilder().build();
+                }
+                return WebComponentUtil.createAccountIcon(rowModel.getObject().getRealValue(), getPageBase());
             }
 
         });
