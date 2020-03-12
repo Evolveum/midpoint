@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
@@ -114,7 +116,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         FormLoginPage login = midPoint.formLogin();
         MailNoncePage mailNonce = (MailNoncePage) login.forgotPassword();
         mailNonce.setMail(MAIL_OF_ENABLED_USER);
-        TimeUnit.SECONDS.sleep(2);
+        TimeUnit.SECONDS.sleep(6);
         String notification = readLastNotification();
         String bodyTag = "body='";
         String link = notification.substring(notification.indexOf(bodyTag) + bodyTag.length(), notification.lastIndexOf("'"));
@@ -142,6 +144,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
 
     @Test
     public void test040selfRegistration() throws IOException, InterruptedException {
+        System.setProperty("midpoint.schrodinger","true");
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         open("/login");
@@ -149,11 +152,11 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         TimeUnit.SECONDS.sleep(2);
         SelfRegistrationPage registrationPage = login.register();
         registrationPage.setGivenName("Test").setFamilyName("User").setEmail("test.user@evolveum.com").setPassword("5ecr3t").submit();
-        TimeUnit.SECONDS.sleep(4);
+        TimeUnit.SECONDS.sleep(6);
         String notification = readLastNotification();
-        String usernameTag = "username='";
+//        String usernameTag = "username='";
         String linkTag = "link='";
-        String username = notification.substring(notification.indexOf(usernameTag) + usernameTag.length(), notification.lastIndexOf("', " + linkTag));
+//        String username = notification.substring(notification.indexOf(usernameTag) + usernameTag.length(), notification.lastIndexOf("', " + linkTag));
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
         open(link);
         $(Schrodinger.byDataId("successPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
