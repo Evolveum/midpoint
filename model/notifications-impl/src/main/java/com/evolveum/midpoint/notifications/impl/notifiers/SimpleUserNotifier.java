@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleUserNotifierTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @Component
-public class SimpleUserNotifier extends AbstractFocalObjectNotifier<SimpleUserNotifierType, UserType> {
+public class SimpleUserNotifier extends SimpleFocalObjectNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleUserNotifier.class);
 
