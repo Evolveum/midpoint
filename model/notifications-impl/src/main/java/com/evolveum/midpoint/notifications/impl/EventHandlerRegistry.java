@@ -31,7 +31,7 @@ public class EventHandlerRegistry {
 
     private Map<Class<? extends EventHandlerType>, EventHandler<?, ?>> handlers = new ConcurrentHashMap<>();
 
-    public <C extends EventHandlerType, E extends Event> void registerEventHandler(Class<C> configType, EventHandler<E, C> handler) {
+    public <C extends EventHandlerType, E extends Event> void registerEventHandler(Class<? extends C> configType, EventHandler<E, C> handler) {
         LOGGER.trace("Registering event handler {} for config type {}", handler, configType);
         handlers.put(configType, handler);
     }

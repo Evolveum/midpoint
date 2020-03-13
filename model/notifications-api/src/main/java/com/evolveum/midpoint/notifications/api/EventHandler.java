@@ -28,5 +28,5 @@ public interface EventHandler<E extends Event, C extends EventHandlerType> {
     /**
      * @return Type of configuration objects for this event handler. The handler is selected based on exact match of this type.
      */
-    Class<C> getEventHandlerConfigurationType();
+    Class<? extends C> getEventHandlerConfigurationType();
 }
