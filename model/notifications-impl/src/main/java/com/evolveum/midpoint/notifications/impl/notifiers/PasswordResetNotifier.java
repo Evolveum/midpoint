@@ -7,16 +7,15 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordResetNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 

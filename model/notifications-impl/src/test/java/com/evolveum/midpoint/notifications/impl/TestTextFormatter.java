@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -87,6 +88,7 @@ public class TestTextFormatter extends AbstractSpringTest {
     );
 
     @Autowired private TextFormatter textFormatter;
+    @Autowired private ValueFormatter valueFormatter;
     @Autowired private PrismContext prismContext;
 
     static {
@@ -233,10 +235,10 @@ public class TestTextFormatter extends AbstractSpringTest {
 
         when();
 
-        String jackFormattedHideNone = textFormatter.formatAccountAttributes(jack.asObjectable(), null, true);
+        String jackFormattedHideNone = valueFormatter.formatAccountAttributes(jack.asObjectable(), null, true);
         System.out.println("no hidden paths + show operational attributes: " + jackFormattedHideNone);
 
-        String jackFormattedHideAux = textFormatter.formatAccountAttributes(jack.asObjectable(), auxiliaryPaths, true);
+        String jackFormattedHideAux = valueFormatter.formatAccountAttributes(jack.asObjectable(), auxiliaryPaths, true);
         System.out.println("hide auxiliary paths + show operational attributes: " + jackFormattedHideAux);
 
         then();

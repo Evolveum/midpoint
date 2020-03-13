@@ -7,17 +7,15 @@
 
 package com.evolveum.midpoint.notifications.impl.helpers;
 
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import org.springframework.stereotype.Component;
 
-/**
- * @author mederly
- */
 @Component
 public class KindIntentFilterHelper extends BaseHelper {
 

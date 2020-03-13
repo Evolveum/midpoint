@@ -8,9 +8,10 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;

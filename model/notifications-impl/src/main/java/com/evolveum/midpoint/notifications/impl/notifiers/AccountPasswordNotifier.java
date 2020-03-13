@@ -8,13 +8,11 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccountPasswordNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,9 +35,11 @@ public class AccountPasswordNotifier extends AbstractGeneralNotifier<ResourceObj
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
+        } else if (event.getPlaintextPassword() == null) {
+            LOGGER.trace("No password in delta, exiting.");
+            return false;
         } else {
-            ObjectDelta<? extends ShadowType> delta = event.getAccountOperationDescription().getObjectDelta();
-            return delta != null && functions.getPlaintextPasswordFromDelta(delta) != null;
+            return true;
         }
     }
 

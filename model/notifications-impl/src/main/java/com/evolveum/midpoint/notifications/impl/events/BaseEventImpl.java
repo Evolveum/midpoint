@@ -1,13 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.notifications.api.events;
+package com.evolveum.midpoint.notifications.impl.events;
 
-import com.evolveum.midpoint.notifications.api.NotificationFunctions;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
+import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
+import com.evolveum.midpoint.notifications.impl.util.ApplicationContextHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -31,41 +35,41 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * @author mederly
+ * Base implementation of Event that contains the common functionality.
  */
-public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
+public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpable {
 
-    private LightweightIdentifier id;               // randomly generated event ID
-    private SimpleObjectRef requester;              // who requested this operation (null if unknown)
+    @NotNull private final LightweightIdentifier id;
 
-    /**
-     * If needed, we can prescribe the handler that should process this event. It is recommended only for ad-hoc situations.
-     * A better is to define handlers in system configuration.
-     */
-    protected final EventHandlerType adHocHandler;
-
-    private transient NotificationFunctions notificationFunctions;    // needs not be set when creating an event ... it is set in NotificationManager
-    private transient PrismContext prismContext;
-
-    // about who is this operation (null if unknown);
-    // - for model notifications, this is the focus, (usually a user but may be e.g. role or other kind of object)
-    // - for account notifications, this is the account owner,
-    // - for workflow notifications, this is the workflow process instance object
-    // - for certification notifications, this is the campaign owner or reviewer (depending on the kind of event)
+    private SimpleObjectRef requester;
 
     private SimpleObjectRef requestee;
 
+    /**
+     * If needed, we can prescribe the handler that should process this event, in addition to the handlers
+     * defined by the system configuration.
+     *
+     * It is recommended only for specific (ad-hoc) situations.
+     * A better is to define handlers in system configuration.
+     */
+    private final EventHandlerType adHocHandler;
+
+    private transient MidpointFunctions midpointFunctions;
+    private transient TextFormatter textFormatter;
+    private transient PrismContext prismContext;
+
     private String channel;
 
-    public BaseEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+    BaseEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator) {
         this(lightweightIdentifierGenerator, null);
     }
 
-    public BaseEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
+    BaseEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
         id = lightweightIdentifierGenerator.generate();
         this.adHocHandler = adHocHandler;
     }
 
+    @NotNull
     public LightweightIdentifier getId() {
         return id;
     }
@@ -79,115 +83,62 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
                 '}';
     }
 
-    abstract public boolean isStatusType(EventStatusType eventStatusType);
-    abstract public boolean isOperationType(EventOperationType eventOperationType);
-    abstract public boolean isCategoryType(EventCategoryType eventCategoryType);
+    abstract public boolean isStatusType(EventStatusType eventStatus);
+    abstract public boolean isOperationType(EventOperationType eventOperation);
 
-    public boolean isAccountRelated() {
-        return isCategoryType(EventCategoryType.RESOURCE_OBJECT_EVENT);
+    boolean changeTypeMatchesOperationType(ChangeType changeType, EventOperationType eventOperationType) {
+        switch (eventOperationType) {
+            case ADD: return changeType == ChangeType.ADD;
+            case MODIFY: return changeType == ChangeType.MODIFY;
+            case DELETE: return changeType == ChangeType.DELETE;
+            default: throw new IllegalStateException("Unexpected EventOperationType: " + eventOperationType);
+        }
     }
+
+    abstract public boolean isCategoryType(EventCategoryType eventCategory);
 
     public boolean isUserRelated() {
         return false; // overridden in ModelEvent
     }
 
-    public boolean isWorkItemRelated() {
-        return isCategoryType(EventCategoryType.WORK_ITEM_EVENT);
-    }
-
-    public boolean isWorkflowProcessRelated() {
-        return isCategoryType(EventCategoryType.WORKFLOW_PROCESS_EVENT);
-    }
-
-    public boolean isWorkflowRelated() {
-        return isCategoryType(EventCategoryType.WORKFLOW_EVENT);
-    }
-
-    @Override
-    public boolean isPolicyRuleRelated() {
-        return isCategoryType(EventCategoryType.POLICY_RULE_EVENT);
-    }
-
-    public boolean isCertCampaignStageRelated() {
-        return isCategoryType(EventCategoryType.CERT_CAMPAIGN_STAGE_EVENT);
-    }
-
-    public boolean isAdd() {
-        return isOperationType(EventOperationType.ADD);
-    }
-
-    public boolean isModify() {
-        return isOperationType(EventOperationType.MODIFY);
-    }
-
-    public boolean isDelete() {
-        return isOperationType(EventOperationType.DELETE);
-    }
-
-    public boolean isSuccess() {
-        return isStatusType(EventStatusType.SUCCESS);
-    }
-
-    public boolean isAlsoSuccess() {
-        return isStatusType(EventStatusType.ALSO_SUCCESS);
-    }
-
-    public boolean isFailure() {
-        return isStatusType(EventStatusType.FAILURE);
-    }
-
-    public boolean isOnlyFailure() {
-        return isStatusType(EventStatusType.ONLY_FAILURE);
-    }
-
-    public boolean isInProgress() {
-        return isStatusType(EventStatusType.IN_PROGRESS);
-    }
-
-    // requester
-
     public SimpleObjectRef getRequester() {
         return requester;
     }
 
-    public String getRequesterOid() {
-        return requester.getOid();
-    }
-
+    // TODO make requester final and remove this method
     public void setRequester(SimpleObjectRef requester) {
         this.requester = requester;
     }
-
-    // requestee
 
     public SimpleObjectRef getRequestee() {
         return requestee;
     }
 
-    public String getRequesteeOid() {
-        return requestee.getOid();
-    }
-
+    // TODO we need the operation result parent here
     @Nullable
     private ObjectType resolveObject(SimpleObjectRef ref) {
         if (ref == null) {
             return null;
         }
-        return ref.resolveObjectType(new OperationResult(BaseEvent.class + ".resolveObject"), true);
+        return ref.resolveObjectType(new OperationResult(BaseEventImpl.class + ".resolveObject"), true);
     }
 
+    @Override
     public ObjectType getRequesteeObject() {
         return resolveObject(requestee);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public ObjectType getRequesterObject() {
         return resolveObject(requester);
     }
 
+    @Override
     public PolyStringType getRequesteeDisplayName() {
         return getDisplayName(getRequesteeObject());
     }
 
+    @SuppressWarnings("unused")
     public PolyStringType getRequesterDisplayName() {
         return getDisplayName(getRequesterObject());
     }
@@ -211,25 +162,18 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return object != null ? object.getName() : null;
     }
 
+    @SuppressWarnings("unused")
     public PolyStringType getRequesteeName() {
         return getName(getRequesteeObject());
     }
 
+    @SuppressWarnings("unused")
     public PolyStringType getRequesterName() {
         return getName(getRequesterObject());
     }
 
     public void setRequestee(SimpleObjectRef requestee) {
         this.requestee = requestee;
-    }
-
-    boolean changeTypeMatchesOperationType(ChangeType changeType, EventOperationType eventOperationType) {
-        switch (eventOperationType) {
-            case ADD: return changeType == ChangeType.ADD;
-            case MODIFY: return changeType == ChangeType.MODIFY;
-            case DELETE: return changeType == ChangeType.DELETE;
-            default: throw new IllegalStateException("Unexpected EventOperationType: " + eventOperationType);
-        }
     }
 
     public void createExpressionVariables(VariablesMap variables, OperationResult result) {
@@ -243,27 +187,29 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         if (resolved != null) {
             return new TypedValue<>(resolved, resolved.asPrismObject().getDefinition());
         } else {
-            PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+            PrismObjectDefinition<ObjectType> def = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
             return new TypedValue<>(null, def);
         }
     }
 
     // Finding items in deltas/objects
-    // this is similar to delta.hasItemDelta but much, much more relaxed (we completely ignore ID path segments and we take subpaths into account)
+    // this is similar to delta.hasItemDelta but much, much more relaxed (we completely ignore ID path segments and we take sub-paths into account)
     //
     // Very experimental implementation. Needs a bit of time to clean up and test adequately.
-    public <O extends ObjectType> boolean containsItem(ObjectDelta<O> delta, ItemPath itemPath) {
+    @SuppressWarnings("WeakerAccess")
+    public boolean containsItem(ObjectDelta<?> delta, ItemPath itemPath) {
         if (delta.getChangeType() == ChangeType.ADD) {
             return containsItem(delta.getObjectToAdd(), itemPath);
-        } else if (delta.getChangeType() == ChangeType.MODIFY) {
+        } else //noinspection SimplifiableIfStatement
+            if (delta.getChangeType() == ChangeType.MODIFY) {
             return containsItemInModifications(delta.getModifications(), itemPath);
         } else {
             return false;
         }
     }
 
-    private boolean containsItemInModifications(Collection<? extends ItemDelta> modifications, ItemPath itemPath) {
-        for (ItemDelta itemDelta : modifications) {
+    private boolean containsItemInModifications(Collection<? extends ItemDelta<?, ?>> modifications, ItemPath itemPath) {
+        for (ItemDelta<?, ?> itemDelta : modifications) {
             if (containsItem(itemDelta, itemPath)) {
                 return true;
             }
@@ -271,7 +217,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return false;
     }
 
-    private boolean containsItem(ItemDelta itemDelta, ItemPath itemPath) {
+    private boolean containsItem(ItemDelta<?, ?> itemDelta, ItemPath itemPath) {
         ItemPath namesOnlyPathTested = itemPath.namedSegmentsOnly();
         ItemPath namesOnlyPathInDelta = itemDelta.getPath().namedSegmentsOnly();
         if (namesOnlyPathTested.isSubPathOrEquivalent(namesOnlyPathInDelta)) {
@@ -294,13 +240,13 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     }
 
     // remainder contains only named segments and is not empty
-    private boolean containsItemInValues(Collection<PrismValue> values, ItemPath remainder) {
+    private boolean containsItemInValues(Collection<?> values, ItemPath remainder) {
         if (values == null) {
             return false;
         }
-        for (PrismValue value : values) {
+        for (Object value : values) {
             if (value instanceof PrismContainerValue) {     // we do not want to look inside references nor primitive values
-                if (containsItem((PrismContainerValue) value, remainder)) {
+                if (containsItem((PrismContainerValue<?>) value, remainder)) {
                     return true;
                 }
             }
@@ -309,7 +255,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     }
 
     boolean containsItem(List<ObjectDelta<AssignmentHolderType>> deltas, ItemPath itemPath) {
-        for (ObjectDelta objectDelta : deltas) {
+        for (ObjectDelta<?> objectDelta : deltas) {
             if (containsItem(objectDelta, itemPath)) {
                 return true;
             }
@@ -318,7 +264,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     }
 
     // itemPath is empty or starts with named item path segment
-    private boolean containsItem(PrismContainer container, ItemPath itemPath) {
+    private boolean containsItem(PrismContainer<?> container, ItemPath itemPath) {
         if (container.size() == 0) {
             return false;           // there is a container, but no values
         }
@@ -326,7 +272,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
             return true;
         }
         for (Object o : container.getValues()) {
-            if (containsItem((PrismContainerValue) o, itemPath)) {
+            if (containsItem((PrismContainerValue<?>) o, itemPath)) {
                 return true;
             }
         }
@@ -334,18 +280,19 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     }
 
     // path starts with named item path segment
-    private boolean containsItem(PrismContainerValue prismContainerValue, ItemPath itemPath) {
+    private boolean containsItem(PrismContainerValue<?> prismContainerValue, ItemPath itemPath) {
         ItemName first = ItemPath.toName(itemPath.first());
-        Item item = prismContainerValue.findItem(first);
+        Item<?, ?> item = prismContainerValue.findItem(first);
         if (item == null) {
             return false;
         }
         ItemPath pathTail = stripFirstIds(itemPath);
         if (item instanceof PrismContainer) {
-            return containsItem((PrismContainer) item, pathTail);
+            return containsItem((PrismContainer<?>) item, pathTail);
         } else if (item instanceof PrismReference) {
             return pathTail.isEmpty();      // we do not want to look inside references
-        } else if (item instanceof PrismProperty) {
+        } else //noinspection SimplifiableIfStatement
+            if (item instanceof PrismProperty) {
             return pathTail.isEmpty();      // ...neither inside atomic values
         } else {
             return false;                   // should not occur anyway
@@ -368,22 +315,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         this.channel = channel;
     }
 
-    public NotificationFunctions getNotificationFunctions() {
-        return notificationFunctions;
-    }
-
-    public void setNotificationFunctions(NotificationFunctions notificationFunctions) {
-        this.notificationFunctions = notificationFunctions;
-    }
-
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
-    public void setPrismContext(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
+    @Override
     public String getStatusAsText() {
         if (isSuccess()) {
             return "SUCCESS";
@@ -412,5 +344,26 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append(this.getClass().getSimpleName()).append("(").append(getId()).append(")");
+    }
+
+    MidpointFunctions getMidpointFunctions() {
+        if (midpointFunctions == null) {
+            midpointFunctions = ApplicationContextHolder.getBean(MidpointFunctions.class);
+        }
+        return midpointFunctions;
+    }
+
+    PrismContext getPrismContext() {
+        if (prismContext == null) {
+            prismContext = ApplicationContextHolder.getBean(PrismContext.class);
+        }
+        return prismContext;
+    }
+
+    TextFormatter getTextFormatter() {
+        if (textFormatter == null) {
+            textFormatter = ApplicationContextHolder.getBean(TextFormatter.class);
+        }
+        return textFormatter;
     }
 }

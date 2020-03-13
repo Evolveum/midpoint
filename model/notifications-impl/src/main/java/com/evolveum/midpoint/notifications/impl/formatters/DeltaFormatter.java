@@ -13,11 +13,12 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,11 +52,11 @@ public class DeltaFormatter {
 
     // objectOld and objectNew are used for explaining changed container values, e.g. assignment[1]/tenantRef (see MID-2047)
     // if null, they are ignored
-    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths,
+    String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
         Validate.isTrue(objectDelta.isModify(), "objectDelta is not a modification delta");
 
-        PrismObjectDefinition objectDefinition;
+        PrismObjectDefinition<?> objectDefinition;
         if (objectNew != null && objectNew.getDefinition() != null) {
             objectDefinition = objectNew.getDefinition();
         } else if (objectOld != null && objectOld.getDefinition() != null) {
@@ -70,31 +70,32 @@ public class DeltaFormatter {
 
         StringBuilder sb = new StringBuilder();
 
-        List<ItemDelta> toBeDisplayed = filterAndOrderItemDeltas(objectDelta, hiddenPaths, showOperationalAttributes);
-        for (ItemDelta itemDelta : toBeDisplayed) {
+        List<ItemDelta<?, ?>> visibleDeltas = filterAndOrderModifications(objectDelta, hiddenPaths, showOperationalAttributes);
+        for (ItemDelta<?, ?> itemDelta : visibleDeltas) {
             sb.append(" - ");
             sb.append(getItemDeltaLabel(itemDelta, objectDefinition));
             sb.append(":\n");
             formatItemDeltaContent(sb, itemDelta, objectOld, hiddenPaths, showOperationalAttributes);
         }
 
-        explainPaths(sb, toBeDisplayed, objectDefinition, objectOld, objectNew, hiddenPaths, showOperationalAttributes);
+        explainPaths(sb, visibleDeltas, objectDefinition, objectOld, objectNew, hiddenPaths, showOperationalAttributes);
 
         return sb.toString();
     }
 
-    private void explainPaths(StringBuilder sb, List<ItemDelta> deltas, PrismObjectDefinition objectDefinition, PrismObject objectOld, PrismObject objectNew, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    private void explainPaths(StringBuilder sb, List<ItemDelta<?, ?>> deltas, PrismObjectDefinition<?> objectDefinition,
+            PrismObject<?> objectOld, PrismObject<?> objectNew, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (objectOld == null && objectNew == null) {
             return; // no data - no point in trying
         }
         boolean first = true;
         List<ItemPath> alreadyExplained = new ArrayList<>();
-        for (ItemDelta itemDelta : deltas) {
+        for (ItemDelta<?, ?> itemDelta : deltas) {
             ItemPath pathToExplain = getPathToExplain(itemDelta);
             if (pathToExplain == null || ItemPathCollectionsUtil.containsSubpathOrEquivalent(alreadyExplained, pathToExplain)) {
                 continue;       // null or already processed
             }
-            PrismObject source = null;
+            PrismObject<?> source = null;
             Object item = null;
             if (objectNew != null) {
                 item = objectNew.find(pathToExplain);
@@ -116,15 +117,15 @@ public class DeltaFormatter {
             // the item should be a PrismContainerValue
             if (item instanceof PrismContainerValue) {
                 sb.append(" - ").append(label).append(":\n");
-                valueFormatter.formatContainerValue(sb, "   ", (PrismContainerValue) item, false, hiddenPaths, showOperationalAttributes);
+                valueFormatter.formatContainerValue(sb, "   ", (PrismContainerValue<?>) item, false, hiddenPaths, showOperationalAttributes);
             } else {
                 LOGGER.warn("{} in {} was expected to be a PrismContainerValue; it is {} instead", pathToExplain, source, item.getClass());
                 if (item instanceof PrismContainer) {
-                    valueFormatter.formatPrismContainer(sb, "   ", (PrismContainer) item, false, hiddenPaths, showOperationalAttributes);
+                    valueFormatter.formatPrismContainer(sb, "   ", (PrismContainer<?>) item, false, hiddenPaths, showOperationalAttributes);
                 } else if (item instanceof PrismReference) {
                     valueFormatter.formatPrismReference(sb, "   ", (PrismReference) item, false);
                 } else if (item instanceof PrismProperty) {
-                    valueFormatter.formatPrismProperty(sb, "   ", (PrismProperty) item);
+                    valueFormatter.formatPrismProperty(sb, "   ", (PrismProperty<?>) item);
                 } else {
                     sb.append("Unexpected item: ").append(item).append("\n");
                 }
@@ -133,22 +134,22 @@ public class DeltaFormatter {
         }
     }
 
-    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, PrismObject objectOld,
-            List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    private void formatItemDeltaContent(StringBuilder sb, ItemDelta<?, ?> itemDelta, PrismObject<?> objectOld,
+            Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
         formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
         formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
     }
 
     private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values,
-            boolean isDelete, ItemPath path, PrismObject objectOld,
-            List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+            boolean isDelete, ItemPath path, PrismObject<?> objectOld,
+            Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (values != null) {
             for (PrismValue prismValue : values) {
                 sb.append("   - ").append(type).append(": ");
                 String prefix = "     ";
                 if (isDelete && prismValue instanceof PrismContainerValue) {
-                    prismValue = fixEmptyContainerValue((PrismContainerValue) prismValue, path, objectOld);
+                    prismValue = fixEmptyContainerValue((PrismContainerValue<?>) prismValue, path, objectOld);
                 }
                 valueFormatter.formatPrismValue(sb, prefix, prismValue, isDelete, hiddenPaths, showOperationalAttributes);
                 if (!(prismValue instanceof PrismContainerValue)) {         // container values already end with newline
@@ -158,24 +159,24 @@ public class DeltaFormatter {
         }
     }
 
-    private PrismValue fixEmptyContainerValue(PrismContainerValue pcv, ItemPath path, PrismObject objectOld) {
+    private PrismValue fixEmptyContainerValue(PrismContainerValue<?> pcv, ItemPath path, PrismObject<?> objectOld) {
         if (pcv.getId() == null || CollectionUtils.isNotEmpty(pcv.getItems())) {
             return pcv;
         }
-        PrismContainer oldContainer = objectOld.findContainer(path);
+        PrismContainer<?> oldContainer = objectOld.findContainer(path);
         if (oldContainer == null) {
             return pcv;
         }
-        PrismContainerValue oldValue = oldContainer.getValue(pcv.getId());
+        PrismContainerValue<?> oldValue = oldContainer.getValue(pcv.getId());
         return oldValue != null ? oldValue : pcv;
     }
 
     // we call this on filtered list of item deltas - all of they have definition set
-    private String getItemDeltaLabel(ItemDelta itemDelta, PrismObjectDefinition objectDefinition) {
+    private String getItemDeltaLabel(ItemDelta<?, ?> itemDelta, PrismObjectDefinition<?> objectDefinition) {
         return getItemPathLabel(itemDelta.getPath(), itemDelta.getDefinition(), objectDefinition);
     }
 
-    private String getItemPathLabel(ItemPath path, Definition deltaDefinition, PrismObjectDefinition objectDefinition) {
+    private String getItemPathLabel(ItemPath path, Definition deltaDefinition, PrismObjectDefinition<?> objectDefinition) {
 
         int lastNameIndex = path.lastNameIndex();
 
@@ -218,7 +219,7 @@ public class DeltaFormatter {
     }
 
     // we call this on filtered list of item deltas - all of they have definition set
-    private ItemPath getPathToExplain(ItemDelta itemDelta) {
+    private ItemPath getPathToExplain(ItemDelta<?, ?> itemDelta) {
         ItemPath path = itemDelta.getPath();
 
         for (int i = 0; i < path.size(); i++) {
@@ -238,13 +239,36 @@ public class DeltaFormatter {
         return null;
     }
 
-    private List<ItemDelta> filterAndOrderItemDeltas(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-        List<ItemDelta> toBeDisplayed = new ArrayList<>(objectDelta.getModifications().size());
+    private List<ItemDelta<?, ?>> filterAndOrderModifications(ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        List<ItemDelta<?, ?>> visibleModifications = getVisibleModifications(objectDelta.getModifications(), hiddenPaths,
+                showOperationalAttributes, objectDelta.debugDumpLazily());
+        visibleModifications.sort((delta1, delta2) -> compareDisplayOrders(delta1.getDefinition(), delta2.getDefinition()));
+        return visibleModifications;
+    }
+
+    static int compareDisplayOrders(ItemDefinition<?> definition1, ItemDefinition<?> definition2) {
+        Integer order1 = definition1.getDisplayOrder();
+        Integer order2 = definition2.getDisplayOrder();
+        if (order1 != null && order2 != null) {
+            return order1 - order2;
+        } else if (order1 == null && order2 == null) {
+            return 0;
+        } else if (order1 == null) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    @NotNull
+    private List<ItemDelta<?, ?>> getVisibleModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+            Collection<ItemPath> hiddenPaths, boolean showOperational, Object context) {
+        List<ItemDelta<?, ?>> toBeDisplayed = new ArrayList<>(modifications.size());
         List<QName> noDefinition = new ArrayList<>();
-        for (ItemDelta itemDelta: objectDelta.getModifications()) {
+        for (ItemDelta<?, ?> itemDelta: modifications) {
             if (itemDelta.getDefinition() != null) {
-                if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationFunctionsImpl
-                        .isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+                if ((showOperational || !itemDelta.getDefinition().isOperational())
+                        && !TextFormatter.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                     toBeDisplayed.add(itemDelta);
                 }
             } else {
@@ -252,22 +276,16 @@ public class DeltaFormatter {
             }
         }
         if (!noDefinition.isEmpty()) {
-            LOGGER.error("ItemDeltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Containing object delta:\n{}",
-                    noDefinition, objectDelta.debugDump());
+            LOGGER.error("Item deltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Context:\n{}",
+                    noDefinition, context);
         }
-        toBeDisplayed.sort((delta1, delta2) -> {
-            Integer order1 = delta1.getDefinition().getDisplayOrder();
-            Integer order2 = delta2.getDefinition().getDisplayOrder();
-            if (order1 != null && order2 != null) {
-                return order1 - order2;
-            } else if (order1 == null && order2 == null) {
-                return 0;
-            } else if (order1 == null) {
-                return 1;
-            } else {
-                return -1;
-            }
-        });
         return toBeDisplayed;
+    }
+
+    boolean containsVisibleModifiedItems(Collection<? extends ItemDelta<?, ?>> modifications,
+            Collection<ItemPath> hiddenPaths, boolean showOperational) {
+        List<ItemDelta<?, ?>> visibleModifications = getVisibleModifications(modifications, hiddenPaths, showOperational,
+                DebugUtil.debugDumpLazily(modifications));
+        return !visibleModifications.isEmpty();
     }
 }

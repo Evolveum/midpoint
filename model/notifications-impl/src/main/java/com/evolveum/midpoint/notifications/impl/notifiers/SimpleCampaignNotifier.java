@@ -87,7 +87,7 @@ public class SimpleCampaignNotifier extends AbstractGeneralNotifier<CertCampaign
         certHelper.appendStatistics(body, campaign, task, result);
 
         body.append("\n\n");
-        functions.addRequesterAndChannelInformation(body, event, result);
+        addRequesterAndChannelInformation(body, event, result);
 
         return body.toString();
     }
