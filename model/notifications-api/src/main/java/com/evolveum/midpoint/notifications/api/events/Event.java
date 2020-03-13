@@ -58,6 +58,18 @@ public interface Event extends DebugDumpable, ShortDumpable, Serializable {
     SimpleObjectRef getRequestee();
 
     /**
+     * @return true if requestee is of give type
+     */
+    default boolean requesteeIs(Class<?> type) {
+        ObjectType requesteeObject = getRequesteeObject();
+        return requesteeObject != null && type.isAssignableFrom(requesteeObject.getClass());
+    }
+
+    default boolean requesteeIsUser() {
+        return requesteeIs(UserType.class);
+    }
+
+    /**
      * @return resolved requestee object (or null)
      */
     ObjectType getRequesteeObject();
