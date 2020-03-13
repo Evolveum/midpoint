@@ -34,10 +34,6 @@ public class ProtectedStringTypeWrapperImpl extends PrismPropertyWrapperImpl<Pro
         if (valueWrapper != null && valueWrapper.getRealValue() == null && valueWrapper.getOldValue().getRealValue() != null){
             valueWrapper.setStatus(ValueStatus.DELETED);
         }
-        if (getParent() != null && getParent().getParent() != null && getParent().getParent().getTypeClass().isAssignableFrom(ShadowType.class)
-            && valueWrapper.getStatus().equals(ValueStatus.ADDED)) {
-            valueWrapper.setStatus(ValueStatus.MODIFIED);
-        }
         return super.getDelta();
     }
 
