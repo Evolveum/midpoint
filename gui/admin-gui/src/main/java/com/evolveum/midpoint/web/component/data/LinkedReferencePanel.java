@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -31,7 +32,7 @@ import javax.xml.namespace.QName;
 /**
  * Created by honchar
  */
-public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
+public class LinkedReferencePanel<O extends ObjectType, R extends Referencable> extends BasePanel<R> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
@@ -43,7 +44,7 @@ public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<Object
 
     IModel<ObjectType> referencedObjectModel = null;
 
-    public LinkedReferencePanel(String id, IModel<ObjectReferenceType> objectReferenceModel){
+    public LinkedReferencePanel(String id, IModel<R> objectReferenceModel){
         super(id, objectReferenceModel);
     }
 
@@ -65,10 +66,11 @@ public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<Object
                             && getModelObject().asReferenceValue().getObject().asObjectable() instanceof ObjectType ){
                         return (ObjectType)getModelObject().asReferenceValue().getObject().asObjectable();
                     }
-                    if (StringUtils.isNotEmpty(getModelObject().getOid()) && getModelObject().getType() != null) {
+                    if (StringUtils.isNotEmpty(getModelObject().getOid()) && getModelObject().getType() != null &&
+                            getModelObject() instanceof ObjectReferenceType) {
                         PageBase pageBase = LinkedReferencePanel.this.getPageBase();
                         OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
-                        PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(), pageBase,
+                        PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject((ObjectReferenceType) getModelObject(), pageBase,
                                 pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);
                         return referencedObject != null ? referencedObject.asObjectable() : null;
                     }
