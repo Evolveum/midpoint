@@ -94,7 +94,13 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                             }
                         }
 
-                        if (strict) {
+                        boolean differentValue = true;
+                        if (getBaseFormComponent() != null && getBaseFormComponent().getModelObject() != null
+                                && getBaseFormComponent().getModelObject().equals(value)) {
+                            differentValue = false;
+                        }
+
+                        if (differentValue && strict) {
                             throw new ConversionException("Cannot convert " + value);
                         }
 
@@ -194,4 +200,3 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
 
 }
-
