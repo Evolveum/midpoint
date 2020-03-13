@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.impl.events.CustomEventImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -138,7 +138,15 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
+        ObjectDelta<UserType> userDelta = createAddAccountDelta(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE);
+        // This is to test for MID-5849. The applicability checking was not correct, so it passed even if there we no items
+        // to show in the notification.
+        userDelta.addModification(
+                deltaFor(UserType.class)
+                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                        .replace("dummy")
+                        .asItemDelta());
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -151,7 +159,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        assertEquals("Unexpected number of linkRefs", 1, userJackType.getLinkRef().size());
         ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         accountJackOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountJackOid));
@@ -548,7 +556,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "get", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -573,7 +581,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "post", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -606,7 +614,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "general-post", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "general-post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -639,7 +647,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "get-via-proxy", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get-via-proxy", null,
                 "hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -667,7 +675,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "check-variables", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "check-variables", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 

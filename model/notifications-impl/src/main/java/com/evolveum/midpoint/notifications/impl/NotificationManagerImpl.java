@@ -7,17 +7,18 @@
 
 package com.evolveum.midpoint.notifications.impl;
 
-import com.evolveum.midpoint.notifications.api.NotificationFunctions;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.NotificationManager;
-import com.evolveum.midpoint.notifications.api.events.BaseEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -25,15 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
 /**
- * @author mederly
+ *
  */
-
 @Component
 public class NotificationManagerImpl implements NotificationManager {
 
@@ -44,8 +39,6 @@ public class NotificationManagerImpl implements NotificationManager {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
-    @Autowired private PrismContext prismContext;
-    @Autowired private NotificationFunctions notificationFunctions;
     @Autowired private TransportRegistry transportRegistry;
     @Autowired private EventHandlerRegistry eventHandlerRegistry;
 
@@ -62,11 +55,6 @@ public class NotificationManagerImpl implements NotificationManager {
                 .addArbitraryObjectAsParam("event", event)
                 .build();
         try {
-            if (event instanceof BaseEvent) {
-                ((BaseEvent) event).setNotificationFunctions(notificationFunctions);
-                ((BaseEvent) event).setPrismContext(prismContext);
-            }
-
             LOGGER.trace("NotificationManager processing event:\n{}", event.debugDumpLazily(1));
 
             if (event.getAdHocHandler() != null) {

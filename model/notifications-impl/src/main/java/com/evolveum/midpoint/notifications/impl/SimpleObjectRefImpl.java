@@ -17,8 +17,6 @@ import org.apache.commons.lang.Validate;
 
 /**
  * TODO change to ObjectReferenceType
- *
- * @author mederly
  */
 public class SimpleObjectRefImpl implements SimpleObjectRef {
 
@@ -26,13 +24,13 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
     private ObjectType objectType;
     private NotificationFunctionsImpl functions;        // used to resolve object refs
 
-    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, ObjectType objectType) {
+    SimpleObjectRefImpl(NotificationFunctionsImpl functions, ObjectType objectType) {
         this.oid = objectType.getOid();
         this.objectType = objectType;
         this.functions = functions;
     }
 
-    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, PrismObject object) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, PrismObject<?> object) {
         this.oid = object.getOid();
         this.objectType = (ObjectType) object.asObjectable();
         this.functions = functions;
@@ -44,11 +42,6 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
         if (ref.asReferenceValue().getObject() != null) {
             this.objectType = (ObjectType) ref.asReferenceValue().getObject().asObjectable();
         }
-        this.functions = functions;
-    }
-
-    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, String oid) {
-        this.oid = oid;
         this.functions = functions;
     }
 

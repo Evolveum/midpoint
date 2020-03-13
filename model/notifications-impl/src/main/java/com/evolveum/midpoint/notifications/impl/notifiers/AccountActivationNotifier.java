@@ -13,15 +13,12 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccountActivationNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -75,9 +72,9 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
 
         String message = "Your accounts was successfully created. To activate your accounts, please click on the link bellow.";
 
-        String accountsToActivate = "Shadow to be activated: \n";
-        for (ShadowType shadow : getShadowsToActivate((ModelEvent) event)) {
-            accountsToActivate = accountsToActivate + shadow.asPrismObject().debugDump() + "\n";
+        StringBuilder accountsToActivate = new StringBuilder("Shadow to be activated: \n");
+        for (ShadowType shadow : getShadowsToActivate(event)) {
+            accountsToActivate.append(shadow.asPrismObject().debugDump()).append("\n");
         }
 
         return message + "\n\n" + createConfirmationLink(getUser(event), configuration, result) + "\n\n" + accountsToActivate;

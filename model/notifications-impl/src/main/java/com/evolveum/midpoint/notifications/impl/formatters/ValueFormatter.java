@@ -16,7 +16,6 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +26,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -39,7 +35,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -54,14 +49,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ValueFormatter {
 
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
-    @Autowired private PrismContext prismContext;
     @Autowired protected NotificationFunctionsImpl functions;
     @Autowired private LocalizationService localizationService;
 
     private static final Trace LOGGER = TraceManager.getTrace(ValueFormatter.class);
 
     // todo - should each hiddenAttribute be prefixed with something like F_ATTRIBUTE? Currently it should not be.
-    public String formatAccountAttributes(ShadowType shadowType, List<ItemPath> hiddenAttributes, boolean showOperationalAttributes) {
+    public String formatAccountAttributes(ShadowType shadowType, Collection<ItemPath> hiddenAttributes, boolean showOperationalAttributes) {
         Validate.notNull(shadowType, "shadowType is null");
 
         StringBuilder retval = new StringBuilder();
@@ -90,23 +84,20 @@ public class ValueFormatter {
         return retval.toString();
     }
 
-    public String formatObject(PrismObject object, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-
-        Validate.notNull(object, "object is null");
-
+    String formatObject(@NotNull PrismObject<?> object, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         StringBuilder retval = new StringBuilder();
         formatContainerValue(retval, "", object.getValue(), false, hiddenPaths, showOperationalAttributes);
         return retval.toString();
     }
 
-    void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (prismValue instanceof PrismPropertyValue) {
-            sb.append(ValueDisplayUtil.toStringValue((PrismPropertyValue) prismValue));
+            sb.append(ValueDisplayUtil.toStringValue((PrismPropertyValue<?>) prismValue));
         } else if (prismValue instanceof PrismReferenceValue) {
             sb.append(formatReferenceValue((PrismReferenceValue) prismValue, mightBeRemoved));
         } else if (prismValue instanceof PrismContainerValue) {
             sb.append("\n");
-            formatContainerValue(sb, prefix, (PrismContainerValue) prismValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+            formatContainerValue(sb, prefix, (PrismContainerValue<?>) prismValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
         } else {
             sb.append("Unexpected PrismValue type: ");
             sb.append(prismValue);
@@ -114,13 +105,10 @@ public class ValueFormatter {
         }
     }
 
-    void formatContainerValue(StringBuilder sb, String prefix, PrismContainerValue containerValue, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-//        sb.append("Container of type " + containerValue.getParent().getDefinition().getTypeName());
-//        sb.append("\n");
+    void formatContainerValue(StringBuilder sb, String prefix, PrismContainerValue<?> containerValue, boolean mightBeRemoved, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        List<Item<?, ?>> visibleItems = filterAndOrderItems(containerValue.getItems(), hiddenPaths, showOperationalAttributes);
 
-        List<Item> toBeDisplayed = filterAndOrderItems(containerValue.getItems(), hiddenPaths, showOperationalAttributes);
-
-        for (Item item : toBeDisplayed) {
+        for (Item<?, ?> item : visibleItems) {
             if (item instanceof PrismProperty) {
                 formatPrismProperty(sb, prefix, item);
             } else if (item instanceof PrismReference) {
@@ -136,8 +124,8 @@ public class ValueFormatter {
         }
     }
 
-    void formatPrismContainer(StringBuilder sb, String prefix, Item item, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-        for (PrismContainerValue subContainerValue : ((PrismContainer<? extends Containerable>) item).getValues()) {
+    void formatPrismContainer(StringBuilder sb, String prefix, Item<?, ?> item, boolean mightBeRemoved, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        for (PrismContainerValue<?> subContainerValue : ((PrismContainer<? extends Containerable>) item).getValues()) {
             String prefixSubContainer = prefix + "   ";
             StringBuilder valueSb = new StringBuilder();
             formatContainerValue(valueSb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
@@ -154,7 +142,7 @@ public class ValueFormatter {
         }
     }
 
-    void formatPrismReference(StringBuilder sb, String prefix, Item item, boolean mightBeRemoved) {
+    void formatPrismReference(StringBuilder sb, String prefix, Item<?, ?> item, boolean mightBeRemoved) {
         sb.append(prefix);
         sb.append(" - ");
         sb.append(getItemLabel(item));
@@ -171,13 +159,13 @@ public class ValueFormatter {
         sb.append("\n");
     }
 
-    void formatPrismProperty(StringBuilder sb, String prefix, Item item) {
+    void formatPrismProperty(StringBuilder sb, String prefix, Item<?, ?> item) {
         sb.append(prefix);
         sb.append(" - ");
         sb.append(getItemLabel(item));
         sb.append(": ");
         if (item.size() > 1) {
-            for (PrismPropertyValue propertyValue : ((PrismProperty<?>) item).getValues()) {
+            for (PrismPropertyValue<?> propertyValue : ((PrismProperty<?>) item).getValues()) {
                 sb.append("\n");
                 sb.append(prefix).append("   - ");
                 sb.append(ValueDisplayUtil.toStringValue(propertyValue));
@@ -192,6 +180,7 @@ public class ValueFormatter {
 
         OperationResult result = new OperationResult("dummy");
 
+        //noinspection unchecked
         PrismObject<? extends ObjectType> object = value.getObject();
 
         if (object == null) {
@@ -202,12 +191,13 @@ public class ValueFormatter {
         if (object != null && object.asObjectable() instanceof ShadowType) {
             ShadowType shadowType = (ShadowType) object.asObjectable();
             ObjectReferenceType resourceRef = shadowType.getResourceRef();
+            //noinspection unchecked
             PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
             ResourceType resourceType = null;
             if (resource == null) {
                 resource = getPrismObject(resourceRef.getOid(), false, result);
                 if (resource != null) {
-                    resourceType = (ResourceType) resource.asObjectable();
+                    resourceType = resource.asObjectable();
                 }
             } else {
                 resourceType = resource.asObjectable();
@@ -241,6 +231,7 @@ public class ValueFormatter {
     private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+            //noinspection unchecked
             return (PrismObject<O>) cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
@@ -258,45 +249,6 @@ public class ValueFormatter {
         return qname == null ? null : qname.getLocalPart();
     }
 
-    // we call this on filtered list of item deltas - all of they have definition set
-    private String getItemDeltaLabel(ItemDelta itemDelta, PrismObjectDefinition objectDefinition) {
-        return getItemPathLabel(itemDelta.getPath(), itemDelta.getDefinition(), objectDefinition);
-    }
-
-    private String getItemPathLabel(ItemPath path, Definition deltaDefinition, PrismObjectDefinition objectDefinition) {
-
-        int lastNameIndex = path.lastNameIndex();
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < path.size(); i++) {
-            Object segment = path.getSegment(i);
-            if (ItemPath.isName(segment)) {
-                if (sb.length() > 0) {
-                    sb.append("/");
-                }
-                Definition itemDefinition;
-                if (objectDefinition == null) {
-                    if (i == lastNameIndex) {  // definition for last segment is the definition taken from delta
-                        itemDefinition = deltaDefinition;    // this may be null but we don't care
-                    } else {
-                        itemDefinition = null;          // definitions for previous segments are unknown
-                    }
-                } else {
-                    // todo we could make this iterative (resolving definitions while walking down the path); but this is definitely simpler to implement and debug :)
-                    itemDefinition = objectDefinition.findItemDefinition(path.allUpToIncluding(i));
-                }
-                if (itemDefinition != null && itemDefinition.getDisplayName() != null) {
-                    sb.append(resolve(itemDefinition.getDisplayName()));
-                } else {
-                    sb.append(ItemPath.toName(segment).getLocalPart());
-                }
-            } else if (ItemPath.isId(segment)) {
-                sb.append("[").append(ItemPath.toId(segment)).append("]");
-            }
-        }
-        return sb.toString();
-    }
-
     private String resolve(String key) {
         if (key != null) {
             return localizationService.translate(key, null, Locale.getDefault(), key);
@@ -306,22 +258,30 @@ public class ValueFormatter {
     }
 
     // we call this on filtered list of items - all of them have definition set
-    private String getItemLabel(Item item) {
+    private String getItemLabel(Item<?, ?> item) {
         return item.getDefinition().getDisplayName() != null ?
                 resolve(item.getDefinition().getDisplayName()) : item.getElementName().getLocalPart();
     }
 
-    private List<Item> filterAndOrderItems(Collection<Item> items, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    private List<Item<?, ?>> filterAndOrderItems(Collection<Item<?, ?>> items, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (items == null) {
             return new ArrayList<>();
         }
-        List<Item> toBeDisplayed = new ArrayList<>(items.size());
+        List<Item<?, ?>> visibleItems = getVisibleItems(items, hiddenPaths, showOperationalAttributes);
+        visibleItems.sort((item1, item2) -> DeltaFormatter.compareDisplayOrders(item1.getDefinition(), item2.getDefinition()));
+        return visibleItems;
+    }
+
+    @NotNull
+    private List<Item<?, ?>> getVisibleItems(Collection<Item<?, ?>> items, Collection<ItemPath> hiddenPaths,
+            boolean showOperationalAttributes) {
+        List<Item<?, ?>> visibleItems = new ArrayList<>(items.size());
         List<QName> noDefinition = new ArrayList<>();
-        for (Item item : items) {
+        for (Item<?, ?> item : items) {
             if (item.getDefinition() != null) {
-                boolean isHidden = NotificationFunctionsImpl.isAmongHiddenPaths(item.getPath(), hiddenPaths);
+                boolean isHidden = TextFormatter.isAmongHiddenPaths(item.getPath(), hiddenPaths);
                 if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational()) && !item.isEmpty()) {
-                    toBeDisplayed.add(item);
+                    visibleItems.add(item);
                 }
             } else {
                 noDefinition.add(item.getElementName());
@@ -331,20 +291,7 @@ public class ValueFormatter {
             LOGGER.error("Items {} without definition - THEY WILL NOT BE INCLUDED IN NOTIFICATION.\nAll items:\n{}",
                     noDefinition, DebugUtil.debugDump(items));
         }
-        toBeDisplayed.sort((item1, item2) -> {
-            Integer order1 = item1.getDefinition().getDisplayOrder();
-            Integer order2 = item2.getDefinition().getDisplayOrder();
-            if (order1 != null && order2 != null) {
-                return order1 - order2;
-            } else if (order1 == null && order2 == null) {
-                return 0;
-            } else if (order1 == null) {
-                return 1;
-            } else {
-                return -1;
-            }
-        });
-        return toBeDisplayed;
+        return visibleItems;
     }
 
     public String formatUserName(SimpleObjectRef ref, OperationResult result) {

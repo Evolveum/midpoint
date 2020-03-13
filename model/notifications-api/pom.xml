@@ -44,11 +44,6 @@
             <version>4.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-api</artifactId>
-            <version>4.0.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-api</artifactId>
             <version>4.0.3-SNAPSHOT</version>
@@ -58,12 +53,6 @@
             <artifactId>task-api</artifactId>
             <version>4.0.3-SNAPSHOT</version>
         </dependency>
-
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>

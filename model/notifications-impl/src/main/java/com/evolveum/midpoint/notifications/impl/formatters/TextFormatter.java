@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.notifications.impl.formatters;
 
-import java.util.List;
+import java.util.*;
 
-import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +20,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 /**
  * Prepares text output for notification purposes.
@@ -38,14 +30,62 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 @Component
 public class TextFormatter {
 
+    public static final List<ItemPath> SYNCHRONIZATION_PATHS = Collections.unmodifiableList(Arrays.asList(
+            ShadowType.F_SYNCHRONIZATION_SITUATION,
+            ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
+            ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
+            ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP));
+
+    public static final List<ItemPath> AUXILIARY_PATHS = Collections.unmodifiableList(Arrays.asList(
+            ShadowType.F_METADATA,
+            ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
+            ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+            ShadowType.F_ACTIVATION.append(ActivationType.F_EFFECTIVE_STATUS),
+            ShadowType.F_ACTIVATION.append(ActivationType.F_DISABLE_TIMESTAMP),
+            ShadowType.F_ACTIVATION.append(ActivationType.F_ARCHIVE_TIMESTAMP),
+            ShadowType.F_ACTIVATION.append(ActivationType.F_ENABLE_TIMESTAMP),
+            ShadowType.F_ITERATION,
+            ShadowType.F_ITERATION_TOKEN,
+            FocusType.F_LINK_REF,
+            ShadowType.F_TRIGGER));
+
     @Autowired ValueFormatter valueFormatter;
     @Autowired DeltaFormatter deltaFormatter;
 
-    public String formatAccountAttributes(ShadowType shadowType, List<ItemPath> hiddenAttributes, boolean showOperationalAttributes) {
-        return valueFormatter.formatAccountAttributes(shadowType, hiddenAttributes, showOperationalAttributes);
+    static boolean isAmongHiddenPaths(ItemPath path, Collection<ItemPath> hiddenPaths) {
+        if (hiddenPaths == null) {
+            return false;
+        }
+        for (ItemPath hiddenPath : hiddenPaths) {
+            if (hiddenPath.isSubPathOrEquivalent(path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public String formatObject(PrismObject object, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    public String formatShadowAttributes(ShadowType shadowType, boolean showSynchronizationItems, boolean showAuxiliaryItems) {
+        Collection<ItemPath> hiddenAttributes = getHiddenPaths(showSynchronizationItems, showAuxiliaryItems);
+        return valueFormatter.formatAccountAttributes(shadowType, hiddenAttributes, showAuxiliaryItems);
+    }
+
+    private Collection<ItemPath> getHiddenPaths(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+        List<ItemPath> hiddenPaths = new ArrayList<>();
+        if (!showSynchronizationItems) {
+            hiddenPaths.addAll(TextFormatter.SYNCHRONIZATION_PATHS);
+        }
+        if (!showAuxiliaryAttributes) {
+            hiddenPaths.addAll(TextFormatter.AUXILIARY_PATHS);
+        }
+        return hiddenPaths;
+    }
+
+    public String formatObject(PrismObject<?> object, boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes) {
+        Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
+        return formatObject(object, hiddenPaths, showAuxiliaryAttributes);
+    }
+
+    public String formatObject(PrismObject<?> object, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         return valueFormatter.formatObject(object, hiddenPaths, showOperationalAttributes);
     }
 
@@ -55,8 +95,21 @@ public class TextFormatter {
         return deltaFormatter.formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, null, null);
     }
 
-    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths,
+    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes,
+            PrismObject<?> objectOld, PrismObject<?> objectNew) {
+        Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
+        return formatObjectModificationDelta(objectDelta, hiddenPaths, showAuxiliaryAttributes, objectOld, objectNew);
+    }
+
+    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
         return deltaFormatter.formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, objectOld, objectNew);
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean containsVisibleModifiedItems(Collection<? extends ItemDelta<?, ?>> modifications,
+            boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes) {
+        Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
+        return deltaFormatter.containsVisibleModifiedItems(modifications, hiddenPaths, showAuxiliaryAttributes);
     }
 }

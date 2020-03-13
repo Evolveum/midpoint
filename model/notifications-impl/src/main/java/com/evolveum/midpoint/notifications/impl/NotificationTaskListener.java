@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
-import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+import com.evolveum.midpoint.notifications.impl.events.TaskEventImpl;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -22,8 +22,6 @@ import javax.annotation.PostConstruct;
  * One of interfaces of the notifier to midPoint.
  *
  * Used to catch task-related events.
- *
- * @author mederly
  */
 @Component
 public class NotificationTaskListener implements TaskListener {
@@ -60,7 +58,7 @@ public class NotificationTaskListener implements TaskListener {
     }
 
     private void createAndProcessEvent(Task task, TaskRunResult runResult, EventOperationType operationType) {
-        TaskEvent event = new TaskEvent(lightweightIdentifierGenerator, task, runResult, operationType, task.getChannel());
+        TaskEventImpl event = new TaskEventImpl(lightweightIdentifierGenerator, task, runResult, operationType, task.getChannel());
 
         if (task.getOwner() != null) {
             event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));

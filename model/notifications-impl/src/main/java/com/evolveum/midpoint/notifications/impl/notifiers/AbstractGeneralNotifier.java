@@ -7,22 +7,30 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
-import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
+import org.apache.cxf.common.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
+import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -31,16 +39,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.cxf.common.util.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- *
+ * Base class for most notifiers.
  */
 @Component
 public abstract class AbstractGeneralNotifier<E extends Event, N extends GeneralNotifierType> extends BaseHandler<E, N> {
@@ -69,26 +70,29 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         try {
             logStart(getLogger(), event, notifierConfiguration);
 
-            boolean applies = aggregatedEventHandler.processEvent(event, notifierConfiguration, task, result);
-            if (applies) {
-                if (!quickCheckApplicability(event, notifierConfiguration, result)) {
-                    // nothing to do -- an appropriate message should have been logged in quickCheckApplicability method
-                    result.recordNotApplicable();
-                } else if (!checkApplicability(event, notifierConfiguration, result)) {
-                    // nothing to do -- an appropriate message should have been logged in checkApplicability method
-                    result.recordNotApplicable();
-                } else if (notifierConfiguration.getTransport().isEmpty()) {
-                    getLogger().warn("No transports for this notifier, exiting without sending any notifications.");
-                    result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No transports");
-                } else {
-                    reportNotificationStart(event);
-                    try {
-                        ExpressionVariables variables = getDefaultVariables(event, result);
-                        for (String transportName : notifierConfiguration.getTransport()) {
-                            messagesSent += prepareAndSend(event, notifierConfiguration, variables, transportName, task, result);
+            boolean applies = false;
+            if (!quickCheckApplicability(event, notifierConfiguration, result)) {
+                // nothing to do -- an appropriate message should have been logged in quickCheckApplicability method
+                result.recordNotApplicable();
+            } else {
+                if (aggregatedEventHandler.processEvent(event, notifierConfiguration, task, result)) {
+                    if (!checkApplicability(event, notifierConfiguration, result)) {
+                        // nothing to do -- an appropriate message should have been logged in checkApplicability method
+                        result.recordNotApplicable();
+                    } else if (notifierConfiguration.getTransport().isEmpty()) {
+                        getLogger().warn("No transports for this notifier, exiting without sending any notifications.");
+                        result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No transports");
+                    } else {
+                        applies = true;
+                        reportNotificationStart(event);
+                        try {
+                            ExpressionVariables variables = getDefaultVariables(event, result);
+                            for (String transportName : notifierConfiguration.getTransport()) {
+                                messagesSent += prepareAndSend(event, notifierConfiguration, variables, transportName, task, result);
+                            }
+                        } finally {
+                            reportNotificationEnd(event, result);
                         }
-                    } finally {
-                        reportNotificationEnd(event, result);
                     }
                 }
             }
@@ -194,6 +198,14 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return null;
     }
 
+    /**
+     * Checks the event/notifier applicability _before_ nested filters are applied. So this check should be:
+     * 1) quick
+     * 2) safe - it should not make any assumptions about event content that would cause it to throw an exception
+     * 3) filter out events that obviously do not match the notifier - e.g. simpleUserNotifier should ensure that
+     *    the focus type is really UserType; this allows nested filters to assume existence of
+     *    e.g. requestee.fullName element.
+     */
     protected boolean quickCheckApplicability(E event, N generalNotifierType, OperationResult result) {
         return true;
     }
@@ -333,17 +345,6 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    // TODO implement more efficiently
-    // precondition: delta is MODIFY delta
-    boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
-        for (ItemDelta itemDelta : delta.getModifications()) {
-            if (!NotificationFunctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     boolean isWatchAuxiliaryAttributes(N configuration) {
         return Boolean.TRUE.equals(configuration.isWatchAuxiliaryAttributes());
     }
@@ -361,4 +362,25 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             return name;
         }
     }
+
+    void addRequesterAndChannelInformation(StringBuilder body, Event event, OperationResult result) {
+        if (event.getRequester() != null) {
+            body.append("Requester: ");
+            try {
+                ObjectType requester = event.getRequester().resolveObjectType(result, false);
+                if (requester instanceof UserType) {
+                    UserType requesterUser = (UserType) requester;
+                    body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");
+                } else {
+                    body.append(ObjectTypeUtil.toShortString(requester));
+                }
+            } catch (RuntimeException e) {
+                body.append("couldn't be determined: ").append(e.getMessage());
+                LoggingUtils.logUnexpectedException(getLogger(), "Couldn't determine requester for a notification", e);
+            }
+            body.append("\n");
+        }
+        body.append("Channel: ").append(event.getChannel()).append("\n\n");
+    }
+
 }

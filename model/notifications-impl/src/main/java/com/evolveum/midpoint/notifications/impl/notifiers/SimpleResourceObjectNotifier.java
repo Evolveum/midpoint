@@ -21,9 +21,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- *
- */
 @Component
 public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<ResourceObjectEvent, SimpleResourceObjectNotifierType> {
 
@@ -41,23 +38,9 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
 
     @Override
     protected boolean checkApplicability(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, OperationResult result) {
-
-        ObjectDelta<ShadowType> delta = event.getShadowDelta();
-        if (!delta.isModify()) {
-            return true;
-        }
-
-        boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, functions.getSynchronizationPaths());
-        boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, functions.getAuxiliaryPaths());
-        boolean watchSync = isWatchSynchronizationAttributes(configuration);
-        boolean watchAux = isWatchAuxiliaryAttributes(configuration);
-        if ((watchSync || otherThanSyncPresent) && (watchAux || otherThanAuxPresent)) {
-            return true;
-        }
-
-        LOGGER.trace("No relevant attributes in delta, skipping the notifier (watchSync = " + watchSync + ", otherThanSyncPresent = " + otherThanSyncPresent +
-                ", watchAux = " + watchAux + ", otherThanAuxPresent = " + otherThanAuxPresent + ")");
-        return false;
+        return event.hasContentToShow(
+                isWatchSynchronizationAttributes(configuration),
+                isWatchAuxiliaryAttributes(configuration));
     }
 
     private boolean isWatchSynchronizationAttributes(SimpleResourceObjectNotifierType configuration) {
@@ -66,7 +49,7 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
 
     @Override
     protected String getSubject(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, String transport, Task task, OperationResult result) {
-        ResourceOperationDescription rod = event.getAccountOperationDescription();
+        ResourceOperationDescription rod = event.getOperationDescription();
         //noinspection unchecked
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
@@ -91,7 +74,7 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
         StringBuilder body = new StringBuilder();
 
         FocusType owner = (FocusType) event.getRequesteeObject();
-        ResourceOperationDescription rod = event.getAccountOperationDescription();
+        ResourceOperationDescription rod = event.getOperationDescription();
         //noinspection unchecked
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
@@ -152,11 +135,11 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
         if (event.getOperationStatus() == OperationStatus.IN_PROGRESS) {
             body.append("The operation will be retried.\n\n");
         } else if (event.getOperationStatus() == OperationStatus.FAILURE) {
-            body.append("Error: ").append(event.getAccountOperationDescription().getResult().getMessage()).append("\n\n");
+            body.append("Error: ").append(event.getOperationDescription().getResult().getMessage()).append("\n\n");
         }
 
         body.append("\n\n");
-        functions.addRequesterAndChannelInformation(body, event, result);
+        addRequesterAndChannelInformation(body, event, result);
 
         if (techInfo) {
             body.append("----------------------------------------\n");
