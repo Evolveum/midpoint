@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -103,9 +102,10 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         add(infoPanel);
 
 
-        LoadableModel<List<SynchronizationInformationDto>> syncInfoModel = new LoadableModel<List<SynchronizationInformationDto>>(true) {
+        PropertyModel<List<SynchronizationInformationDto>> syncInfoModel = new PropertyModel<List<SynchronizationInformationDto>>(statisticsModel, "") {
+
             @Override
-            protected List<SynchronizationInformationDto> load() {
+            public List<SynchronizationInformationDto> getObject() {
                 OperationStatsType statsType = statisticsModel.getObject();
                 if (statsType == null) {
                     return null;
@@ -131,7 +131,12 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             }
         };
 
-        ListDataProvider<SynchronizationInformationDto> syncDataProvider = new ListDataProvider<>(this, syncInfoModel);
+        ListDataProvider<SynchronizationInformationDto> syncDataProvider = new ListDataProvider<SynchronizationInformationDto>(this, syncInfoModel) {
+            @Override
+            public boolean isUseCache() {
+                return false;
+            }
+        };
 
         List<IColumn<SynchronizationInformationDto, String>> syncColumns = new ArrayList<>();
         syncColumns.add(new PropertyColumn<>(createStringResource("TaskOperationStatisticsPanel.situation"), SynchronizationInformationDto.F_ACTION_NAME));
@@ -148,48 +153,8 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         table.setOutputMarkupId(true);
         add(table);
 
-
-
-        ListDataProvider<ObjectActionsExecutedEntryType> objectActionsEntry = new ListDataProvider<>(this,
-                new PropertyModel<>(statisticsModel, OperationStatsType.F_ACTIONS_EXECUTED_INFORMATION.getLocalPart() + "." + ActionsExecutedInformationType.F_RESULTING_OBJECT_ACTIONS_ENTRY));
-
-        List<IColumn<ObjectActionsExecutedEntryType, String>> actionEntryColumns = new ArrayList<>();
-        actionEntryColumns.add(new AbstractColumn<ObjectActionsExecutedEntryType, String>(createStringResource("ObjectActionsExecutedEntryType.objectType")) {
-            @Override
-            public void populateItem(Item<ICellPopulator<ObjectActionsExecutedEntryType>> item, String id, IModel<ObjectActionsExecutedEntryType> iModel) {
-                QName entry = iModel.getObject().getObjectType();
-                ObjectTypes objectType = null;
-                if (entry != null) {
-                    objectType = ObjectTypes.getObjectTypeFromTypeQName(entry);
-                }
-                item.add(new Label(id, createStringResource(objectType)));
-            }
-        });
-        actionEntryColumns.add(new EnumPropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType.operation"), ObjectActionsExecutedEntryType.F_OPERATION.getLocalPart()));
-        actionEntryColumns.add(new AbstractColumn<ObjectActionsExecutedEntryType, String>(createStringResource("ObjectActionsExecutedEntryType.chanel")) {
-            @Override
-            public void populateItem(Item<ICellPopulator<ObjectActionsExecutedEntryType>> item, String id, IModel<ObjectActionsExecutedEntryType> iModel) {
-                String channel = iModel.getObject().getChannel();
-                String key = "";
-                if (channel != null && !channel.isEmpty()) {
-                    key = "Channel." + WebComponentUtil.getSimpleChannel(channel);
-                }
-                item.add(new Label(id, createStringResource(key)));
-            }
-        });
-        actionEntryColumns.add(new PropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType.totalSuccessCount"), ObjectActionsExecutedEntryType.F_TOTAL_SUCCESS_COUNT.getLocalPart()));
-        actionEntryColumns.add(new PropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType.lastSuccessDisplayName"), ObjectActionsExecutedEntryType.F_LAST_SUCCESS_OBJECT_DISPLAY_NAME.getLocalPart()));
-        actionEntryColumns.add(new AbstractColumn<ObjectActionsExecutedEntryType, String>(createStringResource("ObjectActionsExecutedEntryType.lastSuccessTimestamp")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ObjectActionsExecutedEntryType>> item, String id, IModel<ObjectActionsExecutedEntryType> iModel) {
-                XMLGregorianCalendar timestamp = iModel.getObject().getLastSuccessTimestamp();
-                item.add(new Label(id, WebComponentUtil.formatDate(timestamp)));
-            }
-        });
-        actionEntryColumns.add(new PropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType.totalFailureCount"), ObjectActionsExecutedEntryType.F_TOTAL_FAILURE_COUNT.getLocalPart()));
-
-        BoxedTablePanel<ObjectActionsExecutedEntryType> actionTable = new BoxedTablePanel<ObjectActionsExecutedEntryType>(ID_ACTION_ENTRY, objectActionsEntry, actionEntryColumns) {
+        ListDataProvider<ObjectActionsExecutedEntryType> objectActionsEntry = createActionsEntryProvider(OperationStatsType.F_ACTIONS_EXECUTED_INFORMATION.getLocalPart() + "." + ActionsExecutedInformationType.F_RESULTING_OBJECT_ACTIONS_ENTRY);
+        BoxedTablePanel<ObjectActionsExecutedEntryType> actionTable = new BoxedTablePanel<ObjectActionsExecutedEntryType>(ID_ACTION_ENTRY, objectActionsEntry, createActionEntryColumns()) {
             @Override
             protected boolean hideFooterIfSinglePage() {
                 return true;
@@ -199,9 +164,25 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
         actionTable.setOutputMarkupId(true);
         add(actionTable);
 
-        ListDataProvider<ObjectActionsExecutedEntryType> resultingObjectActionsEntry = new ListDataProvider<>(this,
-                new PropertyModel<>(statisticsModel, OperationStatsType.F_ACTIONS_EXECUTED_INFORMATION.getLocalPart() + "." + ActionsExecutedInformationType.F_OBJECT_ACTIONS_ENTRY));
 
+        BoxedTablePanel<ObjectActionsExecutedEntryType> resultingEntry = new BoxedTablePanel<ObjectActionsExecutedEntryType>(ID_RESULTING_ENTRY, createActionsEntryProvider(OperationStatsType.F_ACTIONS_EXECUTED_INFORMATION.getLocalPart() + "." + ActionsExecutedInformationType.F_OBJECT_ACTIONS_ENTRY), createActionEntryColumns()) {
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return true;
+            }
+        };
+
+        resultingEntry.setOutputMarkupId(true);
+        add(resultingEntry);
+
+    }
+
+    private ListDataProvider<ObjectActionsExecutedEntryType> createActionsEntryProvider(String expression) {
+        return new ListDataProvider<>(this,
+                new PropertyModel<>(statisticsModel, expression));
+    }
+
+    private List<IColumn<ObjectActionsExecutedEntryType, String>> createActionEntryColumns() {
         List<IColumn<ObjectActionsExecutedEntryType, String>> resultingEntryColumns = new ArrayList<>();
         resultingEntryColumns.add(new AbstractColumn<ObjectActionsExecutedEntryType, String>(createStringResource("ObjectActionsExecutedEntryType.objectType")) {
             @Override
@@ -217,7 +198,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             }
         });
         resultingEntryColumns.add(new EnumPropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType.operation"), ObjectActionsExecutedEntryType.F_OPERATION.getLocalPart()));
-        resultingEntryColumns.add(new AbstractColumn<ObjectActionsExecutedEntryType, String>(createStringResource("ObjectActionsExecutedEntryType.channel")) {
+        resultingEntryColumns.add(new AbstractColumn<ObjectActionsExecutedEntryType, String>(createStringResource("ObjectActionsExecutedEntryType.chanel")) {
             @Override
             public void populateItem(Item<ICellPopulator<ObjectActionsExecutedEntryType>> item, String id, IModel<ObjectActionsExecutedEntryType> iModel) {
                 String channel = iModel.getObject().getChannel();
@@ -238,17 +219,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             }
         });
         resultingEntryColumns.add(new PropertyColumn<>(createStringResource("ObjectActionsExecutedEntryType.totalFailureCount"), ObjectActionsExecutedEntryType.F_TOTAL_FAILURE_COUNT.getLocalPart()));
-
-        BoxedTablePanel<ObjectActionsExecutedEntryType> resultingEntry = new BoxedTablePanel<ObjectActionsExecutedEntryType>(ID_RESULTING_ENTRY, resultingObjectActionsEntry, resultingEntryColumns) {
-            @Override
-            protected boolean hideFooterIfSinglePage() {
-                return true;
-            }
-        };
-
-        resultingEntry.setOutputMarkupId(true);
-        add(resultingEntry);
-
+        return resultingEntryColumns;
     }
 
     @Override

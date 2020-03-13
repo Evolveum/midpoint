@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -247,7 +248,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
         List<QName> assignableRelationsList = getAvailableRelationsList();
         if (CollectionUtils.isNotEmpty(assignableRelationsList)){
-            getRoleCatalogStorage().setSelectedRelation(assignableRelationsList.get(0));
+            if (assignableRelationsList.contains(SchemaConstants.ORG_DEFAULT)){
+                getRoleCatalogStorage().setSelectedRelation(SchemaConstants.ORG_DEFAULT);
+            } else {
+                getRoleCatalogStorage().setSelectedRelation(assignableRelationsList.get(0));
+            }
         }
         relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getRoleCatalogStorage().getSelectedRelation(),
                 assignableRelationsList, false){

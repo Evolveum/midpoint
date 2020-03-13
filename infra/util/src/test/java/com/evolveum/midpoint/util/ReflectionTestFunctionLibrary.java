@@ -9,11 +9,12 @@ package com.evolveum.midpoint.util;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+
 /**
  * @author semancik
- *
  */
-public class ReflectionTestFunctionLibrary {
+public class ReflectionTestFunctionLibrary extends AbstractUnitTest {
 
     Collection<String> calledIds = new ArrayList<>();
 
@@ -54,7 +55,7 @@ public class ReflectionTestFunctionLibrary {
     // Test functions: varargs
 
     public void v(String... strings) {
-        calledIds.add("v:"+strings.length);
+        calledIds.add("v:" + strings.length);
     }
 
     // Utility
@@ -70,5 +71,4 @@ public class ReflectionTestFunctionLibrary {
     public Collection<String> getCalledIds() {
         return calledIds;
     }
-
 }

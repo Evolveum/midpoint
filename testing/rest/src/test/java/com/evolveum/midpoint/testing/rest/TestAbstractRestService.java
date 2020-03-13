@@ -39,8 +39,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
@@ -66,7 +64,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public static final String ROLE_ADDER_FILE = "role-adder";
 
     public static final String ROLE_MODIFIER_FILE = "role-modifier";
-    public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
 
     public static final String POLICY_ITEM_DEFINITION_GENERATE = "policy-generate";
     public static final String POLICY_ITEM_DEFINITION_GENERATE_BAD_PATH = "policy-generate-bad-path";
@@ -89,9 +86,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public static final String SCRIPT_GENERATE_PASSWORDS = "script-generate-passwords";
     public static final String SCRIPT_MODIFY_VALID_TO = "script-modify-validTo";
 
-    public static final File RESOURCE_OPENDJ_FILE = new File(BASE_REPO_DIR, "reosurce-opendj.xml");
-    public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-
     public static final String USER_TEMPLATE_FILE = "user-template";
     public static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
@@ -106,8 +100,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     public static final String ACCOUT_CHUCK_FILE = "account-chuck";
     public static final String ACCOUT_CHUCK_OID = BASE_REPO_DIR + "a0c010c0-d34d-b33f-f00d-111111111666";
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestAbstractRestService.class);
 
     private static final String MODIFICATION_DISABLE = "modification-disable";
     private static final String MODIFICATION_ENABLE = "modification-enable";
@@ -143,7 +135,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
@@ -164,7 +156,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 404);
         OperationResultType result = response.readEntity(OperationResultType.class);
         assertNotNull("Error response must contain operation result", result);
-        LOGGER.info("Returned result: {}", result);
+        logger.info("Returned result: {}", result);
         assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
         display("Audit", getDummyAuditService());
@@ -332,7 +324,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
@@ -376,7 +368,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 400);
         OperationResultType result = response.readEntity(OperationResultType.class);
         assertNotNull("Error response must contain operation result", result);
-        LOGGER.info("Returned result: {}", result);
+        logger.info("Returned result: {}", result);
         assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
         display("Audit", getDummyAuditService());
@@ -497,7 +489,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 403);
         OperationResultType result = response.readEntity(OperationResultType.class);
         assertNotNull("Error response must contain operation result", result);
-        LOGGER.info("Returned result: {}", result);
+        logger.info("Returned result: {}", result);
         assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
         display("Audit", getDummyAuditService());
@@ -611,7 +603,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
         display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
@@ -925,16 +917,16 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
     private OperationResult traceResponse(Response response, boolean assertMessages) {
         if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
-            LOGGER.info("coverting result");
+            logger.info("coverting result");
             OperationResultType result = response.readEntity(OperationResultType.class);
             if (assertMessages) {
                 LocalizableMessageType localizableMessage = result.getUserFriendlyMessage();
                 assertLocalizableMessage(localizableMessage);
 
             }
-            LOGGER.info("tracing result");
+            logger.info("tracing result");
             OperationResult opResult = OperationResult.createOperationResult(result);
-            LOGGER.info("REST resutl {}", opResult.debugDump());
+            logger.info("REST resutl {}", opResult.debugDump());
             display("REST result", opResult);
             return opResult;
         }
@@ -954,7 +946,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
             assertNotNull("Expected key in single localizable message, but no one present", singelLocalizableMessage.getKey());
         }
 
-        LOGGER.info("localizable message: " + localizableMessage);
+        logger.info("localizable message: " + localizableMessage);
     }
 
     @Test
@@ -1177,7 +1169,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         ExecuteScriptResponseType responseData = response.readEntity(ExecuteScriptResponseType.class);
         display("Response", getPrismContext().xmlSerializer().serializeRealValue(responseData));
-        LOGGER.info("Response: {}", getPrismContext().xmlSerializer().serializeRealValue(responseData));
+        logger.info("Response: {}", getPrismContext().xmlSerializer().serializeRealValue(responseData));
 
         List<PipelineItemType> items = responseData.getOutput().getDataOutput().getItem();
         assertEquals("Wrong # of processed items", 2, items.size());
@@ -1194,7 +1186,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         ItemProcessingResult<PasswordGenerationData> second = extractedResults.get(1);
         assertEquals("Wrong OID in second result", USER_JACK_OID, second.oid);
         assertEquals("Wrong name in second result", "jack", second.name);
-        LOGGER.info("pwd in second result {}", second.data.password);
+        logger.info("pwd in second result {}", second.data.password);
         assertNotNull("Missing password in second result", second.data.password);
 
         assertEquals("Wrong status in second result", OperationResultStatusType.SUCCESS, second.status);
@@ -1770,8 +1762,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     private void displayResponse(Response response) {
-        LOGGER.info("response : {} ", response.getStatus());
-        LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+        logger.info("response : {} ", response.getStatus());
+        logger.info("response : {} ", response.getStatusInfo().getReasonPhrase());
     }
 
     protected <O extends ObjectType> PrismObject<O> getObjectRepo(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {

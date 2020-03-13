@@ -63,7 +63,7 @@ public class EditResourceConfigurationPage extends BasicPage {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
         SelenideElement testModalBox = $(Schrodinger
                 .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_LONG_1_M);
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_EXTRA_LONG_1_M);
 
         return new TestConnectionModal<>(this, testModalBox);
     }

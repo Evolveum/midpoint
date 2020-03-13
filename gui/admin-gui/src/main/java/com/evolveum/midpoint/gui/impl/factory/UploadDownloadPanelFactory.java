@@ -55,6 +55,9 @@ public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T
             @Override
             public InputStream getStream() {
                 T object = panelCtx.getRealValueModel().getObject();
+                if (object instanceof String) {
+                    return new ByteArrayInputStream(((String)object).getBytes());
+                }
                 return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
             }
 

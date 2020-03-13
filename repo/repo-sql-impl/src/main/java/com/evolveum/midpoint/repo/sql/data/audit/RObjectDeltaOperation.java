@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
+
+import java.sql.ResultSet;
+import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -28,17 +36,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.*;
-
-import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
-
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author lazyman
  */
@@ -46,7 +43,7 @@ import java.util.List;
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME, indexes = {
-        @Index(name = "iAuditDeltaRecordId", columnList = COLUMN_RECORD_ID)})
+        @Index(name = "iAuditDeltaRecordId", columnList = COLUMN_RECORD_ID) })
 public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
     private static final long serialVersionUID = -1065600513263271161L;
@@ -85,7 +82,6 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     private RPolyString objectName;
     private String resourceOid;
     private RPolyString resourceName;
-
 
     @ForeignKey(name = "none")
     @MapsId("record")
@@ -265,7 +261,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     }
 
     public static RObjectDeltaOperation toRepo(RAuditEventRecord record, ObjectDeltaOperation operation,
-                                               PrismContext prismContext) throws DtoTranslationException {
+            PrismContext prismContext) throws DtoTranslationException {
         RObjectDeltaOperation auditDelta = new RObjectDeltaOperation();
         auditDelta.setRecord(record);
 
@@ -293,7 +289,6 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-
 
         return auditDelta;
     }
@@ -339,7 +334,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 queryBuilder.addNullParameter(STATUS_COLUMN_NAME);
                 queryBuilder.addNullParameter(FULL_RESULT_COLUMN_NAME);
             }
-            if(operation.getObjectName() != null) {
+            if (operation.getObjectName() != null) {
                 queryBuilder.addParameter(OBJECT_NAME_ORIG_COLUMN_NAME, operation.getObjectName().getOrig());
                 queryBuilder.addParameter(OBJECT_NAME_NORM_COLUMN_NAME, operation.getObjectName().getNorm());
             } else {
@@ -347,7 +342,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 queryBuilder.addNullParameter(OBJECT_NAME_NORM_COLUMN_NAME);
             }
             queryBuilder.addParameter(RESOURCE_OID_COLUMN_NAME, operation.getResourceOid());
-            if(operation.getResourceName() != null) {
+            if (operation.getResourceName() != null) {
                 queryBuilder.addParameter(RESOURCE_NAME_ORIG_COLUMN_NAME, operation.getResourceName().getOrig());
                 queryBuilder.addParameter(RESOURCE_NAME_NORM_COLUMN_NAME, operation.getResourceName().getNorm());
             } else {
@@ -359,10 +354,10 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
-
         return queryBuilder.build();
     }
 
+    @NotNull
     public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext, boolean useUtf16)
             throws DtoTranslationException {
 
@@ -392,6 +387,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         return odo;
     }
 
+    @NotNull
     public static ObjectDeltaOperation fromRepo(ResultSet resultSet, PrismContext prismContext, boolean useUtf16)
             throws DtoTranslationException {
 
@@ -411,11 +407,11 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
-            if(resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME) != null) {
+            if (resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME) != null) {
                 odo.setObjectName(new PolyString(resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME), resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME)));
             }
             odo.setResourceOid(resultSet.getString(RESOURCE_OID_COLUMN_NAME));
-            if(resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME) != null) {
+            if (resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME) != null) {
                 odo.setResourceName(new PolyString(resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME), resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME)));
             }
         } catch (Exception ex) {
@@ -424,5 +420,4 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
         return odo;
     }
-
 }

@@ -16,6 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -300,18 +301,8 @@ public class ProjectionCredentialsProcessor {
 
     private boolean getEvaluateWeak(LensProjectionContext projCtx) {
         CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
-        if (credentialsCapabilityType != null) {
-            PasswordCapabilityType passwordCapabilityType = credentialsCapabilityType.getPassword();
-            if (passwordCapabilityType != null) {
-                if (passwordCapabilityType.isEnabled() != Boolean.FALSE) {
-                    Boolean readable = passwordCapabilityType.isReadable();
-                    if (readable != null && readable) {
-                        // If we have readable password then we can evaluate the weak mappings
-                        // normally (even if the reads return incomplete values).
-                        return true;
-                    }
-                }
-            }
+        if (CapabilityUtil.isPasswordReadable(credentialsCapabilityType)) {
+            return true;
         }
         // Password not readable. Therefore evaluate weak mappings only during add operaitons.
         // We do not know whether there is a password already set on the resource. And we do not

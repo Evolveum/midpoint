@@ -19,22 +19,18 @@ import org.testng.annotations.Test;
  */
 public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
 
-    private InternalsConfigurationPage configPage;
-
-    @BeforeMethod
-    private void openPage() {
-        configPage = basicPage.internalsConfiguration();
-    }
-
     @AfterClass
-    private void cleanup() {
-        // Reset time because TestBase#afterClass() doesn't reset the clock.
+    @Override
+    public void afterClass() {
+        InternalsConfigurationPage configPage = basicPage.internalsConfiguration();
         configPage = basicPage.internalsConfiguration();
         configPage.clockTab().resetTime();
+        super.afterClass();
     }
 
     @Test
     public void test001changeTime() {
+        InternalsConfigurationPage configPage = basicPage.internalsConfiguration();
         ClockTab clockTab = configPage.clockTab();
 
         clockTab.changeTime("5/15/2099", "10", "30", ClockTab.AmOrPmChoice.PM);
@@ -52,6 +48,7 @@ public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
 
     @Test
     public void test010resetTime() {
+        InternalsConfigurationPage configPage = basicPage.internalsConfiguration();
         ClockTab clockTab = configPage.clockTab();
 
         clockTab.resetTime();

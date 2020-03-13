@@ -10,35 +10,22 @@ package com.evolveum.midpoint.schema.parser;
 import static com.evolveum.midpoint.schema.TestConstants.COMMON_DIR_PATH;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.schema.AbstractSchemaTest;
 
 /**
  * @author mederly
  */
-public abstract class AbstractParserTest extends AbstractUnitTest {
+public abstract class AbstractParserTest extends AbstractSchemaTest {
 
     protected String language;
     protected boolean namespaces;
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @BeforeClass
     @Parameters({ "language", "namespaces" })
