@@ -9,7 +9,6 @@ package com.evolveum.midpoint.prism.lex;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +21,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-/**
- * @author mederly
- */
 @SuppressWarnings("Duplicates")
 public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalProcessorTest {
 

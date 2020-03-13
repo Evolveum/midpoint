@@ -6,24 +6,25 @@
  */
 package com.evolveum.midpoint.util;
 
-import java.util.Map;
-
-import org.testng.annotations.Test;
-import org.testng.AssertJUnit;
-import static org.testng.AssertJUnit.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+import static org.testng.AssertJUnit.*;
+
+import java.util.Map;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 /**
  * @author Radovan Semancik
- *
  */
-public class DOMUtilTest {
+public class DOMUtilTest extends AbstractUnitTest {
 
     private static final String QNAME_IN_NS = "http://foo.com/bar";
     private static final String QNAME_IN_LOCAL = "baz";
@@ -40,21 +41,17 @@ public class DOMUtilTest {
     private static final String FIX_NAMESPACE_FILENAME = "src/test/resources/domutil/fix-namespace.xml";
 
     public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
-    public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
-            NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
             NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
             NS_W3C_XML_SCHEMA_PREFIX);
     private static final int MAX_GENERATE_QNAME_ITERATIONS = 200;
 
-
     public DOMUtilTest() {
     }
 
     @Test
     public void testQNameRoundTrip() {
-        System.out.println("===[ testQNameRoundTrip ]===");
         // GIVEN
         Document doc = DOMUtil.getDocument();
 
@@ -73,7 +70,7 @@ public class DOMUtilTest {
         String[] split = content.split(":");
         // Default namespace should not be used unless explicitly matches existing declaration
         // therefore there should be a prefix
-        AssertJUnit.assertEquals(2,split.length);
+        AssertJUnit.assertEquals(2, split.length);
         String prefix = split[0];
         String localPart = split[1];
         AssertJUnit.assertFalse(prefix.isEmpty());
@@ -92,15 +89,14 @@ public class DOMUtilTest {
 
     @Test
     public void testQNameDefaultNamespace1() {
-        System.out.println("===[ testQNameDefaultNamespace1 ]===");
         // GIVEN
         Document doc = DOMUtil.getDocument();
 
         QName in = new QName(DEFAULT_NS, QNAME_IN_LOCAL);
         Element topElement = doc.createElementNS(DEFAULT_NS, ELEMENT_TOP_LOCAL);
         // Make sure there is a default ns declaration
-        DOMUtil.setNamespaceDeclaration(topElement,"",DEFAULT_NS);
-        DOMUtil.setNamespaceDeclaration(topElement,"e",ELEMENT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement, "", DEFAULT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement, "e", ELEMENT_NS);
         doc.appendChild(topElement);
         Element e = doc.createElementNS(ELEMENT_NS, ELEMENT_LOCAL);
         e.setPrefix("e");
@@ -125,15 +121,14 @@ public class DOMUtilTest {
 
     @Test
     public void testQNameDefaultNamespace2() {
-        System.out.println("===[ testQNameDefaultNamespace2 ]===");
         // GIVEN
         Document doc = DOMUtil.getDocument();
 
         QName in = new QName(DEFAULT_NS, QNAME_IN_LOCAL, "f");          // the difference w.r.t. testQNameDefaultNamespace1
         Element topElement = doc.createElementNS(DEFAULT_NS, ELEMENT_TOP_LOCAL);
         // Make sure there is a default ns declaration
-        DOMUtil.setNamespaceDeclaration(topElement,"",DEFAULT_NS);
-        DOMUtil.setNamespaceDeclaration(topElement,"e",ELEMENT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement, "", DEFAULT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement, "e", ELEMENT_NS);
         doc.appendChild(topElement);
         Element e = doc.createElementNS(ELEMENT_NS, ELEMENT_LOCAL);
         e.setPrefix("e");
@@ -152,20 +147,19 @@ public class DOMUtilTest {
 
         String content = e.getTextContent();
         // Default namespace should NOT be reused
-        AssertJUnit.assertEquals("f:"+QNAME_IN_LOCAL, content);
+        AssertJUnit.assertEquals("f:" + QNAME_IN_LOCAL, content);
     }
 
     @Test
     public void testQNameNoNamespace() {
-        System.out.println("===[ testQNameNoNamespace ]===");
         // GIVEN
         Document doc = DOMUtil.getDocument();
 
         QName in = new QName(XMLConstants.NULL_NS_URI, QNAME_IN_LOCAL);                 // no namespace
         Element topElement = doc.createElementNS(DEFAULT_NS, ELEMENT_TOP_LOCAL);
         // Make sure there is a default ns declaration
-        DOMUtil.setNamespaceDeclaration(topElement,"",DEFAULT_NS);
-        DOMUtil.setNamespaceDeclaration(topElement,"e",ELEMENT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement, "", DEFAULT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement, "e", ELEMENT_NS);
         doc.appendChild(topElement);
         Element e = doc.createElementNS(ELEMENT_NS, ELEMENT_LOCAL);
         e.setPrefix("e");
@@ -189,7 +183,6 @@ public class DOMUtilTest {
 
     @Test
     public void testXsiType() {
-        System.out.println("===[ testXsiType ]===");
         // GIVEN
         Document doc = DOMUtil.parseFile(XSD_TYPE_FILENAME);
         Element root = DOMUtil.getFirstChildElement(doc);
@@ -200,7 +193,7 @@ public class DOMUtilTest {
 
         // THEN
         assertNotNull(xsiType);
-        AssertJUnit.assertTrue(XSD_INTEGER.equals(xsiType));
+        assertEquals(xsiType, XSD_INTEGER);
 
         AssertJUnit.assertTrue("Failed to detect xsi:type", DOMUtil.hasXsiType(el1));
 
@@ -208,7 +201,6 @@ public class DOMUtilTest {
 
     @Test
     public void testWhitespaces() {
-        System.out.println("===[ testWhitespaces ]===");
         // GIVEN
         Document doc = DOMUtil.parseFile(WHITESPACES_FILENAME);
 
@@ -229,7 +221,6 @@ public class DOMUtilTest {
 
     @Test
     public void testFormatting() {
-        System.out.println("===[ testFormatting ]===");
         // GIVEN
         Document doc = DOMUtil.getDocument();
         Element root = DOMUtil.createElement(doc, new QName("root"));
@@ -259,22 +250,20 @@ public class DOMUtilTest {
 
     @Test
     public void testQNameMethods() {
-        System.out.println("===[ testQNameMethods ]===");
         Document doc = DOMUtil.parseFile(QNAMES_FILENAME);
         Element root = DOMUtil.getFirstChildElement(doc);
 
         Element el1 = (Element) root.getElementsByTagNameNS(DEFAULT_NS, "el1").item(0);
         QName refAttrValue = DOMUtil.getQNameAttribute(el1, "ref");
-        assertEquals("getQNameAttribute failed",new QName(FOO_NS,"bar"),refAttrValue);
+        assertEquals("getQNameAttribute failed", new QName(FOO_NS, "bar"), refAttrValue);
 
         Element el2 = (Element) root.getElementsByTagNameNS(DEFAULT_NS, "el2").item(0);
         QName el2Value = DOMUtil.getQNameValue(el2);
-        assertEquals("getQNameValue failed",new QName(FOO_NS,"BAR"),el2Value);
+        assertEquals("getQNameValue failed", new QName(FOO_NS, "BAR"), el2Value);
     }
 
     @Test
     public void testFixNamespaceDeclarations() {
-        System.out.println("===[ testFixNamespaceDeclarations ]===");
         Document doc = DOMUtil.parseFile(FIX_NAMESPACE_FILENAME);
 
         System.out.println("Original XML:");
@@ -300,7 +289,6 @@ public class DOMUtilTest {
 
     @Test
     public void testGeneratedQNamePrefixes() {
-        System.out.println("===[ testGeneratedQNamePrefixes ]===");
         // GIVEN
         Document doc = DOMUtil.getDocument();
 
@@ -311,42 +299,43 @@ public class DOMUtilTest {
         System.out.println(DOMUtil.serializeDOMToString(topElement));
 
         // WHEN
-        for(int i=0; i<MAX_GENERATE_QNAME_ITERATIONS; i++) {
-            Element el = DOMUtil.createElement(doc, new QName(ELEMENT_NS, ELEMENT_LOCAL+i), topElement, topElement);
+        for (int i = 0; i < MAX_GENERATE_QNAME_ITERATIONS; i++) {
+            Element el = DOMUtil.createElement(doc, new QName(ELEMENT_NS, ELEMENT_LOCAL + i), topElement, topElement);
             topElement.appendChild(el);
-            String namespace = "http://exaple.com/gen/"+i;
-            QName qNameValue = new QName(namespace, "val"+i);
+            String namespace = "http://exaple.com/gen/" + i;
+            QName qNameValue = new QName(namespace, "val" + i);
             DOMUtil.setQNameAttribute(el, QNAME_ATTR_QNAME, qNameValue, topElement);
 
             QName qNameValueAfter = DOMUtil.getQNameAttribute(el, QNAME_ATTR_QNAME);
-            assertEquals("Bada boom! wrong element QName in iteration "+i, qNameValue, qNameValueAfter);
+            assertEquals("Bada boom! wrong element QName in iteration " + i, qNameValue, qNameValueAfter);
         }
 
         // THEN
         System.out.println("After");
         System.out.println(DOMUtil.serializeDOMToString(topElement));
 
-        for(int i=0; i<MAX_GENERATE_QNAME_ITERATIONS; i++) {
-            Element el = DOMUtil.getChildElement(topElement, ELEMENT_LOCAL+i);
-            String namespace = "http://exaple.com/gen/"+i;
-            QName qNameValue = new QName(namespace, "val"+i);
+        for (int i = 0; i < MAX_GENERATE_QNAME_ITERATIONS; i++) {
+            Element el = DOMUtil.getChildElement(topElement, ELEMENT_LOCAL + i);
+            String namespace = "http://exaple.com/gen/" + i;
+            QName qNameValue = new QName(namespace, "val" + i);
             QName qNameValueAfter = DOMUtil.getQNameAttribute(el, QNAME_ATTR_QNAME);
-            assertEquals("BIG bada boom! wrong element QName in iteration "+i, qNameValue, qNameValueAfter);
+            assertEquals("BIG bada boom! wrong element QName in iteration " + i, qNameValue, qNameValueAfter);
         }
     }
+
     @Test
     public void testSupportStringWithSurrogates() {
         //unicode block "CJK Unified Ideographs Extension B"
-        String targetString="\ud864\udd66";
-        boolean support=true;
-        assertEquals("length is not 2",2,targetString.length());
-        assertEquals("codePoint count is not 1",1,targetString.codePointCount(0, targetString.length()));
+        String targetString = "\ud864\udd66";
+        boolean support = true;
+        assertEquals("length is not 2", 2, targetString.length());
+        assertEquals("codePoint count is not 1", 1, targetString.codePointCount(0, targetString.length()));
         try {
             DOMUtil.checkValidXmlChars(targetString);
-        }catch(IllegalStateException e) {
-            support=false;
+        } catch (IllegalStateException e) {
+            support = false;
         }
-        assertTrue("Not support string with surrogates in xml",support);
+        assertTrue("Not support string with surrogates in xml", support);
     }
 
 }

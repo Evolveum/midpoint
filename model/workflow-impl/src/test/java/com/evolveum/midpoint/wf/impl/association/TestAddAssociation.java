@@ -7,6 +7,23 @@
 
 package com.evolveum.midpoint.wf.impl.association;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType.F_DELTAS_TO_APPROVE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_APPROVAL_CONTEXT;
+
+import java.io.File;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -29,8 +46,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.wf.impl.WfTestHelper;
@@ -43,30 +58,13 @@ import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType.F_DELTAS_TO_APPROVE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_APPROVAL_CONTEXT;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAddAssociation extends AbstractWfTest {
-
-    protected static final Trace LOGGER = TraceManager.getTrace(TestAddAssociation.class);
 
     private static final File TEST_RESOURCE_DIR = new File("src/test/resources/association");
 
@@ -337,7 +335,6 @@ public class TestAddAssociation extends AbstractWfTest {
         assertHasAssociation(accountAfter, new QName("group"), SHADOW_GUESTS_OID);
     }
 
-
     public void assertHasAssociation(ShadowType shadow, QName associationName, String entitlementOid) {
         for (ShadowAssociationType association : shadow.getAssociation()) {
             if (QNameUtil.match(association.getName(), associationName) &&
@@ -352,16 +349,37 @@ public class TestAddAssociation extends AbstractWfTest {
         abstract int subcasesCount();
         abstract boolean immediate();
         abstract boolean checkObjectOnSubtasks();
-        boolean approvedAutomatically() { return false; }
-        LensContext createModelContext(Task task, OperationResult result) throws Exception { return null; }
+
+        boolean approvedAutomatically() {
+            return false;
+        }
+
+        LensContext createModelContext(Task task, OperationResult result) throws Exception {
+            return null;
+        }
+
         void assertsAfterClockworkRun(CaseType rootCase, CaseType case0,
-                List<CaseType> subcases, Task opTask, OperationResult result) throws Exception { }
-        void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) throws Exception { }
+                List<CaseType> subcases, Task opTask, OperationResult result) throws Exception {
+        }
+
+        void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) throws Exception {
+        }
+
         void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
-                OperationResult result) throws Exception { }
-        boolean decideOnApproval(CaseType subcase, ApprovalContextType wfContext) throws Exception { return true; }
-        String getObjectOid(CaseType task, OperationResult result) throws SchemaException { return null; }
-        boolean removeAssignmentsBeforeTest() { return true; }
+                OperationResult result) throws Exception {
+        }
+
+        boolean decideOnApproval(CaseType subcase, ApprovalContextType wfContext) throws Exception {
+            return true;
+        }
+
+        String getObjectOid(CaseType task, OperationResult result) throws SchemaException {
+            return null;
+        }
+
+        boolean removeAssignmentsBeforeTest() {
+            return true;
+        }
     }
 
     private void executeTest(String testName, String focusOid, TestDetails testDetails) throws Exception {
@@ -371,7 +389,7 @@ public class TestAddAssociation extends AbstractWfTest {
         dummyAuditService.clear();
         OperationResult result = new OperationResult("execution");
 
-        Task task = taskManager.createTaskInstance(TestAddAssociation.class.getName() + "."+testName);
+        Task task = taskManager.createTaskInstance(TestAddAssociation.class.getName() + "." + testName);
         task.setOwner(userAdministrator);
 
         if (focusOid != null && testDetails.removeAssignmentsBeforeTest()) {
@@ -427,7 +445,7 @@ public class TestAddAssociation extends AbstractWfTest {
                 assertNotNull("work item not found", workItem);
 
                 ApprovalContextType wfContext = subcase.getApprovalContext();
-                LOGGER.trace("wfContext = {}", wfContext);
+                logger.trace("wfContext = {}", wfContext);
 
                 boolean approve = testDetails.decideOnApproval(subcase, wfContext);
                 workflowManager.completeWorkItem(WorkItemId.of(workItem),
@@ -469,7 +487,7 @@ public class TestAddAssociation extends AbstractWfTest {
     private void assertObjectInTaskTree(CaseType rootCase, String oid, boolean checkObjectOnSubtasks, OperationResult result) throws SchemaException {
         assertObjectInTask(rootCase, oid);
         if (checkObjectOnSubtasks) {
-            for (CaseType subcase: miscHelper.getSubcases(rootCase, result)) {
+            for (CaseType subcase : miscHelper.getSubcases(rootCase, result)) {
                 assertObjectInTask(subcase, oid);
             }
         }

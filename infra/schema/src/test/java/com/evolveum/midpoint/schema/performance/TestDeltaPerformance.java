@@ -21,16 +21,10 @@ import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
-/**
- *
- *
- */
 public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
 
     @Test
     public void test100ApplyNameDelta() throws Exception {
-        System.out.println("===[ test100ApplyNameDelta ]===");
-
         PrismObject<UserType> jack = getJack();
         PrismObject<UserType> temp = jack.clone();
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
@@ -45,8 +39,6 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
 
     @Test
     public void test102ApplyPasswordValueDelta() throws Exception {
-        System.out.println("===[ test102ApplyPasswordValueDelta ]===");
-
         PrismObject<UserType> jack = getJack();
         PrismObject<UserType> temp = jack.clone();
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
@@ -60,8 +52,6 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
 
     @Test
     public void test104ApplyExtensionItemDelta() throws Exception {
-        System.out.println("===[ test104ApplyExtensionItemDelta ]===");
-
         PrismObject<UserType> jack = getJack();
         PrismObject<UserType> temp = jack.clone();
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
@@ -75,8 +65,6 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
 
     @Test
     public void test110ApplyDeltaWith5Modifications() throws Exception {
-        System.out.println("===[ test110ApplyDeltaWith5Modifications ]===");
-
         PrismObject<UserType> jack = getJack();
         PrismObject<UserType> temp = jack.clone();
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
@@ -93,13 +81,12 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
     }
 
     private PrismPropertyDefinition<String> def(String name) {
-        return getPrismContext().definitionFactory().createPropertyDefinition(new QName(NS_FOO, name), DOMUtil.XSD_STRING);
+        return getPrismContext().definitionFactory()
+                .createPropertyDefinition(new QName(NS_FOO, name), DOMUtil.XSD_STRING);
     }
 
     @Test
     public void test120ApplyDeltaWith30Modifications() throws Exception {
-        System.out.println("===[ test120ApplyDeltaWith30Modifications ]===");
-
         PrismObject<UserType> jack = getJack();
         PrismObject<UserType> temp = jack.clone();
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
@@ -139,5 +126,4 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
         delta.applyTo(jack2);
         measure("jack2.diff(jack)", () -> jack2.diff(jack));
     }
-
 }
