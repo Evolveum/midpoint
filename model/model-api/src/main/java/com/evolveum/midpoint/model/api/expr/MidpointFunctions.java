@@ -991,7 +991,7 @@ public interface MidpointFunctions {
 
     boolean isMemberOf(UserType user, String orgOid);
 
-    String getPlaintextUserPassword(FocusType user) throws EncryptionException;
+    String getPlaintextUserPassword(UserType user) throws EncryptionException;
 
     String getPlaintext(ProtectedStringType user) throws EncryptionException;
 
@@ -999,7 +999,7 @@ public interface MidpointFunctions {
 
     String getPlaintextAccountPasswordFromDelta(ObjectDelta<? extends ShadowType> delta) throws EncryptionException;
 
-    String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<? extends FocusType>> deltas) throws EncryptionException;
+    String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) throws EncryptionException;
 
     Task getCurrentTask();
 

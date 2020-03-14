@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -177,14 +178,14 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     @Test
     public void test020FormatUserDelta() throws Exception {
 
-        given();
+        // GIVEN
 
         ObjectDelta<UserType> delta = parseDelta(USER_JACK_MODIFICATION_FILE);
         PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
 
         System.out.println(delta.debugDump());
 
-        when();
+        // WHEN
 
         String deltaFormattedHideNone = textFormatter.formatObjectModificationDelta(delta, null, true, jack, null);
         System.out.println("no hidden paths + show operational attributes: " + deltaFormattedHideNone);
@@ -198,7 +199,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         String deltaFormattedHideAuxAndOper = textFormatter.formatObjectModificationDelta(delta, auxiliaryPaths, false, jack, null);
         System.out.println("hide auxiliary paths + hide operational attributes: " + deltaFormattedHideAuxAndOper);
 
-        then();
+        // THEN
 
         checkNotes(deltaFormattedHideAux);
         checkNotes(deltaFormattedHideAuxAndOper);
@@ -246,12 +247,12 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     @Test
     public void test030FormatAccount() throws Exception {
 
-        given();
+        // GIVEN
 
         PrismObject<ShadowType> jack = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_FILE));
         System.out.println(jack.debugDump());
 
-        when();
+        // WHEN
 
         String jackFormattedHideNone = valueFormatter.formatAccountAttributes(jack.asObjectable(), null, true);
         System.out.println("no hidden paths + show operational attributes: " + jackFormattedHideNone);
@@ -259,7 +260,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         String jackFormattedHideAux = valueFormatter.formatAccountAttributes(jack.asObjectable(), auxiliaryPaths, true);
         System.out.println("hide auxiliary paths + show operational attributes: " + jackFormattedHideAux);
 
-        then();
+        // THEN
 
         final String NAME = "Name: jack";
         final String PASSWORD = "(protected string)";
@@ -301,7 +302,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     @Test
     public void test050FormatDeltaWithOperAndAuxItems() throws Exception {
 
-        given();
+        // GIVEN
 
         PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
         display("jack", jack.debugDump());
@@ -317,7 +318,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         display("delta", delta.debugDump());
 
-        when();
+        // WHEN
 
         String deltaFormattedHideNone = textFormatter.formatObjectModificationDelta(delta, null, true, jack, null);
         System.out.println("no hidden paths + show operational attributes:\n" + deltaFormattedHideNone);
@@ -331,7 +332,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         String deltaFormattedHideAuxAndOper = textFormatter.formatObjectModificationDelta(delta, auxiliaryPaths, false, jack, null);
         System.out.println("hide auxiliary paths + hide operational attributes:\n" + deltaFormattedHideAuxAndOper);
 
-        then();
+        // THEN
 
         // TODO create some asserts here
 

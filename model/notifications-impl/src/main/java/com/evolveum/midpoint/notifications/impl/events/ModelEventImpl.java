@@ -276,8 +276,8 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
             LOGGER.trace("getFocusPasswordFromEvent: No user deltas in event");
             return null;
         }
-        if (!hasFocusOfType(FocusType.class)) {
-            LOGGER.trace("getFocusPasswordFromEvent: Not a FocusType context");
+        if (!hasFocusOfType(UserType.class)) {
+            LOGGER.trace("getFocusPasswordFromEvent: Not a UserType context");
             return null;
         }
         //noinspection unchecked,rawtypes
@@ -287,10 +287,10 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
             return passwordFromDeltas;
         }
 
-        //noinspection unchecked
-        ObjectDelta<FocusType> focusPrimaryDelta = (ObjectDelta) getFocusPrimaryDelta();
-        //noinspection unchecked
-        ObjectDelta<FocusType> focusSecondaryDelta = (ObjectDelta) getFocusSecondaryDelta();
+        //noinspection unchecked,rawtypes
+        ObjectDelta<UserType> focusPrimaryDelta = (ObjectDelta) getFocusPrimaryDelta();
+        //noinspection unchecked,rawtypes
+        ObjectDelta<UserType> focusSecondaryDelta = (ObjectDelta) getFocusSecondaryDelta();
         if (focusPrimaryDelta == null && focusSecondaryDelta == null) {
             LOGGER.trace("getFocusPasswordFromEvent: No password in executed delta(s) and no primary/secondary deltas");
             return null;
@@ -313,7 +313,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
         return null;
     }
 
-    private String getPasswordFromDeltas(List<ObjectDelta<? extends FocusType>> deltas) {
+    private String getPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) {
         try {
             return getMidpointFunctions().getPlaintextUserPasswordFromDeltas(deltas);
         } catch (EncryptionException e) {

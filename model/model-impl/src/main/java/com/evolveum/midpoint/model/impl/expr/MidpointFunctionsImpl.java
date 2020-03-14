@@ -171,7 +171,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public String getPlaintextUserPassword(FocusType user) throws EncryptionException {
+    public String getPlaintextUserPassword(UserType user) throws EncryptionException {
         if (user == null || user.getCredentials() == null || user.getCredentials().getPassword() == null) {
             return null;        // todo log a warning here?
         }
@@ -256,15 +256,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<? extends FocusType>> objectDeltas) throws EncryptionException {
+    public String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> objectDeltas) throws EncryptionException {
 
         List<ProtectedStringType> passwords = new ArrayList<>();
 
-        for (ObjectDelta<? extends FocusType> delta : objectDeltas) {
+        for (ObjectDelta<UserType> delta : objectDeltas) {
 
             if (delta.isAdd()) {
-                FocusType newObject = delta.getObjectToAdd().asObjectable();
-                return getPlaintextUserPassword(newObject); // for simplicity we do not look for other values
+                UserType newUser = delta.getObjectToAdd().asObjectable();
+                return getPlaintextUserPassword(newUser);       // for simplicity we do not look for other values
             }
 
             if (!delta.isModify()) {
