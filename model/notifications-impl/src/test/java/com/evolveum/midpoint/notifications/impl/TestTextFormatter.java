@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,9 +42,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -336,6 +333,48 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         // TODO create some asserts here
 
+    }
+
+    /**
+     * Delta formatter cannot correctly deal with a situation when we are replacing empty container value with one
+     * that contains only hidden items.
+     *
+     * An example:
+     * - BEFORE: assignment[1]/activation = (empty)
+     * - DELTA: REPLACE assignment[1]/activation with (effectiveStatus: ENABLED) -- i.e. with seemingly empty PCV
+     *
+     * We should hide such modification. But we do not do this now. (See MID-5350.)
+     *
+     * We fixed that issue by changing the delta that is created.
+     * But this behavior of delta formatter should be eventually fixed. See MID-6111.
+     */
+    @Test(enabled = false)
+    public void test060FormatDeltaWithSingleOperationalItemContainer() throws Exception {
+
+        given();
+
+        PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
+        display("jack", jack.debugDump());
+
+        // @formatter:off
+        ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
+                    .replace(ActivationStatusType.ENABLED)
+                // see MID-5350
+                .item(UserType.F_ASSIGNMENT, 1, UserType.F_ACTIVATION)
+                    .replace(new ActivationType(prismContext).effectiveStatus(ActivationStatusType.ENABLED))
+                .asObjectDelta("some-user-oid");
+        // @formatter:on
+
+        display("delta", delta.debugDump());
+
+        when();
+
+        boolean hasVisible = textFormatter.containsVisibleModifiedItems(delta.getModifications(), false, false);
+
+        then();
+
+        assertFalse("There should be no visible modified items", hasVisible);
     }
 
     @SuppressWarnings("SameParameterValue")
