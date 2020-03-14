@@ -1222,8 +1222,6 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             result.tracingProfile(tracer.compileProfile(addWorkflowLogging(createModelLoggingTracingProfile()), result));
         }
 
-        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
-
         List<AssignmentType> assignmentsToAdd = new ArrayList<>();
         assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext));
         assignmentsToAdd.add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext));

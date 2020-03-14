@@ -131,8 +131,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
-
         // WHEN
         when();
         ObjectDelta<UserType> userDelta = createAddAccountDelta(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE);
@@ -221,8 +219,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test119ModifyUserDeleteAccount() throws Exception {
-
-        unsetGlobalTracingOverride();
 
         // GIVEN
         Task task = createPlainTask();
@@ -812,8 +808,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test500RecomputeRole() throws Exception {
-
-        setGlobalTracingOverride(addNotificationsLogging(createModelLoggingTracingProfile()));
 
         given();
         Task task = getTestTask();

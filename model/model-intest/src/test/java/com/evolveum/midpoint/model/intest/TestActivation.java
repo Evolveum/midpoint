@@ -2650,7 +2650,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
         clock.resetOverride();
 
         XMLGregorianCalendar yesterday = clock.currentTimeXMLGregorianCalendar();
