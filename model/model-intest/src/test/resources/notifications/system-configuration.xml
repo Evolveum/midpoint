@@ -144,6 +144,21 @@ Channel: $!event.channel</code>
             </simpleUserNotifier>
         </handler>
         <handler>
+            <simpleFocalObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <expressionFilter>
+                    <script>
+                        <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+
+                        event.requesteeIs(RoleType.class)</code>
+                    </script>
+                </expressionFilter>
+                <transport>dummy:simpleRoleNotifier</transport>
+            </simpleFocalObjectNotifier>
+        </handler>
+        <handler>
             <chained>
                 <operation>add</operation>
             </chained>

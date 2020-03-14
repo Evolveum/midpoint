@@ -97,7 +97,7 @@ public interface Event extends DebugDumpable, ShortDumpable, Serializable {
     boolean isOperationType(EventOperationType eventOperation);
 
     /**
-     * @return true if the categoru of the event matches the specified one
+     * @return true if the category of the event matches the specified one
      */
     boolean isCategoryType(EventCategoryType eventCategory);
 
