@@ -14,7 +14,8 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.SchrodingerException;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.jsoup.helper.Validate;
+
+import org.apache.commons.lang3.Validate;
 import org.openqa.selenium.By;
 
 /**
