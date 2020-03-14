@@ -351,7 +351,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     @Test(enabled = false)
     public void test060FormatDeltaWithSingleOperationalItemContainer() throws Exception {
 
-        given();
+        // GIVEN
 
         PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
         display("jack", jack.debugDump());
@@ -368,11 +368,11 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         display("delta", delta.debugDump());
 
-        when();
+        // WHEN
 
         boolean hasVisible = textFormatter.containsVisibleModifiedItems(delta.getModifications(), false, false);
 
-        then();
+        // THEN
 
         assertFalse("There should be no visible modified items", hasVisible);
     }

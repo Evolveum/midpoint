@@ -863,15 +863,15 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         setGlobalTracingOverride(addNotificationsLogging(createModelLoggingTracingProfile()));
 
-        given();
-        Task task = getTestTask();
+        // GIVEN
+        Task task = createTask("test500RecomputeRole");
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        when();
+        // WHEN
         recomputeFocus(RoleType.class, ROLE_DUMMY.oid, task, result);
 
-        then();
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
