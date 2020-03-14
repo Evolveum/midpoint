@@ -216,7 +216,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //            }
 
             object = (PrismObject<T>) objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
-            
+
             object = object.cloneIfImmutable();
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, result);
 			executeResolveOptions(object.asObjectable(), options, task, result);
@@ -406,7 +406,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								result1.muteLastSubresultError();
 							}
 						}
-						
+
 						final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
 						PrismObject objectToDetermineDetailsForAudit = null;
 						try {
@@ -527,7 +527,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 				try {
 					LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
-					
+
 					authorizePartialExecution(context, options, task, result);
 
 					if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
@@ -568,7 +568,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
 					ModelUtils.recordFatalError(result, e);
 					throw e;
-					
+
 				} catch (PreconditionViolationException e) {
 					ModelUtils.recordFatalError(result, e);
 					// TODO: Temporary fix for 3.6.1
@@ -576,7 +576,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					// ... and we do not really need that in 3.6.1
 					// TODO: expose PreconditionViolationException in 3.7
 					throw new SystemException(e);
-					
+
 				} finally {
 					task.markObjectActionExecutedBoundary();
 				}
@@ -614,7 +614,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					systemObjectCache.invalidateCaches();
 				}
 			}
-			
+
 			if (objectDelta.getObjectTypeClass() == FunctionLibraryType.class) {
 				cacheRegistry.clearAllCaches();
 			}
@@ -698,12 +698,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 			result.cleanupResult();
 
-		} catch (ExpressionEvaluationException | SchemaException | PolicyViolationException | ObjectNotFoundException | 
+		} catch (ExpressionEvaluationException | SchemaException | PolicyViolationException | ObjectNotFoundException |
 				ObjectAlreadyExistsException | CommunicationException | ConfigurationException | SecurityViolationException |
 				RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
-			
+
 		} catch (PreconditionViolationException e) {
 			ModelUtils.recordFatalError(result, e);
 			// TODO: Temporary fix for 3.6.1
@@ -711,7 +711,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			// ... and we do not really need that in 3.6.1
 			// TODO: expose PreconditionViolationException in 3.7
 			throw new SystemException(e);
-			
+
 		} finally {
 			RepositoryCache.exit();
 		}
@@ -760,7 +760,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam(OperationResult.PARAM_QUERY, query);
-		
+
 		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
@@ -890,7 +890,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
 		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
-		
+
 		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
@@ -965,7 +965,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
 		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
-		
+
 		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
@@ -1070,7 +1070,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParam(OperationResult.PARAM_QUERY, query);
-		
+
 		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
@@ -1735,7 +1735,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, origFilter, null, task, result);
 		return updateObjectQuery(origQuery, secFilter);
 	}
-	
+
 	// we expect that objectType is a direct parent of containerType
 	private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubobjectQuerySecurity(Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, null, null, task, result);
@@ -2043,16 +2043,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Deprecated
 	@Override
-	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            boolean allItems, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException {
 		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-		return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
+		return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
 	}
 
 	@Deprecated
 	@Override
-	public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+	public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-		return getCertificationManagerChecked().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
+		return getCertificationManagerChecked().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
 	}
 
 	@Override

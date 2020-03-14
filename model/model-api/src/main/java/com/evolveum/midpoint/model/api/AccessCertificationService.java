@@ -105,7 +105,7 @@ public interface AccessCertificationService {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
@@ -114,7 +114,7 @@ public interface AccessCertificationService {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
@@ -134,19 +134,32 @@ public interface AccessCertificationService {
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
      *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
      *                       the cleaner way is keep this knowledge inside certification module only.
+     * @param allItems If true, returns items for all users (requires "ALL" authorization).
      * @param options Options to use (e.g. RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * @return A list of relevant certification cases. 
+     * @return A list of relevant certification cases.
      *
      */
-    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
-    int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+    default List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+        return searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, false, options, task, parentResult);
+    }
+
+    int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+
+    default int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+        return countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, false, options, task, parentResult);
+    }
 
     /**
      * Records a particular decision of a reviewer.
@@ -157,7 +170,7 @@ public interface AccessCertificationService {
      * @param response The response.
      * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations. 
+     * @param parentResult Result for the operations.
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment,
                         Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;

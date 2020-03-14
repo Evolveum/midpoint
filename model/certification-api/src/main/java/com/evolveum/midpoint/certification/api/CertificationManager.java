@@ -63,7 +63,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return Object for the created campaign. It will be stored in the repository as well.
-     * @throws ExpressionEvaluationException 
+     * @throws ExpressionEvaluationException
      */
     AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
@@ -78,7 +78,7 @@ public interface CertificationManager {
      * @param campaignOid Certification campaign OID.
      * @param stageNumber Stage that has to be open. This has to be the stage after the current one (or the first one).
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations. 
+     * @param parentResult Result for the operations.
      */
     void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -92,8 +92,8 @@ public interface CertificationManager {
      * @param campaignOid Certification campaign OID.
      * @param stageNumber Stage that has to be closed. This has to be the current stage.
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations. 
-     * 
+     * @param parentResult Result for the operations.
+     *
      */
     void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -103,7 +103,7 @@ public interface CertificationManager {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -112,7 +112,7 @@ public interface CertificationManager {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -143,27 +143,41 @@ public interface CertificationManager {
             throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
     /**
-     * Returns a set of certification work items for currently logged-in user.
+     * Returns a set of certification work items for currently logged-in user (or all users).
      * Query argument for cases is the same as in the model.searchContainers(AccessCertificationCaseType...) call.
      *
      * @param caseQuery Specification of the cases to retrieve.
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
      *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
      *                       the cleaner way is keep this knowledge inside certification module only.
+     * @param allItems If true, retrieves work items for all users. Requires root ("ALL") authorization.
      * @param options Options to use (e.g. RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return A list of relevant certification cases.
-     * @throws ExpressionEvaluationException 
+     * @throws ExpressionEvaluationException
      *
      */
-    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    int countOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+    default List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return searchOpenWorkItems(caseQuery, notDecidedOnly, false, options, task, parentResult);
+    }
+
+    int countOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    @SuppressWarnings("unused")
+    default int countOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return countOpenWorkItems(caseQuery, notDecidedOnly, false, options, task, parentResult);
+    }
 
     /**
      * Records a particular decision of a reviewer.
@@ -173,7 +187,7 @@ public interface CertificationManager {
      * @param response The response.
      * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations. 
+     * @param parentResult Result for the operations.
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
             String comment,
@@ -188,7 +202,7 @@ public interface CertificationManager {
      * @param currentStageOnly Whether to report on stage outcomes for current-stage cases (if true), or to report on overall outcomes of all cases (if false).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * @return filled-in statistics object 
+     * @return filled-in statistics object
      */
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;

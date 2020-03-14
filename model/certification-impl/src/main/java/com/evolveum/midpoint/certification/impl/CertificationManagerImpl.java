@@ -33,6 +33,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -374,16 +376,13 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Override
     public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            boolean allItems, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_OPEN_WORK_ITEMS);
-
         try {
-            securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
-            		AuthorizationParameters.EMPTY, null, task, result);
-
-            return queryHelper.searchOpenWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, result);
+            MidPointPrincipal principal = getAuthorizedPrincipal(allItems, task, result);
+            return queryHelper.searchOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly, options, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -392,18 +391,36 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
+    @Nullable
+    private MidPointPrincipal getAuthorizedPrincipal(boolean allItems, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        if (allItems) {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
+                    AuthorizationParameters.EMPTY, null, task, result);
+            return null;
+        } else {
+            securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
+                    AuthorizationParameters.EMPTY, null, task, result);
+            MidPointPrincipal principal = SecurityUtil.getPrincipal();
+            if (principal == null) {
+                throw new IllegalStateException("No principal");
+            } else {
+                return principal;
+            }
+        }
+    }
+
     @Override
-    public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+    public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COUNT_OPEN_WORK_ITEMS);
 
         try {
-            securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
-            		AuthorizationParameters.EMPTY, null, task, result);
-
-            return queryHelper.countOpenWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, result);
+            MidPointPrincipal principal = getAuthorizedPrincipal(allItems, task, result);
+            return queryHelper.countOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly, options, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;

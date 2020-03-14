@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -86,10 +87,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
+import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.*;
@@ -108,7 +106,8 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
-import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -122,6 +121,7 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
@@ -272,7 +272,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
-    
+
     @SpringBean
     private SecurityContextManager securityContextManager;
 
@@ -515,7 +515,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public SecurityEnforcer getSecurityEnforcer() {
         return securityEnforcer;
     }
-    
+
     @Override
     public SecurityContextManager getSecurityContextManager() {
         return securityContextManager;
@@ -557,11 +557,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         return pageTask;
     }
-    
+    // TODO reconsider this method
+    public boolean isFullyAuthorized() {
+        try {
+            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check the authorization", t);
+            return false;
+        }
+    }
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	return isAuthorized(operationUrl, null, null, null, null, null);
     }
-    
+
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Task task = getPageTask();
@@ -596,7 +604,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     	getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, task, task.getResult());
     }
 
-    
+
     public MidpointFormValidatorRegistry getFormValidatorRegistry() {
         return formValidatorRegistry;
     }
@@ -1624,6 +1632,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageTasksCertScheduling.class, params, null);
         item.getItems().add(menu);
 
+        if (isFullyAuthorized()) {  // workaround for MID-5917
+            addMenuItem(item, "PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class);
+        }
         addMenuItem(item, "PageAdmin.menu.top.certification.decisions", PageCertDecisions.class);
 
         return item;
@@ -1649,7 +1660,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageSelfCredentials.class);
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_REQUEST, "PageAdmin.menu.request",
                 PageAssignmentShoppingKart.class);
-        
+
         //GDPR feature.. temporary disabled MID-4281
 //        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
 //                PageSelfConsents.class);
