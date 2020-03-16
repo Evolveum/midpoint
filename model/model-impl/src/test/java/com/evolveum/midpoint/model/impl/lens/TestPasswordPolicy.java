@@ -99,7 +99,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("Generated password", psswd);
+        displayValue("Generated password", psswd);
         result.computeStatus();
         AssertJUnit.assertTrue(result.isAcceptable());
         assertNotNull(psswd);
@@ -151,7 +151,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("Generated password", psswd);
+        displayValue("Generated password", psswd);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertNotNull(psswd);
@@ -172,7 +172,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("Generated password", psswd);
+        displayValue("Generated password", psswd);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertNotNull(psswd);
@@ -195,7 +195,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("Generated password", psswd);
+        displayValue("Generated password", psswd);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertNotNull(psswd);
@@ -300,7 +300,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
             OperationResult result = task.getResult();
 
             String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, createUserOriginResolver(user), getTestNameShort(), task, result);
-            display("Generated password (" + i + ")", psswd);
+            displayValue("Generated password (" + i + ")", psswd);
 
             result.computeStatus();
             TestUtil.assertSuccess(result);
@@ -331,7 +331,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
             OperationResult result = task.getResult();
 
             String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, createUserOriginResolver(user), getTestNameShort(), task, result);
-            display("Generated password (" + i + ")", psswd);
+            displayValue("Generated password (" + i + ")", psswd);
 
             result.computeStatus();
             TestUtil.assertSuccess(result);

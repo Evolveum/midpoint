@@ -761,7 +761,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetDeny(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID); // assignment exists, but wrong relation
 
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
-        display("User Rum Rogers", userRumRogersOid);
+        displayValue("User Rum Rogers", userRumRogersOid);
         assertRoleMembershipRef(userRum, ROLE_ORDINARY_OID, ROLE_UNINTERESTING_OID, ORG_MINISTRY_OF_RUM_OID);
         assertGetAllow(UserType.class, userCobbOid);      // member of ROLE_ORDINARY_OID
         assertGetDeny(UserType.class, USER_JACK_OID);     // assignment exists, but wrong relation
@@ -801,7 +801,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID); // assignment exists, but wrong relation
 
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
-        display("User Rum Rogers", userRumRogersOid);
+        displayValue("User Rum Rogers", userRumRogersOid);
         assertRoleMembershipRef(userRum, ROLE_ORDINARY_OID, ROLE_UNINTERESTING_OID, ORG_MINISTRY_OF_RUM_OID);
         assertGetAllow(UserType.class, userCobbOid);      // member of ROLE_ORDINARY_OID
         PrismObject<UserType> userJack = assertGetAllow(UserType.class, USER_JACK_OID);     // assignment exists, but wrong relation

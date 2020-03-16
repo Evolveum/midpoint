@@ -356,7 +356,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         when();
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-        display("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
+        displayValue("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
 
         // Make sure we have steady state
         resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);

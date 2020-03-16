@@ -399,8 +399,8 @@ public class TestReconNullValue extends AbstractStoryTest {
     }
 
     private void dumpLdap() throws DirectoryException {
-        display("LDAP server tree", openDJController.dumpTree());
-        display("LDAP server content", openDJController.dumpEntries());
+        displayValue("LDAP server tree", openDJController.dumpTree());
+        displayValue("LDAP server content", openDJController.dumpEntries());
     }
 
     protected <F extends FocusType> PrismObject<F> getObjectByName(Class clazz, String name)
@@ -418,7 +418,7 @@ public class TestReconNullValue extends AbstractStoryTest {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String focusName = focus.getName().toString();
-        display("assert focus " + focus.getCompileTimeClass(), focusName);
+        displayValue("assert focus " + focus.getCompileTimeClass(), focusName);
 
         String objOid = getLinkRefOid(focus, RESOURCE_OPENDJ_OID, kind, intent);
         PrismObject<ShadowType> objShadow = getShadowModel(objOid);

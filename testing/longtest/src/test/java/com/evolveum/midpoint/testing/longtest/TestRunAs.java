@@ -276,7 +276,7 @@ public class TestRunAs extends AbstractLongTest {
         display("Run time " + runTimeMillis + "ms, repo read count increment " + readCountIncrement);
         long percentRuntimeIncrease = (runTimeMillis - baselineRunTime) * 100 / baselineRunTime;
         long readCountIncrease = readCountIncrement - baselineRepoReadCountIncrement;
-        display("Increase over baseline",
+        displayValue("Increase over baseline",
                 "  run time: " + (runTimeMillis - baselineRunTime) + " (" + percentRuntimeIncrease + "%) \n" +
                         "  repo read: " + readCountIncrease);
 

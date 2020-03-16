@@ -54,11 +54,11 @@ public abstract class AbstractSchemaTest extends AbstractUnitTest {
         return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
     }
 
-    protected void display(String title, DebugDumpable value) {
+    protected void displayValue(String title, DebugDumpable value) {
         PrismTestUtil.display(title, value);
     }
 
-    protected void display(String title, Object value) {
+    public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }
 }

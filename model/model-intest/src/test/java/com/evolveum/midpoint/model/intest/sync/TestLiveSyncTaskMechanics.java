@@ -241,8 +241,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertTrue("Token value is zero (should be greater)", token != null && token > 0);
 
         int progress = (int) taskAfter.getProgress();
-        display("Token value", token);
-        display("Task progress", progress);
+        displayValue("Token value", token);
+        displayValue("Task progress", progress);
         if (getWorkerThreads() <= 1) {
             assertEquals("Wrong task progress", token, (Integer) progress);
         } else {
@@ -289,11 +289,11 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayTaskWithOperationStats("Task after", taskAfter);
 
         Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
-        display("Token value", token);
+        displayValue("Token value", token);
         assertEquals("Wrong token value", (Integer) 0, token);
 
         int progress = (int) taskAfter.getProgress();
-        display("Task progress", progress);
+        displayValue("Task progress", progress);
 
         assertObjects(UserType.class, getStartsWithQuery(USER_I), progress);
     }
@@ -626,7 +626,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         Task taskAfter = taskManager.getTaskWithResult(TASK_NO_POLICY.oid, result);
         display("Task after", taskAfter);
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
-        display("Sync info", SynchronizationInformation.format(syncInfo));
+        displayValue("Sync info", SynchronizationInformation.format(syncInfo));
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
 

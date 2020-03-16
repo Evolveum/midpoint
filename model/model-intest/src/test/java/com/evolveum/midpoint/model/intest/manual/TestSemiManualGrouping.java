@@ -135,7 +135,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         // THEN (mid1)
         then("mid1");
         String caseOid1 = assertInProgress(result);
-        display("Case 1", caseOid1);
+        displayValue("Case 1", caseOid1);
         // No case OID yet. The case would be created after propagation is run.
         assertNull("Unexpected case 1 OID", caseOid1);
 
@@ -165,7 +165,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         // THEN (mid2)
         then("mid2");
         String caseOid2 = assertInProgress(result);
-        display("Case 2", caseOid2);
+        displayValue("Case 2", caseOid2);
         // No case OID yet. The case will be created after propagation is run.
         assertNull("Unexpected case 2 OID", caseOid2);
 

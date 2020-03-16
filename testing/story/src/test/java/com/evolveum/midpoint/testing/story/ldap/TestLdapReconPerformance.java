@@ -281,7 +281,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
         }
-        display("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
+        displayValue("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
 
         // THEN
         then();

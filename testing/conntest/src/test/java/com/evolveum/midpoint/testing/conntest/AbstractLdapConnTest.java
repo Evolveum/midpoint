@@ -881,7 +881,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("LDAP entry after", entry);
+        displayValue("LDAP entry after", entry);
         assertEquals("Wrong DN", toAccountDn(USER_CPTBARBOSSA_USERNAME), entry.getDn().toString());
         assertAttribute(entry, "title", "Captain");
 
@@ -925,7 +925,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("LDAP entry after", entry);
+        displayValue("LDAP entry after", entry);
         assertAttribute(entry, "title", "Captain");
         assertEquals("Wrong DN", toAccountDn(USER_CPTBARBOSSA_USERNAME), entry.getDn().toString());
 
@@ -1004,9 +1004,9 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
 
         Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
-        display("Evil group", ldapEntryEvil);
+        displayValue("Evil group", ldapEntryEvil);
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
-        display("Undead group", ldapEntryUndead);
+        displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorInstances(1, 2);
     }
@@ -1040,9 +1040,9 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
 
         Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
-        display("Evil group", ldapEntryEvil);
+        displayValue("Evil group", ldapEntryEvil);
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
-        display("Undead group", ldapEntryUndead);
+        displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorInstances(1, 2);
     }
@@ -1076,9 +1076,9 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
 
         Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
-        display("Evil group", ldapEntryEvil);
+        displayValue("Evil group", ldapEntryEvil);
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
-        display("Undead group", ldapEntryUndead);
+        displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorInstances(1, 2);
     }
@@ -1112,9 +1112,9 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapNoGroupMember(accountLechuckDn, GROUP_UNDEAD_CN);
 
         Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
-        display("Evil group", ldapEntryEvil);
+        displayValue("Evil group", ldapEntryEvil);
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
-        display("Undead group", ldapEntryUndead);
+        displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorInstances(1, 2);
     }
@@ -1171,7 +1171,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("Account LDAP entry", entry);
+        displayValue("Account LDAP entry", entry);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -1186,9 +1186,9 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertNotNull("No identifier in " + shadow, accountBarbossaEntryId);
 
         Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
-        display("Evil group", ldapEntryEvil);
+        displayValue("Evil group", ldapEntryEvil);
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
-        display("Undead group", ldapEntryUndead);
+        displayValue("Undead group", ldapEntryUndead);
 
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
@@ -1221,7 +1221,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("LDAP entry after", entry);
+        displayValue("LDAP entry after", entry);
         assertEquals("Wrong DN", toAccountDn(USER_BARBOSSA_USERNAME), entry.getDn().toString());
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -1239,9 +1239,9 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
-        display("Evil group", ldapEntryEvil);
+        displayValue("Evil group", ldapEntryEvil);
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
-        display("Undead group", ldapEntryUndead);
+        displayValue("Undead group", ldapEntryUndead);
 
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapNoGroupMember(accountBarbossaDn, GROUP_EVIL_CN);
@@ -1284,15 +1284,15 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         display("Shadow (model)", shadow);
 
         Entry entry = assertLdapAccount(USER_LARGO_NAME, userAfter.asObjectable().getFullName().getOrig());
-        display("account after", entry);
+        displayValue("account after", entry);
 
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
 
         Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
-        display("Evil group", ldapEntryEvil);
+        displayValue("Evil group", ldapEntryEvil);
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
-        display("Undead group", ldapEntryUndead);
+        displayValue("Undead group", ldapEntryUndead);
 
         assertAssociation(shadow, ASSOCIATION_GROUP_NAME, groupEvilShadowOid);
 

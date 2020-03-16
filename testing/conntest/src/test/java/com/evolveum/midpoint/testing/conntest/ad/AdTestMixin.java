@@ -247,7 +247,7 @@ public interface AdTestMixin extends MidpointTestMixin {
         PrismTestUtil.display(title, value);
     }
 
-    default void display(String title, Object value) {
+    default void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }
 }

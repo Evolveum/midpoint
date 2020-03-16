@@ -768,7 +768,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         List<JAXBElement<?>> expressionEvaluators = libType.getFunction().get(0).getExpressionEvaluator();
         ScriptExpressionEvaluatorType scriptExpressionEvaluator = (ScriptExpressionEvaluatorType) expressionEvaluators.get(0).getValue();
         String code = scriptExpressionEvaluator.getCode();
-        display("Code", code);
+        displayValue("Code", code);
         assertEquals("Wrong hello code", HELLO_CODE, code);
 
         display("Audit", getDummyAuditService());
@@ -1168,7 +1168,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
         ExecuteScriptResponseType responseData = response.readEntity(ExecuteScriptResponseType.class);
-        display("Response", getPrismContext().xmlSerializer().serializeRealValue(responseData));
+        displayValue("Response", getPrismContext().xmlSerializer().serializeRealValue(responseData));
         logger.info("Response: {}", getPrismContext().xmlSerializer().serializeRealValue(responseData));
 
         List<PipelineItemType> items = responseData.getOutput().getDataOutput().getItem();
@@ -1224,7 +1224,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 
         ExecuteScriptResponseType responseData = response.readEntity(ExecuteScriptResponseType.class);
-        display("Response", getPrismContext().xmlSerializer().serializeRealValue(responseData));
+        displayValue("Response", getPrismContext().xmlSerializer().serializeRealValue(responseData));
 
         List<PipelineItemType> items = responseData.getOutput().getDataOutput().getItem();
         assertEquals("Wrong # of processed items", 2, items.size());

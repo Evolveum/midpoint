@@ -186,7 +186,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Opera
             CommonException {
         waitFor("Waiting for task manager to execute the task", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            display("Task tree while waiting", TaskDebugUtil.dumpTaskTree(task, result));
+            displayValue("Task tree while waiting", TaskDebugUtil.dumpTaskTree(task, result));
             if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
                 display("Task is closed, finishing waiting: " + task);
                 return true;
@@ -288,7 +288,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Opera
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .count();
         if (completed > OPTIMIZED_BUCKETS_THRESHOLD) {
-            display("Task with more than one completed bucket", task);
+            displayValue("Task with more than one completed bucket", task);
             fail("More than one completed bucket found in task: " + completed + " in " + task);
         }
     }
@@ -338,11 +338,11 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Opera
         return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
     }
 
-    protected void display(String title, DebugDumpable value) {
+    protected void displayValue(String title, DebugDumpable value) {
         PrismTestUtil.display(title, value);
     }
 
-    protected void display(String title, Object value) {
+    public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }
 

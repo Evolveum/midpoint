@@ -114,10 +114,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 
         // THEN
-        display("allocated bucket", bucket);
+        displayValue("allocated bucket", bucket);
         TaskQuartzImpl taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after", taskAfter);
-        display("narrowed query", narrowedQuery);
+        displayValue("task after", taskAfter);
+        displayValue("narrowed query", narrowedQuery);
 
         assertNumericBucket(bucket, null, 1, null, 123);
         assertOptimizedCompletedBuckets(taskAfter);
@@ -132,10 +132,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         narrowedQuery = workStateManager
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
         // THEN
-        display("allocated bucket (2)", bucket);
+        displayValue("allocated bucket (2)", bucket);
         taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after (2)", taskAfter);
-        display("narrowed query (2)", narrowedQuery);
+        displayValue("task after (2)", taskAfter);
+        displayValue("narrowed query (2)", narrowedQuery);
         assertNumericBucket(bucket, null, 2, 123, 200);
         assertOptimizedCompletedBuckets(taskAfter);
 
@@ -152,10 +152,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 
         // THEN
-        display("allocated bucket (3)", bucket);
+        displayValue("allocated bucket (3)", bucket);
         taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after (3)", taskAfter);
-        display("narrowed query (3)", narrowedQuery);
+        displayValue("task after (3)", taskAfter);
+        displayValue("narrowed query (3)", narrowedQuery);
 
         assertNumericBucket(bucket, null, 3, 200, null);
         assertOptimizedCompletedBuckets(taskAfter);
@@ -169,9 +169,9 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 
         // THEN
-        display("allocated bucket (4)", String.valueOf(bucket));
+        displayValue("allocated bucket (4)", String.valueOf(bucket));
         taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after (4)", taskAfter);
+        displayValue("task after (4)", taskAfter);
 
         //noinspection SimplifiedTestNGAssertion
         assertEquals("Expected null bucket", null, bucket);
@@ -196,10 +196,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         Integer numberOfBuckets = segmentationStrategy.estimateNumberOfBuckets(null);
 
         // THEN
-        display("allocated bucket", bucket);
+        displayValue("allocated bucket", bucket);
         TaskQuartzImpl taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after", taskAfter);
-        display("narrowed query", narrowedQuery);
+        displayValue("task after", taskAfter);
+        displayValue("narrowed query", narrowedQuery);
 
         assertEquals("Wrong # of estimated buckets (API)", Integer.valueOf(3), numberOfBuckets);
         assertEquals("Wrong # of estimated buckets (task)", Integer.valueOf(3), taskAfter.getWorkState().getNumberOfBuckets());
@@ -218,10 +218,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
                 .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 
         // THEN
-        display("allocated bucket (2)", bucket);
+        displayValue("allocated bucket (2)", bucket);
         taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after (2)", taskAfter);
-        display("narrowed query (2)", narrowedQuery);
+        displayValue("task after (2)", taskAfter);
+        displayValue("narrowed query (2)", narrowedQuery);
 
         assertBucket(bucket, null, 2);
         assertOptimizedCompletedBuckets(taskAfter);
@@ -239,10 +239,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
                 .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 
         // THEN
-        display("allocated bucket (3)", bucket);
+        displayValue("allocated bucket (3)", bucket);
         taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after (3)", taskAfter);
-        display("narrowed query (3)", narrowedQuery);
+        displayValue("task after (3)", taskAfter);
+        displayValue("narrowed query (3)", narrowedQuery);
 
         assertBucket(bucket, null, 3);
         assertOptimizedCompletedBuckets(taskAfter);
@@ -256,9 +256,9 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 
         // THEN
-        display("allocated bucket (4)", String.valueOf(bucket));
+        displayValue("allocated bucket (4)", String.valueOf(bucket));
         taskAfter = taskManager.getTaskPlain(task.getOid(), result);
-        display("task after (4)", taskAfter);
+        displayValue("task after (4)", taskAfter);
 
         //noinspection SimplifiedTestNGAssertion
         assertEquals("Expected null bucket", null, bucket);
@@ -288,7 +288,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         WorkBucketType bucket = assumeNextPrefix(segmentationStrategy, workState, "a00", 1);
         ObjectQuery narrowedQuery = workStateManager
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
-        display("narrowed query (1)", narrowedQuery);
+        displayValue("narrowed query (1)", narrowedQuery);
         ObjectQuery expectedQuery = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).startsWith("a00").matchingNorm()
                 .build();
@@ -343,7 +343,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         WorkBucketType bucket = assumeNextValue(segmentationStrategy, workState, "a00", 1);
         ObjectQuery narrowedQuery = workStateManager
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
-        display("narrowed query (1)", narrowedQuery);
+        displayValue("narrowed query (1)", narrowedQuery);
         ObjectQuery expectedQuery = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eq("a00").matchingNorm()
                 .build();
@@ -395,7 +395,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         WorkBucketType bucket = assumeNextInterval(segmentationStrategy, workState, null, "00", 1);
         ObjectQuery narrowedQuery = workStateManager
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
-        display("narrowed query (1)", narrowedQuery);
+        displayValue("narrowed query (1)", narrowedQuery);
         ObjectQuery expectedQuery = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).lt("00").matchingNorm()
                 .build();
@@ -404,7 +404,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         bucket = assumeNextInterval(segmentationStrategy, workState, "00", "0a", 2);
         narrowedQuery = workStateManager
                 .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
-        display("narrowed query (2)", narrowedQuery);
+        displayValue("narrowed query (2)", narrowedQuery);
         expectedQuery = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).ge("00").matchingNorm()
                 .and().item(UserType.F_NAME).lt("0a").matchingNorm()
@@ -507,10 +507,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
     private WorkBucketType getNextBucket(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState,
             int expectedSequentialNumber) throws SchemaException {
         WorkSegmentationStrategy.GetBucketResult gbr = segmentationStrategy.getBucket(workState);
-        display("get bucket result", gbr);
+        displayValue("get bucket result", gbr);
         assertTrue("Wrong answer", gbr instanceof WorkSegmentationStrategy.GetBucketResult.NewBuckets);
         WorkSegmentationStrategy.GetBucketResult.NewBuckets nbr = (WorkSegmentationStrategy.GetBucketResult.NewBuckets) gbr;
-        display("new buckets obtained", nbr.newBuckets);
+        displayValue("new buckets obtained", nbr.newBuckets);
         assertEquals("Wrong new buckets count", 1, nbr.newBuckets.size());
         WorkBucketType newBucket = nbr.newBuckets.get(0);
         assertEquals("Wrong sequential number", expectedSequentialNumber, newBucket.getSequentialNumber());
@@ -519,7 +519,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
     private void assumeNoNextBucket(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState) throws SchemaException {
         WorkSegmentationStrategy.GetBucketResult gbr = segmentationStrategy.getBucket(workState);
-        display("get bucket result", gbr);
+        displayValue("get bucket result", gbr);
         assertTrue("Wrong answer", gbr instanceof WorkSegmentationStrategy.GetBucketResult.NothingFound);
         WorkSegmentationStrategy.GetBucketResult.NothingFound nothingFound = (WorkSegmentationStrategy.GetBucketResult.NothingFound) gbr;
         //noinspection SimplifiedTestNGAssertion

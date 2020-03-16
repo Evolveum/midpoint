@@ -1456,7 +1456,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test220AddDrake() throws Exception {
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
-        display("Start", start);
+        displayValue("Start", start);
 
         PrismObject<UserType> userDrake = PrismTestUtil.parseObject(USER_DRAKE_FILE);
         UserType userDrakeType = userDrake.asObjectable();
@@ -1521,7 +1521,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 4, 0, 0, 0));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait
@@ -1546,7 +1546,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait
@@ -1570,7 +1570,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 1, 0, 0, 0));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait
@@ -1594,7 +1594,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait
@@ -1619,7 +1619,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 20, 0, 0, 0));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait
@@ -1644,7 +1644,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 40, 0, 0, 0));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait
@@ -1694,8 +1694,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         judgeAssignmentValidTo = clock.currentTimeXMLGregorianCalendar();
         judgeAssignmentValidTo.add(XmlTypeConverter.createDuration(30 * 60 * 1000)); // 30 minutes ahead
         activationType.setValidTo(judgeAssignmentValidTo);
-        display("Assignment validFrom", judgeAssignmentValidFrom);
-        display("Assignment validTo", judgeAssignmentValidTo);
+        displayValue("Assignment validFrom", judgeAssignmentValidFrom);
+        displayValue("Assignment validTo", judgeAssignmentValidTo);
 
         // WHEN
         when();
@@ -1714,7 +1714,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(60 * 1000));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait
@@ -1729,7 +1729,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidTo.clone();
         start.add(XmlTypeConverter.createDuration(Duration.ofMinutes(1).toMillis()));
         clock.override(start);
-        display("Start", start);
+        displayValue("Start", start);
 
         // WHEN
         // just wait

@@ -28,12 +28,12 @@ public class TestEquals extends AbstractPrismTest {
                 .createModificationDeleteContainer(UserType.class, USER_FOO_OID,
                         UserType.F_ASSIGNMENT,
                         createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null));
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         addAssignment(user, ASSIGNMENT_PATLAMA_ID, ASSIGNMENT_PATLAMA_DESCRIPTION);
         addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
-        display("user", user);
+        displayValue("user", user);
 
         PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
 

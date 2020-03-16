@@ -1156,7 +1156,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertEncryptedUserPassword(jack, PASSWORD_PLAINTEXT_1);
 
         String xml = prismContext.xmlSerializer().serialize(task.getUpdatedTaskObject());
-        display("task", xml);
+        displayValue("task", xml);
         assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
 
         display("Dummy transport", dummyTransport);
@@ -1192,7 +1192,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertEncryptedUserPassword(jack, PASSWORD_PLAINTEXT_2);
 
         String xml = prismContext.xmlSerializer().serialize(task.getUpdatedTaskObject());
-        display("task", xml);
+        displayValue("task", xml);
         assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
 
         display("Dummy transport", dummyTransport);
@@ -1233,7 +1233,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertEncryptedUserPassword(jack, PASSWORD_PLAINTEXT_3);
 
         String xml = prismContext.xmlSerializer().serialize(task.getUpdatedTaskObject());
-        display("task", xml);
+        displayValue("task", xml);
         assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
 
         display("Dummy transport", dummyTransport);
@@ -1276,11 +1276,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     private void dumpOutput(ExecutionContext output, OperationResult result) throws JAXBException, SchemaException {
         display("output", output.getFinalOutput());
-        display("stdout", output.getConsoleOutput());
+        displayValue("stdout", output.getConsoleOutput());
         display(result);
         if (output.getFinalOutput() != null) {
             PipelineDataType bean = ModelWebService.prepareXmlData(output.getFinalOutput().getData(), null);
-            display("output in XML", prismContext.xmlSerializer().root(new QName("output")).serializeRealValue(bean));
+            displayValue("output in XML", prismContext.xmlSerializer().root(new QName("output")).serializeRealValue(bean));
         }
     }
 

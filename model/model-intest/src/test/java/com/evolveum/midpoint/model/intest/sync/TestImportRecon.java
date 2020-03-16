@@ -859,7 +859,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 4, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         display("Script history", getDummyResource().getScriptHistory());
 
@@ -927,7 +927,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 4, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         display("Script history", getDummyResource().getScriptHistory());
 
@@ -1007,7 +1007,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 4, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         display("Script history", getDummyResource().getScriptHistory());
 
@@ -1089,7 +1089,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 4, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         display("Script history", getDummyResource().getScriptHistory());
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<>();
@@ -1178,7 +1178,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 4, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         display("Script history", getDummyResource().getScriptHistory());
 
@@ -1284,7 +1284,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         display("Script history", getDummyResource().getScriptHistory());
 
@@ -1394,7 +1394,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
 
@@ -1459,7 +1459,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
 
@@ -1528,7 +1528,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
@@ -1625,7 +1625,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
@@ -1706,7 +1706,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
@@ -1779,7 +1779,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
@@ -1853,7 +1853,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
         // deleting linkRef
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
@@ -1906,7 +1906,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 6, users.size());
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
 
         // Audit record structure is somehow complex here.
 //        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME.oid);
@@ -1955,7 +1955,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
     }
 
     @Test
@@ -2000,7 +2000,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
     }
 
     @Test
@@ -2012,7 +2012,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount accountKate = dummyResourceLime.getAccountByUsername(ACCOUNT_CAPSIZE_NAME);
         accountKate.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
 
         PrismObject<UserType> userBefore = findUserByUsername(ACCOUNT_CAPSIZE_NAME);
 
@@ -2089,7 +2089,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
     }
 
     @Test
@@ -2134,7 +2134,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
     }
 
     @Test
@@ -2174,7 +2174,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
     }
 
     @Test
@@ -2218,7 +2218,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 6);
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
     }
 
     @Test
@@ -2265,7 +2265,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 5, users.size());
 
-        display("Dummy resource (lime)", dummyResourceLime.debugDump());
+        displayValue("Dummy resource (lime)", dummyResourceLime.debugDump());
 
         // Audit record structure is somehow complex here.
 //        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME.oid);

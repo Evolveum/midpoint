@@ -1262,7 +1262,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("disabled Barbossa entry", entry);
+        displayValue("disabled Barbossa entry", entry);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "TRUE");
@@ -1306,7 +1306,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
@@ -1347,7 +1347,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        display("Guybrush entry after", entry);
+        displayValue("Guybrush entry after", entry);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         try {
@@ -1459,7 +1459,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, "title", "Captain");
 
         assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
@@ -1532,7 +1532,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, "title", "Captain");
 
         assertLdapNoGroupMember(entry, GROUP_PIRATES_NAME);
@@ -1799,7 +1799,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertLdapOrg(GROUP_MELEE_ISLAND_ALT_NAME);
         assertNoLdapOrg(GROUP_MELEE_ISLAND_NAME);
         Entry entryOrgGroup = assertLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME);
-        display("Melee org", entryOrgGroup);
+        displayValue("Melee org", entryOrgGroup);
         assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
     }
 
@@ -1864,7 +1864,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         Entry entry = new DefaultEntry("ou=underMelee," + toOrgDn(GROUP_MELEE_ISLAND_ALT_NAME),
                 "objectclass", "organizationalUnit",
                 "ou", "underMelee");
-        display("underMelee org", entry);
+        displayValue("underMelee org", entry);
         addLdapEntry(entry);
     }
 
@@ -1888,7 +1888,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         long tsEnd = System.currentTimeMillis();
 
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
-        display("Sub entry", entry);
+        displayValue("Sub entry", entry);
         assertAttribute(entry, "title", null);
 
         PrismObject<UserType> userAfter = getUser(USER_SUBMAN_OID);
@@ -1935,7 +1935,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertSuccess(result);
 
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
-        display("Sub entry", entry);
+        displayValue("Sub entry", entry);
         assertAttribute(entry, "title", "Underdog");
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
@@ -2125,7 +2125,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertSuccess(result);
 
         Entry entry = assertLdapSubAccount(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME);
-        display("Sub entry", entry);
+        displayValue("Sub entry", entry);
         assertAttribute(entry, "title", "Underseadog");
 
         PrismObject<UserType> userAfter = getUser(USER_SUBMARINE_OID);

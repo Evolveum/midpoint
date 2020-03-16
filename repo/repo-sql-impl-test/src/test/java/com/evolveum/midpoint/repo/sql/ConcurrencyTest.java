@@ -517,7 +517,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test100AddOperationExecution");
         String oid = repositoryService.addObject(user.asPrismObject(), null, result);
 
-        display("object added", oid);
+        displayValue("object added", oid);
 
         logger.info("Starting worker threads");
 
@@ -572,7 +572,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test110AddAssignments");
         String oid = repositoryService.addObject(user.asPrismObject(), null, result);
 
-        display("object added", oid);
+        displayValue("object added", oid);
 
         logger.info("Starting worker threads");
 
@@ -596,7 +596,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         waitForThreads(threads, DURATION);
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
-        display("user after", userAfter);
+        displayValue("user after", userAfter);
     }
 
     @Test
@@ -611,7 +611,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test120AddApproverRef");
         String oid = repositoryService.addObject(role.asPrismObject(), null, result);
 
-        display("object added", oid);
+        displayValue("object added", oid);
 
         logger.info("Starting worker threads");
 
@@ -634,7 +634,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         waitForThreads(threads, DURATION);
         PrismObject<RoleType> roleAfter = repositoryService.getObject(RoleType.class, oid, null, result);
-        display("role after", roleAfter);
+        displayValue("role after", roleAfter);
 
         int totalExecutions = threads.stream().mapToInt(t -> t.counter.get()).sum();
         int totalApprovers = roleAfter.asObjectable().getDelegatedRef().size();

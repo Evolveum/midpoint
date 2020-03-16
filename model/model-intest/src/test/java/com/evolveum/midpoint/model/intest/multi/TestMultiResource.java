@@ -1162,7 +1162,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
 
-        display("FORCE DELETE", dummyShadowOid);
+        displayValue("FORCE DELETE", dummyShadowOid);
         // Force delete of dead shadow
         forceDeleteShadow(dummyShadowOid);
 

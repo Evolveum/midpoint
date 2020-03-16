@@ -162,7 +162,7 @@ public class TestRetirement extends AbstractStoryTest {
 
         Entry ouEntry = openDJController.fetchEntry(ouShadow.getName().getOrig());
         assertNotNull("No ou LDAP entry for retirement (" + ouShadow.getName().getOrig() + ")", ouEntry);
-        display("OU retirement entry", openDJController.toHumanReadableLdifoid(ouEntry));
+        displayValue("OU retirement entry", openDJController.toHumanReadableLdifoid(ouEntry));
         OpenDJController.assertObjectClass(ouEntry, "organizationalUnit");
 
         assertSubOrgs(org, 0);
@@ -452,7 +452,7 @@ public class TestRetirement extends AbstractStoryTest {
 
         Entry accountEntry = openDJController.searchSingle("uid=" + username);
         assertNotNull("No account LDAP entry for " + username, accountEntry);
-        display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
+        displayValue("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
         OpenDJController.assertObjectClass(accountEntry, "inetOrgPerson");
 
         return user;
@@ -470,7 +470,7 @@ public class TestRetirement extends AbstractStoryTest {
         String dn = "uid=RRR-" + username + ",ou=RETIRED,dc=example,dc=com";
         Entry accountEntry = openDJController.fetchEntry(dn);
         assertNotNull("No account LDAP entry for " + username + " (" + dn + ")", accountEntry);
-        display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
+        displayValue("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
         OpenDJController.assertObjectClass(accountEntry, "inetOrgPerson");
 
         return user;
@@ -489,7 +489,7 @@ public class TestRetirement extends AbstractStoryTest {
 
         Entry groupEntry = openDJController.searchSingle("cn=" + orgName);
         assertNotNull("No group LDAP entry for " + orgName, groupEntry);
-        display("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
+        displayValue("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
         OpenDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
 
         assertHasOrg(org, directParentOrgOid);
@@ -499,7 +499,7 @@ public class TestRetirement extends AbstractStoryTest {
     }
 
     private void dumpLdap() throws DirectoryException {
-        display("LDAP server tree", openDJController.dumpTree());
-        display("LDAP server content", openDJController.dumpEntries());
+        displayValue("LDAP server tree", openDJController.dumpTree());
+        displayValue("LDAP server content", openDJController.dumpEntries());
     }
 }
