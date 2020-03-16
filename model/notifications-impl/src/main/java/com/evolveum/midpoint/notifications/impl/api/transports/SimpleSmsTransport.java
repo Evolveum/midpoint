@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -89,7 +90,7 @@ public class SimpleSmsTransport implements Transport {
 
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
-    @Autowired private NotificationManager notificationManager;
+    @Autowired private TransportRegistry transportRegistry;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
@@ -97,7 +98,7 @@ public class SimpleSmsTransport implements Transport {
 
     @PostConstruct
     public void init() {
-        notificationManager.registerTransport(NAME, this);
+        transportRegistry.registerTransport(NAME, this);
     }
 
     @Override

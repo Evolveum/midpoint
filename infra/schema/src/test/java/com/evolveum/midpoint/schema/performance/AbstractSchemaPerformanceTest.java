@@ -6,37 +6,35 @@
  */
 package com.evolveum.midpoint.schema.performance;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.testng.annotations.BeforeSuite;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.jetbrains.annotations.NotNull;
-import org.testng.annotations.BeforeSuite;
-import org.xml.sax.SAXException;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-
-/**
- *
- */
-public class AbstractSchemaPerformanceTest {
+public class AbstractSchemaPerformanceTest extends AbstractUnitTest {
 
     protected static final String LABEL = "new-mapxnode";
-
-    protected static final Trace LOGGER = TraceManager.getTrace(AbstractSchemaPerformanceTest.class);
 
     public static final File TEST_DIR = new File("src/test/resources/performance");
     public static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
@@ -57,11 +55,11 @@ public class AbstractSchemaPerformanceTest {
         assert !InternalsConfig.isConsistencyChecks();
     }
 
-    protected double measure(String label, CheckedProducer<?> producer) throws CommonException, IOException {
-        return measure(label, producer, DEFAULT_EXECUTION, DEFAULT_REPEATS);
+    protected void measure(String label, CheckedProducer<?> producer) throws CommonException, IOException {
+        measure(label, producer, DEFAULT_EXECUTION, DEFAULT_REPEATS);
     }
 
-    protected double measure(String label, CheckedProducer<?> producer, long executionTime, int repeats) throws CommonException, IOException {
+    protected void measure(String label, CheckedProducer<?> producer, long executionTime, int repeats) throws CommonException, IOException {
         List<Double> times = new ArrayList<>();
         for (int i = 0; i < repeats; i++) {
             double micros = measureSingle(label, producer, executionTime);
@@ -73,7 +71,7 @@ public class AbstractSchemaPerformanceTest {
         double max = times.stream().max(Double::compareTo).orElse(0.0);
         double sum = times.stream().mapToDouble(Double::doubleValue).sum();
         double avg = sum / repeats;
-        double avg2 = (sum-min-max) / (repeats-2);
+        double avg2 = (sum - min - max) / (repeats - 2);
         resultsWriter.print(runId + ";" + new Date() + ";" + LABEL + ";" + label + ";" + executionTime + ";" + repeats + ";" + avg2 + ";" + avg + ";" + min + ";" + max);
         for (Double time : times) {
             resultsWriter.print(";" + time);
@@ -82,7 +80,6 @@ public class AbstractSchemaPerformanceTest {
         resultsWriter.close();
 
         System.out.println(label + ": Average without the best and the worst = " + avg2);
-        return avg;
     }
 
     protected double measureSingle(String label, CheckedProducer<?> producer, long executionTime) throws CommonException {
@@ -98,7 +95,7 @@ public class AbstractSchemaPerformanceTest {
         double micros = ((double) executionTime) * 1000 / (double) iteration;
         String message = label + ": " + iteration + " iterations in " + executionTime + " milliseconds (" + micros + " us per iteration)";
         System.out.println(message);
-        LOGGER.info(message);
+        logger.info(message);
 
         return micros;
     }

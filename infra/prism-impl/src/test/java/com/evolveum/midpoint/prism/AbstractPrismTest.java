@@ -31,9 +31,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-/**
- * @author semancik
- */
 public class AbstractPrismTest extends AbstractUnitTest {
 
     protected static final String USER_FOO_OID = "01234567";

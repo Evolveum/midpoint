@@ -9,13 +9,14 @@ package com.evolveum.midpoint.model.impl.sync;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
  */
-public class SynchronizationSituationTest {
+public class SynchronizationSituationTest extends AbstractUnitTest {
 
     @Test
     public void nullUser() {

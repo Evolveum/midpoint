@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -34,7 +35,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author Radovan Semancik
  */
-public class XsdTypeConverterTest {
+public class XsdTypeConverterTest extends AbstractUnitTest {
 
     // TODO: convert this test to create a Protected string structure in prism and then check it in the DOM view
 

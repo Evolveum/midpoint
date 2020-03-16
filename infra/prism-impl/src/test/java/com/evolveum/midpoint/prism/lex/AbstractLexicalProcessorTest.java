@@ -6,6 +6,25 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -20,37 +39,15 @@ import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.*;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author semancik
- *
- */
-public abstract class AbstractLexicalProcessorTest {
+public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
 
     private static final QName XSD_COMPLEX_TYPE_ELEMENT_NAME
             = new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
@@ -63,12 +60,6 @@ public abstract class AbstractLexicalProcessorTest {
     private static final String OBJECTS_6_SINGLE = "objects-6-single";
     private static final String OBJECTS_7_SINGLE = "objects-7-single";
 
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-    }
-
     protected abstract String getSubdirName();
 
     protected abstract String getFilenameSuffix();
@@ -78,7 +69,7 @@ public abstract class AbstractLexicalProcessorTest {
     }
 
     protected File getFile(String baseName) {
-        return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
+        return new File(getCommonSubdir(), baseName + "." + getFilenameSuffix());
     }
 
     protected abstract LexicalProcessor<String> createParser();
@@ -171,9 +162,9 @@ public abstract class AbstractLexicalProcessorTest {
         System.out.println("\naccountRef object diff:");
         System.out.println(accountRefObjDiff.debugDump());
 
-        assertTrue("Re-parsed object in accountRef does not match: "+accountRefObjDiff, accountRefObjDiff.isEmpty());
+        assertTrue("Re-parsed object in accountRef does not match: " + accountRefObjDiff, accountRefObjDiff.isEmpty());
 
-        assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
+        assertTrue("Re-parsed user does not match: " + diff, diff.isEmpty());
     }
 
     // to check if timestamps are serialized correctly
@@ -245,9 +236,8 @@ public abstract class AbstractLexicalProcessorTest {
         System.out.println("\nDiff:");
         System.out.println(diff.debugDump());
 
-        assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
+        assertTrue("Re-parsed user does not match: " + diff, diff.isEmpty());
     }
-
 
     private void assertResourceRum(PrismObject<ResourceType> resource) throws SchemaException {
         resource.checkConsistence();
@@ -279,7 +269,7 @@ public abstract class AbstractLexicalProcessorTest {
     }
 
     private PrismObject findObjectFromAccountRef(PrismObject<UserType> user) {
-        for (PrismReferenceValue rval: user.findReference(UserType.F_ACCOUNT_REF).getValues()) {
+        for (PrismReferenceValue rval : user.findReference(UserType.F_ACCOUNT_REF).getValues()) {
             if (rval.getObject() != null) {
                 return rval.getObject();
             }
@@ -288,33 +278,33 @@ public abstract class AbstractLexicalProcessorTest {
     }
 
     protected <X extends XNodeImpl> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {
-        assertNotNull(message+" is null", xnode);
-        assertTrue(message+", expected "+expectedClass.getSimpleName()+", was "+xnode.getClass().getSimpleName(),
+        assertNotNull(message + " is null", xnode);
+        assertTrue(message + ", expected " + expectedClass.getSimpleName() + ", was " + xnode.getClass().getSimpleName(),
                 expectedClass.isAssignableFrom(xnode.getClass()));
         return (X) xnode;
     }
 
     protected <X extends XNodeImpl> X getAssertXMapSubnode(String message, MapXNodeImpl xmap, QName key, Class<X> expectedClass) {
         XNodeImpl xsubnode = xmap.get(key);
-        assertNotNull(message+" no key "+key, xsubnode);
-        return getAssertXNode(message+" key "+key, xsubnode, expectedClass);
+        assertNotNull(message + " no key " + key, xsubnode);
+        return getAssertXNode(message + " key " + key, xsubnode, expectedClass);
     }
 
     protected void assertUserJackXNodeOrdering(String message, XNode xnode) {
         if (xnode instanceof RootXNodeImpl) {
-            xnode = ((RootXNodeImpl)xnode).getSubnode();
+            xnode = ((RootXNodeImpl) xnode).getSubnode();
         }
-        MapXNodeImpl xmap = getAssertXNode(message+": top", xnode, MapXNodeImpl.class);
+        MapXNodeImpl xmap = getAssertXNode(message + ": top", xnode, MapXNodeImpl.class);
         Set<Entry<QName, XNodeImpl>> reTopMapEntrySet = xmap.entrySet();
         Iterator<Entry<QName, XNodeImpl>> reTopMapEntrySetIter = reTopMapEntrySet.iterator();
         Entry<QName, XNodeImpl> reTopMapEntry0 = reTopMapEntrySetIter.next();
-        assertEquals(message+": Wrong entry 0, the xnodes were shuffled", "oid", reTopMapEntry0.getKey().getLocalPart());
+        assertEquals(message + ": Wrong entry 0, the xnodes were shuffled", "oid", reTopMapEntry0.getKey().getLocalPart());
         Entry<QName, XNodeImpl> reTopMapEntry1 = reTopMapEntrySetIter.next();
-        assertEquals(message+": Wrong entry 1, the xnodes were shuffled", "version", reTopMapEntry1.getKey().getLocalPart());
+        assertEquals(message + ": Wrong entry 1, the xnodes were shuffled", "version", reTopMapEntry1.getKey().getLocalPart());
         Entry<QName, XNodeImpl> reTopMapEntry2 = reTopMapEntrySetIter.next();
-        assertEquals(message+": Wrong entry 2, the xnodes were shuffled", UserType.F_NAME, reTopMapEntry2.getKey());
+        assertEquals(message + ": Wrong entry 2, the xnodes were shuffled", UserType.F_NAME, reTopMapEntry2.getKey());
         Entry<QName, XNodeImpl> reTopMapEntry3 = reTopMapEntrySetIter.next();
-        assertEquals(message+": Wrong entry 3, the xnodes were shuffled", UserType.F_DESCRIPTION, reTopMapEntry3.getKey());
+        assertEquals(message + ": Wrong entry 3, the xnodes were shuffled", UserType.F_DESCRIPTION, reTopMapEntry3.getKey());
 
     }
 

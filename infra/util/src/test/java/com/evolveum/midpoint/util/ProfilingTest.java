@@ -7,22 +7,20 @@
 
 package com.evolveum.midpoint.util;
 
-import com.evolveum.midpoint.util.aspect.MethodUsageStatistics;
-import com.evolveum.midpoint.util.aspect.PerformanceStatistics;
-import com.evolveum.midpoint.util.aspect.ProfilingDataLog;
-import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.testng.AssertJUnit.*;
+import org.testng.annotations.Test;
 
-/**
- *
- *  @author shood
- * */
-public class ProfilingTest {
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.util.aspect.MethodUsageStatistics;
+import com.evolveum.midpoint.util.aspect.PerformanceStatistics;
+import com.evolveum.midpoint.util.aspect.ProfilingDataLog;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
+
+public class ProfilingTest extends AbstractUnitTest {
 
     public static final Integer TEST_MINUTE_DUMP_INTERVAL = 5;
     public static final String REQUEST_FILTER_TEST_URI = "URI";
@@ -32,7 +30,7 @@ public class ProfilingTest {
     public static final long FASTEST_METHOD_EST = 5000;
 
     @Test
-    public void prof_01_performanceStatisticsUsage(){
+    public void prof_01_performanceStatisticsUsage() {
 
         //WHEN
         PerformanceStatistics stats = new PerformanceStatistics();
@@ -45,7 +43,7 @@ public class ProfilingTest {
     }
 
     @Test
-    public void prof_02_profManagerConfigurationTest(){
+    public void prof_02_profManagerConfigurationTest() {
         Map<ProfilingDataManager.Subsystem, Boolean> profMap = new HashMap<>();
         profMap.put(ProfilingDataManager.Subsystem.MODEL, true);
         profMap.put(ProfilingDataManager.Subsystem.PROVISIONING, false);
@@ -63,7 +61,7 @@ public class ProfilingTest {
     }
 
     @Test
-    public void prof_03_profManagerRequestTest(){
+    public void prof_03_profManagerRequestTest() {
 
         ProfilingDataManager manager = ProfilingDataManager.getInstance();
         ProfilingDataLog event1 = new ProfilingDataLog("GET", REQUEST_FILTER_TEST_URI, "sessionID", FASTEST_METHOD_EST, System.currentTimeMillis());
@@ -75,7 +73,7 @@ public class ProfilingTest {
         manager.prepareRequestProfilingEvent(event2);
         manager.prepareRequestProfilingEvent(event3);
 
-        Map<String, MethodUsageStatistics> perfMap =  manager.getPerformanceMap();
+        Map<String, MethodUsageStatistics> perfMap = manager.getPerformanceMap();
 
         //THEN
         assertSame(1, perfMap.keySet().size());
@@ -87,12 +85,15 @@ public class ProfilingTest {
         boolean second = false;
         boolean third = false;
 
-        if(SLOWEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getSlowestMethodList().get(0).getEstimatedTime())
+        if (SLOWEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getSlowestMethodList().get(0).getEstimatedTime()) {
             first = true;
-        if(MIDDLE_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getSlowestMethodList().get(1).getEstimatedTime())
+        }
+        if (MIDDLE_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getSlowestMethodList().get(1).getEstimatedTime()) {
             second = true;
-        if(FASTEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getSlowestMethodList().get(2).getEstimatedTime())
+        }
+        if (FASTEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getSlowestMethodList().get(2).getEstimatedTime()) {
             third = true;
+        }
 
         assertSame(true, first);
         assertSame(true, second);
@@ -102,14 +103,11 @@ public class ProfilingTest {
         boolean min = false;
         boolean mean = false;
 
-        if(SLOWEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getMax())
-            max = true;
-        if(FASTEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getMin())
-            min = true;
+        if (SLOWEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getMax()) { max = true; }
+        if (FASTEST_METHOD_EST == perfMap.get(REQUEST_FILTER_TEST_URI).getMin()) { min = true; }
 
-        long meanVal = (FASTEST_METHOD_EST+MIDDLE_METHOD_EST+SLOWEST_METHOD_EST)/3;
-        if(meanVal == perfMap.get(REQUEST_FILTER_TEST_URI).getMean())
-            mean = true;
+        long meanVal = (FASTEST_METHOD_EST + MIDDLE_METHOD_EST + SLOWEST_METHOD_EST) / 3;
+        if (meanVal == perfMap.get(REQUEST_FILTER_TEST_URI).getMean()) { mean = true; }
 
         assertSame(true, max);
         assertSame(true, min);
@@ -117,7 +115,7 @@ public class ProfilingTest {
     }
 
     @Test
-    public void prof_04_testMaxEventsInList(){
+    public void prof_04_testMaxEventsInList() {
 
         //Here, we create 7 events
         ProfilingDataManager manager = ProfilingDataManager.getInstance();
@@ -142,7 +140,7 @@ public class ProfilingTest {
     }
 
     @Test
-    public void prof_05_subsystemProfilingTest(){
+    public void prof_05_subsystemProfilingTest() {
         Map<ProfilingDataManager.Subsystem, Boolean> confMap = new HashMap<>();
         confMap.put(ProfilingDataManager.Subsystem.MODEL, true);
         confMap.put(ProfilingDataManager.Subsystem.REPOSITORY, true);
@@ -157,15 +155,14 @@ public class ProfilingTest {
 
         ProfilingDataManager manager = ProfilingDataManager.getInstance();
 
-
         //6 prof. events are created, there should be 2 keys in HashMap
-        Long startTime = System.nanoTime();
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(),startTime);
+        long startTime = System.nanoTime();
+        manager.applyGranularityFilterOnEnd("class", "method", new String[] { "1", "2", "3" }, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(), startTime);
+        manager.applyGranularityFilterOnEnd("class", "method", new String[] { "1", "2", "3" }, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(), startTime);
+        manager.applyGranularityFilterOnEnd("class", "method", new String[] { "1", "2", "3" }, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(), startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[] { "1", "2", "3" }, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(), startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[] { "1", "2", "3" }, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(), startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[] { "1", "2", "3" }, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(), startTime);
 
         Map<String, MethodUsageStatistics> perfMap = manager.getPerformanceMap();
 

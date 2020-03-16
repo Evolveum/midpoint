@@ -102,8 +102,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         resource = addResourceFromFile(getResourceFile(), getConnectorTypes(), false, initResult);
 
         InternalsConfig.setSanityChecks(true);
-
-        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
     }
 
     @NotNull

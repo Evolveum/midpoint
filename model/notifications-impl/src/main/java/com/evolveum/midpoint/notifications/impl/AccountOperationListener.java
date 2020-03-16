@@ -9,7 +9,7 @@ package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
+import com.evolveum.midpoint.notifications.impl.events.ResourceObjectEventImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -19,13 +19,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 /**
- * @author mederly
+ * Converts provisioning events into notification events.
  */
 @Component
 public class AccountOperationListener implements ResourceOperationListener {
@@ -42,28 +42,16 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     private static final String DOT_CLASS = AccountOperationListener.class.getName() + ".";
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-
-    @Autowired
-    private ChangeNotificationDispatcher provisioningNotificationDispatcher;
-
-    @Autowired
-    private NotificationManager notificationManager;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private ChangeNotificationDispatcher provisioningNotificationDispatcher;
+    @Autowired private NotificationManager notificationManager;
+    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {
         provisioningNotificationDispatcher.registerNotificationListener(this);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registered account operation notification listener.");
-        }
+        LOGGER.trace("Registered account operation notification listener.");
     }
 
     @Override
@@ -144,19 +132,18 @@ public class AccountOperationListener implements ResourceOperationListener {
             return;
         }
 
-        ResourceObjectEvent request = createRequest(status, operationDescription, task, result);
+        ResourceObjectEventImpl request = createRequest(status, operationDescription, task, result);
         notificationManager.processEvent(request, task, result);
     }
 
-    private ResourceObjectEvent createRequest(OperationStatus status,
+    @NotNull
+    private ResourceObjectEventImpl createRequest(OperationStatus status,
                                               ResourceOperationDescription operationDescription,
                                               Task task,
                                               OperationResult result) {
 
-        ResourceObjectEvent event = new ResourceObjectEvent(lightweightIdentifierGenerator);
-        event.setAccountOperationDescription(operationDescription);
-        event.setOperationStatus(status);
-        event.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping
+        ResourceObjectEventImpl event = new ResourceObjectEventImpl(lightweightIdentifierGenerator,
+                operationDescription, status);
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 
@@ -179,14 +166,6 @@ public class AccountOperationListener implements ResourceOperationListener {
 
         return event;
     }
-
-//    private boolean isRequestApplicable(ResourceObjectEvent request, NotificationConfigurationEntryType entry) {
-//
-//        ResourceOperationDescription opDescr = request.getAccountOperationDescription();
-//        OperationStatus status = request.getOperationStatus();
-//        ChangeType type = opDescr.getObjectDelta().getChangeType();
-//        return typeMatches(type, entry.getSituation(), opDescr) && statusMatches(status, entry.getSituation());
-//    }
 
     private PrismObject<UserType> findRequestee(String shadowOid, Task task, OperationResult result) {
         // This is (still) a temporary solution. We need to rework it eventually.

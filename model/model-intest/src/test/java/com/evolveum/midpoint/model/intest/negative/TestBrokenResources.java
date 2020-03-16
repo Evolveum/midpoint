@@ -45,8 +45,6 @@ import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -101,12 +99,10 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
     private static final int NUMBER_OF_RESOURCES = 7;
 
-    protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenResources.class);
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
 
         // Resources
         File targetDir = new File(TEST_TARGET_DIR);

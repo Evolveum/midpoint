@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism.path;
 
+import com.evolveum.midpoint.prism.AbstractPrismTest;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.impl.marshaller.PathHolderSegment;
@@ -48,7 +49,7 @@ import static org.testng.AssertJUnit.assertTrue;
  *
  * @author semancik
  */
-public class ItemPathTest {
+public class ItemPathTest extends AbstractPrismTest {
 
     private static final String FILENAME_STRANGECHARS = "src/test/resources/path/strange.txt";
     private static final String FILENAME_DATA_XML = "src/test/resources/path/data.xml";
