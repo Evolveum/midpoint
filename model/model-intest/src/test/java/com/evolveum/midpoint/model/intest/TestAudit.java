@@ -524,7 +524,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test300ConcurrentAudits() throws Exception {
         final int NUM_THREADS = 2;
         final int ITERATIONS = 300;
-        final long TIMEOUT = 600000;
+        final long TIMEOUT = 600_000;
 
 //        skipTestIf(isH2(), "because of H2 database");
 
@@ -545,8 +545,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
             final int index = i;
             Thread thread = new Thread(() -> {
                 try {
-                    login(userAdministrator);
-                    Task threadTask = getTestTask();
+                    login(userAdministrator.clone());
+                    Task threadTask = createTask();
                     OperationResult threadResult = threadTask.getResult();
                     for (int iteration = 0; iteration < ITERATIONS; iteration++) {
                         display("Executing iteration " + iteration + " on user " + index);
@@ -557,8 +557,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                     }
                     results.set(index, null);
                 } catch (Throwable t) {
-                    System.err.println("Thread " + index + " got an exception " + t);
-                    LoggingUtils.logUnexpectedException(logger, "Thread {} got an exception", t, index);
+                    display("Thread " + index + " got an exception ", t);
                     results.set(index, t);
                 }
             });
@@ -599,7 +598,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test310ConcurrentAuditsRaw() throws Exception {
         final int NUM_THREADS = 2;
         final int ITERATIONS = 300;
-        final long TIMEOUT = 600000;
+        final long TIMEOUT = 600_000;
 
         // Originally we wanted to skip this because of possible concurrency issues on H2, but we'll try it for a while
 //        skipTestIf(isH2(), "H2 database can have MVCC issues");
@@ -613,8 +612,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
             final int index = i;
             Thread thread = new Thread(() -> {
                 try {
-                    login(userAdministrator);
-                    Task threadTask = getTestTask();
+                    login(userAdministrator.clone());
+                    Task threadTask = createTask();
                     OperationResult threadResult = threadTask.getResult();
                     for (int iteration = 0; iteration < ITERATIONS; iteration++) {
                         display("Executing iteration " + iteration + " in worker " + index);
