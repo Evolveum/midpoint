@@ -536,7 +536,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                                 if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result1)) {
                                     throw t;
                                 } else {
+                                    existingObject = prismContext.createObject(delta.getObjectTypeClass());
+                                    existingObject.setOid(delta.getOid());
+                                    existingObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
                                     // in case of administrator's request we continue - in order to allow deleting malformed (unreadable) objects
+                                    // creating "shadow" existing object for auditing needs.
                                 }
                             }
                             if (!preAuthorized) {
