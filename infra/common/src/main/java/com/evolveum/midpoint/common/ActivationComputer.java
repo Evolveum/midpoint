@@ -90,15 +90,13 @@ public class ActivationComputer {
         XMLGregorianCalendar validTo = activationType.getValidTo();
         if (validFrom == null && validTo == null) {
             return null;
+        } else if (validTo != null && referenceTime.compare(validTo) == DatatypeConstants.GREATER) {
+            return TimeIntervalStatusType.AFTER;
+        } else if (validFrom != null && referenceTime.compare(validFrom) == DatatypeConstants.LESSER) {
+            return TimeIntervalStatusType.BEFORE;
+        } else {
+            return TimeIntervalStatusType.IN;
         }
-        TimeIntervalStatusType status = TimeIntervalStatusType.IN;
-        if (validFrom != null &&  (referenceTime == null || referenceTime.compare(validFrom) ==  DatatypeConstants.LESSER)) {
-            status = TimeIntervalStatusType.BEFORE;
-        }
-        if (validTo != null && referenceTime.compare(validTo) ==  DatatypeConstants.GREATER) {
-            status = TimeIntervalStatusType.AFTER;
-        }
-        return status;
     }
 
     public void computeEffective(String lifecycleStatus, ActivationType activationType, LifecycleStateModelType stateModel) {

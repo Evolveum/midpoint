@@ -10,8 +10,6 @@ package com.evolveum.midpoint.wf.impl.assignments;
 /**
  * Tests assigning of roles 1..3 with implicitly defined approvers (i.e. via org:approver assignment).
  * As for policy rules, the default ones are used.
- *
- * @author mederly
  */
 @SuppressWarnings("Duplicates")
 public class TestAssignmentApprovalPlainImplicit extends AbstractTestAssignmentApproval {
@@ -19,11 +17,11 @@ public class TestAssignmentApprovalPlainImplicit extends AbstractTestAssignmentA
     @Override
     protected String getRoleOid(int number) {
         switch (number) {
-            case 1: return roleRole1Oid;
-            case 2: return roleRole2Oid;
-            case 3: return roleRole3Oid;
-            case 4: return roleRole4Oid;
-            case 10: return roleRole10Oid;
+            case 1: return ROLE1.oid;
+            case 2: return ROLE2.oid;
+            case 3: return ROLE3.oid;
+            case 4: return ROLE4.oid;
+            case 10: return ROLE10.oid;
             default: throw new IllegalArgumentException("Wrong role number: " + number);
         }
     }

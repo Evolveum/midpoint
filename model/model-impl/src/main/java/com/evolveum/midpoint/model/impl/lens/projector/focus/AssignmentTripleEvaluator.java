@@ -63,7 +63,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName()+".evaluateAssignment";
 
     private LensContext<AH> context;
-    private ObjectType source;
+    private AssignmentHolderType source;
     private AssignmentEvaluator<AH> assignmentEvaluator;
     private ActivationComputer activationComputer;
     private PrismContext prismContext;
@@ -87,11 +87,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-    public ObjectType getSource() {
+    public AssignmentHolderType getSource() {
         return source;
     }
 
-    public void setSource(ObjectType source) {
+    public void setSource(AssignmentHolderType source) {
         this.source = source;
     }
 
