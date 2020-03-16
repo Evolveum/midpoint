@@ -13,8 +13,6 @@ import java.io.File;
 
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -189,7 +187,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
         assertEquals(infoType.getTotalFailureCount(), 1);
-        display("Iterative task information", IterativeTaskInformation.format(infoType));
+        displayValue("Iterative task information", IterativeTaskInformation.format(infoType));
 
         SynchronizationInformationType synchronizationInformation = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(synchronizationInformation);

@@ -73,7 +73,7 @@ public class CleanupTest extends AbstractTaskManagerTest {
         // THEN
         List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
         AssertJUnit.assertNotNull(tasks);
-        display("tasks", tasks);
+        displayValue("tasks", tasks);
         AssertJUnit.assertEquals(1, tasks.size());
 
         PrismObject<TaskType> task = tasks.get(0);

@@ -96,7 +96,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
         display("Resource after testResource (repository)", resourceRepoAfter);
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
-        display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
 //        assertNull("The schema was generated after test connection but it should not be",xmlSchemaTypeAfter);

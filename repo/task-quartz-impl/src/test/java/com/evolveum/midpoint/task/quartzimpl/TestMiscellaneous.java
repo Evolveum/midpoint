@@ -117,13 +117,13 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
 
     private void assertLimitationsParsed(String value, List<TaskGroupExecutionLimitationType> expected) throws TaskManagerConfigurationException, SchemaException {
         TaskExecutionLimitationsType parsed = TaskManagerConfiguration.parseExecutionLimitations(value);
-        display("parsed value of '" + value + "'", serialize(parsed));
+        displayValue("parsed value of '" + value + "'", serialize(parsed));
         assertEquals("Wrong parsed value for '" + value + "'", expected, parsed.getGroupLimitation());
     }
 
     private void assertLimitationsComputed(String value, List<TaskGroupExecutionLimitationType> expected) throws TaskManagerConfigurationException, SchemaException {
         TaskExecutionLimitationsType parsed = TaskManagerConfiguration.parseExecutionLimitations(value);
-        display("parsed value of '" + value + "'", serialize(parsed));
+        displayValue("parsed value of '" + value + "'", serialize(parsed));
         TaskExecutionLimitationsType computed = NodeRegistrar.computeTaskExecutionLimitations(parsed, "NODE");
         assertEquals("Wrong computed value for '" + value + "'", expected, computed.getGroupLimitation());
     }

@@ -639,7 +639,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         when();
         getDummyResource().deleteAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
 
-        display("Dummy (default) resource", getDummyResource().debugDump());
+        displayValue("Dummy (default) resource", getDummyResource().debugDump());
 
         // Make sure we have steady state
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());

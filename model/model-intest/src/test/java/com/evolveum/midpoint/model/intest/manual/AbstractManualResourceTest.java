@@ -169,7 +169,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         if (backingStore != null) {
             backingStore.initialize();
         }
-        display("Backing store", backingStore);
+        displayValue("Backing store", backingStore);
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 
@@ -303,7 +303,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-        display("Resource XML after test connection", resourceXml);
+        displayValue("Resource XML after test connection", resourceXml);
 
         CachingMetadataType schemaCachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
         assertNotNull("No caching metadata", schemaCachingMetadata);
@@ -413,7 +413,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // THEN
         display("Resource from model", resource);
-        display("Resource from model (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource from model (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         assertSteadyResources();
 
@@ -565,7 +565,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-        display("Resource XML after test connection", resourceXml);
+        displayValue("Resource XML after test connection", resourceXml);
 
         CachingMetadataType schemaCachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
         assertNotNull("No schema caching metadata", schemaCachingMetadata);
@@ -1609,7 +1609,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 }
 
             } catch (ObjectNotFoundException e) {
-                display("Shadow after", "NOT FOUND: " + linkRef.getOid());
+                displayValue("Shadow after", "NOT FOUND: " + linkRef.getOid());
             }
         }
         assertEquals("Unexpected number of dead shadows", 1, deadShadows);
@@ -1851,7 +1851,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 PrismProperty<ActivationStatusType> parsedItem = (PrismProperty<ActivationStatusType>) (Item)
                         value.get(0).getParsedItem(getUserDefinition().findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS));
                 ActivationStatusType status = parsedItem.getRealValue();
-                display("Delta status " + status, itemDelta);
+                displayValue("Delta status " + status, itemDelta);
                 if (expected.equals(status)) {
                     return true;
                 }

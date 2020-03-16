@@ -552,22 +552,20 @@ public class LensUtil {
     /**
      * Used for assignments and similar objects that do not have separate lifecycle.
      */
-    public static boolean isAssignmentValid(AssignmentHolderType focus, AssignmentType assignmentType, XMLGregorianCalendar now,
+    public static boolean isAssignmentValid(AssignmentHolderType focus, AssignmentType assignment, XMLGregorianCalendar now,
             ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
-        ObjectReferenceType targetRef = assignmentType.getTargetRef();
-        if (targetRef != null) {
-            if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
-                // Archetype assignments are always valid, even in non-valid lifecycle states.
-                // The object cannot lose its (arche)type.
-                return true;
-            }
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
+            // Archetype assignments are always valid, even in non-valid lifecycle states.
+            // The object cannot lose its (arche)type.
+            return true;
         }
         String focusLifecycleState = focus.getLifecycleState();
 
         if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel)) {
             return false;
         }
-        return isValid(assignmentType.getLifecycleState(), assignmentType.getActivation(), now, activationComputer, focusStateModel);
+        return isValid(assignment.getLifecycleState(), assignment.getActivation(), now, activationComputer, focusStateModel);
     }
 
     public static <R extends AbstractRoleType> Collection<AssignmentType> getForcedAssignments(LifecycleStateModelType lifecycleModel, String targetLifecycle,

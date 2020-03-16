@@ -212,7 +212,7 @@ public class TestMapping extends AbstractMappingTest {
         assertNotNull("No blue drink", drinkBlue);
         UUID drinkUuidBlue = UUID.fromString(drinkBlue);
         assertNotNull("No drink UUID", drinkUuidBlue);
-        display("Drink UUID", drinkUuidBlue.toString());
+        displayValue("Drink UUID", drinkUuidBlue.toString());
 
         assertAccountShip(userJack, ACCOUNT_JACK_DUMMY_FULLNAME, null, RESOURCE_DUMMY_BLUE_NAME, task);
         assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,

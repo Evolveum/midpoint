@@ -137,13 +137,13 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         PrismObject<TaskType> syncTask = getTask(TASK_LIVE_SYNC_OID);
         lastSyncToken = ObjectTypeUtil.getExtensionItemRealValue(syncTask, SchemaConstants.SYNC_TOKEN);
-        display("Initial sync token", lastSyncToken);
+        displayValue("Initial sync token", lastSyncToken);
         assertNotNull("Null sync token", lastSyncToken);
 
         assertLdapConnectorInstances(1);
 
         threadCountBaseline = Thread.activeCount();
-        display("Thread count baseline", threadCountBaseline);
+        displayValue("Thread count baseline", threadCountBaseline);
 
         dumpLdap();
     }
@@ -493,6 +493,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     @Override
     protected void dumpLdap() throws DirectoryException {
-        display("LDAP server tree", openDJController.dumpTree());
+        displayValue("LDAP server tree", openDJController.dumpTree());
     }
 }

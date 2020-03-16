@@ -367,7 +367,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
 
         System.out.println("------------------------------------------------------------------");
-        display("OpenDJ resource schema (repo XML)",
+        displayValue("OpenDJ resource schema (repo XML)",
                 DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resourceOpenDjRepo)));
         System.out.println("------------------------------------------------------------------");
 
@@ -2758,7 +2758,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         if (credentialsProp == null) {
             // The is the heisenbug we are looking for. Just dump the entire
             // damn thing.
-            display("Configuration with the heisenbug", configurationContainer.debugDump());
+            displayValue("Configuration with the heisenbug", configurationContainer.debugDump());
         }
         assertNotNull("No credentials property in " + resource + " from " + source, credentialsProp);
         assertEquals("Wrong number of credentials property value in " + resource + " from " + source, 1,

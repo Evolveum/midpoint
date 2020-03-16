@@ -125,7 +125,7 @@ public class TestCollections extends AbstractArchetypesTest {
 
         // THEN
         then();
-        display("Collection stats", stats);
+        displayValue("Collection stats", stats);
         assertSuccess(result);
         assertNotNull("Null stats", stats);
 
@@ -168,7 +168,7 @@ public class TestCollections extends AbstractArchetypesTest {
 
         // THEN
         then();
-        display("Collection stats", stats);
+        displayValue("Collection stats", stats);
         assertSuccess(result);
         assertNotNull("Null stats", stats);
 

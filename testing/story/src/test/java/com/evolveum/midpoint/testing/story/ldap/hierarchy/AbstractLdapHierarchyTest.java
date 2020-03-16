@@ -498,7 +498,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
         Entry accountEntry = openDJController.searchSingle("uid=" + username);
         assertNotNull("No account LDAP entry for " + username, accountEntry);
-        display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
+        displayValue("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
         openDJController.assertObjectClass(accountEntry, "inetOrgPerson");
 
         return user;
@@ -517,7 +517,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 
         Entry groupEntry = openDJController.searchSingle("cn=" + orgName);
         assertNotNull("No group LDAP entry for " + orgName, groupEntry);
-        display("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
+        displayValue("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
         openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
 
         assertHasOrg(org, directParentOrgOid);
@@ -535,12 +535,12 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     }
 
     protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        display("Org tree", dumpOrgTree(ORG_TOP_OID));
+        displayValue("Org tree", dumpOrgTree(ORG_TOP_OID));
     }
 
     protected void dumpLdap() throws DirectoryException {
-        display("LDAP server tree", openDJController.dumpTree());
-        display("LDAP server content", openDJController.dumpEntries());
+        displayValue("LDAP server tree", openDJController.dumpTree());
+        displayValue("LDAP server content", openDJController.dumpEntries());
     }
 
     protected void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {

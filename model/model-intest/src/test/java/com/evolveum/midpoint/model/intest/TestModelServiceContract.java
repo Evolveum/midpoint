@@ -3325,7 +3325,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     private void assertResultSerialization(OperationResult result) throws SchemaException {
         OperationResultType resultType = result.createOperationResultType();
         String serialized = prismContext.serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
-        display("OperationResultType serialized", serialized);
+        displayValue("OperationResultType serialized", serialized);
     }
 
 }

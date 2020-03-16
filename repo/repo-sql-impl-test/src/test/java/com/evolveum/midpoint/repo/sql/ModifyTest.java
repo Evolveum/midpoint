@@ -370,7 +370,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
 
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, user.getOid(), null, result);
-        display("user after", userAfter);
+        displayValue("user after", userAfter);
         assertEquals("Wrong employeeNumber after operation", "old", userAfter.asObjectable().getEmployeeNumber());
 
         assertUserEmployeeNumber(user.getOid(), "old");
@@ -392,7 +392,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
 
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, user.getOid(), null, result);
-        display("user after", userAfter);
+        displayValue("user after", userAfter);
         assertEquals("Wrong employeeNumber after operation", "old", userAfter.asObjectable().getEmployeeNumber());
 
         assertUserEmployeeNumber(user.getOid(), "old");
@@ -1041,7 +1041,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         List<PrismObject<ShadowType>> objectsAfter = repositoryService.searchObjects(ShadowType.class, query, null, result);
         assertEquals("Wrong # of shadows found (after)", 1, objectsAfter.size());
-        display("object found (after)", objectsAfter.get(0));
+        displayValue("object found (after)", objectsAfter.get(0));
     }
 
     /**
@@ -1067,7 +1067,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .build();
         List<PrismObject<ShadowType>> objectsBefore = repositoryService.searchObjects(ShadowType.class, query, null, result);
         assertEquals("Wrong # of shadows found (before)", 1, objectsBefore.size());
-        display("object found (before)", objectsBefore.get(0));
+        displayValue("object found (before)", objectsBefore.get(0));
 
         // WHEN
 
@@ -1115,7 +1115,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
         assertEquals("Wrong # of cases found", 1, cases.size());
 
-        display("case fetched from repository", cases.get(0));
+        displayValue("case fetched from repository", cases.get(0));
     }
 
     @Test
@@ -1279,7 +1279,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         // THEN
 
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, user.getOid(), null, result);
-        display("user after", userAfter);
+        displayValue("user after", userAfter);
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).ref(approver1.getOid())
@@ -1301,7 +1301,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .<CredentialsType>end()
                 .end();
 
-        display("jack before", jack.asPrismObject());
+        displayValue("jack before", jack.asPrismObject());
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)
@@ -1310,7 +1310,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         delta.applyTo(jack.asPrismObject());
 
-        display("jack after", jack.asPrismObject());
+        displayValue("jack after", jack.asPrismObject());
 
         jack.asPrismObject().checkConsistence();
     }
@@ -1326,7 +1326,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         protectedProperty.setRealValue(protectedValue.clone());
         jack.asPrismObject().addExtensionItem(protectedProperty);
 
-        display("jack before", jack.asPrismObject());
+        displayValue("jack before", jack.asPrismObject());
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION, "protected")
@@ -1335,7 +1335,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         delta.applyTo(jack.asPrismObject());
 
-        display("jack after", jack.asPrismObject());
+        displayValue("jack after", jack.asPrismObject());
 
         jack.asPrismObject().checkConsistence();
     }
@@ -1356,7 +1356,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.addObject(jack.asPrismObject(), null, result);
 
-        display("jack before", jack.asPrismObject());
+        displayValue("jack before", jack.asPrismObject());
 
         // WHEN
 
@@ -1371,7 +1371,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> jackAfter = repositoryService.getObject(UserType.class, jack.getOid(), null, result);
 
-        display("jack after", jackAfter);
+        displayValue("jack after", jackAfter);
 
         jackAfter.checkConsistence();
     }

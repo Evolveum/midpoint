@@ -121,8 +121,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             List<Task> workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
-            display("coordinator task", coordinatorTask);
-            display("worker task", workers.get(0));
+            displayValue("coordinator task", coordinatorTask);
+            displayValue("worker task", workers.get(0));
             displayBucketOpStatistics("coordinator", coordinatorTask);
             displayBucketOpStatistics("worker", workers.get(0));
             assertCachingProfiles(coordinatorTask, "profile1");
@@ -145,8 +145,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
-            display("coordinator task after re-run", coordinatorTask);
-            display("worker task after re-run", workers.get(0));
+            displayValue("coordinator task after re-run", coordinatorTask);
+            displayValue("worker task after re-run", workers.get(0));
 
             Thread.sleep(1000);         // if workers would be started again, we would get some more processing here
             assertEquals("Wrong # of items processed", 8, workBucketsTaskHandler.getItemsProcessed());
@@ -159,7 +159,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
         OperationStatsType stats = task.getStoredOperationStats();
         WorkBucketManagementPerformanceInformationType bucketStats = stats != null ? stats.getWorkBucketManagementPerformanceInformation() : null;
         String text = bucketStats != null ? prismContext.yamlSerializer().root(new QName("stats")).serializeRealValue(bucketStats) : "(null)";
-        display("Bucket op stats for " + label, text);
+        displayValue("Bucket op stats for " + label, text);
     }
 
     @Test
@@ -183,8 +183,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             List<Task> workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
-            display("coordinator task", coordinatorTask);
-            display("worker task", workers.get(0));
+            displayValue("coordinator task", coordinatorTask);
+            displayValue("worker task", workers.get(0));
 
             waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
@@ -204,8 +204,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             workers = coordinatorTask.listSubtasks(result);
             assertEquals("Wrong # of workers", 1, workers.size());
 
-            display("coordinator task after re-run", coordinatorTask);
-            display("worker task after re-run", workers.get(0));
+            displayValue("coordinator task after re-run", coordinatorTask);
+            displayValue("worker task after re-run", workers.get(0));
 
             waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
@@ -224,8 +224,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
             assertTrue("tasks were not stopped", stopped);
 
-            display("coordinator task after suspend-when-waiting", coordinatorTask);
-            display("worker task after suspend-when-waiting", worker);
+            displayValue("coordinator task after suspend-when-waiting", coordinatorTask);
+            displayValue("worker task after suspend-when-waiting", worker);
 
             assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
                     coordinatorTask.getExecutionStatus());
@@ -247,8 +247,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             assertEquals("Wrong # of workers", 1, workers.size());
             worker = workers.get(0);
 
-            display("coordinator task after resume-from-suspend-when-waiting", coordinatorTask);
-            display("worker task after resume-from-suspend-when-waiting", worker);
+            displayValue("coordinator task after resume-from-suspend-when-waiting", coordinatorTask);
+            displayValue("worker task after resume-from-suspend-when-waiting", worker);
 
             assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.RUNNABLE,
                     coordinatorTask.getExecutionStatus());
@@ -269,8 +269,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             assertEquals("Wrong # of workers", 1, workers.size());
             worker = workers.get(0);
 
-            display("coordinator task after suspend-when-running", coordinatorTask);
-            display("worker task after suspend-when-running", worker);
+            displayValue("coordinator task after suspend-when-running", coordinatorTask);
+            displayValue("worker task after suspend-when-running", worker);
 
             assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
                     coordinatorTask.getExecutionStatus());
@@ -294,8 +294,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             assertEquals("Wrong # of workers", 1, workers.size());
             worker = workers.get(0);
 
-            display("coordinator task after resume-after-2nd-suspend", coordinatorTask);
-            display("worker task after resume-after-2nd-suspend", worker);
+            displayValue("coordinator task after resume-after-2nd-suspend", coordinatorTask);
+            displayValue("worker task after resume-after-2nd-suspend", worker);
 
             displayBucketOpStatistics("coordinator", coordinatorTask);
             displayBucketOpStatistics("worker", worker);
@@ -330,8 +330,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<Task> subtasks = masterTask.listSubtasks(result);
 
-            display("master task", masterTask);
-            display("subtasks", subtasks);
+            displayValue("master task", masterTask);
+            displayValue("subtasks", subtasks);
 
             assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
             assertEquals("Wrong # of partitions", 3, subtasks.size());
@@ -379,8 +379,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<Task> subtasks = masterTask.listSubtasks(result);
 
-            display("master task", masterTask);
-            display("subtasks", subtasks);
+            displayValue("master task", masterTask);
+            displayValue("subtasks", subtasks);
 
             assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
             assertEquals("Wrong # of partitions", 3, subtasks.size());
@@ -393,9 +393,9 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
             waitForTaskCloseCheckingSubtasks(second.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
             second = taskManager.getTaskPlain(second.getOid(), result);
-            display("Second task after completion", second);
+            displayValue("Second task after completion", second);
             List<Task> secondSubtasks = second.listSubtasks(result);
-            display("Subtasks of second task after completion", secondSubtasks);
+            displayValue("Subtasks of second task after completion", secondSubtasks);
             assertEquals("Wrong # of second task's subtasks", 3, secondSubtasks.size());
 
             assertCachingProfiles(masterTask, "profile1");
@@ -406,9 +406,9 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
             waitForTaskCloseCheckingSubtasks(third.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
             third = taskManager.getTaskPlain(third.getOid(), result);
-            display("Third task after completion", third);
+            displayValue("Third task after completion", third);
             List<Task> thirdSubtasks = third.listSubtasks(result);
-            display("Subtasks of third task after completion", thirdSubtasks);
+            displayValue("Subtasks of third task after completion", thirdSubtasks);
             assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
 
             waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
@@ -442,8 +442,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<Task> subtasks = masterTask.listSubtasks(result);
 
-            display("master task", masterTask);
-            display("subtasks", subtasks);
+            displayValue("master task", masterTask);
+            displayValue("subtasks", subtasks);
 
             assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
             assertEquals("Wrong # of partitions", 3, subtasks.size());
@@ -456,16 +456,16 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
             waitForTaskCloseCheckingSubtasks(second.getOid(), result, 30000L, DEFAULT_SLEEP_INTERVAL);
             second = taskManager.getTaskPlain(second.getOid(), result);
-            display("Second task after completion", second);
+            displayValue("Second task after completion", second);
             List<Task> secondSubtasks = second.listSubtasks(result);
-            display("Subtasks of second task after completion", secondSubtasks);
+            displayValue("Subtasks of second task after completion", secondSubtasks);
             assertEquals("Wrong # of second task's subtasks", 3, secondSubtasks.size());
 
             waitForTaskCloseCheckingSubtasks(third.getOid(), result, 20000L, DEFAULT_SLEEP_INTERVAL);
             third = taskManager.getTaskPlain(third.getOid(), result);
-            display("Third task after completion", third);
+            displayValue("Third task after completion", third);
             List<Task> thirdSubtasks = third.listSubtasks(result);
-            display("Subtasks of third task after completion", thirdSubtasks);
+            displayValue("Subtasks of third task after completion", thirdSubtasks);
             assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
 
             assertCachingProfiles(masterTask, "profile1");

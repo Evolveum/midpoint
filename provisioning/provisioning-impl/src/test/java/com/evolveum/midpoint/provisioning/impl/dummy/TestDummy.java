@@ -183,7 +183,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // Check if the shadow is in the repo
         PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         checkRepoAccountShadow(shadowFromRepo);
         // MID-4397
@@ -1068,7 +1068,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         then();
         assertSuccess(result);
 
-        display("Comparison result (" + tag + ")", comparisonResult);
+        displayValue("Comparison result (" + tag + ")", comparisonResult);
         assertEquals("Wrong comparison result (" + tag + ")", expectedResult, comparisonResult);
 
         syncServiceMock.assertNoNotifcations();
@@ -1115,7 +1115,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("Account before add", account);
 
         OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
-        display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
+        displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         // WHEN
         String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, task, result);
@@ -1164,7 +1164,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.purgeScriptHistory();
 
         OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
-        display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
+        displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), "Will Turner");
@@ -1208,7 +1208,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.purgeScriptHistory();
 
         OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
-        display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
+        displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_NEW_SCRIPT_OID, ShadowType.F_DESCRIPTION, "Blah blah");
@@ -1247,7 +1247,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.purgeScriptHistory();
 
         OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
-        display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
+        displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         // WHEN
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, null, scriptsType,
@@ -1281,7 +1281,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.purgeScriptHistory();
 
         OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
-        display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
+        displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ProvisioningScriptType script = scriptsType.getScript().get(0);
 
@@ -2283,7 +2283,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         checkRepoEntitlementShadow(shadowFromRepo);
 
@@ -2445,7 +2445,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         checkRepoEntitlementShadow(shadowFromRepo);
 
@@ -2538,7 +2538,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         checkRepoEntitlementShadow(shadowFromRepo);
 
@@ -3661,7 +3661,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     protected void assertWillDummyGossipRecord(PlusMinusZero plusminus, String... expectedValues) {
-        display("Dummy resource deltas", dummyResource.dumpDeltas());
+        displayValue("Dummy resource deltas", dummyResource.dumpDeltas());
         List<DummyDelta> dummyDeltas = dummyResource.getDeltas();
         assertFalse("Empty dummy resource deltas", dummyDeltas.isEmpty());
         assertEquals("Too many dummy resource deltas", 1, dummyDeltas.size());
@@ -4022,7 +4022,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.addAccount(newAccount);
         blackbeardIcfUid = newAccount.getId();
 
-        display("Resource before sync", dummyResource.debugDump());
+        displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
@@ -4082,7 +4082,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         DummyAccount dummyAccount = getDummyAccountAssert(BLACKBEARD_USERNAME, blackbeardIcfUid);
         dummyAccount.replaceAttributeValue("fullname", "Captain Blackbeard");
 
-        display("Resource before sync", dummyResource.debugDump());
+        displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
@@ -4244,7 +4244,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.addAccount(newAccount);
         drakeIcfUid = newAccount.getId();
 
-        display("Resource before sync", dummyResource.debugDump());
+        displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
                 objectClass);
@@ -4374,7 +4374,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.addGroup(newGroup);
         corsairsIcfUid = newGroup.getId();
 
-        display("Resource before sync", dummyResource.debugDump());
+        displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
                 objectClass);
@@ -4450,7 +4450,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             dummyResource.deleteGroupById(corsairsIcfUid);
         }
 
-        display("Resource before sync", dummyResource.debugDump());
+        displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
                 objectClass);
@@ -4516,7 +4516,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             dummyResource.deleteAccountById(drakeIcfUid);
         }
 
-        display("Resource before sync", dummyResource.debugDump());
+        displayValue("Resource before sync", dummyResource.debugDump());
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
                 objectClass);

@@ -399,7 +399,7 @@ public class TestLdapDependency extends AbstractLdapTest {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, DirectoryException, ExpressionEvaluationException {
         String orgName = org.getName().toString();
-        display("assert org", orgName);
+        displayValue("assert org", orgName);
 
         String objOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, kind, intent);
         PrismObject<ShadowType> objShadow = getShadowModel(objOid);

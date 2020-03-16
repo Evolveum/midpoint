@@ -159,7 +159,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_HR_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         account.replaceAttributeValue(DummyAccount.ATTR_FULLNAME_NAME, "Sir Mancomb Seepgood");
 
-        display("Dummy HR resource", getDummyResource(RESOURCE_DUMMY_HR_NAME).debugDump());
+        displayValue("Dummy HR resource", getDummyResource(RESOURCE_DUMMY_HR_NAME).debugDump());
 
         // Make sure we have steady state
         waitForSyncTaskNextRun();

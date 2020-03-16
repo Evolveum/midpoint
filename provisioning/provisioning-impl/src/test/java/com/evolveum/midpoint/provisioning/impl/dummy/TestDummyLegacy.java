@@ -96,7 +96,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 
     @Test
     public void test100NativeIntegrity() throws Exception {
-        display("Dummy resource instance", dummyResourceNative.toString());
+        displayValue("Dummy resource instance", dummyResourceNative.toString());
 
         assertNotNull("Resource is null", resourceNative);
         assertNotNull("ResourceType is null", resourceTypeNative);
@@ -173,7 +173,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 
     @Test
     public void test200LegacyIntegrity() throws Exception {
-        display("Dummy resource instance", dummyResourceLegacy.toString());
+        displayValue("Dummy resource instance", dummyResourceLegacy.toString());
 
         assertNotNull("Resource is null", resourceLegacy);
         assertNotNull("ResourceType is null", resourceTypeLegacy);
