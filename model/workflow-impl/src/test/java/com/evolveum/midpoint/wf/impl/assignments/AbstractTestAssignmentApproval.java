@@ -6,6 +6,26 @@
  */
 package com.evolveum.midpoint.wf.impl.assignments;
 
+import static java.util.Collections.singletonList;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.TestResource;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -28,28 +48,12 @@ import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Testing approvals of role assignments: create/delete assignment, potentially for more roles and combined with other operations.
  * Testing also with deputies specified.
  *
  * Subclasses provide specializations regarding ways how rules and/or approvers are attached to roles.
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -61,48 +65,42 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
     private static final File METAROLE_DEFAULT_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
 
-    private static final File ROLE_ROLE1_FILE = new File(TEST_RESOURCE_DIR, "role-role1.xml");
-    private static final File ROLE_ROLE1B_FILE = new File(TEST_RESOURCE_DIR, "role-role1b.xml");
-    private static final File ROLE_ROLE2_FILE = new File(TEST_RESOURCE_DIR, "role-role2.xml");
-    private static final File ROLE_ROLE2B_FILE = new File(TEST_RESOURCE_DIR, "role-role2b.xml");
-    private static final File ROLE_ROLE3_FILE = new File(TEST_RESOURCE_DIR, "role-role3.xml");
-    private static final File ROLE_ROLE3B_FILE = new File(TEST_RESOURCE_DIR, "role-role3b.xml");
-    private static final File ROLE_ROLE4_FILE = new File(TEST_RESOURCE_DIR, "role-role4.xml");
-    private static final File ROLE_ROLE4B_FILE = new File(TEST_RESOURCE_DIR, "role-role4b.xml");
-    private static final File ROLE_ROLE10_FILE = new File(TEST_RESOURCE_DIR, "role-role10.xml");
-    private static final File ROLE_ROLE10B_FILE = new File(TEST_RESOURCE_DIR, "role-role10b.xml");
-    private static final File ROLE_ROLE15_FILE = new File(TEST_RESOURCE_DIR, "role-role15.xml");
+    // Roles 1-3 are approved using implicit or global policy rule -- they have no metarole causing approval
+    // The approval is triggered because Lead 1-3 are set as approvers for these roles.
+    // There is no approver for role 4 so it does not undertake aby approval.
+    static final TestResource ROLE1 = new TestResource(TEST_RESOURCE_DIR, "role-role1.xml", "00000001-d34d-b33f-f00d-000000000001");
+    static final TestResource ROLE2 = new TestResource(TEST_RESOURCE_DIR, "role-role2.xml", "00000001-d34d-b33f-f00d-000000000002");
+    static final TestResource ROLE3 = new TestResource(TEST_RESOURCE_DIR, "role-role3.xml", "00000001-d34d-b33f-f00d-000000000003");
+    static final TestResource ROLE4 = new TestResource(TEST_RESOURCE_DIR, "role-role4.xml", "00000001-d34d-b33f-f00d-000000000004");
 
-    private static final File USER_JACK_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-jack-deputy.xml");        // delegation is created only when needed
-    private static final File USER_LEAD1_FILE = new File(TEST_RESOURCE_DIR, "user-lead1.xml");
-    private static final File USER_LEAD1_DEPUTY_1_FILE = new File(TEST_RESOURCE_DIR, "user-lead1-deputy1.xml");
-    private static final File USER_LEAD1_DEPUTY_2_FILE = new File(TEST_RESOURCE_DIR, "user-lead1-deputy2.xml");
-    private static final File USER_LEAD2_FILE = new File(TEST_RESOURCE_DIR, "user-lead2.xml");
-    private static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
-    private static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
-    private static final File USER_LEAD15_FILE = new File(TEST_RESOURCE_DIR, "user-lead15.xml");
+    // Roles 1b-3b are approved using metarole holding a policy rule that engages users with "special-approver" relation.
+    // The approval is triggered because Lead 1-3 are set as "special approvers" for these roles.
+    // There is no approver for role 4 so it does not undertake aby approval.
+    static final TestResource ROLE1B = new TestResource(TEST_RESOURCE_DIR, "role-role1b.xml", "00000001-d34d-b33f-f00d-00000000001b");
+    static final TestResource ROLE2B = new TestResource(TEST_RESOURCE_DIR, "role-role2b.xml", "00000001-d34d-b33f-f00d-00000000002b");
+    static final TestResource ROLE3B = new TestResource(TEST_RESOURCE_DIR, "role-role3b.xml", "00000001-d34d-b33f-f00d-00000000003b");
+    static final TestResource ROLE4B = new TestResource(TEST_RESOURCE_DIR, "role-role4b.xml", "00000001-d34d-b33f-f00d-00000000004b");
 
-    String roleRole1Oid;
-    String roleRole1bOid;
-    String roleRole2Oid;
-    String roleRole2bOid;
-    String roleRole3Oid;
-    String roleRole3bOid;
-    String roleRole4Oid;
-    String roleRole4bOid;
-    String roleRole10Oid;
-    String roleRole10bOid;
-    String roleRole15Oid;
+    // Note: Role10/10b is induced so it is _not_ being approved. Only direct assignments are covered by approvals.
+    static final TestResource ROLE10 = new TestResource(TEST_RESOURCE_DIR, "role-role10.xml", "00000001-d34d-b33f-f00d-000000000010");
+    static final TestResource ROLE10B = new TestResource(TEST_RESOURCE_DIR, "role-role10b.xml", "00000001-d34d-b33f-f00d-00000000010b");
 
-    private String userJackDeputyOid;
-    private String userLead1Oid;
-    private String userLead1Deputy1Oid;
-    private String userLead1Deputy2Oid;
-    private String userLead2Oid;
-    private String userLead3Oid;
+    // delegation for jack-deputy is created only when needed
+    private static final TestResource USER_JACK_DEPUTY = new TestResource(TEST_RESOURCE_DIR, "user-jack-deputy.xml", "e44769f2-030b-4e9c-9ddf-76bb3a348f9c");
+    private static final TestResource USER_LEAD1 = new TestResource(TEST_RESOURCE_DIR, "user-lead1.xml", "00000001-d34d-b33f-f00d-L00000000001");
+    private static final TestResource USER_LEAD1_DEPUTY_1 = new TestResource(TEST_RESOURCE_DIR, "user-lead1-deputy1.xml", "00000001-d34d-b33f-f00d-LD1000000001");
+    private static final TestResource USER_LEAD1_DEPUTY_2 = new TestResource(TEST_RESOURCE_DIR, "user-lead1-deputy2.xml", "00000001-d34d-b33f-f00d-LD1000000002");
+    private static final TestResource USER_LEAD2 = new TestResource(TEST_RESOURCE_DIR, "user-lead2.xml", "00000001-d34d-b33f-f00d-L00000000002");
+    private static final TestResource USER_LEAD3 = new TestResource(TEST_RESOURCE_DIR, "user-lead3.xml", "00000001-d34d-b33f-f00d-L00000000003");
+    private static final TestResource USER_LEAD10 = new TestResource(TEST_RESOURCE_DIR, "user-lead10.xml", "00000001-d34d-b33f-f00d-L00000000010");
+
+    // Draft user. His assignments should undertake approvals just like other users' assignments (MID-6113).
+    private static final TestResource USER_DRAFT = new TestResource(TEST_RESOURCE_DIR, "user-draft.xml","e3c00bba-8ce0-4727-a294-91842264c2de");
 
     protected abstract String getRoleOid(int number);
     protected abstract String getRoleName(int number);
+
+    private boolean lead1DeputiesLoaded;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -110,24 +108,24 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
         repoAddObjectFromFile(METAROLE_DEFAULT_FILE, initResult);
 
-        roleRole1Oid = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
-        roleRole1bOid = repoAddObjectFromFile(ROLE_ROLE1B_FILE, initResult).getOid();
-        roleRole2Oid = repoAddObjectFromFile(ROLE_ROLE2_FILE, initResult).getOid();
-        roleRole2bOid = repoAddObjectFromFile(ROLE_ROLE2B_FILE, initResult).getOid();
-        roleRole3Oid = repoAddObjectFromFile(ROLE_ROLE3_FILE, initResult).getOid();
-        roleRole3bOid = repoAddObjectFromFile(ROLE_ROLE3B_FILE, initResult).getOid();
-        roleRole4Oid = repoAddObjectFromFile(ROLE_ROLE4_FILE, initResult).getOid();
-        roleRole4bOid = repoAddObjectFromFile(ROLE_ROLE4B_FILE, initResult).getOid();
-        roleRole10Oid = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
-        roleRole10bOid = repoAddObjectFromFile(ROLE_ROLE10B_FILE, initResult).getOid();
-        roleRole15Oid = repoAddObjectFromFile(ROLE_ROLE15_FILE, initResult).getOid();
+        repoAdd(ROLE1, initResult);
+        repoAdd(ROLE1B, initResult);
+        repoAdd(ROLE2, initResult);
+        repoAdd(ROLE2B, initResult);
+        repoAdd(ROLE3, initResult);
+        repoAdd(ROLE3B, initResult);
+        repoAdd(ROLE4, initResult);
+        repoAdd(ROLE4B, initResult);
+        repoAdd(ROLE10, initResult);
+        repoAdd(ROLE10B, initResult);
 
-        userJackDeputyOid = repoAddObjectFromFile(USER_JACK_DEPUTY_FILE, initResult).getOid();
-        userLead1Oid = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
-        userLead2Oid = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
-        userLead3Oid = addAndRecomputeUser(USER_LEAD3_FILE, initTask, initResult);
-        addAndRecomputeUser(USER_LEAD15_FILE, initTask, initResult);
+        repoAdd(USER_JACK_DEPUTY, initResult);
+        addAndRecomputeUser(USER_LEAD1.file, initTask, initResult);
+        addAndRecomputeUser(USER_LEAD2.file, initTask, initResult);
+        addAndRecomputeUser(USER_LEAD3.file, initTask, initResult);
         // LEAD10 will be imported later!
+
+        repoAdd(USER_DRAFT, initResult);
     }
 
     /**
@@ -141,7 +139,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        OperationResult result = executeAssignRole1ToJack(TEST_NAME, false, false, null, null, true);
+        OperationResult result = executeAssignRole1(TEST_NAME, userJackOid, false, false, USER_LEAD1.oid, null, true);
 
         // MID-5814
         OperationResultAsserter.forResult(result)
@@ -189,7 +187,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         Task task = createTask(TEST_NAME);
         importLead10(task, task.getResult());
 
-        executeAssignRole1ToJack(TEST_NAME, false, false, null, null, false);
+        executeAssignRole1(TEST_NAME, userJackOid, false, false, USER_LEAD1.oid, null, false);
     }
 
     /**
@@ -202,7 +200,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, true, false, null, null, false);
+        executeAssignRole1(TEST_NAME, userJackOid, true, false, USER_LEAD1.oid, null, false);
     }
 
     /**
@@ -297,12 +295,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         OperationResult result = task.getResult();
 
         // WHEN
-        assignDeputy(userJackDeputyOid, userJackOid, a -> {
+        assignDeputy(USER_JACK_DEPUTY.oid, userJackOid, a -> {
             //a.beginLimitTargetContent().allowTransitive(true);
         }, task, result);
 
         // THEN
-        PrismObject<UserType> deputy = getUser(userJackDeputyOid);
+        PrismObject<UserType> deputy = getUser(USER_JACK_DEPUTY.oid);
         display("deputy after", deputy);
 
         result.computeStatus();
@@ -323,7 +321,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         importLead1Deputies(task, task.getResult());
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, false, true, null, null, false);
+        executeAssignRole1(TEST_NAME, userJackOid, false, true, USER_LEAD1.oid, null, false);
     }
 
     /**
@@ -336,7 +334,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid, null, false);
+        executeAssignRole1(TEST_NAME, userJackOid, false, true, USER_LEAD1_DEPUTY_1.oid, null, false);
     }
 
     @Test(enabled = false)
@@ -346,28 +344,40 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, false, true, null, SchemaConstants.ORG_APPROVER, false);
+        executeAssignRole1(TEST_NAME, userJackOid, false, true, USER_LEAD1.oid, SchemaConstants.ORG_APPROVER, false);
     }
 
-    private OperationResult executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid, QName relation,
-            boolean useTracing) throws Exception {
-        PrismObject<UserType> jack = getUser(userJackOid);
-        AssignmentType assignment = createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext);
-        assignment.getTargetRef().setRelation(relation);
-        ObjectDelta<UserType> addRole1Delta = prismContext
+    @Test
+    public void test200AddRole1AssignmentToDraftUser() throws Exception {
+        final String TEST_NAME = "test200AddRole1AssignmentToDraftUser";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
+
+        executeAssignRole1(TEST_NAME, USER_DRAFT.oid, false, true, USER_LEAD1.oid, null, false);
+    }
+
+    // in memory tracing is required to check for MID-5814
+    private OperationResult executeAssignRole1(String TEST_NAME, String userOid, boolean immediate, boolean deputiesOfLeadOneSeeItems, String approverOid, QName relation,
+            boolean useInMemoryTracing) throws Exception {
+        PrismObject<UserType> user = getUser(userOid);
+        String userName = user.getName().getOrig();
+        // @formatter:off
+        ObjectDelta<UserType> delta = prismContext
                 .deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(assignment)
-                .asObjectDelta(userJackOid);
-        String realApproverOid = approverOid != null ? approverOid : userLead1Oid;
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .targetRef(getRoleOid(1), RoleType.COMPLEX_TYPE, relation))
+                .asObjectDelta(userOid);
+        // @formatter:on
         return executeTest2(TEST_NAME, new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
-                return jack.clone();
+                return user.clone();
             }
 
             @Override
             protected ObjectDelta<UserType> getFocusDelta() {
-                return addRole1Delta.clone();
+                return delta.clone();
             }
 
             @Override
@@ -377,62 +387,65 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
             @Override
             protected List<Boolean> getApprovals() {
-                return Collections.singletonList(true);
+                return singletonList(true);
             }
 
             @Override
             protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
-                return Collections.singletonList(addRole1Delta.clone());
+                return singletonList(delta.clone());
             }
 
             @Override
             protected ObjectDelta<UserType> getExpectedDelta0() {
                 return prismContext.deltaFactory().object()
-                        .createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class);
+                        .createModifyDelta(user.getOid(), Collections.emptyList(), UserType.class);
             }
 
             @Override
             protected String getObjectOid() {
-                return jack.getOid();
+                return user.getOid();
             }
 
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
-                return Collections.singletonList(new ExpectedTask(getRoleOid(1), "Assigning role \"" + getRoleName(1) + "\" to user \"jack\""));
+                return singletonList(new ExpectedTask(getRoleOid(1), "Assigning role \"" +
+                        getRoleName(1) + "\" to user \"" + userName + "\""));
             }
 
             @Override
             protected List<ExpectedWorkItem> getExpectedWorkItems() {
                 ExpectedTask expTask = getExpectedTasks().get(0);
-                return Collections.singletonList(new ExpectedWorkItem(userLead1Oid, getRoleOid(1), expTask));
+                return singletonList(new ExpectedWorkItem(USER_LEAD1.oid, getRoleOid(1), expTask));
             }
 
             @Override
             protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
                 if (number == 1) {
                     if (yes) {
-                        assertAssignedRole(userJackOid, getRoleOid(1), opTask, result);
+                        assertAssignedRole(userOid, getRoleOid(1), opTask, result);
                         checkAuditRecords(createResultMap(getRoleOid(1), WorkflowResult.APPROVED));
-                        checkUserApprovers(userJackOid, Collections.singletonList(realApproverOid), result);
+                        checkUserApprovers(userOid, singletonList(approverOid), result);
                     } else {
-                        assertNotAssignedRole(userJackOid, getRoleOid(1), opTask, result);
+                        assertNotAssignedRole(userOid, getRoleOid(1), opTask, result);
                     }
                 }
             }
 
             @Override
             protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
-                assertActiveWorkItems(userLead1Oid, 1);
-                assertActiveWorkItems(userLead1Deputy1Oid, deputy ? 1 : 0);
-                assertActiveWorkItems(userLead1Deputy2Oid, deputy ? 1 : 0);
+                assertActiveWorkItems(USER_LEAD1.oid, 1);
+                if (lead1DeputiesLoaded || deputiesOfLeadOneSeeItems) {
+                    assertActiveWorkItems(USER_LEAD1_DEPUTY_1.oid, deputiesOfLeadOneSeeItems ? 1 : 0);
+                    assertActiveWorkItems(USER_LEAD1_DEPUTY_2.oid, deputiesOfLeadOneSeeItems ? 1 : 0);
+                }
                 checkTargetOid(caseWorkItem, getRoleOid(1));
-                login(getUser(realApproverOid));
+                login(getUser(approverOid));
                 return true;
             }
 
             @Override
             public void setTracing(Task opTask) {
-                if (useTracing) {
+                if (useInMemoryTracing) {
                     opTask.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
                     opTask.addTracingRequest(TracingRootType.WORKFLOW_OPERATION);
                     opTask.setTracingProfile(
@@ -469,24 +482,19 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
     private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve1, boolean approve2, boolean approve3) throws Exception {
         PrismObject<UserType> jack = getUser(userJackOid);
-        ObjectDelta<UserType> addRole1Delta = prismContext
-                .deltaFor(UserType.class)
+        ObjectDelta<UserType> addRole1Delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
                 .asObjectDelta(userJackOid);
-        ObjectDelta<UserType> addRole2Delta = prismContext
-                .deltaFor(UserType.class)
+        ObjectDelta<UserType> addRole2Delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(2), ObjectTypes.ROLE, prismContext))
                 .asObjectDelta(userJackOid);
-        ObjectDelta<UserType> addRole3Delta = prismContext
-                .deltaFor(UserType.class)
+        ObjectDelta<UserType> addRole3Delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(3), ObjectTypes.ROLE, prismContext))
                 .asObjectDelta(userJackOid);
-        ObjectDelta<UserType> addRole4Delta = prismContext
-                .deltaFor(UserType.class)
+        ObjectDelta<UserType> addRole4Delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(4), ObjectTypes.ROLE, prismContext))
                 .asObjectDelta(userJackOid);
-        ObjectDelta<UserType> changeDescriptionDelta = prismContext
-                .deltaFor(UserType.class)
+        ObjectDelta<UserType> changeDescriptionDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace(TEST_NAME)
                 .asObjectDelta(userJackOid);
         ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil
@@ -541,9 +549,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
             protected List<ExpectedWorkItem> getExpectedWorkItems() {
                 List<ExpectedTask> expTasks = getExpectedTasks();
                 return Arrays.asList(
-                        new ExpectedWorkItem(userLead1Oid, getRoleOid(1), expTasks.get(0)),
-                        new ExpectedWorkItem(userLead2Oid, getRoleOid(2), expTasks.get(1)),
-                        new ExpectedWorkItem(userLead3Oid, getRoleOid(3), expTasks.get(2))
+                        new ExpectedWorkItem(USER_LEAD1.oid, getRoleOid(1), expTasks.get(0)),
+                        new ExpectedWorkItem(USER_LEAD2.oid, getRoleOid(2), expTasks.get(1)),
+                        new ExpectedWorkItem(USER_LEAD3.oid, getRoleOid(3), expTasks.get(2))
                 );
             }
 
@@ -580,13 +588,13 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
             protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
                 String targetOid = getTargetOid(caseWorkItem);
                 if (getRoleOid(1).equals(targetOid)) {
-                    login(getUser(userLead1Oid));
+                    login(getUser(USER_LEAD1.oid));
                     return approve1;
                 } else if (getRoleOid(2).equals(targetOid)) {
-                    login(getUser(userLead2Oid));
+                    login(getUser(USER_LEAD2.oid));
                     return approve2;
                 } else if (getRoleOid(3).equals(targetOid)) {
-                    login(getUser(userLead3Oid));
+                    login(getUser(USER_LEAD3.oid));
                     return approve3;
                 } else {
                     throw new IllegalStateException("Unexpected approval request for " + targetOid);
@@ -607,11 +615,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     }
 
     private void importLead10(Task task, OperationResult result) throws Exception {
-        addAndRecomputeUser(USER_LEAD10_FILE, task, result);
+        addAndRecomputeUser(USER_LEAD10.file, task, result);
     }
 
     private void importLead1Deputies(Task task, OperationResult result) throws Exception {
-        userLead1Deputy1Oid = addAndRecomputeUser(USER_LEAD1_DEPUTY_1_FILE, task, result);
-        userLead1Deputy2Oid = addAndRecomputeUser(USER_LEAD1_DEPUTY_2_FILE, task, result);
+        addAndRecomputeUser(USER_LEAD1_DEPUTY_1.file, task, result);
+        addAndRecomputeUser(USER_LEAD1_DEPUTY_2.file, task, result);
+        lead1DeputiesLoaded = true;
     }
 }

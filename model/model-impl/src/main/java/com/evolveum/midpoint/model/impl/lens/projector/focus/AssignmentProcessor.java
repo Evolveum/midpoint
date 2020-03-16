@@ -194,7 +194,7 @@ public class AssignmentProcessor {
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
         // assignments (roles).
         AssignmentEvaluator<AH> assignmentEvaluator = createAssignmentEvaluator(context, now);
-        ObjectType source = determineSource(focusContext);
+        AssignmentHolderType source = determineSource(focusContext);
 
         AssignmentTripleEvaluator<AH> assignmentTripleEvaluator = new AssignmentTripleEvaluator<>();
         assignmentTripleEvaluator.setActivationComputer(activationComputer);
@@ -595,9 +595,9 @@ public class AssignmentProcessor {
         }
     }
 
-    private <F extends ObjectType> ObjectType determineSource(LensFocusContext<F> focusContext)
+    private <AH extends AssignmentHolderType> AssignmentHolderType determineSource(LensFocusContext<AH> focusContext)
             throws SchemaException {
-        ObjectDelta<F> delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
+        ObjectDelta<AH> delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
         if (delta != null && !delta.isEmpty()) {
             return focusContext.getObjectNew().asObjectable();
         }

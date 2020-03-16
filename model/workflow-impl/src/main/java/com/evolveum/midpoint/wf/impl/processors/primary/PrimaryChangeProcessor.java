@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -196,7 +195,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         if (actx == null) {
             return true;
         }
-        List<ApprovalStageDefinitionType> stages = ApprovalContextUtil.getStages(actx.getApprovalSchema());
+        List<ApprovalStageDefinitionType> stages = actx.getApprovalSchema().getStage();
         // first pass: if there is any stage that is obviously not skippable, let's return false without checking the expressions
         for (ApprovalStageDefinitionType stage : stages) {
             if (stage.getAutomaticallyCompleted() == null) {
@@ -241,6 +240,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 logAspectResult(aspect, instructions, changesBeingDecomposed);
                 startProcessInstructions.addAll(instructions);
             }
+            result.addParam("instructionsCount", startProcessInstructions.size());
             return startProcessInstructions;
         } catch (Throwable t) {
             result.recordFatalError(t);

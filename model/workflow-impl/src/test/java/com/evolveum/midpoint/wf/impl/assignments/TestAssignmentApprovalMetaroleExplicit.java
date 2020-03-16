@@ -9,8 +9,6 @@ package com.evolveum.midpoint.wf.impl.assignments;
 
 /**
  * Tests assigning of roles 1..3 with explicitly assigned metaroles (with policy rules).
- *
- * @author mederly
  */
 @SuppressWarnings("Duplicates")
 public class TestAssignmentApprovalMetaroleExplicit extends AbstractTestAssignmentApproval {
@@ -18,11 +16,11 @@ public class TestAssignmentApprovalMetaroleExplicit extends AbstractTestAssignme
     @Override
     protected String getRoleOid(int number) {
         switch (number) {
-            case 1: return roleRole1bOid;
-            case 2: return roleRole2bOid;
-            case 3: return roleRole3bOid;
-            case 4: return roleRole4bOid;
-            case 10: return roleRole10bOid;
+            case 1: return ROLE1B.oid;
+            case 2: return ROLE2B.oid;
+            case 3: return ROLE3B.oid;
+            case 4: return ROLE4B.oid;
+            case 10: return ROLE10B.oid;
             default: throw new IllegalArgumentException("Wrong role number: " + number);
         }
     }
