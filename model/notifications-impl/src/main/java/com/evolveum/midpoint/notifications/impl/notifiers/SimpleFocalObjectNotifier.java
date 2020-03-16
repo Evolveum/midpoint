@@ -7,9 +7,17 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
+import java.util.Date;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -20,67 +28,56 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.Date;
-import java.util.List;
 
 /**
- * @author mederly
+ * This is the "main" notifier that deals with modifications of focal objects i.e. AssignmentHolderType and below.
  */
 @Component
-public class SimpleFocalObjectNotifier extends GeneralNotifier {
+public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEvent, SimpleFocalObjectNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleFocalObjectNotifier.class);
 
-    @PostConstruct
-    public void init() {
-        register(SimpleFocalObjectNotifierType.class);
+    @Override
+    public Class<ModelEvent> getEventType() {
+        return ModelEvent.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof ModelEvent)) {
-            LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}", getClass().getSimpleName(), event.getClass());
-            return false;
-        }
-        ModelEvent modelEvent = (ModelEvent) event;
-        if (modelEvent.getFocusContext() == null || !modelEvent.getFocusContext().isOfType(FocusType.class)) {
-            LOGGER.trace("{} is not applicable to non-focus related model operations, continuing in the handler chain", getClass().getSimpleName());
-            return false;
-        }
-        return true;
+    public Class<? extends SimpleFocalObjectNotifierType> getEventHandlerConfigurationType() {
+        return SimpleFocalObjectNotifierType.class;
+    }
+
+    Class<? extends AssignmentHolderType> getFocusClass() {
+        return AssignmentHolderType.class;
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        List<ObjectDelta<FocusType>> deltas = ((ModelEvent) event).getFocusDeltas();
-        if (deltas.isEmpty()) {
-            LOGGER.trace("No deltas found, skipping the notification");
+    protected boolean quickCheckApplicability(ModelEvent event, SimpleFocalObjectNotifierType configuration, OperationResult result) {
+        event.getFocusContext();
+        if (!event.hasFocusOfType(getFocusClass())) {
+            LOGGER.trace("{} is not applicable to non-{} related model operations, continuing in the handler chain",
+                    getClass().getSimpleName(), getFocusClass());
             return false;
-        }
-
-        if (isWatchAuxiliaryAttributes(generalNotifierType)) {
+        } else {
             return true;
         }
-
-        for (ObjectDelta<FocusType> delta : deltas) {
-            if (!delta.isModify() || deltaContainsOtherPathsThan(delta, functions.getAuxiliaryPaths())) {
-                return true;
-            }
-        }
-
-        LOGGER.trace("No deltas for non-auxiliary attributes found, skipping the notification");
-        return false;
     }
 
     @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
+    protected boolean checkApplicability(ModelEvent event, SimpleFocalObjectNotifierType configuration, OperationResult result) {
+        if (!event.hasContentToShow(isWatchAuxiliaryAttributes(configuration))) {
+            LOGGER.trace("No modifications to show, skipping the notification");
+            return false;
+        } else {
+            return true;
+        }
+    }
 
-        final ModelEvent modelEvent = (ModelEvent) event;
-        String typeName = modelEvent.getFocusTypeName();
+    @Override
+    protected String getSubject(ModelEvent event, SimpleFocalObjectNotifierType configuration, String transport,
+            Task task, OperationResult result) {
+
+        String typeName = event.getFocusTypeName();
 
         if (event.isAdd()) {
             return typeName + " creation notification";
@@ -94,52 +91,41 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
+    protected String getBody(ModelEvent event, SimpleFocalObjectNotifierType configuration, String transport,
+            Task task, OperationResult result) throws SchemaException {
 
-        final ModelEvent modelEvent = (ModelEvent) event;
-
-        String typeName = modelEvent.getFocusTypeName();
+        String typeName = event.getFocusTypeName();
         String typeNameLower = typeName.toLowerCase();
 
-        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
+        boolean techInfo = Boolean.TRUE.equals(configuration.isShowTechnicalInformation());
 
-        ModelContext<FocusType> modelContext = (ModelContext) modelEvent.getModelContext();
-        ModelElementContext<FocusType> focusContext = modelContext.getFocusContext();
-        PrismObject<FocusType> focus = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
-        FocusType userType = focus.asObjectable();
+        //noinspection unchecked
+        ModelContext<AssignmentHolderType> modelContext = (ModelContext<AssignmentHolderType>) event.getModelContext();
+        ModelElementContext<AssignmentHolderType> focusContext = modelContext.getFocusContext();
+        PrismObject<AssignmentHolderType> focusObject = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
+        AssignmentHolderType focus = focusObject.asObjectable();
         String oid = focusContext.getOid();
 
-        String fullName;
-        if (userType instanceof UserType) {
-            fullName = PolyString.getOrig(((UserType) userType).getFullName());
-        } else if (userType instanceof AbstractRoleType) {
-            fullName = PolyString.getOrig(((AbstractRoleType) userType).getDisplayName());
-        } else {
-            fullName = "";          // TODO (currently it's not possible to get here)
-        }
+        String fullName = emptyIfNull(getFullName(focus));
 
-        if (fullName == null) {
-            fullName = "";          // "null" is not nice in notifications
-        }
-
-        ObjectDelta<FocusType> delta = ObjectDeltaCollectionsUtil.summarize(modelEvent.getFocusDeltas());
+        ObjectDelta<AssignmentHolderType> delta = ObjectDeltaCollectionsUtil.summarize(event.getFocusDeltas());
 
         StringBuilder body = new StringBuilder();
 
-        String status = modelEvent.getStatusAsText();
+        String status = event.getStatusAsText();
         String attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
 
         body.append("Notification about ").append(typeNameLower).append("-related operation (status: ").append(status).append(")\n\n");
-        body.append(typeName).append(": ").append(fullName).append(" (").append(userType.getName()).append(", oid ").append(oid).append(")\n");
+        body.append(typeName).append(": ").append(fullName).append(" (").append(focus.getName()).append(", oid ").append(oid).append(")\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
-        final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(generalNotifierType);
+        final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration);
         if (delta.isAdd()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("created with the following data:\n");
-            body.append(modelEvent.getContentAsFormattedList(false, watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList( watchAuxiliaryAttributes));
         } else if (delta.isModify()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("modified. Modified attributes are:\n");
-            body.append(modelEvent.getContentAsFormattedList(false, watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes));
         } else if (delta.isDelete()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("removed.\n");
         }
@@ -149,7 +135,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
         }
 
-        functions.addRequesterAndChannelInformation(body, event, result);
+        addRequesterAndChannelInformation(body, event, result);
 
         if (techInfo) {
             body.append("----------------------------------------\n");
@@ -160,9 +146,21 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         return body.toString();
     }
 
+    @Nullable
+    private String getFullName(AssignmentHolderType focus) {
+        String fullName;
+        if (focus instanceof UserType) {
+            fullName = PolyString.getOrig(((UserType) focus).getFullName());
+        } else if (focus instanceof AbstractRoleType) {
+            fullName = PolyString.getOrig(((AbstractRoleType) focus).getDisplayName());
+        } else {
+            fullName = "";          // TODO
+        }
+        return fullName;
+    }
+
     @Override
     protected Trace getLogger() {
         return LOGGER;
     }
-
 }

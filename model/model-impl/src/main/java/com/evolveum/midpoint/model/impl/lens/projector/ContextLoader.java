@@ -1326,7 +1326,10 @@ public class ContextLoader {
         //Determine refined schema and password policies for account type
         RefinedObjectClassDefinition structuralObjectClassDef = projContext.getStructuralObjectClassDefinition();
         if (structuralObjectClassDef != null) {
-            loadProjectionSecurityPolicy(context, projContext, task, result);
+            LOGGER.trace("Finishing loading of projection context: security policy");
+            SecurityPolicyType projectionSecurityPolicy = securityHelper.locateProjectionSecurityPolicy(projContext.getStructuralObjectClassDefinition(), task, result);
+            LOGGER.trace("Located security policy for: {},\n {}", projContext, projectionSecurityPolicy);
+            projContext.setProjectionSecurityPolicy(projectionSecurityPolicy);
         } else {
             LOGGER.trace("No structural object class definition, skipping determining security policy");
         }
@@ -1342,51 +1345,6 @@ public class ContextLoader {
 
         setPrimaryDeltaOldValue(projContext);
     }
-
-    private <F extends ObjectType> void loadProjectionSecurityPolicy(LensContext<F> context,
-            LensProjectionContext projContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        LOGGER.trace("Finishing loading of projection context: security policy");
-        ObjectReferenceType securityPolicyRef = projContext.getStructuralObjectClassDefinition().getSecurityPolicyRef();
-        if (securityPolicyRef == null || securityPolicyRef.getOid() == null) {
-            LOGGER.trace("Security policy not defined for the projection context.");
-            loadProjectionLegacyPasswordPolicy(context, projContext, task, result);
-            return;
-        }
-        LOGGER.trace("Loading security policy {} for projection context: {}", securityPolicyRef, projContext);
-        PrismObject<SecurityPolicyType> securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, securityPolicyRef.getOid(), null, result);
-        if (securityPolicy == null) {
-            LOGGER.debug("Security policy {} defined for the projection does not exist", securityPolicyRef);
-            return;
-        }
-        LOGGER.trace("Found legacy password policy: {}", securityPolicy);
-        projContext.setProjectionSecurityPolicy(securityPolicy.asObjectable());
-    }
-
-
-    private <F extends ObjectType> void loadProjectionLegacyPasswordPolicy(LensContext<F> context,
-            LensProjectionContext projContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectReferenceType passwordPolicyRef = projContext.getStructuralObjectClassDefinition().getPasswordPolicy();
-        if (passwordPolicyRef == null || passwordPolicyRef.getOid() == null) {
-            LOGGER.trace("Legacy password policy not defined for the projection context.");
-            return;
-        }
-        LOGGER.trace("Loading legacy password policy {} for projection context: {}", passwordPolicyRef, projContext);
-        PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(
-                    ValuePolicyType.class, passwordPolicyRef.getOid(), null, result);
-        if (passwordPolicy == null) {
-            LOGGER.debug("Legacy password policy {} defined for the projection does not exist", passwordPolicyRef);
-            return;
-        }
-        ObjectReferenceType dummyPasswordPolicyRef = new ObjectReferenceType();
-        dummyPasswordPolicyRef.asReferenceValue().setObject(passwordPolicy);
-        PrismObject<SecurityPolicyType> securityPolicy = prismContext.createObject(SecurityPolicyType.class);
-        securityPolicy.asObjectable()
-            .beginCredentials()
-                .beginPassword()
-                    .valuePolicyRef(dummyPasswordPolicyRef);
-        projContext.setProjectionSecurityPolicy(securityPolicy.asObjectable());
-    }
-
 
     private <F extends ObjectType> boolean needToReload(LensContext<F> context,
             LensProjectionContext projContext) {

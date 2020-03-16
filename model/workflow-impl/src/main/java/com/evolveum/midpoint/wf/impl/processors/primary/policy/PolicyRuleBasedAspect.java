@@ -95,6 +95,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
                         .extractAssignmentBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
                 objectPolicyAspectPart.extractObjectBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
             }
+            result.addParam("instructionsCount", instructions.size());
             return instructions;
         } catch (Throwable t) {
             result.recordFatalError(t);

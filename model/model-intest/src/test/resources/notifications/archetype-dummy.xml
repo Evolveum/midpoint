@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype oid="c97780b7-6b07-4a25-be95-60125af6f650"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>archetype-dummy</name>
+</archetype>

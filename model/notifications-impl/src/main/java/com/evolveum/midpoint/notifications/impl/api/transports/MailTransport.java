@@ -29,6 +29,8 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -85,9 +87,11 @@ public class MailTransport implements Transport {
     @Autowired
     protected ExpressionFactory expressionFactory;
 
+    @Autowired private TransportRegistry transportRegistry;
+
     @PostConstruct
     public void init() {
-        notificationManager.registerTransport(NAME, this);
+        transportRegistry.registerTransport(NAME, this);
     }
 
     @Override

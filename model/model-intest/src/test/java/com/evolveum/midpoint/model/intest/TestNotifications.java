@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.impl.events.CustomEventImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -65,6 +66,9 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     public static final File TEST_DIR = new File("src/test/resources/notifications");
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    private static final TestResource ARCHETYPE_DUMMY = new TestResource(TEST_DIR, "archetype-dummy.xml", "c97780b7-6b07-4a25-be95-60125af6f650");
+    private static final TestResource ROLE_DUMMY = new TestResource(TEST_DIR, "role-dummy.xml", "8bc6d827-6ea6-4671-a506-a8388f117880");
+
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     private String accountJackOid;
@@ -72,9 +76,10 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     private MyHttpHandler httpHandler;
 
     @Override
-    public void initSystem(Task initTask, OperationResult initResult)
-            throws Exception {
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        repoAdd(ARCHETYPE_DUMMY, initResult);
+        repoAdd(ROLE_DUMMY, initResult);
         InternalMonitor.reset();
     }
 
@@ -134,9 +139,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
+        ObjectDelta<UserType> userDelta = createAddAccountDelta(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE);
+        // This is to test for MID-5849. The applicability checking was not correct, so it passed even if there we no items
+        // to show in the notification.
+        userDelta.addModification(
+                deltaFor(UserType.class)
+                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                        .replace("dummy")
+                        .asItemDelta());
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -149,7 +164,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        assertEquals("Unexpected number of linkRefs", 1, userJackType.getLinkRef().size());
         ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         accountJackOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountJackOid));
@@ -546,7 +561,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "get", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -571,7 +586,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "post", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -604,7 +619,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "general-post", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "general-post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -637,7 +652,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "get-via-proxy", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get-via-proxy", null,
                 "hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -648,7 +663,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         assertNotNull("No http request found", httpHandler.lastRequest);
         assertEquals("Wrong HTTP method", "GET", httpHandler.lastRequest.method);
-        assertTrue("Header proxy-connection not found in request headers", httpHandler.lastRequest.headers.keySet().contains("proxy-connection"));
+        assertTrue("Header proxy-connection not found in request headers", httpHandler.lastRequest.headers.containsKey("proxy-connection"));
         assertEquals("Wrong proxy-connection header", "Keep-Alive", httpHandler.lastRequest.headers.get("proxy-connection").get(0));
     }
 
@@ -665,7 +680,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "check-variables", null,
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "check-variables", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -760,7 +775,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         byte[] origJPEG = Base64.getDecoder().decode(origJPEGString);
         Object content = RawType.getValue(message.getAttachments().get(0).getContent());
         if(!(content instanceof byte[]) || !Arrays.equals(origJPEG, (byte[])content)) {
-            throw new AssertionError("Wrong content of attachments expected:" + origJPEG  + " but was:" + content);
+            throw new AssertionError("Wrong content of attachments expected:" + Arrays.toString(origJPEG) + " but was:" + content);
         }
         assertEquals("Wrong fileName of attachments", "alf.jpg", message.getAttachments().get(0).getFileName());
         assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
@@ -799,7 +814,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong contentType of attachment", "image/png", message.getAttachments().get(0).getContentType());
         assertEquals("Wrong fileName of attachments", "alf.png", message.getAttachments().get(0).getFileName());
         assertEquals("Wrong fileName of attachments", "/home/user/example.png", message.getAttachments().get(0).getContentFromFile());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContent());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContent());
     }
 
     @Test
@@ -835,10 +850,47 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong contentType of attachment", "text/html", message.getAttachments().get(0).getContentType());
         assertEquals("Wrong content of attachments", "<!DOCTYPE html><html><body>Hello World!</body></html>", message.getAttachments().get(0).getContent());
         assertEquals("Wrong fileName of attachments", "hello_world.html", message.getAttachments().get(0).getFileName());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContentFromFile());
     }
 
     // TODO binary attachment, attachment from file, attachment from expression
+
+    /**
+     * MID-5350
+     */
+    @Test
+    public void test500RecomputeRole() throws Exception {
+
+        setGlobalTracingOverride(addNotificationsLogging(createModelLoggingTracingProfile()));
+
+        // GIVEN
+        Task task = createTask("test500RecomputeRole");
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        // WHEN
+        recomputeFocus(RoleType.class, ROLE_DUMMY.oid, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+
+        // Check notifications
+        display("Notifications", dummyTransport);
+
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("simpleRoleNotifier", 0); // MID-5350 (other asserts are just for sure)
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+        assertSteadyResources();
+    }
 
     @SuppressWarnings("Duplicates")
     private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -851,11 +903,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     private static class MyHttpHandler implements HttpHandler {
 
-        private class Request {
-            URI uri;
-            String method;
-            Map<String, List<String>> headers;
-            List<String> body;
+        private static class Request {
+            private URI uri;
+            private String method;
+            private Map<String, List<String>> headers;
+            private List<String> body;
         }
 
         private Request lastRequest;

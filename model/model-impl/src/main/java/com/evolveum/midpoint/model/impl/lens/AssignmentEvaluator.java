@@ -223,7 +223,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      */
     public EvaluatedAssignmentImpl<AH> evaluate(
             ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, boolean forcedAssignment, Task task, OperationResult parentResult)
+            PlusMinusZero primaryAssignmentMode, boolean evaluateOld, AssignmentHolderType source, String sourceDescription, boolean forcedAssignment, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -487,8 +487,12 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         AssignmentType assignmentType = getAssignmentType(segment, ctx);
 
-        boolean isAssignmentValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType,
-                now, activationComputer, focusStateModel);
+        // Assignment validity is checked with respect to the assignment source, not to the focus object.
+        // So, if (e.g.) focus is in "draft" state, only validity of direct assignments should be influenced by this fact.
+        // Other assignments (e.g. from roles to metaroles) should be considered valid, provided these roles are
+        // in active lifecycle states. See also MID-6114.
+        AssignmentHolderType source = segment.isMatchingOrder() ? focusOdo.getNewObject().asObjectable() : segment.getSource();
+        boolean isAssignmentValid = LensUtil.isAssignmentValid(source, assignmentType, now, activationComputer, focusStateModel);
         if (isAssignmentValid || segment.isValidityOverride()) {
             // Note: validityOverride is currently the same as "isDirectAssignment" - which is very probably OK.
             // Direct assignments are visited even if they are not valid (i.e. effectively disabled).
@@ -508,7 +512,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     }
                 }
             }
-            if (assignmentType.getPolicyRule() != null && !loginMode) {
+            if (!loginMode && assignmentType.getPolicyRule() != null) {
                 // Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
                 // evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
                 // TODO is it ok?
@@ -986,7 +990,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     }
 
     private void evaluateInducement(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
-            AssignmentHolderType targetType, AssignmentType inducement, OperationResult result)
+            AssignmentHolderType target, AssignmentType inducement, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
         ObjectType orderOneObject = getOrderOneObject(segment);
@@ -994,7 +998,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         if (!isInducementApplicableToFocusType(inducement.getFocusType())) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
-                        FocusTypeUtil.dumpAssignment(inducement), inducement.getFocusType(), targetType.getClass().getSimpleName());
+                        FocusTypeUtil.dumpAssignment(inducement), inducement.getFocusType(), target.getClass().getSimpleName());
             }
             return;
         }
@@ -1004,8 +1008,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
             }
             return;
         }
-        String subSourceDescription = targetType+" in "+segment.sourceDescription;
-        AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, inducement, false, relationRegistry, prismContext);
+        String subSourceDescription = target+" in "+segment.sourceDescription;
+        AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(target, subSourceDescription, inducement, false, relationRegistry, prismContext);
         // note that 'old' and 'new' values for assignment in nextSegment are the same
         boolean nextIsMatchingOrder = AssignmentPathSegmentImpl.computeMatchingOrder(
                 segment.getEvaluationOrder(), nextSegment.getAssignmentNew());
@@ -1031,7 +1035,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         // processMembership attribute to false for these inducements.
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("orig EO({}): evaluate {} inducement({}) {}; new EO({})",
-                    segment.getEvaluationOrder().shortDump(), targetType, FocusTypeUtil.dumpInducementConstraints(inducement),
+                    segment.getEvaluationOrder().shortDump(), target, FocusTypeUtil.dumpInducementConstraints(inducement),
                     FocusTypeUtil.dumpAssignment(inducement), nextEvaluationOrderHolder.getValue().shortDump());
         }
         assert !ctx.assignmentPath.isEmpty();
