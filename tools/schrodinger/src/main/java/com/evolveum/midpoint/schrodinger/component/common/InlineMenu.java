@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schrodinger.component.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -79,14 +80,31 @@ public class InlineMenu<T> extends Component<T> {
     }
 
     public InlineMenu<T> clickItemByName(String itemName) {
-        // todo implement
-        SelenideElement dropdown = getParentElement().find("div.btn-group ul.dropdown-menu li");
+        boolean found = false;
+        ElementsCollection lis = getParentElement().findAll("div.btn-group ul.dropdown-menu li a");
+        for (SelenideElement a : lis) {
+            if (!a.isDisplayed()) {
+                continue;
+            }
+
+            String txt = a.getText();
+            if (Objects.equals(itemName, txt.trim())) {
+                a.parent().click();
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            throw new IllegalStateException("Couldn't find item by name " + itemName);
+        }
 
         return this;
     }
 
     public InlineMenu<T> clickItemByKey(String itemKey) {
-        // todo implement
+        SelenideElement element = getParentElement().find("div.btn-group ul.dropdown-menu li a schrodinger[data-s-resource-key=" + itemKey + "]");
+        element.parent().click();
 
         return this;
     }

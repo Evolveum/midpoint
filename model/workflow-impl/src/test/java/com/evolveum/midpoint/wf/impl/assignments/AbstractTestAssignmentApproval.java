@@ -6,6 +6,22 @@
  */
 package com.evolveum.midpoint.wf.impl.assignments;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -21,41 +37,23 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.OperationResultAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Testing approvals of role assignments: create/delete assignment, potentially for more roles and combined with other operations.
  * Testing also with deputies specified.
- *
+ * <p>
  * Subclasses provide specializations regarding ways how rules and/or approvers are attached to roles.
  *
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolicy {
-
-    protected static final Trace LOGGER = TraceManager.getTrace(AbstractTestAssignmentApproval.class);
 
     static final File TEST_RESOURCE_DIR = new File("src/test/resources/assignments");
 
@@ -199,7 +197,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     /**
      * Attempt to assign roles 1, 2, 3, 4 along with changing description. Assignment of role 4 and description change
      * are not to be approved.
-     *
+     * <p>
      * Decisions for roles 1-3 are rejected.
      */
     @Test
@@ -214,7 +212,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      * The same as above, but with immediate execution.
      */
     @Test
-     public void test052AddRoles123AssignmentNNNImmediate() throws Exception {
+    public void test052AddRoles123AssignmentNNNImmediate() throws Exception {
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
@@ -224,7 +222,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     /**
      * Attempt to assign roles 1, 2, 3, 4 along with changing description. Assignment of role 4 and description change
      * are not to be approved.
-     *
+     * <p>
      * Decision for role 1 is accepted.
      */
     @Test
@@ -246,7 +244,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     /**
      * Attempt to assign roles 1, 2, 3, 4 along with changing description. Assignment of role 4 and description change
      * are not to be approved.
-     *
+     * <p>
      * Decisions for roles 1-3 are accepted.
      */
     @Test
@@ -332,7 +330,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                 .item(UserType.F_ASSIGNMENT).add(assignment)
                 .asObjectDelta(userJackOid);
         String realApproverOid = approverOid != null ? approverOid : userLead1Oid;
-        return executeTest2(testName, new TestDetails2<UserType>() {
+        return executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
@@ -467,7 +465,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                 .summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
         ObjectDelta<UserType> delta0 = ObjectDeltaCollectionsUtil.summarize(addRole4Delta, changeDescriptionDelta);
         String originalDescription = getUser(userJackOid).asObjectable().getDescription();
-        executeTest2(testName, new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
@@ -506,9 +504,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
                 return Arrays.asList(
-                        new ExpectedTask(getRoleOid(1), "Assigning role \""+getRoleName(1)+"\" to user \"jack\""),
-                        new ExpectedTask(getRoleOid(2), "Assigning role \""+getRoleName(2)+"\" to user \"jack\""),
-                        new ExpectedTask(getRoleOid(3), "Assigning role \""+getRoleName(3)+"\" to user \"jack\""));
+                        new ExpectedTask(getRoleOid(1), "Assigning role \"" + getRoleName(1) + "\" to user \"jack\""),
+                        new ExpectedTask(getRoleOid(2), "Assigning role \"" + getRoleName(2) + "\" to user \"jack\""),
+                        new ExpectedTask(getRoleOid(3), "Assigning role \"" + getRoleName(3) + "\" to user \"jack\""));
             }
 
             @Override
@@ -540,12 +538,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                     case 1:
                     case 2:
                     case 3:
-                    if (yes) {
-                        assertAssignedRole(userJackOid, getRoleOid(number), result);
-                    } else {
-                        assertNotAssignedRole(userJackOid, getRoleOid(number), result);
-                    }
-                    break;
+                        if (yes) {
+                            assertAssignedRole(userJackOid, getRoleOid(number), result);
+                        } else {
+                            assertNotAssignedRole(userJackOid, getRoleOid(number), result);
+                        }
+                        break;
 
                 }
             }

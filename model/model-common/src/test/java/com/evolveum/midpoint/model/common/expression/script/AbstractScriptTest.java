@@ -50,8 +50,6 @@ import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -70,8 +68,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected static final String RESULT_POISON_OK = "ALIVE";
 
     protected static final String RESULT_STRING_EXEC = "Hello world";
-
-    public static final Trace LOGGER = TraceManager.getTrace(AbstractScriptTest.class);
 
     protected PrismContext prismContext;
     protected ScriptExpressionFactory scriptExpressionfactory;
@@ -385,7 +381,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             AssertJUnit.fail("Expression " + testName + ": unexpected success, result value: " + expressionResultList);
         } catch (SecurityViolationException e) {
             System.out.println("Expected exception: " + e);
-            LOGGER.debug("Expected exception", e);
+            logger.debug("Expected exception", e);
         }
     }
 

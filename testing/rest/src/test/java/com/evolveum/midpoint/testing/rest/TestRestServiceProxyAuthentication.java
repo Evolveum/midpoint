@@ -6,33 +6,30 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.cxf.jaxrs.client.WebClient;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.File;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author skublik
  */
 public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestRestServiceProxyAuthentication.class);
 
     // REST and end user authorization
     public static final File USER_EGOIST_FILE = new File(BASE_REPO_DIR, "user-egoist.xml");
@@ -80,7 +77,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         AssertJUnit.assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
         PrismTestUtil.display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
@@ -101,7 +98,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
         PrismTestUtil.display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
@@ -147,7 +144,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
         PrismTestUtil.display("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
@@ -193,7 +190,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
     private WebClient prepareClient(String proxyUserOid) {
         WebClient client = prepareClient(USER_PROXY_USERNAME, USER_PROXY_PASSWORD);
-        if (StringUtils.isNotBlank(proxyUserOid)){
+        if (StringUtils.isNotBlank(proxyUserOid)) {
             client.header("Switch-To-Principal", proxyUserOid);
         }
         return client;

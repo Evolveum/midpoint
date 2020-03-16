@@ -57,7 +57,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.xpath.operations.Bool;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -68,9 +67,6 @@ import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHel
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 
-/**
- * @author mederly
- */
 @PageDescriptor(url = "/admin/certification/decisions",
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -97,6 +93,10 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private CertDecisionHelper helper = new CertDecisionHelper();
 
+    boolean isDisplayingAllItems() {
+        return false;
+    }
+
     public PageCertDecisions() {
     }
 
@@ -112,6 +112,8 @@ public class PageCertDecisions extends PageAdminCertification {
         provider.setQuery(createCaseQuery());
         provider.setCampaignQuery(createCampaignQuery());
         provider.setReviewerOid(getCurrentUserOid());
+        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+        provider.setAllItems(isDisplayingAllItems());
         provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
         return provider;
     }
@@ -518,7 +520,8 @@ public class PageCertDecisions extends PageAdminCertification {
         DataTable table = panel.getDataTable();
         CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
         provider.setQuery(query);
-        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly().booleanValue());
+        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+        provider.setAllItems(isDisplayingAllItems());
         table.setCurrentPage(0);
 
         target.add(getFeedbackPanel());

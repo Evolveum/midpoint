@@ -55,6 +55,18 @@ public class PrettyPrinter {
         return sb.toString();
     }
 
+    public static Object prettyPrintLazily(Collection<?> collection) {
+        if (collection == null) {
+            return null;
+        }
+        return new Object() {
+            @Override
+            public String toString() {
+                return prettyPrint(collection);
+            }
+        };
+    }
+
     public static String prettyPrint(Collection<?> collection) {
         return prettyPrint(collection, 0);
     }

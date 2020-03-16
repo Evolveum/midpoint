@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,218 +10,60 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * @author mederly
+ * Event about model operation (TODO)
  */
-public class ModelEvent extends BaseEvent {
+public interface ModelEvent extends Event {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ModelEvent.class);
+    @NotNull
+    ModelContext<?> getModelContext();
 
-    // we can expect that modelContext != null and focus context != null as well
-    private ModelContext<?> modelContext;
+    @NotNull
+    ModelElementContext<?> getFocusContext();
 
-    public ModelEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ModelContext modelContext) {
-        super(lightweightIdentifierGenerator);
-        this.modelContext = modelContext;
-    }
+    Collection<? extends ModelProjectionContext> getProjectionContexts();
 
-    public ModelContext getModelContext() {
-        return modelContext;
-    }
+    List<? extends ObjectDeltaOperation> getFocusExecutedDeltas();
 
-    public ModelElementContext<?> getFocusContext() {
-        return modelContext.getFocusContext();
-    }
-
-    public Collection<? extends ModelProjectionContext> getProjectionContexts() {
-        return modelContext.getProjectionContexts();
-    }
-
-    public List<? extends ObjectDeltaOperation> getFocusExecutedDeltas() {
-        return getFocusContext().getExecutedDeltas();
-    }
-
-    public List<ObjectDeltaOperation> getAllExecutedDeltas() {
-        List<ObjectDeltaOperation> retval = new ArrayList<>();
-        retval.addAll(getFocusContext().getExecutedDeltas());
-        for (Object o : modelContext.getProjectionContexts()) {
-            ModelProjectionContext modelProjectionContext = (ModelProjectionContext) o;
-            retval.addAll(modelProjectionContext.getExecutedDeltas());
-        }
-        return retval;
-    }
-
-    @Override
-    public boolean isStatusType(EventStatusType eventStatusType) {
-        boolean allSuccess = true, anySuccess = false, allFailure = true, anyFailure = false, anyInProgress = false;
-        for (ObjectDeltaOperation objectDeltaOperation : getAllExecutedDeltas()) {
-            if (objectDeltaOperation.getExecutionResult() != null) {
-                switch (objectDeltaOperation.getExecutionResult().getStatus()) {
-                    case SUCCESS: anySuccess = true; allFailure = false; break;
-                    case FATAL_ERROR: allSuccess = false; anyFailure = true; break;
-                    case WARNING: anySuccess = true; allFailure = false; break;
-                    case HANDLED_ERROR: anySuccess = true; allFailure = false; break;
-                    case IN_PROGRESS: allSuccess = false; allFailure = false; anyInProgress = true; break;
-                    case NOT_APPLICABLE: break;
-                    case PARTIAL_ERROR: allSuccess = false; anyFailure = true; break;
-                    case UNKNOWN: allSuccess = false; allFailure = false; break;
-                    default: LOGGER.warn("Unknown execution result: " + objectDeltaOperation.getExecutionResult().getStatus());
-                }
-            } else {
-                allSuccess = false; allFailure = false; anyInProgress = true;
-            }
-        }
-
-        switch (eventStatusType) {
-            case ALSO_SUCCESS: return anySuccess;
-            case SUCCESS: return allSuccess;
-            case FAILURE: return anyFailure;
-            case ONLY_FAILURE: return allFailure;
-            case IN_PROGRESS: return anyInProgress;
-            default: throw new IllegalStateException("Invalid eventStatusType: " + eventStatusType);
-        }
-    }
+    List<ObjectDeltaOperation> getAllExecutedDeltas();
 
     // a bit of hack but ...
-    public ChangeType getChangeType() {
-        if (isOperationType(EventOperationType.ADD)) {
-            return ChangeType.ADD;
-        } else if (isOperationType(EventOperationType.DELETE)) {
-            return ChangeType.DELETE;
-        } else {
-            return ChangeType.MODIFY;
-        }
+    ChangeType getChangeType();
+
+    ObjectDelta<?> getFocusPrimaryDelta();
+
+    ObjectDelta<?> getFocusSecondaryDelta();
+
+    List<ObjectDelta<AssignmentHolderType>> getFocusDeltas();
+
+    ObjectDelta<? extends AssignmentHolderType> getSummarizedFocusDeltas() throws SchemaException;
+
+    boolean hasFocusOfType(Class<? extends AssignmentHolderType> clazz);
+
+    boolean hasFocusOfType(QName focusType);
+
+    String getFocusTypeName();
+
+    default boolean hasContentToShow() {
+        return hasContentToShow(false);
     }
 
-    @Override
-    public boolean isOperationType(EventOperationType eventOperationType) {
+    boolean hasContentToShow(boolean showAuxiliaryAttributes);
 
-        // we consider an operation to be 'add' when there is 'add' delta among deltas
-        // in a similar way with 'delete'
-        //
-        // alternatively, we could summarize deltas and then decide based on the type of summarized delta (would be a bit inefficient)
-
-        for (Object o : getFocusExecutedDeltas()) {
-            ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
-            if (objectDeltaOperation.getObjectDelta().isAdd()) {
-                return eventOperationType == EventOperationType.ADD;
-            } else if (objectDeltaOperation.getObjectDelta().isDelete()) {
-                return eventOperationType == EventOperationType.DELETE;
-            }
-        }
-        return eventOperationType == EventOperationType.MODIFY;
+    default String getContentAsFormattedList() {
+        return getContentAsFormattedList(false);
     }
-
-    @Override
-    public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.MODEL_EVENT;
-    }
-
-    public ObjectDelta<?> getFocusPrimaryDelta() {
-        return getFocusContext() != null ? getFocusContext().getPrimaryDelta() : null;
-    }
-
-    public ObjectDelta<?> getFocusSecondaryDelta() {
-        return getFocusContext() != null ? getFocusContext().getSecondaryDelta() : null;
-    }
-
-    public List<ObjectDelta<FocusType>> getFocusDeltas() {
-        List<ObjectDelta<FocusType>> retval = new ArrayList<>();
-        Class c = modelContext.getFocusClass();
-        if (c != null && FocusType.class.isAssignableFrom(c)) {
-            for (Object o : getFocusExecutedDeltas()) {
-                ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
-                retval.add(objectDeltaOperation.getObjectDelta());
-            }
-        }
-        return retval;
-    }
-
-    public ObjectDelta<? extends FocusType> getSummarizedFocusDeltas() throws SchemaException {
-        return ObjectDeltaCollectionsUtil.summarize(getFocusDeltas());
-    }
-
-    public boolean hasFocusOfType(Class<? extends FocusType> clazz) {
-        return getFocusContext() != null && clazz.isAssignableFrom(getFocusContext().getObjectTypeClass());
-    }
-
-    public boolean hasFocusOfType(QName focusType) {
-        PrismContext prismContext = getModelContext().getPrismContext();
-        if (prismContext == null) {
-            throw new IllegalStateException("No prismContext in model context");
-        }
-        PrismContainerDefinition pcd = prismContext.getSchemaRegistry().findContainerDefinitionByType(focusType);
-        if (pcd == null) {
-            LOGGER.warn("Couldn't find definition for type " + focusType);
-            return false;
-        }
-        Class expectedClass = pcd.getCompileTimeClass();
-        if (expectedClass == null) {
-            LOGGER.warn("Couldn't find class for type " + focusType);
-            return false;
-        }
-        return hasFocusOfType(expectedClass);
-    }
-
-    @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
-        return containsItem(getFocusDeltas(), itemPath);
-    }
-
-    @Override
-    public boolean isUserRelated() {
-        return hasFocusOfType(UserType.class);
-    }
-
-    public String getFocusTypeName() {
-        if (getFocusContext() == null || getFocusContext().getObjectTypeClass() == null) {
-            return null;
-        }
-        String simpleName = getFocusContext().getObjectTypeClass().getSimpleName();
-        return StringUtils.substringBeforeLast(simpleName, "Type");         // should usually work ;)
-    }
-
-    public String getContentAsFormattedList() {
-        return getContentAsFormattedList(false, false);
-    }
-
-    public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
-        return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
-    }
-
-    public String getFocusPassword() {
-        return getNotificationFunctions().getFocusPasswordFromEvent(this);
-    }
-
-    @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
-        debugDumpCommon(sb, indent);
-        DebugUtil.debugDumpWithLabelToString(sb, "modelContext", modelContext, indent + 1);
-        return sb.toString();
-    }
+    String getContentAsFormattedList(boolean showAuxiliaryAttributes);
 }

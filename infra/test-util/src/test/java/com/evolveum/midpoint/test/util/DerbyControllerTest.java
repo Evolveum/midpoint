@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.test.util;
 
-import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -16,11 +17,12 @@ import java.util.Properties;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+
 /**
  * @author Radovan Semancik
- *
  */
-public class DerbyControllerTest {
+public class DerbyControllerTest extends AbstractUnitTest {
 
     @Test
     public void testStartStopDerby() throws Exception {
@@ -35,7 +37,7 @@ public class DerbyControllerTest {
         Statement stmt = conn.createStatement();
         stmt.execute("select * from users");
         ResultSet rs = stmt.getResultSet();
-        assertFalse("The \"users\" table is not empty",rs.next());
+        assertFalse("The \"users\" table is not empty", rs.next());
         rs.close();
         stmt.close();
 
@@ -46,18 +48,18 @@ public class DerbyControllerTest {
 
         // Try to connect over the "network" (localhost)
         Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
-        String networkJdbcUrl = "jdbc:derby://"+controller.getListenHostname()+":"+controller.getListenPort()+"/"+controller.getDbName();
+        String networkJdbcUrl = "jdbc:derby://" + controller.getListenHostname() + ":" + controller.getListenPort() + "/" + controller.getDbName();
         Properties props = new Properties();
-        props.setProperty("user",controller.getUsername());
-        props.setProperty("password",controller.getPassword());
-        System.out.println("JDBC Connecting to "+networkJdbcUrl+" as "+controller.getUsername());
-        Connection networkConn = DriverManager.getConnection(networkJdbcUrl,props);
+        props.setProperty("user", controller.getUsername());
+        props.setProperty("password", controller.getPassword());
+        System.out.println("JDBC Connecting to " + networkJdbcUrl + " as " + controller.getUsername());
+        Connection networkConn = DriverManager.getConnection(networkJdbcUrl, props);
 
         // Check if it empty
         stmt = networkConn.createStatement();
         stmt.execute("select * from users");
         rs = stmt.getResultSet();
-        assertTrue("The \"users\" empty after insert",rs.next());
+        assertTrue("The \"users\" empty after insert", rs.next());
         rs.close();
         stmt.close();
 

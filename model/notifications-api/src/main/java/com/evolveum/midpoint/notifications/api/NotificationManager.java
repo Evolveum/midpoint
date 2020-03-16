@@ -13,21 +13,20 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 
-/**
- * @author mederly
- */
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Handles notification events.
+ */
 public interface NotificationManager {
 
     void registerTransport(String name, Transport transport);
-    Transport getTransport(String name);
 
-    // event may be null
-    void processEvent(Event event, Task task, OperationResult result);
+    void processEvent(@NotNull Event event, Task task, OperationResult result);
 
-
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result);
+    boolean processEvent(@NotNull Event event, EventHandlerType eventHandlerBean, Task task, OperationResult result);
 
     boolean isDisabled();
+
     void setDisabled(boolean disabled);
 }
