@@ -1,50 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2015-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<object xsi:type="ResourceType" oid="371ffc38-c424-11e4-8467-001e8c717e5b"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-    xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
-    <name>Localhost OpenDJ</name>
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          oid="eced6d24-73e3-11e5-8457-93eff15a6b85">
+    <name>Active Directory Medusa (LDAP)</name>
 
     <connectorRef type="ConnectorType">
         <filter>
-            <q:and>
-                <q:equal>
-                    <q:path>c:connectorType</q:path>
-                    <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
-                </q:equal>
-            </q:and>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.ldap.ad.AdLdapConnector</q:value>
+            </q:equal>
         </filter>
     </connectorRef>
 
-    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
-        <icfc:configurationProperties>
-            <icfcldap:port>10389</icfcldap:port>
-            <icfcldap:host>localhost</icfcldap:host>
-            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-            <icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
-            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
-            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
-            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
-             <icfcldap:usePermissiveModify>never</icfcldap:usePermissiveModify>
-             <icfcldap:additionalSearchFilter>(!(roomNumber=invisible))</icfcldap:additionalSearchFilter>
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
+            <icfcldap:host>medusa.lab.evolveum.com</icfcldap:host>
+            <icfcldap:port>636</icfcldap:port>
+            <icfcldap:baseContext>DC=win,DC=evolveum,DC=com</icfcldap:baseContext>
+            <icfcldap:bindDn>CN=midpoint admin1,CN=Users,DC=win,DC=evolveum,DC=com</icfcldap:bindDn>
+            <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
+            <icfcldap:bindPassword>
+                <t:clearValue>mAZadlo911</t:clearValue>
+            </icfcldap:bindPassword>
+            <icfcldap:pagingBlockSize>5</icfcldap:pagingBlockSize> <!-- ridiculously small, just to test paging -->
             <icfcldap:synchronizationStrategy>modifyTimestamp</icfcldap:synchronizationStrategy>
+            <icfcldap:baseContextToSynchronize>CN=Users,DC=win,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -53,39 +45,61 @@
         </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 
+    <schema>
+       <!--  <generationConstraints>
+            <generateObjectClass>ri:user</generateObjectClass>
+            <generateObjectClass>ri:group</generateObjectClass>
+        </generationConstraints>  -->
+    </schema>
+
+
     <schemaHandling>
+
+        <!-- handling of user accounts -->
+
         <objectType>
-            <intent>default</intent>
+            <kind>account</kind>
             <displayName>Default Account</displayName>
             <default>true</default>
-            <objectClass>ri:inetOrgPerson</objectClass>
+            <objectClass>ri:user</objectClass>
+
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>
                 <matchingRule>mr:distinguishedName</matchingRule>
                 <outbound>
                     <source>
-                        <path>$user/name</path>
+                        <path>$user/fullName</path>
                     </source>
                     <expression>
                         <script>
                             <code>
-                                'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+                                'CN=' + fullName + iterationToken + ',CN=Users,DC=win,DC=evolveum,DC=com'
                             </code>
                         </script>
                     </expression>
                 </outbound>
             </attribute>
+
             <attribute>
-                <ref>ri:entryUUID</ref>
-                <displayName>Entry UUID</displayName>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                    <ref>ri:sAMAccountName</ref>
+                    <displayName>Login name</displayName>
+                    <outbound>
+                        <source>
+                            <path>$user/name</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </inbound>
             </attribute>
+
             <attribute>
                 <ref>ri:cn</ref>
-                <displayName>Common Name</displayName>
                 <limitations>
-                    <maxOccurs>1</maxOccurs>
+                    <minOccurs>0</minOccurs>
                 </limitations>
                 <outbound>
                     <source>
@@ -98,9 +112,12 @@
                     </target>
                 </inbound>
             </attribute>
+
             <attribute>
                 <ref>ri:sn</ref>
-                <displayName>Surname</displayName>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
                 <outbound>
                     <source>
                         <path>familyName</path>
@@ -112,9 +129,9 @@
                     </target>
                 </inbound>
             </attribute>
+
             <attribute>
                 <ref>ri:givenName</ref>
-                <displayName>Given Name</displayName>
                 <outbound>
                     <source>
                         <path>givenName</path>
@@ -126,119 +143,131 @@
                     </target>
                 </inbound>
             </attribute>
+
             <attribute>
-                <ref>ri:uid</ref>
-                <displayName>Login Name</displayName>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
-                <outbound>
-                    <strength>weak</strength>
+                    <ref>ri:userPrincipalName</ref>
+                    <outbound>
                     <source>
-                        <path>name</path>
+                        <path>$user/name</path>
                     </source>
                     <expression>
                         <script>
                             <code>
-                                name + iterationToken
+                                name + iterationToken + '@win.evolveum.com'
                             </code>
                         </script>
                     </expression>
                 </outbound>
-                <inbound>
-                    <target>
-                        <path>name</path>
-                    </target>
-                </inbound>
             </attribute>
+
             <attribute>
-                <ref>ri:employeeType</ref>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                    <ref>ri:pwdLastSet</ref>
+                    <outbound>
+                    <expression>
+                        <value>-1</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:createTimeStamp</ref>
+                <fetchStrategy>explicit</fetchStrategy>
+            </attribute>
+
+            <attribute>
+                <ref>ri:nTSecurityDescriptor</ref>
+                <!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+            </attribute>
+
+            <attribute>
+                <ref>ri:instanceType</ref>
+                <!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+            </attribute>
+
+            <attribute>
+                <ref>ri:objectCategory</ref>
+                <!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <expression>
+                        <value>CN=Person,CN=Schema,CN=Configuration,DC=win,DC=evolveum,DC=com</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:showInAdvancedViewOnly</ref>
                 <outbound>
                     <source>
-                        <path>employeeType</path>
+                        <path>extension/showInAdvancedViewOnly</path>
                     </source>
                 </outbound>
             </attribute>
 
             <association>
                 <ref>ri:group</ref>
-                <displayName>LDAP Group Membership</displayName>
+                <displayName>AD Group Membership</displayName>
                 <kind>entitlement</kind>
-                <intent>ldapGroup</intent>
+                <intent>group</intent>
                 <direction>objectToSubject</direction>
-                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <associationAttribute>ri:member</associationAttribute>
                 <valueAttribute>ri:dn</valueAttribute>
-                <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+                <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
-
-            <iteration>
-                <maxIterations>5</maxIterations>
-            </iteration>
-
-            <protected>
-                   <filter>
-                       <q:equal>
-                           <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
-                        <q:path>attributes/ri:dn</q:path>
-                        <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </protected>
 
             <activation>
                 <administrativeStatus>
                     <outbound/>
-                    <inbound/>
                 </administrativeStatus>
             </activation>
 
             <credentials>
                 <password>
-                    <outbound>
-                        <strength>strong</strength>
-                        <expression>
-                            <asIs/>
-                        </expression>
-                    </outbound>
+                    <outbound/>
                 </password>
             </credentials>
+
         </objectType>
 
         <objectType>
             <kind>entitlement</kind>
-            <intent>ldapGroup</intent>
-            <displayName>LDAP Group</displayName>
-            <objectClass>ri:groupOfUniqueNames</objectClass>
+            <intent>group</intent>
+            <displayName>AD Group</displayName>
+            <default>true</default>
+            <objectClass>ri:group</objectClass>
             <attribute>
-                <ref>ri:dn</ref>
-                <matchingRule>mr:distinguishedName</matchingRule>
+                <ref>dn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
                     <source>
                         <path>$focus/name</path>
                     </source>
-                        <expression>
-                            <script>
+                    <expression>
+                        <script>
                             <code>
-                                import javax.naming.ldap.Rdn
-                                import javax.naming.ldap.LdapName
-
-                                dn = new LdapName('ou=groups,dc=example,dc=com')
-                                dn.add(new Rdn('cn', name.toString()))
-                                return dn.toString()
+                                'CN=' + name + ',CN=Users,DC=win,DC=evolveum,DC=com'
                             </code>
                         </script>
-                        </expression>
+                    </expression>
                 </outbound>
-            </attribute>
-            <attribute>
-                <ref>ri:uniqueMember</ref>
-                <matchingRule>mr:distinguishedName</matchingRule>
             </attribute>
             <attribute>
                 <ref>ri:cn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                    <strength>weak</strength>
                     <source>
                         <path>$focus/name</path>
                     </source>
@@ -252,6 +281,7 @@
             <attribute>
                 <ref>ri:description</ref>
                 <outbound>
+                    <strength>strong</strength>
                     <source>
                         <path>description</path>
                     </source>
@@ -266,31 +296,11 @@
 
     </schemaHandling>
 
-    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-      <configured>
-            <cap:activation>
-                <cap:status>
-                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-                    <cap:enableValue/>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:status>
-            </cap:activation>
-            <cap:countObjects>
-                <!-- Really dumb object counting simulation. -->
-                <cap:simulate>sequentialSearch</cap:simulate>
-            </cap:countObjects>
-        </configured>
-    </capabilities>
-
-    <consistency>
-        <avoidDuplicateValues>true</avoidDuplicateValues>
-    </consistency>
-
-    <synchronization>
+        <synchronization>
 
         <objectSynchronization>
             <name>Account sync</name>
-            <objectClass>ri:inetOrgPerson</objectClass>
+            <objectClass>ri:user</objectClass>
             <kind>account</kind>
             <intent>default</intent>
             <focusType>UserType</focusType>
@@ -298,14 +308,14 @@
             <correlation>
                 <q:and>
                     <q:equal>
-                        <q:path>employeeNumber</q:path>
+                        <q:path>c:employeeNumber</q:path>
                         <expression>
-                        <path>$projection/attributes/employeeNumber</path>
+                            <path>$shadow/attributes/employeeNumber</path>
                         </expression>
                     </q:equal>
                     <q:not>
                         <q:equal>
-                            <q:path>employeeNumber</q:path>
+                            <q:path>c:employeeNumber</q:path>
                         </q:equal>
                     </q:not>
                 </q:and>
@@ -332,17 +342,16 @@
 
         <objectSynchronization>
             <name>Group sync</name>
-            <objectClass>ri:groupOfUniqueNames</objectClass>
+            <objectClass>ri:group</objectClass>
             <kind>entitlement</kind>
-            <intent>ldapGroup</intent>
+            <intent>group</intent>
             <focusType>RoleType</focusType>
             <enabled>true</enabled>
             <correlation>
                 <q:equal>
-                    <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#polyStringNorm</q:matching>
-                    <q:path>name</q:path>
+                    <q:path>c:name</q:path>
                     <expression>
-                        <path>$projection/attributes/cn</path>
+                        <path>$shadow/attributes/cn</path>
                     </expression>
                 </q:equal>
             </correlation>
@@ -366,4 +375,5 @@
 
         </objectSynchronization>
     </synchronization>
-</object>
+
+</resource>
