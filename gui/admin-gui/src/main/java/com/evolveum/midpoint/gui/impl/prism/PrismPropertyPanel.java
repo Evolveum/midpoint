@@ -161,9 +161,10 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                 }
 
             });
+            feedback.setFilter(new ComponentFeedbackMessageFilter(inputPanel.getValidatableComponent()));
+        } else {
+            feedback.setFilter(new ComponentFeedbackMessageFilter(component));
         }
-
-         feedback.setFilter(new ComponentFeedbackMessageFilter(component));
 
         if (component instanceof InputPanel) {
             InputPanel inputPanel = (InputPanel) component;

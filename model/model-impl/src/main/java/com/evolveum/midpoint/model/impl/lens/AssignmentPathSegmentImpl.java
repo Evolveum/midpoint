@@ -26,8 +26,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import net.sf.ehcache.store.disk.ods.AATreeSet;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -53,7 +51,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
     // "assignment path segment" information
 
-    final ObjectType source;                    // we avoid "getter" notation for some final fields to simplify client code
+    final AssignmentHolderType source;                    // we avoid "getter" notation for some final fields to simplify client code
     private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
     private final boolean isAssignment;            // false means inducement
     private QName relation;
@@ -249,7 +247,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
      *   is like this: count the number of times the evaluation order for target reached ZERO level. First encounter with
      *   that level is on "this target". And we assume that each subsequent marks a target that is among "others".
      *
-     *   @see AssignmentEvaluator#appliesDirectly
+     *   See AssignmentEvaluator.appliesDirectly
      */
     private Boolean isMatchingOrder = null;
     private EvaluationOrder evaluationOrder;
@@ -262,14 +260,14 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
     private boolean evaluatedForOld;
 
-    AssignmentPathSegmentImpl(ObjectType source, String sourceDescription,
+    AssignmentPathSegmentImpl(AssignmentHolderType source, String sourceDescription,
             ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             boolean isAssignment, boolean evaluatedForOld, @NotNull RelationRegistry relationRegistry,
             @NotNull PrismContext prismContext) {
         this.source = source;
         this.sourceDescription = sourceDescription;
         if (assignmentIdi.getDefinition() == null) {
-            throw new IllegalArgumentException("Attept to set segment assignment IDI withough a definition");
+            throw new IllegalArgumentException("Attempt to set segment assignment IDI without a definition");
         }
         this.assignmentIdi = assignmentIdi;
         this.isAssignment = isAssignment;
@@ -278,7 +276,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
         this.prismContext = prismContext;
     }
 
-    public AssignmentPathSegmentImpl(ObjectType source, String sourceDescription, AssignmentType assignment, boolean isAssignment,
+    public AssignmentPathSegmentImpl(AssignmentHolderType source, String sourceDescription, AssignmentType assignment, boolean isAssignment,
             RelationRegistry relationRegistry, PrismContext prismContext) {
         this(source, sourceDescription, createAssignmentIdi(assignment), isAssignment, false, relationRegistry, prismContext);
     }
@@ -286,6 +284,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
     private static ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdi(
             AssignmentType assignment) {
         try {
+            //noinspection unchecked,rawtypes
             return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignment), assignment.asPrismContainerValue().getDefinition());
         } catch (SchemaException e) {
             // should not really occur!
@@ -344,7 +343,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
     }
 
     @Override
-    public ObjectType getSource() {
+    public AssignmentHolderType getSource() {
         return source;
     }
 
@@ -501,6 +500,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
         return result;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -649,6 +649,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
     // preliminary implementation; use only to compare segments in paths (pointing to the same target OID)
     // that are to be checked for equivalency
+    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equivalent(AssignmentPathSegment otherSegment) {
         if (!prismContext.relationsEquivalent(relation, otherSegment.getRelation())) {

@@ -136,7 +136,7 @@ public class StageComputeHelper {
             return variables;
         };
 
-        if (rv.predeterminedOutcome == null && stageDef.getAutomaticallyCompleted() != null) {
+        if (stageDef.getAutomaticallyCompleted() != null) {
             try {
                 expressionVariables = enhancedVariablesProvider.get();
                 String outcome = evaluateAutoCompleteExpression(stageDef, expressionVariables, opTask, opResult);
