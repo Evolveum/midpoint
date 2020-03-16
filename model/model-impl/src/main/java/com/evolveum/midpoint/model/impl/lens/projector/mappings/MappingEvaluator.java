@@ -488,7 +488,7 @@ public class MappingEvaluator {
         for (MappingImpl<V,D> mapping: mappings) {
             XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
             if (mappingNextRecomputeTime != null) {
-                if (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
+                if (mapping.isSatisfyCondition() && (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER)) {
                     nextRecomputeTime = mappingNextRecomputeTime;
                     // TODO: maybe better description? But consider storage requirements. We do not want to store too much.
                     triggerOriginDescription = mapping.getIdentifier();
