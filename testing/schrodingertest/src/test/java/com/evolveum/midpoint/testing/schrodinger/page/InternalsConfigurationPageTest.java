@@ -28,7 +28,7 @@ public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
         super.afterClass();
     }
 
-    @Test
+    @Test (enabled = false)
     public void test001changeTime() {
         InternalsConfigurationPage configPage = basicPage.internalsConfiguration();
         ClockTab clockTab = configPage.clockTab();
