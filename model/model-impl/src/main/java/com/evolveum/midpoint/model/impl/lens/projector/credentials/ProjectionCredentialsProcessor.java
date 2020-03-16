@@ -68,7 +68,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -259,7 +258,7 @@ public class ProjectionCredentialsProcessor {
 
 
         mappingEvaluator.evaluateOutboundMapping(context, projCtx, outboundMappingTypes,
-                SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
+                SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
                 now, MappingTimeEval.CURRENT, evaluateWeak, "password mapping", task, result);
 
     }
