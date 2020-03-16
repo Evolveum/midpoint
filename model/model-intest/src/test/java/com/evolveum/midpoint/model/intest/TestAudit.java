@@ -469,7 +469,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test300QueryUnknown() throws Exception {
+    public void test290QueryUnknown() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
