@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -19,7 +20,7 @@ import java.util.Objects;
  *
  * @author semancik
  */
-public class LightweightIdentifier {
+public class LightweightIdentifier implements Serializable {
 
     private static final String SEPARATOR = "-";
 
@@ -74,5 +75,4 @@ public class LightweightIdentifier {
     public String toString() {
         return string;
     }
-
 }

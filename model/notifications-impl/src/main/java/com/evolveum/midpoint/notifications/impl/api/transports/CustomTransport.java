@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -79,9 +80,11 @@ public class CustomTransport implements Transport {
     @Autowired
     private NotificationManager notificationManager;
 
+    @Autowired private TransportRegistry transportRegistry;
+
     @PostConstruct
     public void init() {
-        notificationManager.registerTransport(NAME, this);
+        transportRegistry.registerTransport(NAME, this);
     }
 
     @Override

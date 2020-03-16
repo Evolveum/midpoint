@@ -4960,17 +4960,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        //noinspection unchecked
+        Collection<ObjectDelta<? extends ObjectType>> deltas = singleton(createAddAccountDelta(userOid, accountFile));
+        modelService.executeChanges(deltas, null, task, result);
+    }
+
+    @NotNull
+    protected ObjectDelta<UserType> createAddAccountDelta(String userOid, File accountFile)
+            throws SchemaException, IOException {
         PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
-        );
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
-
-        modelService.executeChanges(deltas, null, task, result);
+        return userDelta;
     }
 
     protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {

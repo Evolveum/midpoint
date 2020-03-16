@@ -11,6 +11,7 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,11 +42,11 @@ public class FileTransport implements Transport {
     private static final String DEFAULT_FILE_NAME = "notifications.txt";
 
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
-    @Autowired private NotificationManager notificationManager;
+    @Autowired private TransportRegistry transportRegistry;
 
     @PostConstruct
     public void init() {
-        notificationManager.registerTransport(NAME, this);
+        transportRegistry.registerTransport(NAME, this);
     }
 
     @Override

@@ -1048,6 +1048,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
     }
 
+    public void recordNotApplicable() {
+        recordStatus(OperationResultStatus.NOT_APPLICABLE, (String) null);
+    }
+
     public boolean isMinor() {
         return importance == MINOR;
     }
