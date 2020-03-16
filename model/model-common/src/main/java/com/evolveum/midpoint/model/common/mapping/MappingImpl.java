@@ -636,6 +636,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
     @SuppressWarnings("unused")         // todo is this externally used?
     public boolean isSatisfyCondition() {
+        if (conditionOutputTriple == null) {
+            return true;
+        }
         boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
         boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
 
