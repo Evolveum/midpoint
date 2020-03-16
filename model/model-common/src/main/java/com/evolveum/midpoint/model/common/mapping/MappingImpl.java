@@ -943,10 +943,10 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         }
     }
 
-    private <IV extends PrismValue, ID extends ItemDefinition> Source<IV, ID> parseSource(VariableBindingDefinitionType sourceDefinition,
-            Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+    private <IV extends PrismValue, ID extends ItemDefinition> Source<IV, ID> parseSource(
+            VariableBindingDefinitionType sourceDefinition, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ItemPath path = getSourcePath(sourceDefinition);
         QName sourceQName = sourceDefinition.getName() != null ? sourceDefinition.getName() : ItemPath.toName(path.last());
         String variableName = sourceQName.getLocalPart();
@@ -991,7 +991,10 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         // apply domain
         ValueSetDefinitionType domainSetType = sourceDefinition.getSet();
         if (domainSetType != null) {
-            ValueSetDefinition<IV, ID> setDef = new ValueSetDefinition<>(domainSetType, sourceItemDefinition, expressionProfile, variableName, "domain of " + variableName + " in " + getMappingContextDescription(), task, result);
+            ValueSetDefinition<IV, ID> setDef = new ValueSetDefinition<>(
+                    domainSetType, sourceItemDefinition, expressionProfile, variableName,
+                    "domain of " + variableName + " in " + getMappingContextDescription(),
+                    task, result);
             setDef.init(expressionFactory);
             setDef.setAdditionalVariables(variables);
             try {
@@ -1072,9 +1075,12 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
                 outputPath = defaultTargetPath;
             } else {
                 ItemPath path = itemPathType.getItemPath();
-                outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in " + getMappingContextDescription());
+                outputDefinition = ExpressionUtil.resolveDefinitionPath(
+                        path, variables, targetContext,
+                        "target definition in " + getMappingContextDescription());
                 if (outputDefinition == null) {
-                    throw new SchemaException("No target item that would conform to the path " + path + " in " + getMappingContextDescription());
+                    throw new SchemaException("No target item that would conform to the path "
+                            + path + " in " + getMappingContextDescription());
                 }
                 outputPath = path.stripVariableSegment();
             }
@@ -1135,7 +1141,9 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         }
     }
 
-    private void evaluateCondition(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void evaluateCondition(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType conditionExpressionType = mappingType.getCondition();
         if (conditionExpressionType == null) {
             // True -> True
@@ -1158,7 +1166,10 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         conditionOutputTriple = expression.evaluate(context, result);
     }
 
-    private void evaluateExpression(Task task, OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void evaluateExpression(Task task, OperationResult result,
+            boolean conditionResultOld, boolean conditionResultNew)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType expressionType = null;
         if (mappingType != null) {
             expressionType = mappingType.getExpression();
@@ -1947,5 +1958,4 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             return MappingImpl.getStrength(mappingType);
         }
     }
-
 }
