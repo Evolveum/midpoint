@@ -9,13 +9,20 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -47,7 +54,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCase.class);
     private static final String DOT_CLASS = PageCase.class.getName() + ".";
-    private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
+    private static final String OPERATION_LOAD_CONNECTED_TASK = DOT_CLASS + "loadConnectedTask";
 
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
 
@@ -61,7 +68,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
     public PageCase(PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);
-        initialize(null, true, true);
+        initialize(null, false, true);
     }
 
 
@@ -182,6 +189,30 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     @Override
     protected ObjectSummaryPanel<CaseType> createSummaryPanel(IModel<CaseType> summaryModel) {
         return new CaseSummaryPanel(ID_SUMMARY_PANEL, CaseType.class, summaryModel, this);
+    }
+
+    protected void initOperationalButtons(RepeatingView repeatingView){
+        OperationResult result = new OperationResult(OPERATION_LOAD_CONNECTED_TASK);
+        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_OBJECT_REF)
+                .ref(getObjectWrapper().getOid())
+                .build();
+        List<PrismObject<TaskType>> connectedTasks = WebModelServiceUtils.searchObjects(TaskType.class, query, result, PageCase.this);
+        final ObjectReferenceType taskRef = new ObjectReferenceType();
+        if (CollectionUtils.isNotEmpty(connectedTasks)) {
+            taskRef.setOid(connectedTasks.get(0).getOid());
+            taskRef.setType(TaskType.COMPLEX_TYPE);
+        }
+        if (StringUtils.isNotEmpty(taskRef.getOid())) {
+            AjaxButton navigateToTask = new AjaxButton(repeatingView.newChildId(), createStringResource("PageCase.navigateToTask")) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    WebComponentUtil.dispatchToObjectDetailsPage(taskRef, PageCase.this, false);
+                }
+            };
+            navigateToTask.add(AttributeAppender.append("class", "btn-default"));
+            repeatingView.add(navigateToTask);
+        }
     }
 
     @Override
