@@ -35,7 +35,6 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
     protected static final XMLGregorianCalendar SUMMER_SOLSTICE = XmlTypeConverter.createXMLGregorianCalendar(2013, 6, 21, 5, 4, 0);
     protected static final XMLGregorianCalendar AUTUMN_EQUINOX = XmlTypeConverter.createXMLGregorianCalendar(2013, 9, 22, 20, 4, 0);
     protected static final XMLGregorianCalendar WINTER_SOLSTICE = XmlTypeConverter.createXMLGregorianCalendar(2013, 12, 21, 17, 11, 0);
-    protected static final XMLGregorianCalendar YEAR_END = XmlTypeConverter.createXMLGregorianCalendar(2013, 12, 31, 23, 59, 59);
 
     // Undefined state
     protected static final String LIFECYCLE_STATE_LIMBO = "limbo";
@@ -98,38 +97,6 @@ public abstract class AbstractActivationComputerTest extends AbstractUnitTest {
 
         // THEN
         assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
-    }
-
-    @Test
-    public void testGetDraftAdministrativeEnabled() throws Exception {
-        // GIVEN
-        Clock clock = createClock(YEAR_START);
-        ActivationComputer activationComputer = createActivationComputer(clock);
-        ActivationType activationType = createActivationType(
-                ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
-
-        // WHEN
-        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(
-                SchemaConstants.LIFECYCLE_DRAFT, activationType, createLifecycleModel());
-
-        // THEN
-        assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
-    }
-
-    @Test
-    public void testGetProposedAdministrativeEnabled() throws Exception {
-        // GIVEN
-        Clock clock = createClock(YEAR_START);
-        ActivationComputer activationComputer = createActivationComputer(clock);
-        ActivationType activationType = createActivationType(
-                ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
-
-        // WHEN
-        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(
-                SchemaConstants.LIFECYCLE_PROPOSED, activationType, createLifecycleModel());
-
-        // THEN
-        assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
     }
 
     @Test
