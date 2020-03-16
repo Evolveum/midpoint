@@ -7,55 +7,33 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.TaskEvent;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleReportNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleReportNotifierType;
 
 /**
  * @author mederly
  * @author skublik
  */
 @Component
-public class SimpleReportNotifier extends GeneralNotifier {
+public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, SimpleReportNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleReportNotifier.class);
 
@@ -63,45 +41,43 @@ public class SimpleReportNotifier extends GeneralNotifier {
 
     @Autowired private ModelService modelService;
 
-    @PostConstruct
-    public void init() {
-        register(SimpleReportNotifierType.class);
+    @Override
+    public Class<TaskEvent> getEventType() {
+        return TaskEvent.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof TaskEvent) || ((TaskEvent)event).getTask() == null
-                || ((TaskEvent)event).getTask().getCategory() == null || !((TaskEvent)event).getTask().getHandlerUri().equals(REPORT_HTML_CREATE_TASK_URI)) {
-            LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}", getClass().getSimpleName(), event.getClass());
+    public Class<SimpleReportNotifierType> getEventHandlerConfigurationType() {
+        return SimpleReportNotifierType.class;
+    }
+
+    @Override
+    protected boolean quickCheckApplicability(TaskEvent event, SimpleReportNotifierType configuration, OperationResult result) {
+        if (event.getTask().getCategory() == null || !event.getTask().getHandlerUri().equals(REPORT_HTML_CREATE_TASK_URI)) {
+            LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}",
+                    getClass().getSimpleName(), event.getClass());
             return false;
+        } else {
+            return true;
         }
-        return true;
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        return true;
-    }
-
-    @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-        final TaskEvent taskEvent = (TaskEvent) event;
-        final String taskName = PolyString.getOrig(taskEvent.getTask().getName());
+    protected String getSubject(TaskEvent event, SimpleReportNotifierType configuration, String transport, Task task, OperationResult result) {
+        final String taskName = PolyString.getOrig(event.getTask().getName());
 
         if (event.isAdd()) {
             return "Task '" + taskName + "' start notification";
         } else if (event.isDelete()) {
-            return "Task '" + taskName + "' finish notification: " + taskEvent.getOperationResultStatus();
+            return "Task '" + taskName + "' finish notification: " + event.getOperationResultStatus();
         } else {
             return "(unknown " + taskName + " operation)";
         }
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task opTask, OperationResult opResult) throws SchemaException {
-        final TaskEvent taskEvent = (TaskEvent) event;
-        final Task task = taskEvent.getTask();
-
+    protected String getBody(TaskEvent event, SimpleReportNotifierType configuration, String transport, Task opTask, OperationResult opResult) throws SchemaException {
+        Task task = event.getTask();
 
         String outputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
 
@@ -109,26 +85,22 @@ public class SimpleReportNotifier extends GeneralNotifier {
             throw new IllegalStateException("Unexpected oid of report output, oid is null or empty");
         }
 
-        PrismObject<ReportOutputType> reportOutput = null;
+        PrismObject<ReportOutputType> reportOutput;
         try {
-            reportOutput = modelService.getObject(ReportOutputType.class, outputOid, null, opTask, opTask.getResult());
+            reportOutput = modelService.getObject(ReportOutputType.class, outputOid, null, opTask, opResult);
         } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
                 | ExpressionEvaluationException e) {
             getLogger().error("Could't get Report output with oid " + outputOid, e);
+            throw new SystemException("Couldn't get report output " + outputOid, e);
         }
 
-        if (reportOutput == null) {
-            throw new IllegalStateException("Unexpected report output, report output is null");
-        }
-
-        String body = "";
         try {
             byte[] encoded = Files.readAllBytes(Paths.get(reportOutput.asObjectable().getFilePath()));
-            body = new String(encoded, Charset.defaultCharset());
+            return new String(encoded, Charset.defaultCharset());
         } catch (IOException e) {
             getLogger().error("Couldn't create body from ReportOutput with oid " + outputOid, e);
+            return "";
         }
-          return body;
     }
 
     @Override
@@ -139,5 +111,4 @@ public class SimpleReportNotifier extends GeneralNotifier {
     protected String getContentType() {
         return "text/html";
     }
-
 }

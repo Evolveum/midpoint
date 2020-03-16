@@ -9,7 +9,7 @@ package com.evolveum.midpoint.notifications.impl.handlers;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
+import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
 import com.evolveum.midpoint.notifications.impl.helpers.CategoryFilterHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.ChainHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.ExpressionFilterHelper;
@@ -37,10 +37,10 @@ import java.util.List;
  * notifiers, and so on). The original plug-in architecture had to be a bit abused because of the notifications
  * schema change.
  *
- * @author mederly
+ * TODO should we really extend BaseHandler? E.g. should we register ourselves? (probably not)
  */
 @Component
-public class AggregatedEventHandler extends BaseHandler {
+public class AggregatedEventHandler extends BaseHandler<Event, EventHandlerType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AggregatedEventHandler.class);
 
@@ -52,55 +52,62 @@ public class AggregatedEventHandler extends BaseHandler {
     @Autowired private ExpressionFilterHelper expressionFilter;
     @Autowired private ChainHelper chainHelper;
     @Autowired private ForkHelper forkHelper;
+    @Autowired private NotificationManager notificationManager;
+    @Autowired private EventHandlerRegistry eventHandlerRegistry;
 
-    @PostConstruct
-    public void init() {
-        register(EventHandlerType.class);
+    @Override
+    public Class<Event> getEventType() {
+        return Event.class;
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
-            Task task, OperationResult result) throws SchemaException {
+    public Class<EventHandlerType> getEventHandlerConfigurationType() {
+        return EventHandlerType.class;
+    }
 
-        logStart(LOGGER, event, eventHandlerType);
+    @Override
+    public boolean processEvent(Event event, EventHandlerType configuration, Task task, OperationResult result)
+            throws SchemaException {
+
+        logStart(LOGGER, event, configuration);
 
         boolean shouldContinue =
-                categoryFilter.processEvent(event, eventHandlerType) &&
-                operationFilter.processEvent(event, eventHandlerType) &&
-                statusFilter.processEvent(event, eventHandlerType) &&
-                kindIntentFilter.processEvent(event, eventHandlerType) &&
-                focusTypeFilterHelper.processEvent(event, eventHandlerType) &&
-                expressionFilter.processEvent(event, eventHandlerType, task, result) &&
-                chainHelper.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                forkHelper.processEvent(event, eventHandlerType, notificationManager, task, result);
+                categoryFilter.processEvent(event, configuration) &&
+                operationFilter.processEvent(event, configuration) &&
+                statusFilter.processEvent(event, configuration) &&
+                kindIntentFilter.processEvent(event, configuration) &&
+                focusTypeFilterHelper.processEvent(event, configuration) &&
+                expressionFilter.processEvent(event, configuration, task, result) &&
+                chainHelper.processEvent(event, configuration, notificationManager, task, result) &&
+                forkHelper.processEvent(event, configuration, notificationManager, task, result);
 
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleUserNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleFocalObjectNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleResourceObjectNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleWorkflowNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleCaseManagementNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getUserPasswordNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getUserRegistrationNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getPasswordResetNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getAccountActivationNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getAccountPasswordNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getGeneralNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getCustomNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleCampaignNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleCampaignStageNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleReviewerNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleTaskNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleReportNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimplePolicyRuleNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getTimeValidityNotifier(), notificationManager, task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleUserNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleFocalObjectNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleResourceObjectNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleWorkflowNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleCaseManagementNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getUserPasswordNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getUserRegistrationNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getPasswordResetNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getAccountActivationNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getAccountPasswordNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getGeneralNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getCustomNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleCampaignNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleCampaignStageNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleReviewerNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleTaskNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimpleReportNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getSimplePolicyRuleNotifier(), task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, configuration.getTimeValidityNotifier(), task, result);
 
-        logEnd(LOGGER, event, eventHandlerType, shouldContinue);
+        logEnd(LOGGER, event, shouldContinue);
         return shouldContinue;
     }
 
-    private boolean processNotifiers(Event event, List<? extends EventHandlerType> notifiers, NotificationManager notificationManager, Task task, OperationResult result) throws SchemaException {
+    private boolean processNotifiers(Event event, List<? extends EventHandlerType> notifiers, Task task, OperationResult result) throws SchemaException {
         for (EventHandlerType notifier : notifiers) {
-            boolean shouldContinue = ((NotificationManagerImpl) notificationManager).getEventHandler(notifier).processEvent(event, notifier, notificationManager, task, result);
+            boolean shouldContinue = eventHandlerRegistry.forwardToHandler(event, notifier, task, result);
             if (!shouldContinue) {
                 return false;
             }

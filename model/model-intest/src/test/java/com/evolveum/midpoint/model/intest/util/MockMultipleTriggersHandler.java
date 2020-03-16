@@ -6,30 +6,22 @@
  */
 package com.evolveum.midpoint.model.intest.util;
 
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.evolveum.midpoint.model.impl.trigger.MultipleTriggersHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
-
-/**
- *
- */
 public class MockMultipleTriggersHandler implements MultipleTriggersHandler {
 
     public static final String HANDLER_URI = SchemaConstants.NS_MIDPOINT_TEST + "/mock-multiple-trigger-handler";
-
-    protected static final Trace LOGGER = TraceManager.getTrace(MockMultipleTriggersHandler.class);
 
     private PrismObject<?> lastObject;
     private Collection<TriggerType> lastTriggers;

@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
+import com.evolveum.midpoint.web.page.admin.certification.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.ObjectUtils;
@@ -145,14 +147,9 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.*;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
@@ -655,6 +652,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
             return true;            // it is only GUI thing
+        }
+    }
+
+    // TODO reconsider this method
+    public boolean isFullyAuthorized() {
+        try {
+            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check the authorization", t);
+            return false;
         }
     }
 
@@ -1953,6 +1960,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageTasksCertScheduling.class, params, null);
         item.getItems().add(menu);
 
+        if (isFullyAuthorized()) {  // workaround for MID-5917
+            addMenuItem(item, "PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class);
+        }
         addMenuItem(item, "PageAdmin.menu.top.certification.decisions", PageCertDecisions.class);
 
         MenuItem newCertificationMenu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class, null,

@@ -197,6 +197,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         return sourceContext;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public PrismObjectDefinition<?> getTargetContext() {
         return targetContext;
     }
@@ -320,10 +321,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             return !exceptChannel.contains(channelUri);
         }
         List<String> applicableChannels = mappingType.getChannel();
-        if (applicableChannels == null || applicableChannels.isEmpty()) {
-            return true;
-        }
-        return applicableChannels.contains(channelUri);
+        return applicableChannels == null || applicableChannels.isEmpty() || applicableChannels.contains(channelUri);
     }
 
     public XMLGregorianCalendar getNow() {
@@ -368,6 +366,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         return mappingQName;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
         return refinedObjectClassDefinition;
     }
@@ -521,26 +520,27 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
                 trace.setConditionResultNew(conditionResultNew);
             }
 
-            if (!conditionResultOld && !conditionResultNew) {
+            boolean applicable = conditionResultOld || conditionResultNew;
+            if (applicable) {
+                // TODO trace source and target values ... and range processing
+                evaluateExpression(task, result, conditionResultOld, conditionResultNew);
+                fixDefinition();
+                recomputeValues();
+                setOrigin();
+                adjustForAuthoritative();
+            } else {
                 outputTriple = null;
-                transitionState(MappingEvaluationState.EVALUATED);
+            }
+            checkRange(task, result); // we check the range even for not-applicable mappings (MID-5953)
+            transitionState(MappingEvaluationState.EVALUATED);
+
+            if (applicable) {
+                result.recordSuccess();
+                traceSuccess(conditionResultOld, conditionResultNew);
+            } else {
                 result.recordNotApplicableIfUnknown();
                 traceNotApplicable("condition is false");
-                return;
             }
-
-            // TODO trace source and target values ... and range processing
-
-            evaluateExpression(task, result, conditionResultOld, conditionResultNew);
-            fixDefinition();
-            recomputeValues();
-            setOrigin();
-            adjustForAuthoritative();
-            checkRange(task, result);
-
-            transitionState(MappingEvaluationState.EVALUATED);
-            result.recordSuccess();
-            traceSuccess(conditionResultOld, conditionResultNew);
 
             if (trace != null) {
                 traceOutput();
@@ -786,11 +786,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
     }
 
     private boolean computeConditionResult(Collection<PrismPropertyValue<Boolean>> booleanPropertyValues) {
-        if (mappingType.getCondition() == null) {
-            // If condition is not present at all consider it to be true
-            return true;
-        }
-        return ExpressionUtil.computeConditionResult(booleanPropertyValues);
+        // If condition is not present at all consider it to be true
+        return mappingType.getCondition() == null || ExpressionUtil.computeConditionResult(booleanPropertyValues);
     }
 
     public boolean evaluateTimeConstraintValid(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -986,10 +983,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             }
         }
 
-        // TODO what if typedSourceObject is null?
-
-        //noinspection unchecked
-        ID sourceItemDefinition = (ID) typedSourceObject.getDefinition();
+        ID sourceItemDefinition = typedSourceObject != null ? typedSourceObject.getDefinition() : null;
 
         // apply domain
         ValueSetDefinitionType domainSetType = sourceDefinition.getSet();
@@ -1258,6 +1252,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
     /**
      * Shallow clone. Only the output is cloned deeply.
      */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public PrismValueDeltaSetTripleProducer<V, D> clone() {
         MappingImpl<V, D> clone = new Builder<V, D>()
                 .mappingType(mappingType)

@@ -13,13 +13,20 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 
-/**
- * @author mederly
- */
-@FunctionalInterface
-public interface EventHandler {
+public interface EventHandler<E extends Event, C extends EventHandlerType> {
 
-    // true if we should continue with processing, false otherwise
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
-            Task task, OperationResult result) throws SchemaException;
+    /**
+     * @return true if we should continue with processing, false otherwise
+     */
+    boolean processEvent(E event, C eventHandlerType, Task task, OperationResult result) throws SchemaException;
+
+    /**
+     * @return Type of events this handler is capable of handling.
+     */
+    Class<E> getEventType();
+
+    /**
+     * @return Type of configuration objects for this event handler. The handler is selected based on exact match of this type.
+     */
+    Class<? extends C> getEventHandlerConfigurationType();
 }

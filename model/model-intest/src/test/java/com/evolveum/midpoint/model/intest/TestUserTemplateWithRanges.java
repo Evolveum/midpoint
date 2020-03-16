@@ -10,6 +10,10 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,16 +42,20 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
     public static final File TEST_DIR = new File("src/test/resources/object-template-ranges");
 
-    public static final QName MANAGER_ID_QNAME = new QName("http://sample.evolveum.com/xml/ns/sample-idm/extension", "managerId");
+    private static final QName MANAGER_ID_QNAME = new QName("http://sample.evolveum.com/xml/ns/sample-idm/extension", "managerId");
 
-    protected static final File ROLE_BLOODY_NOSE_FILE = new File(TEST_DIR, "role-bloody-nose.xml");
-    protected static final String ROLE_BLOODY_NOSE_OID = "ed34d3fe-1f0b-11e9-8e31-b3cfa585868a";
-    protected static final String ROLE_BLOODY_NOSE_NAME = "Bloody Nose";
+    private static final File ROLE_BLOODY_NOSE_FILE = new File(TEST_DIR, "role-bloody-nose.xml");
+    private static final String ROLE_BLOODY_NOSE_OID = "ed34d3fe-1f0b-11e9-8e31-b3cfa585868a";
+    private static final String ROLE_BLOODY_NOSE_NAME = "Bloody Nose";
 
-    protected static final File ORG_MONKEY_ISLAND_LOCAL_FILE = new File(TEST_DIR, "org-monkey-island-local.xml");
+    private static final File ORG_MONKEY_ISLAND_LOCAL_FILE = new File(TEST_DIR, "org-monkey-island-local.xml");
 
-    protected static final File USER_TEMPLATE_RANGES_FILE = new File(TEST_DIR, "user-template-ranges.xml");
-    protected static final String USER_TEMPLATE_RANGES_OID = "f486e3a7-6970-416e-8fe2-995358f59c46";
+    private static final File USER_TEMPLATE_RANGES_FILE = new File(TEST_DIR, "user-template-ranges.xml");
+    private static final String USER_TEMPLATE_RANGES_OID = "f486e3a7-6970-416e-8fe2-995358f59c46";
+
+    private static final TestResource USER_TEMPLATE_MID_5953 = new TestResource(TEST_DIR, "user-template-mid-5953.xml", "55acacd1-2b42-4af1-9e98-d2d54293e4e9");
+
+    private static final String SUBTYPE_MID_5953 = "mid-5953"; // range application in inactive (condition false->false) mappings
 
     private static final String BLOODY_ASSIGNMENT_SUBTYPE = "bloody";
 
@@ -71,7 +79,10 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
         repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLOODY_NOSE_FILE, initResult);
+        repoAdd(USER_TEMPLATE_MID_5953, initResult);
+
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_RANGES_OID, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_5953, USER_TEMPLATE_MID_5953.oid, initResult);
 
         changeEmployeeIdRaw("EM100", initTask, initResult);
     }
@@ -580,6 +591,34 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         assertUserAfter(USER_GUYBRUSH_OID)
                 .assertNoTitle()
                 .assignments().assertNone();
+    }
+
+    /**
+     * MID-5953
+     */
+    @Test
+    public void test350DisabledMappingRange() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test350")
+                .subtype(SUBTYPE_MID_5953)
+                .beginAssignment()
+                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .end();
+        repoAddObject(user.asPrismObject(), result);
+
+        when();
+        recomputeUser(user.getOid(), task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(user.getOid())
+                .assertAssignments(0);
     }
 
     private void changeManagerRaw(String id, Task task, OperationResult result) throws CommonException {

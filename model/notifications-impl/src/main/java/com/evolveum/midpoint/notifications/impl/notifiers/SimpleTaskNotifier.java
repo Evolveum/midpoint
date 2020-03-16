@@ -7,69 +7,51 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
+import java.util.Date;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleTaskNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.Date;
-
-/**
- * @author mederly
- */
 @Component
-public class SimpleTaskNotifier extends GeneralNotifier {
+public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, SimpleTaskNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleTaskNotifier.class);
 
-    @PostConstruct
-    public void init() {
-        register(SimpleTaskNotifierType.class);
+    @Override
+    public Class<TaskEvent> getEventType() {
+        return TaskEvent.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof TaskEvent)) {
-            LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}", getClass().getSimpleName(), event.getClass());
-            return false;
-        }
-        return true;
+    public Class<SimpleTaskNotifierType> getEventHandlerConfigurationType() {
+        return SimpleTaskNotifierType.class;
     }
 
     @Override
-    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        return true;
-    }
-
-    @Override
-    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-        final TaskEvent taskEvent = (TaskEvent) event;
-        final String taskName = PolyString.getOrig(taskEvent.getTask().getName());
-
+    protected String getSubject(TaskEvent event, SimpleTaskNotifierType configuration, String transport, Task task, OperationResult result) {
+        String taskName = PolyString.getOrig(event.getTask().getName());
         if (event.isAdd()) {
             return "Task '" + taskName + "' start notification";
         } else if (event.isDelete()) {
-            return "Task '" + taskName + "' finish notification: " + taskEvent.getOperationResultStatus();
+            return "Task '" + taskName + "' finish notification: " + event.getOperationResultStatus();
         } else {
             return "(unknown " + taskName + " operation)";
         }
     }
 
     @Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task opTask, OperationResult opResult) throws SchemaException {
-        final TaskEvent taskEvent = (TaskEvent) event;
-        final Task task = taskEvent.getTask();
+    protected String getBody(TaskEvent event, SimpleTaskNotifierType configuration, String transport, Task opTask, OperationResult opResult) {
+        final Task task = event.getTask();
         final String taskName = PolyString.getOrig(task.getName());
 
         StringBuilder body = new StringBuilder();
@@ -77,15 +59,15 @@ public class SimpleTaskNotifier extends GeneralNotifier {
         body.append("Notification about task-related operation.\n\n");
         body.append("Task: ").append(taskName).append("\n");
         body.append("Handler: ").append(task.getHandlerUri()).append("\n\n");
-        if (taskEvent.getTaskRunResult() != null) {
-            body.append("Run result status: ").append(taskEvent.getTaskRunResult().getRunResultStatus()).append("\n");
+        if (event.getTaskRunResult() != null) {
+            body.append("Run result status: ").append(event.getTaskRunResult().getRunResultStatus()).append("\n");
         }
-        body.append("Status: ").append(taskEvent.getOperationResultStatus()).append("\n");
-        String message = taskEvent.getMessage();
+        body.append("Status: ").append(event.getOperationResultStatus()).append("\n");
+        String message = event.getMessage();
         if (StringUtils.isNotBlank(message)) {
             body.append("Message: ").append(message).append("\n");
         }
-        body.append("Progress: ").append(taskEvent.getProgress()).append("\n");
+        body.append("Progress: ").append(event.getProgress()).append("\n");
         body.append("\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
@@ -108,5 +90,4 @@ public class SimpleTaskNotifier extends GeneralNotifier {
     protected Trace getLogger() {
         return LOGGER;
     }
-
 }

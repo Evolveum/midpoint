@@ -7,32 +7,18 @@
 
 package com.evolveum.midpoint.notifications.impl;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.NotificationFunctions;
-import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -42,56 +28,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-
-import static java.util.Collections.singletonList;
-
 /**
- * @author mederly
+ * Various useful functions. TODO decide what to do with this class.
  */
 @Component
 public class NotificationFunctionsImpl implements NotificationFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationFunctionsImpl.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private MidpointFunctions midpointFunctions;
-
-    @Autowired
-    protected TextFormatter textFormatter;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    private static final List<ItemPath> SYNCHRONIZATION_PATHS = Collections.unmodifiableList(Arrays.asList(
-            ShadowType.F_SYNCHRONIZATION_SITUATION,
-            ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
-            ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
-            ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP));
-
-    private static final List<ItemPath> AUXILIARY_PATHS = Collections.unmodifiableList(Arrays.asList(
-            ShadowType.F_METADATA,
-            ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
-            ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
-            ShadowType.F_ACTIVATION.append(ActivationType.F_EFFECTIVE_STATUS),
-            ShadowType.F_ACTIVATION.append(ActivationType.F_DISABLE_TIMESTAMP),
-            ShadowType.F_ACTIVATION.append(ActivationType.F_ARCHIVE_TIMESTAMP),
-            ShadowType.F_ACTIVATION.append(ActivationType.F_ENABLE_TIMESTAMP),
-            ShadowType.F_ITERATION,
-            ShadowType.F_ITERATION_TOKEN,
-            FocusType.F_LINK_REF,
-            ShadowType.F_TRIGGER));
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
+    @Autowired protected TextFormatter textFormatter;
 
     // beware, may return null if there's any problem getting sysconfig (e.g. during initial import)
     public static SystemConfigurationType getSystemConfiguration(RepositoryService repositoryService, OperationResult result) {
@@ -118,27 +64,11 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
         return getSystemConfiguration(cacheRepositoryService, result);
     }
 
-    public static SecurityPolicyType getSecurityPolicyConfiguration(ObjectReferenceType securityPolicyRef, RepositoryService repositoryService, OperationResult result) {
-        try {
-            if (securityPolicyRef == null) {
-                return null;
-            }
-            return repositoryService.getObject(SecurityPolicyType.class, securityPolicyRef.getOid(),
-                    null, result).asObjectable();
-        } catch (ObjectNotFoundException|SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Notification(s) couldn't be processed, because the security policy configuration couldn't be retrieved", e);
-            return null;
-        }
-    }
-
     public static String getResourceNameFromRepo(RepositoryService repositoryService, String oid, OperationResult result) {
         try {
             PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, oid, null, result);
             return PolyString.getOrig(resource.asObjectable().getName());
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
-            return null;
-        } catch (SchemaException e) {
+        } catch (ObjectNotFoundException | SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
             return null;
         }
@@ -199,227 +129,5 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
             throw new SystemException(e);
         }
         return objectType;
-    }
-
-    public static boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
-        if (hiddenPaths == null) {
-            return false;
-        }
-        for (ItemPath hiddenPath : hiddenPaths) {
-            if (hiddenPath.isSubPathOrEquivalent(path)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public String getShadowName(PrismObject<? extends ShadowType> shadow) {
-        if (shadow == null) {
-            return null;
-        } else if (shadow.asObjectable().getName() != null) {
-            return shadow.asObjectable().getName().getOrig();
-        } else {
-            Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-            LOGGER.trace("secondary identifiers: {}", secondaryIdentifiers);
-            // first phase = looking for "name" identifier
-            for (ResourceAttribute ra : secondaryIdentifiers) {
-                if (ra.getElementName() != null && ra.getElementName().getLocalPart().contains("name")) {
-                    LOGGER.trace("Considering {} as a name", ra);
-                    return String.valueOf(ra.getAnyRealValue());
-                }
-            }
-            // second phase = returning any value ;)
-            if (!secondaryIdentifiers.isEmpty()) {
-                return String.valueOf(secondaryIdentifiers.iterator().next().getAnyRealValue());
-            } else {
-                return null;
-            }
-        }
-    }
-
-    // TODO move to some other class?
-    public void addRequesterAndChannelInformation(StringBuilder body, Event event, OperationResult result) {
-        if (event.getRequester() != null) {
-            body.append("Requester: ");
-            try {
-                ObjectType requester = event.getRequester().resolveObjectType(result, false);
-                if (requester instanceof UserType) {
-                    UserType requesterUser = (UserType) requester;
-                    body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");
-                } else {
-                    body.append(ObjectTypeUtil.toShortString(requester));
-                }
-            } catch (RuntimeException e) {
-                body.append("couldn't be determined: ").append(e.getMessage());
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine requester for a notification", e);
-            }
-            body.append("\n");
-        }
-        body.append("Channel: ").append(event.getChannel()).append("\n\n");
-    }
-
-    @Override
-    public String getPlaintextPasswordFromDelta(ObjectDelta delta) {
-        try {
-            return midpointFunctions.getPlaintextAccountPasswordFromDelta(delta);
-        } catch (EncryptionException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't decrypt password from shadow delta: {}", e, delta.debugDump());
-            return null;
-        }
-    }
-
-    @Override
-    public List<ItemPath> getSynchronizationPaths() {
-        return SYNCHRONIZATION_PATHS;
-    }
-
-    @Override
-    public List<ItemPath> getAuxiliaryPaths() {
-        return AUXILIARY_PATHS;
-    }
-
-    public String getContentAsFormattedList(Event event, boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
-        List<ItemPath> hiddenPaths = new ArrayList<>();
-        if (!showSynchronizationItems) {
-            hiddenPaths.addAll(SYNCHRONIZATION_PATHS);
-        }
-        if (!showAuxiliaryAttributes) {
-            hiddenPaths.addAll(AUXILIARY_PATHS);
-        }
-
-        if (event instanceof ResourceObjectEvent) {
-            final ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
-            final ObjectDelta<ShadowType> shadowDelta = resourceObjectEvent.getShadowDelta();
-            if (shadowDelta == null) {
-                return "";
-            }
-            if (shadowDelta.isAdd()) {
-                return getResourceObjectAttributesAsFormattedList(shadowDelta.getObjectToAdd().asObjectable(), hiddenPaths, showAuxiliaryAttributes);
-            } else if (shadowDelta.isModify()) {
-                return getResourceObjectModifiedAttributesAsFormattedList(resourceObjectEvent, shadowDelta, hiddenPaths, showAuxiliaryAttributes);
-            } else {
-                return "";
-            }
-        } else if (event instanceof ModelEvent) {
-            final ModelEvent modelEvent = (ModelEvent) event;
-            ModelContext<FocusType> modelContext = (ModelContext) modelEvent.getModelContext();
-            ModelElementContext<FocusType> focusContext = modelContext.getFocusContext();
-            ObjectDelta<? extends FocusType> summarizedDelta;
-            try {
-                summarizedDelta = modelEvent.getSummarizedFocusDeltas();
-            } catch (SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Unable to determine the focus change; focus context = {}", e, focusContext.debugDump());
-                return("(unable to determine the change because of schema exception: " + e.getMessage() + ")\n");
-            }
-            if (summarizedDelta.isAdd()) {
-                return textFormatter.formatObject(summarizedDelta.getObjectToAdd(), hiddenPaths, showAuxiliaryAttributes);
-            } else if (summarizedDelta.isModify()) {
-                return textFormatter.formatObjectModificationDelta(summarizedDelta, hiddenPaths, showAuxiliaryAttributes, focusContext.getObjectOld(),
-                        focusContext.getObjectNew());
-            } else {
-                return "";
-            }
-        } else {
-            return "";
-        }
-    }
-
-    private String getResourceObjectAttributesAsFormattedList(ShadowType shadowType, List<ItemPath> hiddenAttributes, boolean showAuxiliaryAttributes) {
-        return textFormatter.formatAccountAttributes(shadowType, hiddenAttributes, false);
-    }
-
-    private String getResourceObjectModifiedAttributesAsFormattedList(ResourceObjectEvent event, ObjectDelta<ShadowType> shadowDelta,
-            List<ItemPath> hiddenPaths, boolean showAuxiliaryAttributes) {
-
-        StringBuilder rv = new StringBuilder();
-        if (event.getOperationStatus() != OperationStatus.IN_PROGRESS) {
-            // todo we do not have objectOld + objectNew, only the current status
-            // it is used to explain modified containers with identifiers -- however, currently I don't know of use of such containers in shadows, which would be visible in notifications
-            rv.append(textFormatter.formatObjectModificationDelta(shadowDelta, hiddenPaths, showAuxiliaryAttributes,
-                    event.getAccountOperationDescription().getCurrentShadow(), null));
-        } else {
-            // special case - here the attributes are 'result', 'failedOperationType', 'objectChange', 'attemptNumber'
-            // we have to unwrap attributes that are to be modified from the objectChange item
-            Collection<PrismPropertyValue<ObjectDeltaType>> changes = null;
-            if (shadowDelta.getModifications() != null) {
-                for (ItemDelta itemDelta : shadowDelta.getModifications()) {
-                    // TODO: get list of changes from pendingOperations
-//                    if (itemDelta.getPath().equivalent(ShadowType.F_OBJECT_CHANGE)) {
-//                        changes = itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty() ?
-//                                itemDelta.getValuesToAdd() : itemDelta.getValuesToReplace();
-//                    }
-                }
-            }
-
-            if (changes != null && !changes.isEmpty()) {
-                try {
-                    List<ObjectDelta<ShadowType>> deltas = new ArrayList<>(changes.size());
-                    for (PrismPropertyValue<ObjectDeltaType> change : changes) {
-                        deltas.add((ObjectDelta) DeltaConvertor.createObjectDelta(change.getValue(), prismContext));
-                    }
-                    ObjectDelta<ShadowType> summarizedDelta = ObjectDeltaCollectionsUtil.summarize(deltas);
-                    rv.append(textFormatter.formatObjectModificationDelta(summarizedDelta, hiddenPaths, showAuxiliaryAttributes,
-                            event.getAccountOperationDescription().getCurrentShadow(), null));
-                } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Unable to determine the shadow change; operation = {}", e, event.getAccountOperationDescription().debugDump());
-                    rv.append("(unable to determine the change because of schema exception: ").append(e.getMessage()).append(")\n");
-                }
-            } else {
-                rv.append("(unable to determine the change)\n");
-            }
-        }
-        return rv.toString();
-    }
-
-    // TODO: polish this method
-    // We should (probably) return only a value if it has been (successfully) written to the focus.
-    @Override
-    public String getFocusPasswordFromEvent(ModelEvent modelEvent) {
-        if (modelEvent.getFocusDeltas().isEmpty()) {
-            LOGGER.trace("getFocusPasswordFromEvent: No user deltas in event");
-            return null;
-        }
-        String password = getPasswordFromDeltas(modelEvent.getFocusDeltas());
-        if (password != null) {
-            LOGGER.trace("getFocusPasswordFromEvent: Found password in user executed delta(s)");
-            return password;
-        }
-        // in executed deltas
-
-        //noinspection unchecked
-        ObjectDelta<FocusType> focusPrimaryDelta = (ObjectDelta) modelEvent.getFocusPrimaryDelta();
-        //noinspection unchecked
-        ObjectDelta<FocusType> focusSecondaryDelta = (ObjectDelta) modelEvent.getFocusSecondaryDelta();
-        if (focusPrimaryDelta == null && focusSecondaryDelta == null) {
-            LOGGER.trace("getFocusPasswordFromEvent: No password in executed delta(s) and no primary/secondary deltas");
-            return null;
-        }
-        if (focusPrimaryDelta != null) {
-            password = getPasswordFromDeltas(singletonList(focusPrimaryDelta));
-            if (password != null) {
-                LOGGER.trace("getFocusPasswordFromEvent: Found password in user primary delta, continuing");
-                return password;
-            }
-        }
-        if (focusSecondaryDelta != null) {
-            password = getPasswordFromDeltas(singletonList(focusSecondaryDelta));
-            if (password != null) {
-                LOGGER.trace("getFocusPasswordFromEvent: Found password in user secondary delta(s)");
-                return password;
-            }
-        }
-        LOGGER.trace("getFocusPasswordFromEvent: No password in executed delta(s) nor in primary/secondary deltas");
-        return null;
-    }
-
-    private String getPasswordFromDeltas(List<ObjectDelta<FocusType>> deltas) {
-        try {
-            //noinspection unchecked
-            return midpointFunctions.getPlaintextUserPasswordFromDeltas((List) deltas);
-        } catch (EncryptionException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt password from user deltas: {}", e, DebugUtil.debugDump(deltas));
-            return null;
-        }
     }
 }

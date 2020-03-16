@@ -12,13 +12,13 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * @author mederly
+ *
  */
 public interface SimpleObjectRef extends DebugDumpable {
-    public String getOid();
-    public void setOid(String oid);
-    public ObjectType getObjectType();
-    public void setObjectType(ObjectType objectType);
+    String getOid();
+    void setOid(String oid);
+    ObjectType getObjectType();
+    void setObjectType(ObjectType objectType);
     ObjectType resolveObjectType(OperationResult result, boolean allowNotFound);
     ObjectType resolveObjectType();
 }

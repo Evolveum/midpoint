@@ -6,43 +6,31 @@
  */
 package com.evolveum.midpoint.certification.test;
 
+import java.io.File;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.evolveum.midpoint.certification.impl.AccCertQueryHelper;
-import com.evolveum.midpoint.certification.impl.AccCertResponseComputationHelper;
 import com.evolveum.midpoint.certification.impl.AccCertUpdateHelper;
 import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import java.io.File;
-
-/**
- * @author mederly
- *
- */
 public class AbstractUninitializedCertificationTest extends AbstractModelIntegrationTest {
 
-    @Autowired
-    private AccCertResponseComputationHelper computationHelper;
-
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-    public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
     protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     public static final File USER_ADMINISTRATOR_PLAIN_FILE = new File(COMMON_DIR, "user-administrator-plain.xml");
     protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-    protected static final String USER_ADMINISTRATOR_NAME = "administrator";
-
-    protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
     @Autowired protected CertificationManagerImpl certificationManager;
     @Autowired protected AccessCertificationService certificationService;
@@ -54,7 +42,7 @@ public class AbstractUninitializedCertificationTest extends AbstractModelIntegra
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
         modelService.postInit(initResult);

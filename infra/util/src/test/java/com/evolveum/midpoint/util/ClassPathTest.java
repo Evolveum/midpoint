@@ -6,13 +6,16 @@
  */
 package com.evolveum.midpoint.util;
 
-import java.util.Set;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
-import static org.testng.Assert.*;
+import java.util.Set;
 
 import org.testng.annotations.Test;
 
-public class ClassPathTest {
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+
+public class ClassPathTest extends AbstractUnitTest {
 
     @Test
     public void listClassesLocalTest() {
