@@ -168,10 +168,14 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to the task holding workflow context for wf-related cases.
-                                EXPERIMENTAL. Probably will be removed.
+                                DEPRECATED. Not used any more. The relation is defined the other way:
+                                task.objectRef points to this case.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.1</a:deprecatedSince>
+                                <a:deprecatedSince>4.0.3</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
