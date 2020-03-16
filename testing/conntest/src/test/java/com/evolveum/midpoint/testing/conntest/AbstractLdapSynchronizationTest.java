@@ -160,7 +160,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // reread to show the timestamps. Good for timestamp debugging.
         Entry entryBefore = assertLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN);
-        display("HT AD entry", entryBefore);
+        displayValue("HT AD entry", entryBefore);
 
         ldapDisconnect(connection);
 
