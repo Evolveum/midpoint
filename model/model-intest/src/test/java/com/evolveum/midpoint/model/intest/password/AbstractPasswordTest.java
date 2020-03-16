@@ -1188,8 +1188,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
             AssertJUnit.fail("Unexpected success");
 
         } catch (PolicyViolationException e) {
-            // This is expected
-            displayException("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1400,8 +1399,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // This is expected
-            displayException("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN

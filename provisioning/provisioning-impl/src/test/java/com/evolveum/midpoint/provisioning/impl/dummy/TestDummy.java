@@ -229,9 +229,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
             assertNotReached();
         } catch (ConfigurationException e) {
-            // Caching is disabled, this is expected.
             then();
-            displayException("Expected exception", e);
+            displayExpectedException(e);
             assertFailure(result);
         }
 
@@ -1996,8 +1995,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             AssertJUnit.fail("unexpected success");
 
         } catch (SchemaException e) {
-            // This is expected
-            displayException("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -3739,8 +3737,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, task, result);
             AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
         } catch (SecurityViolationException e) {
-            // This is expected
-            displayException("Expected exception", e);
+            displayExpectedException(e);
         }
 
         result.computeStatus();
@@ -3800,9 +3797,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
             AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
         } catch (SecurityViolationException e) {
-            // This is expected
             then();
-            displayException("Expected exception", e);
+            displayExpectedException(e);
         }
 
         assertFailure(result);
@@ -3949,9 +3945,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
-            // This is expected
             then();
-            displayException("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN

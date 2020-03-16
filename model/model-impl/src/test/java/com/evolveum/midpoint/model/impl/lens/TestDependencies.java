@@ -372,10 +372,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // This is expected
-            displayException("Expected exception", e);
+            displayExpectedException(e);
         }
-
     }
 
     private LensProjectionContext fillContextWithDummyElaineAccount(

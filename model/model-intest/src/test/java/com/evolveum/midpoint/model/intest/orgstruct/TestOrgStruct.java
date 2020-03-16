@@ -798,9 +798,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
             assertNotReached();
         } catch (PolicyViolationException e) {
-            // THEN
             then();
-            displayException("Expected exception", e);
+            displayExpectedException(e);
             assertFailure(result);
         }
 

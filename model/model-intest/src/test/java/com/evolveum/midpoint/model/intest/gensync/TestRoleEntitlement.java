@@ -243,9 +243,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
             // THEN
             assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
         } catch (SchemaException e) {
-            // This is expected
-            e.printStackTrace();
-            // THEN
+            displayExpectedException(e);
             String message = e.getMessage();
             assertMessageContains(message, "already contains entitlement");
             assertMessageContains(message, "group");
