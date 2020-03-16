@@ -1532,7 +1532,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             addObject(ORG_CHEATERS_FILE, task, result); // MID-3874
             assertNotReached();
         } catch (PolicyViolationException e) {
-            display("Expected exception", e);
+            displayException("Expected exception", e);
             assertFailure(result);
         }
 
@@ -1584,7 +1584,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         } catch (SchemaException e) {
             // This is expected. The authorizations will mix on-resource and off-resource search.
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
         result.computeStatus();
         TestUtil.assertFailure(result);
@@ -1668,7 +1668,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         } catch (SchemaException e) {
             // This is expected. The authorizations will mix on-resource and off-resource search.
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
         assertFailure(result);
 

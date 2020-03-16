@@ -321,7 +321,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         } catch (GenericConnectorException e) {
             // THEN
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
         assertFailure(result);
 

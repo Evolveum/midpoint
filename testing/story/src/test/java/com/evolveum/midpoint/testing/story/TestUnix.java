@@ -1447,7 +1447,7 @@ public class TestUnix extends AbstractStoryTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (ExpressionEvaluationException e) {
-            display("Expected exception", e);
+            displayException("Expected exception", e);
             // this is expected
         }
 

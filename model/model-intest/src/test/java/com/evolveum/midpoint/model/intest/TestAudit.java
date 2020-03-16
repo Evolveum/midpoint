@@ -557,7 +557,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                     }
                     results.set(index, null);
                 } catch (Throwable t) {
-                    display("Thread " + index + " got an exception ", t);
+                    displayException("Thread " + index + " got an exception ", t);
                     results.set(index, t);
                 }
             });

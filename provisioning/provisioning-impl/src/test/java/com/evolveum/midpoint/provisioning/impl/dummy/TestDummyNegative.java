@@ -137,7 +137,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             assertNotReached();
         } catch (SchemaException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         then();
@@ -166,7 +166,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
         } catch (SchemaException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         syncServiceMock.assertNotifyFailureOnly();
@@ -196,7 +196,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
         } catch (SchemaException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         syncServiceMock.assertNotifyFailureOnly();
@@ -224,7 +224,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
         } catch (SchemaException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         //FIXME: not sure, if this check is needed..if the resource is not specified, provisioning probably will be not called.
@@ -254,7 +254,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 //            AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
         } catch (SchemaException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         //FIXME: is this really notify failure? the resource does not exist but shadow is deleted. maybe other case of notify?
@@ -288,7 +288,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             assertNotReached();
         } catch (ObjectNotFoundException e) {
             // this is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
             result.computeStatus();
             display("Result", result);
             TestUtil.assertFailure(result);

@@ -32,6 +32,10 @@ public interface MidpointTestMixin {
     String TEST_LOG_SECTION_PREFIX = "----- ";
     String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
 
+    String DISPLAY_OUT_PREFIX = "\n*** ";
+    String DISPLAY_LOG_FORMAT1 = "*** {}";
+    String DISPLAY_LOG_FORMAT2 = "*** {}:\n{}";
+
     /**
      * Context name is {@link #getTestName()} if test method context is available,
      * otherwise it is just a simple name of the test class.
@@ -139,8 +143,27 @@ public interface MidpointTestMixin {
      * Displays
      */
     default void displayValue(String title, Object value) {
-        System.out.println("\n*** " + title + "\n" + value);
-        logger().debug("*** {}\n{}", title, value);
+        System.out.println(DISPLAY_OUT_PREFIX + title + "\n" + value);
+        logger().debug(DISPLAY_LOG_FORMAT2, title, value);
+    }
+
+    /**
+     * Displays throwable with title including full stacktrace.
+     * Use for "bad" exceptions, for expected exceptions use {@link #displayExpectedException}.
+     */
+    default void displayException(String title, Throwable e) {
+        System.out.println(DISPLAY_OUT_PREFIX + title);
+        e.printStackTrace();
+        logger().debug(DISPLAY_LOG_FORMAT1, title, e);
+    }
+
+    /**
+     * Displays expected exception without stacktrace (seeing it is rather confusing/disturbing).
+     */
+    default void displayExpectedException(Throwable e) {
+        String expectedExceptionWithClass = "Expected exception " + e.getClass();
+        System.out.println(DISPLAY_OUT_PREFIX + expectedExceptionWithClass + ":\n" + e.getMessage());
+        logger().debug(DISPLAY_LOG_FORMAT2, expectedExceptionWithClass, e.getMessage());
     }
 
     /**

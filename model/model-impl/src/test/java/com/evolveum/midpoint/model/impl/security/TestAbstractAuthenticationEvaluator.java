@@ -212,7 +212,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -243,7 +243,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertPasswordEncodingException(e);
         }
 
@@ -273,7 +273,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertPasswordEncodingException(e);
         }
 
@@ -302,7 +302,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertPasswordEncodingException(e);
         }
 
@@ -327,7 +327,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertNoUserException(e);
         }
 
@@ -352,7 +352,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertNoUserException(e);
         }
 
@@ -384,7 +384,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -413,7 +413,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         } catch (BadCredentialsException e) {
             // This is expected
 
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
 
@@ -430,7 +430,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         } catch (BadCredentialsException e) {
             // This is expected
 
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
 
@@ -464,7 +464,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertLockedException(e);
         }
 
@@ -491,7 +491,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
 
             // this is important. The exception should give no indication whether the password is
             // good or bad
@@ -546,7 +546,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
 
@@ -565,7 +565,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
 
@@ -584,7 +584,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
 
@@ -615,7 +615,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertLockedException(e);
         }
 
@@ -685,7 +685,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
 
         }
 
@@ -883,7 +883,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -938,7 +938,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
             assertExpiredException(e);
         }
 
@@ -1069,7 +1069,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayException("expected exception", e);
 
             // this is important. The exception should give no indication whether the password is
             // good or bad

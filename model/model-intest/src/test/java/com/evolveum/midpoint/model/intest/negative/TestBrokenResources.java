@@ -201,7 +201,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
             AssertJUnit.fail("Expected SystemException but the operation was successful");
         } catch (SystemException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
             result.computeStatus();
             display("getObject result", result);
             TestUtil.assertFailure("getObject result", result);
@@ -787,7 +787,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         } catch (GenericConnectorException e) {
             // THEN
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -928,7 +928,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         } catch (GenericConnectorException e) {
             // THEN
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         assertFailure(result);
@@ -995,7 +995,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         } catch (RuntimeException e) {
             // THEN
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
             assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
         }
 
@@ -1033,7 +1033,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         } catch (RuntimeException e) {
             // THEN
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
             assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
         }
 
@@ -1215,7 +1215,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
             assertNotReached();
         } catch (ExpressionEvaluationException e) {
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN

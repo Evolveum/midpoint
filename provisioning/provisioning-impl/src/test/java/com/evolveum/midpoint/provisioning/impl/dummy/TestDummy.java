@@ -231,7 +231,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         } catch (ConfigurationException e) {
             // Caching is disabled, this is expected.
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
             assertFailure(result);
         }
 
@@ -1997,7 +1997,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         } catch (SchemaException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN
@@ -3740,7 +3740,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
         } catch (SecurityViolationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -3802,7 +3802,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         } catch (SecurityViolationException e) {
             // This is expected
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         assertFailure(result);
@@ -3951,7 +3951,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         } catch (ObjectAlreadyExistsException e) {
             // This is expected
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN

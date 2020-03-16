@@ -163,7 +163,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         } catch (UnsupportedOperationException e) {
             // THEN
             then();
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         assertFailure(result);
@@ -2056,7 +2056,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
             AssertJUnit.fail("Unexpected executeChanges success");
         } catch (PolicyViolationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN

@@ -159,7 +159,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("getObject succeeded unexpectedly");
         } catch (ObjectNotFoundException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -184,7 +184,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 //        } catch (CommunicationException e) {
         } catch (ConfigurationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -204,7 +204,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("listResourceObjects succeeded unexpectedly");
         } catch (ConfigurationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -229,7 +229,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (ConfigurationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -264,7 +264,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (ConfigurationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -287,7 +287,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (ConfigurationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -306,7 +306,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (ConfigurationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -331,7 +331,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (ConfigurationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -354,7 +354,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (CommunicationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -398,7 +398,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("getObject succeeded unexpectedly");
         } catch (ObjectNotFoundException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -449,7 +449,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("listResourceObjects succeeded unexpectedly");
         } catch (CommunicationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         assertFailure(result);
@@ -474,7 +474,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (CommunicationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         result.computeStatus();
@@ -507,7 +507,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
         } catch (CommunicationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         assertFailure(result);
@@ -549,7 +549,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
             assertNotReached();
         } catch (GenericConnectorException e) {
-            display("expected exception", e);
+            displayException("expected exception", e);
         }
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
@@ -654,7 +654,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (CommunicationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         assertFailure(result);

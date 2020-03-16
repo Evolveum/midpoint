@@ -180,7 +180,7 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
             fail("Expected PolicyViolationException but didn't get one.");
         } catch (PolicyViolationException ex) {
             // this is expected
-            display("expected exception", ex);
+            displayException("expected exception", ex);
             result.computeStatus();
             TestUtil.assertFailure(result);
         }

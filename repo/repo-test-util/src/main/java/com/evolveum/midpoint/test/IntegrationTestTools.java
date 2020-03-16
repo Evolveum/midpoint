@@ -8,15 +8,12 @@ package com.evolveum.midpoint.test;
 
 import static org.testng.AssertJUnit.*;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
@@ -525,25 +522,6 @@ public class IntegrationTestTools {
         }
     }
 
-    /**
-     * Displays throwable with title including full stacktrace.
-     * Use for "bad" exceptions, for expected exceptions use {@link #displayExpectedException}.
-     */
-    public static void display(String title, Throwable e) {
-        String stackTrace = ExceptionUtils.getStackTrace(e);
-        println(OBJECT_TITLE_OUT_PREFIX + title + ": " + e.getClass() + " " + e.getMessage());
-        println(stackTrace);
-        LOGGER.debug("{}{}: {} {}\n{}", OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(), stackTrace);
-    }
-
-    /**
-     * Displays expected exception without stacktrace (seeing it is rather confusing/disturbing).
-     */
-    public static void displayExpectedException(Throwable e) {
-        println(OBJECT_TITLE_OUT_PREFIX + "Expected exception: " + e.getClass() + " " + e.getMessage());
-        LOGGER.debug("{}Expected exception: {} {}", OBJECT_TITLE_LOG_PREFIX, e.getClass(), e.getMessage());
-    }
-
     public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
         println(OBJECT_TITLE_OUT_PREFIX + message);
         LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
@@ -843,7 +821,7 @@ public class IntegrationTestTools {
         PrismAsserts.assertPropertyValue(extension, ItemName.fromQName(propertyName), expectedValues);
     }
 
-    public static <T> void assertNoExtensionProperty(
+    public static void assertNoExtensionProperty(
             PrismObject<? extends ObjectType> object, QName propertyName) {
         PrismContainer<?> extension = object.getExtension();
         PrismAsserts.assertNoItem(extension, ItemName.fromQName(propertyName));
@@ -1089,13 +1067,6 @@ public class IntegrationTestTools {
 
             // TODO: other elements
         }
-    }
-
-    public static void clearLog() throws IOException {
-        RandomAccessFile file = new RandomAccessFile("target/test.log", "rw");
-        file.setLength(0);
-        file.close();
-        println("Log cleared.");
     }
 
     public static void assertProtectedString(String message, String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType, Protector protector) throws EncryptionException, SchemaException {

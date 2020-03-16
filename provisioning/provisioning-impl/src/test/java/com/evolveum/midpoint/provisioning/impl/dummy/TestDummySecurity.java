@@ -70,7 +70,7 @@ public class TestDummySecurity extends AbstractDummyTest {
             AssertJUnit.fail("Unexpected success");
         } catch (SecurityViolationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
     }
 
@@ -191,7 +191,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
         } catch (SecurityViolationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
     }
 

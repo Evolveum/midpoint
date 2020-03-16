@@ -205,7 +205,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
             assertNotReached();
         } catch (PolicyViolationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN
@@ -280,7 +280,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
             AssertJUnit.fail("Unexpected executeChanges success");
         } catch (ObjectAlreadyExistsException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         //TODO: this is not yet expected.. there is a checking code in the ProjectionValueProcessor..
@@ -709,7 +709,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
             // THEN
             then();
 
-            display("Exception (expected)", e);
+            displayException("Exception (expected)", e);
             assertExceptionUserFriendly(e, "We do not serve your kind here");
 
             display("Result", result);
@@ -911,7 +911,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
             assertNotReached();
         } catch (PolicyViolationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN

@@ -264,7 +264,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
     }
 
@@ -1319,7 +1319,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // this is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN
@@ -1442,7 +1442,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // this is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN
@@ -1477,7 +1477,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // this is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
         // THEN

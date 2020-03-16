@@ -635,7 +635,7 @@ public class TestProjector extends AbstractLensTest {
         } catch (PolicyViolationException e) {
             // THEN: success
             // this is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
         }
 
     }

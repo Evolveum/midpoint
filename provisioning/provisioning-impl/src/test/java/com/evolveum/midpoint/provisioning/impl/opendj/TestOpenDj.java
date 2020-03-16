@@ -884,7 +884,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             provisioningService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, task, result);
             Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayException("Expected exception", ex);
         }
 
         try {
@@ -892,7 +892,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             // objType = container.getObject();
             Assert.fail("Expected exception, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayException("Expected exception", ex);
             assertTrue(ex.getMessage().contains(ACCOUNT_SPARROW_OID));
         }
 
@@ -2011,7 +2011,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         } catch (ObjectAlreadyExistsException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
 
             // The exception should originate from the LDAP layers
             IntegrationTestTools.assertInMessageRecursive(e, "LDAP");
@@ -2037,7 +2037,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         } catch (SchemaException e) {
             // This is expected
-            display("Expected exception", e);
+            displayException("Expected exception", e);
 
             // This error should be detectable before it reaches a resource. Therefore we check that the
             // cause was not a LDAP exception
@@ -2157,7 +2157,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             provisioningService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, null, task, result);
             Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayException("Expected exception", ex);
         }
 
         try {
@@ -2165,7 +2165,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             // objType = container.getObject();
             Assert.fail("Expected exception, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayException("Expected exception", ex);
             assertTrue(ex.getMessage().contains(ACCOUNT_POSIX_MCMUTTON_OID));
         }
 
