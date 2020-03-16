@@ -16,9 +16,12 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -100,6 +103,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
     protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
     protected static final String OPERATION_LOAD_FILTERED_ARCHETYPES = DOT_CLASS + "loadFilteredArchetypes";
+    protected static final String OPERATION_LOAD_PARENT_ORG = DOT_CLASS + "loadParentOrgs";
 
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
@@ -336,7 +340,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     return null;
                 }
 
-                return wrapper.getObject().asObjectable();
+                PrismObject<O> object =  wrapper.getObject();
+                loadParentOrgs(object);
+                return object.asObjectable();
             }
         };
     }
@@ -680,43 +686,45 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
         return getOperationOptionsBuilder()
-                .item(UserType.F_JPEG_PHOTO).retrieve()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
                 .build();
     }
 
-//    private void loadParentOrgs(PrismObjectWrapper<O> wrapper, Task task, OperationResult result) {
-//        OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
-//        PrismObject<O> focus = wrapper.getObject();
-//        // Load parent organizations (full objects). There are used in the
-//        // summary panel and also in the main form.
-//        // Do it here explicitly instead of using resolve option to have ability
-//        // to better handle (ignore) errors.
-//        for (ObjectReferenceType parentOrgRef : focus.asObjectable().getParentOrgRef()) {
-//
-//            PrismObject<OrgType> parentOrg = null;
-//            try {
-//
-//                parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
-//                        subResult);
-//                LOGGER.trace("Loaded parent org with result {}",
-//                        new Object[] { subResult.getLastSubresult() });
-//            } catch (AuthorizationException e) {
-//                // This can happen if the user has permission to read parentOrgRef but it does not have
-//                // the permission to read target org
-//                // It is OK to just ignore it.
-//                subResult.muteLastSubresultError();
-//                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
-//            } catch (Exception ex) {
-//                subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
-//                LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
-//            }
-//
-//            if (parentOrg != null) {
-//                wrapper.getParentOrgs().add(parentOrg);
-//            }
-//        }
-//        subResult.computeStatus();
-//    }
+    private void loadParentOrgs(PrismObject<O> object) {
+        Task task = createSimpleTask(OPERATION_LOAD_PARENT_ORG);
+        OperationResult subResult = task.getResult();
+        // Load parent organizations (full objects). There are used in the
+        // summary panel and also in the main form.
+        // Do it here explicitly instead of using resolve option to have ability
+        // to better handle (ignore) errors.
+        for (ObjectReferenceType parentOrgRef : object.asObjectable().getParentOrgRef()) {
+
+            PrismObject<OrgType> parentOrg = null;
+            try {
+
+                parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
+                        subResult);
+                LOGGER.trace("Loaded parent org with result {}",
+                        new Object[] { subResult.getLastSubresult() });
+            } catch (AuthorizationException e) {
+                // This can happen if the user has permission to read parentOrgRef but it does not have
+                // the permission to read target org
+                // It is OK to just ignore it.
+                subResult.muteLastSubresultError();
+                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
+            } catch (Exception ex) {
+                subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
+                LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
+            }
+
+            if (parentOrg != null) {
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(parentOrg, getPrismContext());
+                ref.asReferenceValue().setObject(parentOrg);
+                object.asObjectable().getParentOrgRef().add(ref);
+            }
+        }
+        subResult.computeStatus();
+    }
 
     protected abstract Class<? extends Page> getRestartResponsePage();
 
