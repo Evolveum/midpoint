@@ -82,7 +82,7 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
             PrismObject<OrgType> parentOrg = getObject(OrgType.class, directParentOrgOid);
             Entry parentGroupEntry = openDJController.searchSingle("cn="+parentOrg.getName());
             assertNotNull("No group LDAP entry for "+parentOrg.getName(), parentGroupEntry);
-            display("parent group entry", openDJController.toHumanReadableLdifoid(parentGroupEntry));
+            displayValue("parent group entry", openDJController.toHumanReadableLdifoid(parentGroupEntry));
             openDJController.assertUniqueMember(parentGroupEntry, groupEntry.getDN().toString());
         }
 
@@ -92,7 +92,7 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 
         Entry groupEntry = openDJController.searchSingle("ou="+orgName);
         assertNotNull("No UO LDAP entry for "+orgName, groupEntry);
-        display("OU entry", openDJController.toHumanReadableLdifoid(groupEntry));
+        displayValue("OU entry", openDJController.toHumanReadableLdifoid(groupEntry));
         openDJController.assertObjectClass(groupEntry, "organizationalUnit");
 
         String expectedDn = getOuDn(org);

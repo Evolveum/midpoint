@@ -163,14 +163,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 SystemObjectsType.SYSTEM_CONFIGURATION.value()).asObjectable();
         IntegrationTestTools.displayXml("system config", systemConfig.asPrismObject());
         for (EventHandlerType handler : systemConfig.getNotificationConfiguration().getHandler()) {
-            display("Handler: ", handler);
+            displayValue("Handler: ", handler);
             List<AccountActivationNotifierType> accountActivationNotifiers = handler.getAccountActivationNotifier();
             if (!accountActivationNotifiers.isEmpty()) {
                 accountActivationNotifier = accountActivationNotifiers.get(0);
             }
         }
 
-        display("Account activation notifier", accountActivationNotifier);
+        displayValue("Account activation notifier", accountActivationNotifier);
         assertNotNull("No accountActivationNotifier", accountActivationNotifier);
     }
 

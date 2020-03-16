@@ -160,8 +160,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + getNumberOfExtraRoles());
         assertObjects(OrgType.class, getNumberOfExtraOrgs());
 
-        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
-        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
     }
 
     @Test
@@ -185,7 +185,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -218,7 +218,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0 recompute in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -234,7 +234,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        display("User before", assignmentSummary(userBefore));
+        displayValue("User before", assignmentSummary(userBefore));
 
         ObjectDelta<UserType> delta = userBefore.createModifyDelta();
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
@@ -254,7 +254,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0 preview changes in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -285,7 +285,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -316,7 +316,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Assign 5 A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 5);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -346,7 +346,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Recompute 5 A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 5);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -376,7 +376,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -407,7 +407,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Assign all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -437,7 +437,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Recompute all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -453,7 +453,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        display("User before", assignmentSummary(userBefore));
+        displayValue("User before", assignmentSummary(userBefore));
 
         ObjectDelta<UserType> delta = userBefore.createModifyDelta();
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
@@ -473,7 +473,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Preview changes (all A roles) in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -504,7 +504,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Unassign all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -536,7 +536,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Rb0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertRoleMembershipRef(userAfter, generateRoleBOid(0));
         assertNoNotoriousParentOrgRef(userAfter);
 
@@ -576,7 +576,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -609,7 +609,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0+Rb0 recompute in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -642,7 +642,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Rb0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -676,7 +676,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Rb0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -709,7 +709,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0+Rb0 recompute again in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -742,7 +742,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0+Rb0 recompute again in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -775,7 +775,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertRoleMembershipRef(userAfter, generateRoleBOid(0));
         assertNoNotoriousParentOrgRef(userAfter);
 
@@ -809,7 +809,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Rb0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -849,7 +849,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Notorious relation=default assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 0);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -889,7 +889,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
 
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
@@ -929,7 +929,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
 
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
@@ -973,7 +973,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Notorious relation="+getAltRelation().getLocalPart()+" unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
 
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
@@ -1014,7 +1014,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Notorious relation=default unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertTest158RoleMembershipRef(userAfter);
         assertNotoriousParentOrgRefRelations(userAfter, getAltRelation());
 
@@ -1053,7 +1053,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);

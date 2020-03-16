@@ -79,10 +79,10 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         guybrushDummyAccountCyanOid = assertAccount(userGuybrushBefore, RESOURCE_DUMMY_CYAN_OID);
         assertLinks(userGuybrushBefore, 2);
 
-        display("Jack DUMMY account", jackDummyAccountOid);
-        display("Jack RED account", jackDummyAccountRedOid);
-        display("Guybrush DUMMY account", guybrushDummyAccountOid);
-        display("Guybrush CYAN account", guybrushDummyAccountCyanOid);
+        displayValue("Jack DUMMY account", jackDummyAccountOid);
+        displayValue("Jack RED account", jackDummyAccountRedOid);
+        displayValue("Guybrush DUMMY account", guybrushDummyAccountOid);
+        displayValue("Guybrush CYAN account", guybrushDummyAccountCyanOid);
     }
 
     /**

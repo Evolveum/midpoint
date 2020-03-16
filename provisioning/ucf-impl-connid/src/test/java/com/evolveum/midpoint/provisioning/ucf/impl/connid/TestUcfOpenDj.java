@@ -137,7 +137,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         connectorSchema = factory.generateConnectorConfigurationSchema(connectorType);
         AssertJUnit.assertNotNull("Cannot generate connector schema", connectorSchema);
-        display("Connector schema", connectorSchema);
+        displayValue("Connector schema", connectorSchema);
 
         cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
                 "OpenDJ resource",
@@ -149,7 +149,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // TODO: assert something
 
         resourceSchema = cc.fetchResourceSchema(result);
-        display("Resource schema", resourceSchema);
+        displayValue("Resource schema", resourceSchema);
 
         AssertJUnit.assertNotNull(resourceSchema);
 
@@ -347,7 +347,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
 
         List<Change> changes = handler.getChanges();
-        display("Changes", changes);
+        displayValue("Changes", changes);
 
         // No changes (token-only changes are gone in 4.0.1)
         AssertJUnit.assertEquals(0, changes.size());
@@ -433,7 +433,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         // THEN
         result.computeStatus("test failed");
-        display("Test result (FAILURE EXPECTED)", result);
+        displayValue("Test result (FAILURE EXPECTED)", result);
         AssertJUnit.assertNotNull(result);
         OperationResult connectorConnectionResult = result.getSubresults().get(1);
         AssertJUnit.assertNotNull(connectorConnectionResult);
@@ -594,7 +594,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         String entryUuid = (String) resourceObject.getPrimaryIdentifier().getValue().getValue();
         Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
-        display("Entry before change", entry);
+        displayValue("Entry before change", entry);
         String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
 
         assertNotNull(passwordAfter);
@@ -618,7 +618,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         String entryUuid = (String) resourceObject.getPrimaryIdentifier().getValue().getValue();
         Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
-        display("Entry before change", entry);
+        displayValue("Entry before change", entry);
         String passwordBefore = OpenDJController.getAttributeValue(entry, "userPassword");
         // We have set no password during create, therefore the password should
         // be empty
@@ -661,7 +661,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // THEN
 
         entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
-        display("Entry after change", entry);
+        displayValue("Entry after change", entry);
 
         String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull(passwordAfter);

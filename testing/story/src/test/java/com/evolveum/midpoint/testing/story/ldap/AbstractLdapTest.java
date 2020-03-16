@@ -70,8 +70,8 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
     protected abstract String getLdapResourceOid();
 
     protected void dumpLdap() throws DirectoryException {
-        display("LDAP server tree", openDJController.dumpTree());
-        display("LDAP server content", openDJController.dumpEntries());
+        displayValue("LDAP server tree", openDJController.dumpTree());
+        displayValue("LDAP server content", openDJController.dumpEntries());
     }
 
     //// should be in AbstractModelIntegrationTest

@@ -90,8 +90,8 @@ public class TestOperationPerf extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_ORDINARY_ROLES);
 
-        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
-        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
     }
 
     @Test
@@ -136,14 +136,14 @@ public class TestOperationPerf extends AbstractStoryTest {
 
         display("Model diagnostics", profilingModelInspectorManager);
         display("Internal inspector", internalInspector);
-        display("Internal counters", InternalMonitor.debugDumpStatic(1));
+        displayValue("Internal counters", InternalMonitor.debugDumpStatic(1));
 
         PrismObject<UserType> userAfter = getUser(userOid);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
 
-        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
-        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }

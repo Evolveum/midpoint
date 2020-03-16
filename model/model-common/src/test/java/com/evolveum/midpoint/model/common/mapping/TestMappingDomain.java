@@ -256,7 +256,7 @@ public class TestMappingDomain extends AbstractUnitTest
         PrismTestUtil.display(title, value);
     }
 
-    protected void display(String title, Object value) {
+    public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }
 }

@@ -96,10 +96,10 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
             if (CONNECTOR_DUMMY_TYPE.equals(connectorType.getConnectorType())) {
                 String connectorVersion = connectorType.getConnectorVersion();
                 if (connectorVersion.contains("fake")) {
-                    display("Fake Dummy Connector OID", connector.getOid());
+                    displayValue("Fake Dummy Connector OID", connector.getOid());
                     connectorDummyFakeOid = connector.getOid();
                 } else {
-                    display("Dummy Connector OID", connector.getOid());
+                    displayValue("Dummy Connector OID", connector.getOid());
                     connectorDummyOid = connector.getOid();
                 }
             }
@@ -455,7 +455,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         resourceDummyFake = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, task, result);
         display("Upgraded fake resource (model)", resourceDummyFake);
         Element resourceDummyFakeSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceDummyFake);
-        display("Upgraded fake resource schema (model)", DOMUtil.serializeDOMToString(resourceDummyFakeSchemaElement));
+        displayValue("Upgraded fake resource schema (model)", DOMUtil.serializeDOMToString(resourceDummyFakeSchemaElement));
         assertNotNull("Null fake resource after getObject (model)", resourceDummyFake);
         assertEquals("Oooops. The OID of fake resource mysteriously changed. Call the police! (model)", RESOURCE_DUMMY_FAKE_OID, resourceDummyFake.getOid());
         assertEquals("Wrong connectorRef in fake resource (model)", connectorDummyOid,

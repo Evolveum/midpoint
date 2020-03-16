@@ -87,7 +87,7 @@ public class TestClockwork extends AbstractLensTest {
         LensContextType lensContextType = context.toLensContextType();
         String xml = prismContext.xmlSerializer().serializeRealValue(lensContextType, SchemaConstants.C_MODEL_CONTEXT);
 
-        display("Serialized form", xml);
+        displayValue("Serialized form", xml);
 
         LensContextType unmarshalledContainer = prismContext.parserFor(xml).xml().parseRealValue(LensContextType.class);
         LensContext<?> context2 = LensContext.fromLensContextType(
@@ -270,14 +270,14 @@ public class TestClockwork extends AbstractLensTest {
                 String xml = prismContext.xmlSerializer().serializeRealValue(
                         lensContextType, SchemaConstants.C_MODEL_CONTEXT);
 
-                display("Serialized form", xml);
+                displayValue("Serialized form", xml);
 
                 LensContextType unmarshalledContainer =
                         prismContext.parserFor(xml).xml().parseRealValue(LensContextType.class);
                 context = LensContext.fromLensContextType(unmarshalledContainer,
                         context.getPrismContext(), provisioningService, task, result);
 
-                display("Context after deserialization", context.debugDump());
+                displayValue("Context after deserialization", context.debugDump());
 
                 context.checkConsistence();
             }

@@ -133,7 +133,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         /// WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
 
         dummyResourceByzantine.addAccount(account);
 

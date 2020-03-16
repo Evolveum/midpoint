@@ -204,7 +204,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = createOperationResult();
 
         PrismObject<AccessCertificationCampaignType> campaign10Before = getFullCampaign(campaign1Oid);
-        display("Campaign 10 before", campaign10Before);
+        displayValue("Campaign 10 before", campaign10Before);
 
         AccessCertificationCaseType case9 = new AccessCertificationCaseType();
         case9.setId(CASE_9_ID);
@@ -218,7 +218,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         // THEN
         PrismObject<AccessCertificationCampaignType> campaign10After = getFullCampaign(campaign1Oid);
-        display("Campaign 10 after", campaign10After);
+        displayValue("Campaign 10 after", campaign10After);
 
         checkCasesForCampaign(campaign1Oid, 8, result);
         checkCasesTotal(8, result);

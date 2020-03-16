@@ -76,7 +76,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         OperationResult result = task.getResult();
 
         SearchResultList<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, null, null, result);
-        display("Resources", resources.size() + ": " + resources);
+        displayValue("Resources", resources.size() + ": " + resources);
         assertEquals("Unexpected number of resources", 3, resources.size());
 
         ObjectQuery query = prismContext.queryFor(ResourceType.class)
@@ -84,7 +84,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
             .build();
         SearchResultList<PrismObject<ResourceType>> propagatedResources =
                 repositoryService.searchObjects(ResourceType.class, query, null, result);
-        display("Propagated resources", propagatedResources.size() + ": " + propagatedResources);
+        displayValue("Propagated resources", propagatedResources.size() + ": " + propagatedResources);
         assertEquals("Unexpected number of propagated resources", 1, propagatedResources.size());
     }
 

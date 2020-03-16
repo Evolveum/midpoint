@@ -218,7 +218,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         AssertJUnit.assertEquals("Unexpected number of users", ldapdUserCount, userCount);
     }
 

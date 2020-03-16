@@ -1543,10 +1543,10 @@ public class TestDelta extends AbstractPrismTest {
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
                 .createModificationAddProperty(UserType.class, USER_FOO_OID,
                         UserType.F_ADDITIONAL_NAMES, "blabla", "bubu");
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
-        display("user", user);
+        displayValue("user", user);
 
         // WHEN
         when();
@@ -1554,7 +1554,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // THEN
         then();
-        display("Narrowed delta", narrowedDelta);
+        displayValue("Narrowed delta", narrowedDelta);
 
         PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 1);
@@ -1572,11 +1572,11 @@ public class TestDelta extends AbstractPrismTest {
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
                 .createModificationAddProperty(UserType.class, USER_FOO_OID,
                         UserType.F_ADDITIONAL_NAMES, "blabla", "bubu");
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         user.setPropertyRealValue(UserType.F_ADDITIONAL_NAMES, "bubu");
-        display("user", user);
+        displayValue("user", user);
 
         // WHEN
         when();
@@ -1584,7 +1584,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // THEN
         then();
-        display("Narrowed delta", narrowedDelta);
+        displayValue("Narrowed delta", narrowedDelta);
 
         PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 1);
@@ -1602,11 +1602,11 @@ public class TestDelta extends AbstractPrismTest {
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
                 .createModificationAddProperty(UserType.class, USER_FOO_OID,
                         UserType.F_ADDITIONAL_NAMES, "blabla", "bubu");
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         user.setPropertyRealValues(UserType.F_ADDITIONAL_NAMES, "bubu", "blabla");
-        display("user", user);
+        displayValue("user", user);
 
         // WHEN
         when();
@@ -1614,7 +1614,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // THEN
         then();
-        display("Narrowed delta", narrowedDelta);
+        displayValue("Narrowed delta", narrowedDelta);
 
         PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 0);
@@ -1628,11 +1628,11 @@ public class TestDelta extends AbstractPrismTest {
                 .createModificationDeleteContainer(UserType.class, USER_FOO_OID,
                         UserType.F_ASSIGNMENT,
                         createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION));
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
-        display("user", user);
+        displayValue("user", user);
 
         // WHEN
         when();
@@ -1640,7 +1640,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // THEN
         then();
-        display("Narrowed delta", narrowedDelta);
+        displayValue("Narrowed delta", narrowedDelta);
 
         PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 0);
@@ -1654,11 +1654,11 @@ public class TestDelta extends AbstractPrismTest {
                 .createModificationDeleteContainer(UserType.class, USER_FOO_OID,
                         UserType.F_ASSIGNMENT,
                         createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null));
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
-        display("user", user);
+        displayValue("user", user);
 
         // WHEN
         when();
@@ -1666,7 +1666,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // THEN
         then();
-        display("Narrowed delta", narrowedDelta);
+        displayValue("Narrowed delta", narrowedDelta);
 
         PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 0);
@@ -1680,12 +1680,12 @@ public class TestDelta extends AbstractPrismTest {
                 .createModificationDeleteContainer(UserType.class, USER_FOO_OID,
                         UserType.F_ASSIGNMENT,
                         createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION));
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         addAssignment(user, ASSIGNMENT_PATLAMA_ID, ASSIGNMENT_PATLAMA_DESCRIPTION);
         addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
-        display("user", user);
+        displayValue("user", user);
 
         // WHEN
         when();
@@ -1693,7 +1693,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // THEN
         then();
-        display("Narrowed delta", narrowedDelta);
+        displayValue("Narrowed delta", narrowedDelta);
 
         PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 1);
@@ -1711,12 +1711,12 @@ public class TestDelta extends AbstractPrismTest {
                 .createModificationDeleteContainer(UserType.class, USER_FOO_OID,
                         UserType.F_ASSIGNMENT,
                         createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null));
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         addAssignment(user, ASSIGNMENT_PATLAMA_ID, ASSIGNMENT_PATLAMA_DESCRIPTION);
         addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
-        display("user", user);
+        displayValue("user", user);
 
         // WHEN
         when();
@@ -1724,7 +1724,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // THEN
         then();
-        display("Narrowed delta", narrowedDelta);
+        displayValue("Narrowed delta", narrowedDelta);
 
         PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 1);

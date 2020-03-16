@@ -333,14 +333,13 @@ public class PrettyPrinter {
         if (value == null) {
             return "null";
         }
-        String out = null;
         if (value instanceof DebugDumpable) {
             return ((DebugDumpable) value).debugDump(indent);
         }
         if (value instanceof Collection) {
             return DebugUtil.debugDump((Collection) value, indent);
         }
-        out = tryDebugDumpMethod(value, indent);
+        String out = tryDebugDumpMethod(value, indent);
         if (out != null) {
             return out;
         }

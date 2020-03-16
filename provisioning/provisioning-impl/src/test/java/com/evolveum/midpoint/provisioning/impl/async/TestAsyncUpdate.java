@@ -160,7 +160,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
-        display("Resource XML", resourceXml);
+        displayValue("Resource XML", resourceXml);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
         assertNotNull("No caching metadata", cachingMetadata);

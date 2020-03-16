@@ -882,7 +882,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         try {
             logAttempt("searchContainers", type, query);
             List<C> objects = modelService.searchContainers(type, query, options, task, result);
-            display("Search returned", objects.toString());
+            displayValue("Search returned", objects.toString());
             if (objects.size() > expectedResults) {
                 failDeny("search", type, query, expectedResults, objects.size());
             } else if (objects.size() < expectedResults) {
