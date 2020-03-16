@@ -257,8 +257,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
@@ -295,8 +294,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
@@ -329,8 +327,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, jackAccountOid, null, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
         jackAccountOid = shadow.getOid();
@@ -545,8 +542,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         SearchResultList<PrismObject<ShadowType>> shadows = doSearch(query, 2, task, result);
 
-        assertAccountShadow(shadows.get(0), "CN=Administrator,CN=Users,DC=win,DC=evolveum,DC=com");
-        assertAccountShadow(shadows.get(1), "CN=Chuck LeChuck,CN=Users,DC=win,DC=evolveum,DC=com");
+//        assertAccountShadow(shadows.get(0), "CN=Administrator,CN=Users,DC=win,DC=evolveum,DC=com");
+//        assertAccountShadow(shadows.get(1), "CN=Chuck LeChuck,CN=Users,DC=win,DC=evolveum,DC=com");
+
+        assertAccountShadow(shadows.get(0), "CN=Chuck LeChuck,CN=Users,DC=win,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(1), "CN=Guest,CN=Users,DC=win,DC=evolveum,DC=com");
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
