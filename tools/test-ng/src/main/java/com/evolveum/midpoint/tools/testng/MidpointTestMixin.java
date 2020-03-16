@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.testng.ITestResult;
+import org.testng.SkipException;
 
 /**
  * Mixin with various utility methods, mostly related to test header/footer/section output/logging.
@@ -222,5 +223,17 @@ public interface MidpointTestMixin {
         }
         System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_OUT_SECTION_SUFFIX);
         logger().info(TEST_LOG_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_LOG_SECTION_SUFFIX);
+    }
+
+    /**
+     * Skips test if skip condition is met by throwing {@link SkipException}.
+     * Message will contain the test name and provided description.
+     */
+    default void skipTestIf(boolean skipCondition, String description) {
+        if (skipCondition) {
+            String message = "Skipping " + getTestNameShort() + ": " + description;
+            display(message);
+            throw new SkipException(message);
+        }
     }
 }

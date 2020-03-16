@@ -13,7 +13,6 @@ import java.io.File;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.testng.AssertJUnit;
-import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
@@ -504,9 +503,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
      */
     @Test
     public void testStringExec() throws Exception {
-        if (SystemUtils.IS_OS_WINDOWS) {
-            throw new SkipException("Skipped for Windows");
-        }
+        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available Windows");
 
         // WHEN
         evaluateAndAssertStringScalarExpression(
@@ -524,9 +521,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
      */
     @Test
     public void testListExec() throws Exception {
-        if (SystemUtils.IS_OS_WINDOWS) {
-            throw new SkipException("Skipped for Windows");
-        }
+        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available Windows");
 
         // WHEN
         evaluateAndAssertStringScalarExpression(
