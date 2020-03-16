@@ -661,6 +661,22 @@ public final class WebComponentUtil {
         pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
+    public static PrismObject<TaskType> getCaseExecutingChangesTask(String operation, String caseOid, PageBase pageBase){
+        if (StringUtils.isEmpty(caseOid)){
+            return null;
+        }
+        OperationResult result = new OperationResult(operation);
+        ObjectQuery query = pageBase.getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_OBJECT_REF)
+                .ref(caseOid)
+                .build();
+        List<PrismObject<TaskType>> connectedTasks = WebModelServiceUtils.searchObjects(TaskType.class, query, result, pageBase);
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(connectedTasks)){
+            return connectedTasks.get(0);
+        }
+        return null;
+    }
+
     public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
@@ -1351,7 +1367,7 @@ public final class WebComponentUtil {
         }
 
         String displayName = getDisplayName(object, translate);
-        return displayName != null ? displayName : getName(object, translate);
+        return StringUtils.isNotEmpty(displayName) ? displayName : getName(object, translate);
     }
 
     public static String getDisplayNameOrName(ObjectReferenceType ref) {
