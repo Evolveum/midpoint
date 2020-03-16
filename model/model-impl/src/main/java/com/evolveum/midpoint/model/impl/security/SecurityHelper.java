@@ -9,8 +9,10 @@ package com.evolveum.midpoint.model.impl.security;
 import javax.xml.datatype.Duration;
 import javax.xml.soap.SOAPMessage;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
@@ -74,6 +76,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private AuditHelper auditHelper;
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private PrismContext prismContext;
 
     @Override
     public void auditLoginSuccess(@NotNull UserType user, @NotNull ConnectionEnvironment connEnv) {
@@ -221,6 +224,46 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
 
         return null;
+    }
+
+    public SecurityPolicyType locateProjectionSecurityPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        LOGGER.trace("Finishing loading of projection context: security policy");
+        ObjectReferenceType securityPolicyRef = structuralObjectClassDefinition.getSecurityPolicyRef();
+        if (securityPolicyRef == null || securityPolicyRef.getOid() == null) {
+            LOGGER.trace("Security policy not defined for the projection context.");
+            return loadProjectionLegacyPasswordPolicy(structuralObjectClassDefinition, task, result);
+        }
+        LOGGER.trace("Loading security policy {} from: {}", securityPolicyRef, structuralObjectClassDefinition);
+        SecurityPolicyType securityPolicy = objectResolver.resolve(securityPolicyRef, SecurityPolicyType.class, null, " projection security policy", task, result);
+        if (securityPolicy == null) {
+            LOGGER.debug("Security policy {} defined for the projection does not exist", securityPolicyRef);
+            return null;
+        }
+        postProcessSecurityPolicy(securityPolicy, task, result);
+        return securityPolicy;
+    }
+
+    private SecurityPolicyType loadProjectionLegacyPasswordPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectReferenceType passwordPolicyRef = structuralObjectClassDefinition.getPasswordPolicy();
+        if (passwordPolicyRef == null || passwordPolicyRef.getOid() == null) {
+            LOGGER.trace("Legacy password policy not defined for the projection context.");
+            return null;
+        }
+        LOGGER.trace("Loading legacy password policy {} from: {}", passwordPolicyRef, structuralObjectClassDefinition);
+        ValuePolicyType passwordPolicy = objectResolver.resolve(passwordPolicyRef,
+                ValuePolicyType.class, null, " projection legacy password policy ", task, result);
+        if (passwordPolicy == null) {
+            LOGGER.debug("Legacy password policy {} defined for the projection does not exist", passwordPolicyRef);
+            return null;
+        }
+        ObjectReferenceType dummyPasswordPolicyRef = new ObjectReferenceType();
+        dummyPasswordPolicyRef.asReferenceValue().setObject(passwordPolicy.asPrismObject());
+        PrismObject<SecurityPolicyType> securityPolicy = prismContext.createObject(SecurityPolicyType.class);
+        securityPolicy.asObjectable()
+                .beginCredentials()
+                .beginPassword()
+                .valuePolicyRef(dummyPasswordPolicyRef);
+        return securityPolicy.asObjectable();
     }
 
     private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
