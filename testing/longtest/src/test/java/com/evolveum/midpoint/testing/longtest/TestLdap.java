@@ -144,7 +144,7 @@ public class TestLdap extends AbstractLongTest {
         profilingManager.appendProfilingToTest();
         //initProfiling - end
 
-        display("initial LDAP content", openDJController.dumpEntries());
+        displayValue("initial LDAP content", openDJController.dumpEntries());
     }
 
     @Test
@@ -188,7 +188,7 @@ public class TestLdap extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         byte[] photoIn = Files.readAllBytes(Paths.get(DOT_JPG_FILENAME));
-        display("Photo in", MiscUtil.binaryToHex(photoIn));
+        displayValue("Photo in", MiscUtil.binaryToHex(photoIn));
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result, photoIn);
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
@@ -224,7 +224,7 @@ public class TestLdap extends AbstractLongTest {
         PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
         byte[] photoBytesOut = jpegPhotoAttr.getValues().get(0).getValue();
 
-        display("Photo bytes out", MiscUtil.binaryToHex(photoBytesOut));
+        displayValue("Photo bytes out", MiscUtil.binaryToHex(photoBytesOut));
 
         assertEquals("Photo byte length changed (shadow)", photoIn.length, photoBytesOut.length);
         assertTrue("Photo bytes do not match (shadow)", Arrays.equals(photoIn, photoBytesOut));
@@ -367,7 +367,7 @@ public class TestLdap extends AbstractLongTest {
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
     }
 
@@ -402,7 +402,7 @@ public class TestLdap extends AbstractLongTest {
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
     }
 

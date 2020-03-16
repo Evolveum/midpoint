@@ -262,7 +262,7 @@ public class TestTextFormatter extends AbstractSpringTest {
         given();
 
         PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
-        display("jack", jack.debugDump());
+        displayValue("jack", jack.debugDump());
 
         // @formatter:off
         ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
@@ -273,7 +273,7 @@ public class TestTextFormatter extends AbstractSpringTest {
                 .asObjectDelta("some-user-oid");
         // @formatter:on
 
-        display("delta", delta.debugDump());
+        displayValue("delta", delta.debugDump());
 
         when();
 
@@ -314,7 +314,7 @@ public class TestTextFormatter extends AbstractSpringTest {
         given();
 
         PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
-        display("jack", jack.debugDump());
+        displayValue("jack", jack.debugDump());
 
         // @formatter:off
         ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
@@ -326,7 +326,7 @@ public class TestTextFormatter extends AbstractSpringTest {
                 .asObjectDelta("some-user-oid");
         // @formatter:on
 
-        display("delta", delta.debugDump());
+        displayValue("delta", delta.debugDump());
 
         when();
 

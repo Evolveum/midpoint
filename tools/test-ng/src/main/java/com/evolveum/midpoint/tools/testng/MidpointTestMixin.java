@@ -134,7 +134,10 @@ public interface MidpointTestMixin {
         logger().debug("*** {}", text);
     }
 
-    default void display(String title, String value) {
+    /**
+     * Displays
+     */
+    default void displayValue(String title, Object value) {
         System.out.println("\n*** " + title + "\n" + value);
         logger().debug("*** {}\n{}", title, value);
     }

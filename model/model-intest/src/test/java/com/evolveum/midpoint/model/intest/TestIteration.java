@@ -1602,7 +1602,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1627,7 +1627,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1654,7 +1654,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1750,7 +1750,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1780,7 +1780,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1808,7 +1808,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1837,7 +1837,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1862,7 +1862,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
@@ -1893,7 +1893,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
         getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);

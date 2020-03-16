@@ -540,19 +540,19 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         ObjectDelta<UserType> userDeltaUnion = ObjectDeltaCollectionsUtil.union(userDelta1, userDelta2);
 
         // THEN
-        display("result", userDeltaUnion);
+        displayValue("result", userDeltaUnion);
 
         PrismObject<UserType> userWithSeparateDeltas = new UserType(getPrismContext()).asPrismObject();
         userDelta1.applyTo(userWithSeparateDeltas);
         userDelta2.applyTo(userWithSeparateDeltas);
-        display("userWithSeparateDeltas after", userWithSeparateDeltas);
+        displayValue("userWithSeparateDeltas after", userWithSeparateDeltas);
 
         PrismObject<UserType> userWithUnion = new UserType(getPrismContext()).asPrismObject();
         userDeltaUnion.applyTo(userWithUnion);
-        display("userWithUnion after", userWithUnion);
+        displayValue("userWithUnion after", userWithUnion);
 
         ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);       // set to isLiteral = false after fixing MID-4688
-        display("diff", diff.debugDump());
+        displayValue("diff", diff.debugDump());
         assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
     }
 }

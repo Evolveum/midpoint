@@ -211,23 +211,23 @@ public class TestReport extends AbstractReportIntegrationTest {
 
   protected void checkCsvUserReport(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
       File outputFile = findOutputFile(report);
-      display("Found report file", outputFile);
+      displayValue("Found report file", outputFile);
       assertNotNull("No output file for "+report, outputFile);
       List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
-      display("Report content ("+lines.size()+" lines)", String.join("\n", lines));
+      displayValue("Report content ("+lines.size()+" lines)", String.join("\n", lines));
       outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
 
       Task task = getTestTask();
       OperationResult result = task.getResult();
       SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
-      display("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());
+      displayValue("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());
 
       assertEquals("Unexpected number of report lines", currentUsers.size() + 1, lines.size());
   }
 
   protected void assertNoCsvReport(PrismObject<ReportType> report) {
       File outputFile = findOutputFile(report);
-      display("Found report file (expected null)", outputFile);
+      displayValue("Found report file (expected null)", outputFile);
       assertNull("Unexpected output file for "+report+": "+outputFile, outputFile);
   }
 
@@ -254,10 +254,10 @@ public class TestReport extends AbstractReportIntegrationTest {
 
   protected void checkCsvAuditReport(PrismObject<ReportType> report) throws IOException {
       File outputFile = findOutputFile(report);
-      display("Found report file", outputFile);
+      displayValue("Found report file", outputFile);
       assertNotNull("No output file for "+report, outputFile);
       List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
-      display("Report content ("+lines.size()+" lines)", String.join("\n", lines));
+      displayValue("Report content ("+lines.size()+" lines)", String.join("\n", lines));
       outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
 
       if (lines.size() < 10) {

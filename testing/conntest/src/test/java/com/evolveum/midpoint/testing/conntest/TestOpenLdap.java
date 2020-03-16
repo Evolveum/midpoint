@@ -130,7 +130,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
         ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapabilityType);
         assertNotNull("No lockout capability", lockoutCapability);
-        display("Lockout capability", lockoutCapability);
+        displayValue("Lockout capability", lockoutCapability);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         assertNotNull("No sync token in " + task, syncTokenProperty);
         String syncToken = syncTokenProperty.getRealValue();
         assertNotNull("No sync token in " + task, syncToken);
-        display("Sync token", syncToken);
+        displayValue("Sync token", syncToken);
 
         GeneralizedTime syncTokenGt;
         try {
@@ -180,7 +180,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
     @Test
     public void test702LockOutBarbossa() throws Exception {
         Entry entry = getLdapAccountByUid(USER_BARBOSSA_USERNAME);
-        display("LDAP Entry before", entry);
+        displayValue("LDAP Entry before", entry);
 
         // WHEN
         when();
@@ -198,7 +198,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         then();
 
         entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("LDAP Entry after", entry);
+        displayValue("LDAP Entry after", entry);
 
         PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
         display("Shadow (model)", shadow);
@@ -238,7 +238,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         }
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("LDAP Entry", entry);
+        displayValue("LDAP Entry", entry);
         assertNoAttribute(entry, "pwdAccountLockedTime");
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);

@@ -822,7 +822,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         try {
             Task rootTask = createTaskFromFile(taskFilename(), result);
-            display("root task", rootTask);
+            displayValue("root task", rootTask);
             waitForTaskClose(taskOid(), result, 40000, 3000);
         } finally {
             taskManager.getClusterManager().stopClusterManagerThread(10000L, result);

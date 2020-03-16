@@ -56,7 +56,7 @@ public class TestConnectorManager extends AbstractIntegrationTest {
         assertSuccess(result);
 
         for (ConnectorFactory connectorFactory : connectorFactories) {
-            display("Found connector factory " + connectorFactory, connectorFactory);
+            displayValue("Found connector factory " + connectorFactory, connectorFactory);
         }
 
         PrismAsserts.assertEqualsUnordered("Wrong connector factories",

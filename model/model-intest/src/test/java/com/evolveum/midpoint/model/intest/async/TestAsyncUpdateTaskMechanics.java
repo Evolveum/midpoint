@@ -102,7 +102,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         displayTaskWithOperationStats("Task after", taskAfter);
 
         int usersAdded = getObjectCount(UserType.class) - usersBefore;
-        display("Users added", usersAdded);
+        displayValue("Users added", usersAdded);
 
         assertEquals("Wrong # of users added", 10, usersAdded);
         assertEquals("Wrong task progress", 10, taskAfter.asObjectable().getProgress().intValue());
@@ -126,7 +126,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         displayTaskWithOperationStats("Task after", taskAfter);
 
         int usersAdded = getObjectCount(UserType.class) - usersBefore;
-        display("Users added", usersAdded);
+        displayValue("Users added", usersAdded);
 
         assertEquals("Wrong # of users added", 10, usersAdded);
         assertNotNull("No task progress", taskAfter.asObjectable().getProgress());

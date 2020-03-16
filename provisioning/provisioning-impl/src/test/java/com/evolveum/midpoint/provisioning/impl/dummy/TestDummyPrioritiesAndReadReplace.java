@@ -22,8 +22,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
@@ -160,7 +158,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
                 addedObjectOid, null, result);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 

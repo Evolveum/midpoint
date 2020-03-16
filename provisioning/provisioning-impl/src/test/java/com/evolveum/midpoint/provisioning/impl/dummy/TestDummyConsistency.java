@@ -88,7 +88,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        display("Dummy resource instance", dummyResource.toString());
+        displayValue("Dummy resource instance", dummyResource.toString());
 
         OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
         assertSuccess(testResult);

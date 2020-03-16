@@ -115,7 +115,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
         display("Resource after test", resource);
-        display("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         List<Object> nativeCapabilities = resource.getCapabilities().getNative().getAny();
         CredentialsCapabilityType credentialsCapabilityType = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
@@ -191,7 +191,7 @@ public class TestDBTable extends AbstractIntegrationTest {
         assertNotNull("No password", account.asObjectable().getCredentials().getPassword());
         assertNotNull("No password value", account.asObjectable().getCredentials().getPassword().getValue());
         ProtectedStringType password = account.asObjectable().getCredentials().getPassword().getValue();
-        display("Password", password);
+        displayValue("Password", password);
         String clearPassword = protector.decryptString(password);
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, clearPassword);
     }

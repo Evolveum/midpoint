@@ -187,7 +187,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Resource after testResource (repository)", resourceTypeRepoAfter);
 
-        display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
@@ -270,7 +270,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         // THEN
         display("Resource from provisioninig", resource);
-        display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
@@ -975,7 +975,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         byte[] bytesIn = Files.readAllBytes(Paths.get(ProvisioningTestUtil.DOT_JPG_FILENAME));
-        display("Bytes in", MiscUtil.binaryToHex(bytesIn));
+        displayValue("Bytes in", MiscUtil.binaryToHex(bytesIn));
 
         ItemName jpegPhotoQName = new ItemName(RESOURCE_OPENDJ_NS, "jpegPhoto");
         PropertyDelta<byte[]> jpegPhotoDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
@@ -1011,7 +1011,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
         byte[] bytesOut = jpegPhotoAttr.getValues().get(0).getValue();
 
-        display("Bytes out", MiscUtil.binaryToHex(bytesOut));
+        displayValue("Bytes out", MiscUtil.binaryToHex(bytesOut));
 
         assertEquals("Byte length changed (shadow)", bytesIn.length, bytesOut.length);
         assertTrue("Bytes do not match (shadow)", Arrays.equals(bytesIn, bytesOut));
@@ -1216,7 +1216,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         // THEN
         then();
-        display("Count", objects.size());
+        displayValue("Count", objects.size());
         assertEquals("Unexpected number of shadows", 9, objects.size());
 
         // The extra shadow is a group shadow
@@ -1261,7 +1261,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         // THEN
         then();
-        display("Count", objects.size());
+        displayValue("Count", objects.size());
         assertEquals("Unexpected number of shadows", 3, objects.size());
 
         // The extra shadow is a group shadow
@@ -1306,7 +1306,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         // THEN
         then();
-        display("Count", objects.size());
+        displayValue("Count", objects.size());
         assertEquals("Unexpected number of shadows", 3, objects.size());
 
         // The extra shadow is a group shadow
@@ -1934,7 +1934,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             assertShadowSanity(searchResult);
             ResourceAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(RESOURCE_NS, "uid"));
             String uid = uidAttr.getRealValues().iterator().next();
-            display("found uid", uid);
+            displayValue("found uid", uid);
             assertEquals("Wrong uid (index " + i + ")", expectedUids[i], uid);
             i++;
         }
@@ -1959,7 +1959,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // THEN
         then();
         assertSuccess(result);
-        display("All accounts count", count);
+        displayValue("All accounts count", count);
 
         assertEquals("Unexpected number of search results", (Integer) 14, count);
     }
@@ -1983,7 +1983,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // THEN
         then();
         assertSuccess(result);
-        display("All LDAP groups count", count);
+        displayValue("All LDAP groups count", count);
 
         assertEquals("Unexpected number of search results", getExpectedLdapGroupCountTest25x(), count);
     }

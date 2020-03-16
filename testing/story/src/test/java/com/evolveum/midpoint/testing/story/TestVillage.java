@@ -351,7 +351,7 @@ public class TestVillage extends AbstractStoryTest {
         RefinedResourceSchema refinedSchemaAfter = RefinedResourceSchema.getRefinedSchema(resourceAfter);
         long t4 = System.currentTimeMillis();
 
-        display("Times", "getObject(RESOURCE_OPENDJ_OID): " + (t1 - t0) + "ms\ngetResourceSchema: " + (t3 - t2)
+        displayValue("Times", "getObject(RESOURCE_OPENDJ_OID): " + (t1 - t0) + "ms\ngetResourceSchema: " + (t3 - t2)
                 + "ms\ngetRefinedSchema: " + (t4 - t3) + "ms");
 
         // variable number of clones: 1 or 2 because of trigger scanner task
@@ -775,7 +775,7 @@ public class TestVillage extends AbstractStoryTest {
                 "cn: jollyrogers\n" +
                 GROUP_MEMBER_ATTRIBUTE_NAME + ": " + GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN + "\n");
 
-        display("LDAP entries", openDJController.dumpEntries());
+        displayValue("LDAP entries", openDJController.dumpEntries());
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME, prismContext)
                 .and().itemWithDef(

@@ -89,7 +89,7 @@ public class TestImport extends AbstractStoryTest {
         repoAddObjectFromFile(ORG_BASIC_FILE, OrgType.class, initResult);
 
         usersBefore = repositoryService.countObjects(UserType.class, null, null, initResult);
-        display("users before", usersBefore);
+        displayValue("users before", usersBefore);
 
         //InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
     }
@@ -162,10 +162,10 @@ public class TestImport extends AbstractStoryTest {
 
         PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, TASK_IMPORT_OID, null, result);
         String taskXml = prismContext.xmlSerializer().serialize(taskAfter);
-        display("Task after", taskXml);
+        displayValue("Task after", taskXml);
 
         int usersAfter = repositoryService.countObjects(UserType.class, null, null, result);
-        display("users after", usersAfter);
+        displayValue("users after", usersAfter);
         assertEquals("Wrong # of users", usersBefore + USERS, usersAfter);
 
     }

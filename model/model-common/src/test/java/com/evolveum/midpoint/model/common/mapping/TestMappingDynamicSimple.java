@@ -917,8 +917,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
         user.asObjectable().getEmployeeType().add("LANDLUBER");
         mapping.getSourceContext().recompute();
-        display("user before", user);
-        display("delta", delta);
+        displayValue("user before", user);
+        displayValue("delta", delta);
 
         // WHEN
         when();
@@ -951,8 +951,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
 
-        display("user before", user);
-        display("delta", delta);
+        displayValue("user before", user);
+        displayValue("delta", delta);
 
         // WHEN
         when();
@@ -961,7 +961,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // THEN
         then();
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        display("output triple", outputTriple);
+        displayValue("output triple", outputTriple);
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The captain deck"));

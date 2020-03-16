@@ -819,7 +819,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
         display("Dummy connector stats after", stats);
 
-        display("Dummy resource connections", dummyResource.getConnectionCount());
+        displayValue("Dummy resource connections", dummyResource.getConnectionCount());
 
         assertDummyConnectorInstances(dummyResource.getConnectionCount());
     }

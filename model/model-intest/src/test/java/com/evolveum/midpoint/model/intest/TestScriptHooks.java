@@ -103,7 +103,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_HOOK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
-        display("StaticHookRecorder", StaticHookRecorder.dump());
+        displayValue("StaticHookRecorder", StaticHookRecorder.dump());
         StaticHookRecorder.assertInvocationCount("org", 1);
         StaticHookRecorder.assertInvocationCount("foo", 5);
         StaticHookRecorder.assertInvocationCount("bar", 5);
@@ -160,7 +160,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
         assertAssignedOrg(userJack, brethrenOrg);
 
-        display("StaticHookRecorder", StaticHookRecorder.dump());
+        displayValue("StaticHookRecorder", StaticHookRecorder.dump());
         StaticHookRecorder.assertInvocationCount("org", 1);
         StaticHookRecorder.assertInvocationCount("foo", 10);
         StaticHookRecorder.assertInvocationCount("bar", 10);

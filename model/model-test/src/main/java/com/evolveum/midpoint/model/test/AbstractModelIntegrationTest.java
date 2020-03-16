@@ -478,7 +478,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
             return true;
         }, null, task, result);
-        if (verbose) { display(type.getSimpleName() + "s", count.getValue()); }
+        if (verbose) { displayValue(type.getSimpleName() + "s", count.getValue()); }
         assertEquals("Unexpected number of " + type.getSimpleName() + "s", expectedNumberOfObjects, count.getValue());
     }
 
@@ -2437,7 +2437,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 sb.append(target);
             }
         }
-        display(message, sb.toString());
+        displayValue(message, sb.toString());
     }
 
     protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
@@ -3100,7 +3100,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
         String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
-        display("Task (level " + level + ")", xml);
+        displayValue("Task (level " + level + ")", xml);
         for (TaskType subtask : TaskTypeUtil.getResolvedSubtasks(task)) {
             dumpTaskAndSubtasks(subtask, level + 1);
         }
@@ -3125,7 +3125,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void displayOperationStatistics(OperationStatsType statistics) {
-        display("Task operation statistics for " + getTestNameShort(), StatisticsUtil.format(statistics));
+        displayValue("Task operation statistics for " + getTestNameShort(), StatisticsUtil.format(statistics));
     }
 
     @Nullable
@@ -3159,14 +3159,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         display(message, task);
         String stats = prismContext.xmlSerializer()
                 .serializeRealValue(task.asObjectable().getOperationStats(), TaskType.F_OPERATION_STATS);
-        display(message + ": Operational stats", stats);
+        displayValue(message + ": Operational stats", stats);
     }
 
     protected void displayTaskWithOperationStats(String message, Task task) throws SchemaException {
         display(message, task);
         String stats = prismContext.xmlSerializer()
                 .serializeRealValue(task.getUpdatedOrClonedTaskObject().asObjectable().getOperationStats(), TaskType.F_OPERATION_STATS);
-        display(message + ": Operational stats", stats);
+        displayValue(message + ": Operational stats", stats);
     }
 
     protected void assertJpegPhoto(Class<? extends FocusType> clazz, String oid, byte[] expectedValue, OperationResult result)
@@ -3339,7 +3339,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                     Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
                     OperationResult result = freshTask.getResult();
                     logger.debug("Timed-out task:\n{}", freshTask.debugDump());
-                    display("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+                    displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
                             + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
                             + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
                             + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
@@ -3353,7 +3353,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
         logger.debug("Final task:\n{}", freshTask.debugDump());
-        display("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+        displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
                 + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
                 + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
                 + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
@@ -3378,7 +3378,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Task freshRootTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
 
             String s = TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult);
-            display("task tree", s);
+            displayValue("task tree", s);
 
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
@@ -3549,7 +3549,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                     Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
                     OperationResult result = freshTask.getResult();
                     logger.debug("Timed-out task:\n{}", freshTask.debugDump());
-                    display("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+                    displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
                             + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
                             + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
                             + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
@@ -3563,7 +3563,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
         logger.debug("Final task:\n{}", freshTask.debugDump());
-        display("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+        displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
                 + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
                 + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
                 + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
@@ -5343,10 +5343,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                     for (Object valueToDelete : itemMod.getValuesToDelete()) {
                         if (!property.contains((PrismValue) valueToDelete, EquivalenceStrategy.REAL_VALUE)) {
                             display("Deleted value " + valueToDelete + " is not in focus item " + itemMod.getParentPath() + "/" + itemMod.getElementName());
-                            display("Deleted value", valueToDelete);
+                            displayValue("Deleted value", valueToDelete);
                             display("HASHCODE: " + valueToDelete.hashCode());
                             for (Object value : property.getValues()) {
-                                display("Existing value", value);
+                                displayValue("Existing value", value);
                                 display("EQUALS: " + valueToDelete.equals(value));
                                 display("HASHCODE: " + value.hashCode());
                             }
@@ -5473,11 +5473,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        display("Org tree", dumpOrgTree(getTopOrgOid()));
+        displayValue("Org tree", dumpOrgTree(getTopOrgOid()));
     }
 
     protected void dumpOrgTreeAndUsers() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        display("Org tree", dumpOrgTree(getTopOrgOid(), true));
+        displayValue("Org tree", dumpOrgTree(getTopOrgOid(), true));
     }
 
     protected String getTopOrgOid() {
@@ -5546,7 +5546,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid, Task task, OperationResult result) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         String password = getPassword(user);
-        display("Password of " + user, password);
+        displayValue("Password of " + user, password);
         PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
         List<LocalizableMessage> messages = new ArrayList<>();
         boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
@@ -6134,7 +6134,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         try {
             logAttempt("search", type, query);
             objects = modelService.searchObjects(type, query, options, task, result);
-            display("Search returned", objects.toString());
+            displayValue("Search returned", objects.toString());
             assertion.assertObjects("search", objects);
             assertSuccess(result);
         } catch (SecurityViolationException e) {
@@ -6155,7 +6155,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 return true;
             };
             modelService.searchObjectsIterative(type, query, handler, options, task, result);
-            display("Search iterative returned", iterativeObjects.toString());
+            displayValue("Search iterative returned", iterativeObjects.toString());
             assertion.assertObjects("searchIterative", iterativeObjects);
             assertSuccess(result);
         } catch (SecurityViolationException e) {
@@ -6171,7 +6171,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         try {
             logAttempt("count", type, query);
             int numObjects = modelService.countObjects(type, query, options, task, result);
-            display("Count returned", numObjects);
+            displayValue("Count returned", numObjects);
             assertion.assertCount(numObjects);
             assertSuccess(result);
         } catch (SecurityViolationException e) {
@@ -6517,9 +6517,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void dumpStatistics(Task task) {
         OperationStatsType stats = task.getStoredOperationStats();
         IterativeTaskInformationType iterativeInfo = stats.getIterativeTaskInformation();
-        display("Iterative information", IterativeTaskInformation.format(iterativeInfo));
+        displayValue("Iterative information", IterativeTaskInformation.format(iterativeInfo));
         SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
-        display("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
+        displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInfo));
     }
 
     protected void dumpShadowSituations(String resourceOid, OperationResult result) throws SchemaException {

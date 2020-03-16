@@ -223,10 +223,10 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     }
 
     protected void dumpRepoPerformanceData(String label, PerformanceInformation performanceInformation) {
-        display(label, RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+        displayValue(label, RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
     }
 
     protected void dumpCachePerformanceData(String label, Map<String, CachePerformanceCollector.CacheData> performanceMap) {
-        display(label, CachePerformanceInformationUtil.format(performanceMap));
+        displayValue(label, CachePerformanceInformationUtil.format(performanceMap));
     }
 }

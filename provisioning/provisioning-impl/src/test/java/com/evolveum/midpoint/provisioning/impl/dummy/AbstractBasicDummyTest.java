@@ -111,7 +111,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
     @Test
     public void test000Integrity() throws Exception {
-        display("Dummy resource instance", dummyResource.toString());
+        displayValue("Dummy resource instance", dummyResource.toString());
 
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
@@ -154,7 +154,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             ConnectorType conn = connPrism.asObjectable();
             display("Found connector " + conn, conn);
 
-            display("XML " + conn, PrismTestUtil.serializeObjectToString(connPrism, PrismContext.LANG_XML));
+            displayValue("XML " + conn, PrismTestUtil.serializeObjectToString(connPrism, PrismContext.LANG_XML));
 
             XmlSchemaType xmlSchemaType = conn.getSchema();
             assertNotNull("xmlSchemaType is null", xmlSchemaType);
@@ -218,7 +218,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             ResourceType resourceType = resource.asObjectable();
             display("Found resource " + resourceType, resourceType);
 
-            display("XML " + resourceType, PrismTestUtil.serializeObjectToString(resource, PrismContext.LANG_XML));
+            displayValue("XML " + resourceType, PrismTestUtil.serializeObjectToString(resource, PrismContext.LANG_XML));
 
             XmlSchemaType xmlSchemaType = resourceType.getSchema();
             if (xmlSchemaType != null) {
@@ -547,7 +547,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         // Check native capabilities
         CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-        display("Native capabilities", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
+        displayValue("Native capabilities", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
         display("Resource", resourceType);
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -1026,7 +1026,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 
         // THEN
-        display("attributesToReturn", attributesToReturn);
+        displayValue("attributesToReturn", attributesToReturn);
         assertFalse("wrong isReturnDefaultAttributes", attributesToReturn.isReturnDefaultAttributes());
         Collection<String> attrs = new ArrayList<>();
         for (ResourceAttributeDefinition attributeToReturnDef : attributesToReturn.getAttributesToReturn()) {
@@ -1101,7 +1101,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         checkRepoAccountShadowWill(accountRepo, start, end);
 
         willIcfUid = getIcfUid(accountRepo);
-        display("Will ICF UID", willIcfUid);
+        displayValue("Will ICF UID", willIcfUid);
         assertNotNull("No will ICF UID", willIcfUid);
 
         ActivationType activationRepo = accountRepo.asObjectable().getActivation();
@@ -1154,7 +1154,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         checkRepoAccountShadow(shadowFromRepo);
 

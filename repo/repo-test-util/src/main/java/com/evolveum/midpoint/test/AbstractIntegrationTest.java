@@ -1892,7 +1892,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismTestUtil.display(title, dumpable);
     }
 
-    public void display(String title, Object value) {
+    public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }
 
@@ -2080,7 +2080,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (result.isUnknown()) {
             result.computeStatus();
         }
-        display("Operation " + result.getOperation() + " result status", result.getStatus());
+        displayValue("Operation " + result.getOperation() + " result status", result.getStatus());
         TestUtil.assertSuccess(result);
     }
 
@@ -2088,7 +2088,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (result.isUnknown()) {
             result.computeStatus();
         }
-        display("Operation " + result.getOperation() + " result status", result.getStatus());
+        displayValue("Operation " + result.getOperation() + " result status", result.getStatus());
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
     }
 
@@ -2096,7 +2096,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (result.isUnknown()) {
             result.computeStatus();
         }
-        display("Operation " + result.getOperation() + " result status", result.getStatus());
+        displayValue("Operation " + result.getOperation() + " result status", result.getStatus());
         TestUtil.assertSuccess(result, depth);
     }
 
@@ -2458,7 +2458,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         long endMillis = System.currentTimeMillis();
         long duration = (endMillis - startMillis);
-        display(type.getSimpleName() + " import", "import of " + numberOfObjects + " roles took " + (duration / 1000) + " seconds (" + (duration / numberOfObjects) + "ms per object)");
+        displayValue(type.getSimpleName() + " import", "import of " + numberOfObjects + " roles took " + (duration / 1000) + " seconds (" + (duration / numberOfObjects) + "ms per object)");
     }
 
     protected String assignmentSummary(PrismObject<UserType> user) {
@@ -2509,7 +2509,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     .append(" (").append(InternalMonitor.getCount(counter)).append(")")
                     .append("\n");
         }
-        display("Counters", sb.toString());
+        displayValue("Counters", sb.toString());
     }
 
     protected void assertMessageContains(String message, String string) {
@@ -2740,7 +2740,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration(duration);
         XMLGregorianCalendar after = clock.currentTimeXMLGregorianCalendar();
-        display("Clock going forward", before + " --[" + duration + "]--> " + after);
+        displayValue("Clock going forward", before + " --[" + duration + "]--> " + after);
     }
 
     protected void assertRelationDef(List<RelationDefinitionType> relations, QName qname, String expectedLabel) {
@@ -2816,7 +2816,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void displayCurrentTime() {
-        display("Current time", clock.currentTimeXMLGregorianCalendar());
+        displayValue("Current time", clock.currentTimeXMLGregorianCalendar());
     }
 
     protected QueryConverter getQueryConverter() {

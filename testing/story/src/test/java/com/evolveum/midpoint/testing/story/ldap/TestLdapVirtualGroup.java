@@ -448,7 +448,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, DirectoryException, ExpressionEvaluationException {
         String userName = user.getName().toString();
-        display("assert user", userName);
+        displayValue("assert user", userName);
 
         String objOid = getLinkRefOid(user, RESOURCE_OPENDJ_OID, kind, intent);
         PrismObject<ShadowType> objShadow = getShadowModel(objOid);
@@ -468,7 +468,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, DirectoryException, ExpressionEvaluationException {
         String roleName = role.getName().toString();
-        display("assert role", roleName);
+        displayValue("assert role", roleName);
 
         String objOid = getLinkRefOid(role, RESOURCE_OPENDJ_OID, kind, intent);
         PrismObject<ShadowType> objShadow = getShadowModel(objOid);
@@ -492,7 +492,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String focusName = focus.getName().toString();
-        display("assert focus " + focus.getCompileTimeClass(), focusName);
+        displayValue("assert focus " + focus.getCompileTimeClass(), focusName);
 
         String objOid = getLinkRefOid(focus, RESOURCE_OPENDJ_OID, kind, intent);
         PrismObject<ShadowType> objShadow = getShadowModel(objOid);

@@ -89,7 +89,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         then();
-        display("Diag", diag);
+        displayValue("Diag", diag);
         assertSuccess(result);
 
         assertEquals("Wrong implementationShortName", "SQL", diag.getImplementationShortName());
@@ -135,7 +135,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
             assertNotNull("Null definition in " + user, user.getDefinition());
             display("Definition", user.getDefinition());
             String xmlString = prismContext.serializerFor(PrismContext.LANG_XML).serialize(user);
-            display("Exported user", xmlString);
+            displayValue("Exported user", xmlString);
 
             Document xmlDocument = DOMUtil.parseDocument(xmlString);
             Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
@@ -502,7 +502,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
         String accountOid = getSingleLinkOid(userBefore);
         PrismObject<ResourceType> resourceBefore = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
-        display("Resource version before", resourceBefore.getVersion());
+        displayValue("Resource version before", resourceBefore.getVersion());
 
         // WHEN
         when();
@@ -514,7 +514,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
-        display("Resource version after", resourceAfter.getVersion());
+        displayValue("Resource version after", resourceAfter.getVersion());
         assertThat(resourceAfter.getVersion())
                 .withFailMessage("Resource version is still the same")
                 .isNotEqualTo(resourceBefore.getVersion());

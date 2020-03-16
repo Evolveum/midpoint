@@ -294,7 +294,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
-        assertSuccess(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
@@ -857,7 +858,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
@@ -950,7 +951,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, "title", "Captain");
 
         assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
@@ -1023,7 +1024,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, "title", "Captain");
 
         assertLdapNoGroupMember(entry, GROUP_PIRATES_NAME);

@@ -1034,7 +1034,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private void loginJackGoodPasswordExpectSuccess()
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        display("now", clock.currentTimeXMLGregorianCalendar());
+        displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1054,7 +1054,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void loginJackGoodPasswordExpectDenied() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        display("now", clock.currentTimeXMLGregorianCalendar());
+        displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
