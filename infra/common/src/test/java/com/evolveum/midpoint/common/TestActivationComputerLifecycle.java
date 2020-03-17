@@ -36,7 +36,6 @@ public class TestActivationComputerLifecycle extends AbstractActivationComputerT
     }
 
     @Test
-    @Override
     public void testGetProposedAdministrativeEnabled() throws Exception {
         // GIVEN
         Clock clock = createClock(YEAR_START);
@@ -53,7 +52,6 @@ public class TestActivationComputerLifecycle extends AbstractActivationComputerT
     }
 
     @Test
-    @Override
     public void testGetDraftAdministrativeEnabled() throws Exception {
         // GIVEN
         Clock clock = createClock(YEAR_START);
@@ -108,5 +106,4 @@ public class TestActivationComputerLifecycle extends AbstractActivationComputerT
         testCompute(LIFECYCLE_STATE_INHUMED, now, administrativeStatus,
                 validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
     }
-
 }

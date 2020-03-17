@@ -380,8 +380,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, testName, variables);
             AssertJUnit.fail("Expression " + testName + ": unexpected success, result value: " + expressionResultList);
         } catch (SecurityViolationException e) {
-            System.out.println("Expected exception: " + e);
-            logger.debug("Expected exception", e);
+            displayExpectedException(e);
         }
     }
 

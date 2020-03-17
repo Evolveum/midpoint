@@ -3067,7 +3067,7 @@ public class TestMapping extends AbstractMappingTest {
             assignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
 
         } catch (ExpressionEvaluationException e) {
-            display("Exception", e);
+            displayException("Exception", e);
             Throwable cause = e.getCause();
             if (!(cause instanceof AssertionError)) {
                 throw e;

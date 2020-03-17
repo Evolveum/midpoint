@@ -633,9 +633,7 @@ public class TestProjector extends AbstractLensTest {
                     "there is no focus context";
             assert false : "The operation was successful but it should throw expcetion";
         } catch (PolicyViolationException e) {
-            // THEN: success
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
     }

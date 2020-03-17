@@ -425,23 +425,18 @@ public class TestExpression extends AbstractModelCommonTest {
                     expressionContext.getContextDescription(), expressionContext.getTask(), result);
 
         } catch (SecurityViolationException e) {
-            // Exception may happen here, or it may happen later.
-            // Expected
-            logger.debug("Expected exception", e);
+            displayExpectedException(e);
             assertTrue("Wrong exception message: " + e.getMessage(), e.getMessage().contains("Access to script language"));
             return;
         }
 
         logger.debug("Starting evaluation of expression (expecting security violation): {}", expression);
         try {
-
             expression.evaluate(expressionContext, result);
 
             AssertJUnit.fail("Unexpected success of expression evaluation");
-
         } catch (SecurityViolationException e) {
-            // Expected
-            logger.debug("Expected exception", e);
+            displayExpectedException(e);
             assertTrue("Wrong exception message: " + e.getMessage(),
                     e.getMessage().contains("Access to expression evaluator")
                             || e.getMessage().contains("Access to Groovy method"));
@@ -499,7 +494,7 @@ public class TestExpression extends AbstractModelCommonTest {
         ExpressionProfiles profiles = compiler.compile(expressions);
         ExpressionProfile profile = profiles.getProfile(profileName);
         if (profile == null) {
-            throw new SchemaException("Profile '" + profile + "' not found in system config");
+            throw new SchemaException("Profile '" + profileName + "' not found in system config");
         }
         return profile;
     }

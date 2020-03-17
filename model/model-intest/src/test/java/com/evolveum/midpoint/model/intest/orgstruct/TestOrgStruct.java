@@ -24,8 +24,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -798,9 +798,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
             assertNotReached();
         } catch (PolicyViolationException e) {
-            // THEN
             then();
-            display("Expected exception", e);
+            displayExpectedException(e);
             assertFailure(result);
         }
 
