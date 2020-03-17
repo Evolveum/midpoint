@@ -70,7 +70,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
         if (childItem == null) {
             childItem = (I) parent.getNewValue().findOrCreateItem(name);
-            childItem.setDefinition(def);
         }
 
         return createWrapper(parent, childItem, status, context);
