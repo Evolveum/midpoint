@@ -442,7 +442,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
 
             System.out.println("------------------------------------------------------------------");
-            display("OpenDJ resource schema (repo XML)", DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resourceOpenDjRepo)));
+            displayValue("OpenDJ resource schema (repo XML)", DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resourceOpenDjRepo)));
             System.out.println("------------------------------------------------------------------");
 
             checkOpenDjResource(openDjResourceProvisioninig.asObjectable(), "provisioning");
@@ -539,7 +539,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new ItemName(connectorNamespace, credentialsPropertyName));
         if (credentialsProp == null) {
             // The is the heisenbug we are looking for. Just dump the entire damn thing.
-            display("Configuration with the heisenbug", configurationContainer.debugDump());
+            displayValue("Configuration with the heisenbug", configurationContainer.debugDump());
         }
         assertNotNull("No " + credentialsPropertyName + " property in " + resource + " from " + source, credentialsProp);
         assertEquals("Wrong number of " + credentialsPropertyName + " property value in " + resource + " from " + source, 1, credentialsProp.getValues().size());
@@ -1221,7 +1221,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // THEN
 
-        display("Count", objects.size());
+        displayValue("Count", objects.size());
     }
 
     /**
@@ -1415,7 +1415,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String ldapPasswordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull(ldapPasswordAfter);
 
-        display("LDAP password after change", ldapPasswordAfter);
+        displayValue("LDAP password after change", ldapPasswordAfter);
 
         assertFalse("No change in password (original)", ldapPasswordAfter.equals(originalJacksLdapPassword));
         if (lastJacksLdapPassword != null) {
@@ -1524,7 +1524,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertOpenDJAccountJack(entry, "jack");
 
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
-        display("ds-pwp-account-disabled before change", pwpAccountDisabled);
+        displayValue("ds-pwp-account-disabled before change", pwpAccountDisabled);
         assertTrue("LDAP account is not enabled (precondition)", openDJController.isAccountEnabled(entry));
 
         assertNoRepoCache();
@@ -1580,7 +1580,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertOpenDJAccountJack(entry, "jack");
 
         pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
-        display("ds-pwp-account-disabled after change", pwpAccountDisabled);
+        displayValue("ds-pwp-account-disabled after change", pwpAccountDisabled);
         assertFalse("LDAP account was not disabled", openDJController.isAccountEnabled(entry));
 
         // Use getObject to test fetch of complete shadow
@@ -2669,7 +2669,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertTrue("Task result is not a success, it is " + taskResult, taskResult.isSuccess());
 
         final Object tokenAfter = findSyncToken(task);
-        display("Sync token after", tokenAfter.toString());
+        displayValue("Sync token after", tokenAfter.toString());
         lastSyncToken = (Integer) tokenAfter;
 
         checkAllShadows();
@@ -2696,7 +2696,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         final Object tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore.toString());
+        displayValue("Sync token before", tokenBefore.toString());
 
         // WHEN
         when();
@@ -2730,14 +2730,14 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         int tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore);
+        displayValue("Sync token before", tokenBefore);
 
         // WHEN
         display("Modifying LDAP entry");
         ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_WILL_MODIFY_FILE);
 
         // THEN
-        display("Entry from LDIF", entry);
+        displayValue("Entry from LDIF", entry);
 
         // Wait a bit to give the sync cycle time to detect the change
         basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 1, result);
@@ -2782,7 +2782,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         int tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore);
+        displayValue("Sync token before", tokenBefore);
 
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_E_FILENAME_LINK);
         display("Entry from LDIF", entry);
@@ -2824,7 +2824,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(syncCycle);
 
         int tokenBefore = findSyncToken(syncCycle);
-        display("Sync token before", tokenBefore);
+        displayValue("Sync token before", tokenBefore);
 
         // WHEN
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_WITHOUT_LOCATION_FILENAME);
@@ -2857,7 +2857,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private void assertAndStoreSyncTokenIncrement(Task syncCycle, int increment) {
         final Object tokenAfter = findSyncToken(syncCycle);
-        display("Sync token after", tokenAfter.toString());
+        displayValue("Sync token after", tokenAfter.toString());
         int tokenAfterInt = (Integer) tokenAfter;
         int expectedToken = lastSyncToken + increment;
         lastSyncToken = tokenAfterInt;
@@ -2904,7 +2904,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Make sure Mr. Gibbs has "l" attribute set to the same value as an outbound expression is setting
         ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_GIBBS_MODIFY_FILE);
-        display("Entry from LDIF", entry);
+        displayValue("Entry from LDIF", entry);
 
         // Let's add an entry with multiple uids.
         Entry addEntry = openDJController.addEntryFromLdifFile(LDIF_HERMAN_FILENAME);
@@ -3475,7 +3475,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // THEN
 
-        display("Resources", objectListHolder.value);
+        displayValue("Resources", objectListHolder.value);
         assertEquals("Unexpected number of resources", 4, objectListHolder.value.getObject().size());
         // TODO
 
@@ -3545,7 +3545,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         prop.setRealValue(entryUuid);
         anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
 
-        display("Angelica shadow: ", anglicaAccount.asPrismObject().debugDump());
+        displayValue("Angelica shadow: ", anglicaAccount.asPrismObject().debugDump());
 
         ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
         ObjectDeltaType delta = new ObjectDeltaType();

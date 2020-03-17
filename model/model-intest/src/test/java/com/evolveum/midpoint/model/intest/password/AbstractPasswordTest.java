@@ -163,14 +163,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 SystemObjectsType.SYSTEM_CONFIGURATION.value()).asObjectable();
         IntegrationTestTools.displayXml("system config", systemConfig.asPrismObject());
         for (EventHandlerType handler : systemConfig.getNotificationConfiguration().getHandler()) {
-            display("Handler: ", handler);
+            displayValue("Handler: ", handler);
             List<AccountActivationNotifierType> accountActivationNotifiers = handler.getAccountActivationNotifier();
             if (!accountActivationNotifiers.isEmpty()) {
                 accountActivationNotifier = accountActivationNotifiers.get(0);
             }
         }
 
-        display("Account activation notifier", accountActivationNotifier);
+        displayValue("Account activation notifier", accountActivationNotifier);
         assertNotNull("No accountActivationNotifier", accountActivationNotifier);
     }
 
@@ -1188,8 +1188,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
             AssertJUnit.fail("Unexpected success");
 
         } catch (PolicyViolationException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1333,7 +1332,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         } catch (PolicyViolationException e) {
             // This is expected
-            display("Exected exception", e);
+            displayException("Exected exception", e);
         }
 
         // THEN
@@ -1400,8 +1399,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN

@@ -130,7 +130,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         then();
         Task taskAfter = waitForTaskFinish(TASK_IMPORT_OID, true, SYNC_TASK_WAIT_TIMEOUT);
 
-        display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
+        displayValue("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_IMPORT_OID);
         displayOperationStatistics(statistics);
@@ -158,7 +158,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         then();
         Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
-        display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
+        displayValue("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECONCILIATION_OID);
         displayOperationStatistics(statistics);
@@ -186,7 +186,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         then();
         Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
-        display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
+        displayValue("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_BULK_DELETE_OID);
         displayOperationStatistics(statistics);
@@ -202,7 +202,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
         }
-        display("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
+        displayValue("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
 
         // THEN
         then();

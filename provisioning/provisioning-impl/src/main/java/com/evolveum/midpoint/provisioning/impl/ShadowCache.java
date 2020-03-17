@@ -1452,6 +1452,18 @@ public class ShadowCache {
             if (operationCompleted && gracePeriod == null) {
                 LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
                 shadowDelta.addModificationDeleteContainer(ShadowType.F_PENDING_OPERATION, pendingOperation.clone());
+
+                ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
+                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+
+                if (pendingDelta.isAdd()) {
+                    shadowInception = true;
+                }
+
+                if (pendingDelta.isDelete()) {
+                    shadowInception = false;
+                    shadowManager.addDeadShadowDeltas(repoShadow, refreshAsyncResult, (List)shadowDelta.getModifications());
+                }
                 continue;
 
             } else {

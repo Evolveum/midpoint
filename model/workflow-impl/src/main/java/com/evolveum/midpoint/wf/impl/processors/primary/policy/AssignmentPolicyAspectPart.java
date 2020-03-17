@@ -67,8 +67,6 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * Part of PolicyRuleBasedAspect related to assignments.
- *
- * @author mederly
  */
 @Component
 public class AssignmentPolicyAspectPart {

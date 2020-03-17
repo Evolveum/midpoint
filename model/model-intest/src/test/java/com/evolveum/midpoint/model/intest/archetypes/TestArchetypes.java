@@ -765,8 +765,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
             assertNotReached();
         } catch (PolicyViolationException e) {
-            // Expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN

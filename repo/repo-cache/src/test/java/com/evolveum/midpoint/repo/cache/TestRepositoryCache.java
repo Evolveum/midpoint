@@ -237,7 +237,7 @@ public class TestRepositoryCache extends AbstractSpringTest {
 
     private void dumpStatistics() {
         PerformanceInformation performanceInformation = repositoryCache.getPerformanceMonitor().getGlobalPerformanceInformation();
-        display("Repository statistics", RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+        displayValue("Repository statistics", RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
     }
 
     private void clearStatistics() {

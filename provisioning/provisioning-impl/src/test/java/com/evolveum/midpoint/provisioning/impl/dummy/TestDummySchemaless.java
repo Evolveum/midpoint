@@ -133,7 +133,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     @Test
     public void test000Integrity() throws Exception {
-        display("Dummy resource instance", dummyResourceSchemaless.toString());
+        displayValue("Dummy resource instance", dummyResourceSchemaless.toString());
 
         assertNotNull("Resource is null", resourceSchemaless);
         assertNotNull("ResourceType is null", resourceTypeSchemaless);
@@ -664,7 +664,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         // Check native capabilities
         CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-        display("Native capabilities ", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
+        displayValue("Native capabilities ", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
         display("Resource", resourceType.asPrismObject());
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -701,7 +701,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
         for (Object capability : effectiveCapabilities) {
-            display("Capability " + CapabilityUtil.getCapabilityDisplayName(capability), capability);
+            displayValue("Capability " + CapabilityUtil.getCapabilityDisplayName(capability), capability);
         }
     }
 
@@ -750,7 +750,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
                 addedObjectOid, null, result);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
     }

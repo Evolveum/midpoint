@@ -347,7 +347,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         OperationResult result = createOperationResult();
 
         PrismObject<RoleType> roleBefore = getObject(RoleType.class, ROLE_OID);
-        display("Role before", roleBefore);
+        displayValue("Role before", roleBefore);
 
         AssignmentType assignmentToAdd = new AssignmentType();
         assignmentToAdd.targetRef(ROLE_A1_OID, RoleType.COMPLEX_TYPE);
@@ -362,7 +362,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
-        display("Role after", roleAfter);
+        displayValue("Role after", roleAfter);
 
         PrismContainer<AssignmentType> assignment = roleAfter.findContainer(RoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
@@ -382,7 +382,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         OperationResult result = createOperationResult();
 
         PrismObject<RoleType> roleBefore = getObject(RoleType.class, ROLE_OID);
-        display("Role before", roleBefore);
+        displayValue("Role before", roleBefore);
 
         AssignmentType assignmentToAdd = new AssignmentType();
         assignmentToAdd.targetRef(ROLE_A2_OID, RoleType.COMPLEX_TYPE);
@@ -405,7 +405,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
-        display("Role after", roleAfter);
+        displayValue("Role after", roleAfter);
 
         PrismContainer<AssignmentType> assignment = roleAfter.findContainer(RoleType.F_ASSIGNMENT);
         assertNotNull(assignment);

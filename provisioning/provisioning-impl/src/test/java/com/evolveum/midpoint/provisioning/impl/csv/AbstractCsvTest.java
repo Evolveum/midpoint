@@ -156,7 +156,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-        display("Resource XML", resourceXml);
+        displayValue("Resource XML", resourceXml);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
         assertNotNull("No caching metadata", cachingMetadata);
@@ -238,7 +238,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         // THEN
         display("Resource from provisioninig", resource);
-        display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();

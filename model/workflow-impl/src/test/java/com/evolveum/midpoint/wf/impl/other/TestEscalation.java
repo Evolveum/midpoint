@@ -279,7 +279,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
                 assertEquals("Wrong cause display name in "+c, "Automatic rejection at deadline", c.getCause().getDisplayName());
             }
         }
-        display("completion event map", eventMap);
+        displayValue("completion event map", eventMap);
         assertEquals("Wrong # of completion events", 2, eventMap.size());
 
         displayCollection("audit records", dummyAuditService.getRecords());

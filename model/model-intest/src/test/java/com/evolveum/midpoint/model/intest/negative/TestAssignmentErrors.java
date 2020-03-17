@@ -319,9 +319,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
             assertNotReached();
         } catch (GenericConnectorException e) {
-            // THEN
             then();
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
         assertFailure(result);
 
@@ -483,7 +482,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfter = getSingleLinkOid(user);
-        display("Shadow OID after", shadowOidAfter);
+        displayValue("Shadow OID after", shadowOidAfter);
         PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
         display("Shadow after", shadowAfter);
 
@@ -507,7 +506,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfterAfter = getSingleLinkOid(user);
-        display("Shadow OID after the second time", shadowOidAfterAfter);
+        displayValue("Shadow OID after the second time", shadowOidAfterAfter);
 
         assertEquals("The shadow OIDs has changed after second recompute", shadowOidAfter, shadowOidAfterAfter);
     }
@@ -591,7 +590,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfter = getSingleLinkOid(user);
-        display("Shadow OID after", shadowOidAfter);
+        displayValue("Shadow OID after", shadowOidAfter);
         PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
         display("Shadow after", shadowAfter);
 
@@ -614,7 +613,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         user = getUser(user.getOid());
         display("User after", user);
         String shadowOidAfterAfter = getSingleLinkOid(user);
-        display("Shadow OID after the second time", shadowOidAfterAfter);
+        displayValue("Shadow OID after the second time", shadowOidAfterAfter);
 
         assertEquals("The shadow OIDs has changed after second recompute", shadowOidAfter, shadowOidAfterAfter);
 

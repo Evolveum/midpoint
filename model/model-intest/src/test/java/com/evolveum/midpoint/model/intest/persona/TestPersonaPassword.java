@@ -86,8 +86,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
 
             assertNotReached();
         } catch (PolicyViolationException e) {
-            // expected
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN

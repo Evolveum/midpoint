@@ -44,7 +44,7 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
                 DataModelVisualizer.Target.DOT, task, result);
 
         // THEN
-        display("Visualization output", output);
+        displayValue("Visualization output", output);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
@@ -60,7 +60,7 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
                 DataModelVisualizer.Target.DOT, task, result);
 
         // THEN
-        display("Visualization output", output);
+        displayValue("Visualization output", output);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }

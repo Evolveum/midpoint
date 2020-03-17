@@ -1627,8 +1627,7 @@ public class TestRbac extends AbstractRbacTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
             assertMessage(e, "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time");
         }
 
@@ -1752,8 +1751,7 @@ public class TestRbac extends AbstractRbacTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
             assertMessage(e, "Role \"Governor\" requires at most 1 assignees with the relation of \"default\". The operation would result in 2 assignees.");
         }
 
@@ -1786,8 +1784,7 @@ public class TestRbac extends AbstractRbacTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
             assertMessage(e, "Role \"Governor\" requires at most 0 assignees with the relation of \"approver\". The operation would result in 1 assignees.");
         }
 
@@ -1911,8 +1908,7 @@ public class TestRbac extends AbstractRbacTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
             assertMessage(e, "Role \"Cannibal\" requires at most 3 assignees with the relation of \"default\". The operation would result in 4 assignees.");
         }
 
@@ -1966,8 +1962,7 @@ public class TestRbac extends AbstractRbacTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
             assertMessage(e, "Role \"Cannibal\" requires at least 2 assignees with the relation of \"default\". The operation would result in 1 assignees.");
         }
 
@@ -2034,8 +2029,7 @@ public class TestRbac extends AbstractRbacTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
             assertMessage(e, "Role \"Cannibal\" requires at least 1 assignees with the relation of \"owner\". The operation would result in 0 assignees.");
         }
 

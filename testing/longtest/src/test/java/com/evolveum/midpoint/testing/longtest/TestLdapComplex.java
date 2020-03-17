@@ -121,7 +121,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         openDJController.addEntriesFromLdifFile(ROLES_LDIF_FILE.getPath());
 
-        display("initial LDAP content", openDJController.dumpEntries());
+        displayValue("initial LDAP content", openDJController.dumpEntries());
     }
 
     @Test
@@ -149,7 +149,7 @@ public class TestLdapComplex extends AbstractLongTest {
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 4, userCount);
 
         assertUser("u1", task, result);
@@ -187,7 +187,7 @@ public class TestLdapComplex extends AbstractLongTest {
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 4, userCount);
 
         assertUser("u1", task, result);

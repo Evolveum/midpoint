@@ -90,14 +90,14 @@ public class ModifyTestReindex extends ModifyTest {
         UserType userBefore = repositoryService
                 .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
-        display("user before", userBefore.asPrismObject());
+        displayValue("user before", userBefore.asPrismObject());
 
         repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
 
         UserType userAfter = repositoryService
                 .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
-        display("user after", userAfter.asPrismObject());
+        displayValue("user after", userAfter.asPrismObject());
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(INDEX_ONLY_PATH).eq("hi")

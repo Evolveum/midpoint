@@ -73,7 +73,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
-        display("Configuration container", configContainer);
+        displayValue("Configuration container", configContainer);
 
         // WHEN
         cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
@@ -142,7 +142,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of search results", 1, searchResults.size());
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
-        display("stats", opStat);
+        displayValue("stats", opStat);
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumIdle());
     }
@@ -190,7 +190,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread.sleep(500);
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
-        display("stats (blocked)", opStat);
+        displayValue("stats (blocked)", opStat);
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
@@ -206,12 +206,12 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of search results", 1, searchResults.size());
 
         opStat = cc.getOperationalStatus();
-        display("stats (final)", opStat);
+        displayValue("stats (final)", opStat);
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumIdle());
 
         PrismObject<ShadowType> searchResult = searchResults.get(0);
-        display("Search result", searchResult);
+        displayValue("Search result", searchResult);
     }
 
     @Test
@@ -265,7 +265,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread.sleep(500);
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
-        display("stats (blocked 1)", opStat);
+        displayValue("stats (blocked 1)", opStat);
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
@@ -290,7 +290,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread.sleep(500);
 
         opStat = cc.getOperationalStatus();
-        display("stats (blocked 2)", opStat);
+        displayValue("stats (blocked 2)", opStat);
         assertEquals("Wrong pool active", (Integer) 2, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
@@ -308,15 +308,15 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of search results 2", 1, searchResults2.size());
 
         opStat = cc.getOperationalStatus();
-        display("stats (final)", opStat);
+        displayValue("stats (final)", opStat);
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 2, opStat.getPoolStatusNumIdle());
 
         PrismObject<ShadowType> searchResult1 = searchResults1.get(0);
-        display("Search result 1", searchResult1);
+        displayValue("Search result 1", searchResult1);
 
         PrismObject<ShadowType> searchResult2 = searchResults2.get(0);
-        display("Search result 2", searchResult2);
+        displayValue("Search result 2", searchResult2);
     }
 
     private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {

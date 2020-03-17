@@ -297,7 +297,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
                 String.format("%" + (max + 2) + "s: " + REPO_LINE_FORMAT,
                         kind, counters.get(kind).getInvocationCount(),
                         (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
-        display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) - per " + unit, sb.toString());
+        displayValue(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) - per " + unit, sb.toString());
     }
 
     @Test
@@ -515,7 +515,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
         }
-        display("Summary (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles)", sb.toString());
+        displayValue("Summary (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles)", sb.toString());
 
         // THEN
         then();

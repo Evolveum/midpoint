@@ -263,8 +263,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
     }
 
@@ -1162,7 +1161,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
 
-        display("FORCE DELETE", dummyShadowOid);
+        displayValue("FORCE DELETE", dummyShadowOid);
         // Force delete of dead shadow
         forceDeleteShadow(dummyShadowOid);
 
@@ -1318,8 +1317,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1441,8 +1439,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1476,8 +1473,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // this is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN

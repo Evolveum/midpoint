@@ -187,7 +187,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         // THEN
         display("Object class", objectClass);
-        display("Object class (toString)", objectClass.toString());
+        displayValue("Object class (toString)", objectClass.toString());
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_OBJECTCLASS_OID);
 
@@ -208,7 +208,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         // THEN
         display("Object class", objectClass);
-        display("Object class (toString)", objectClass.toString());
+        displayValue("Object class (toString)", objectClass.toString());
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OID);
 
@@ -230,7 +230,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         // THEN
         display("Object class", objectClass);
-        display("Object class (toString)", objectClass.toString());
+        displayValue("Object class (toString)", objectClass.toString());
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID);
 

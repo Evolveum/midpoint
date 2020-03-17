@@ -131,7 +131,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", 6, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_UUID_OID);
 
@@ -187,7 +187,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", 7, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_UUID_OID);
 
@@ -230,7 +230,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         assertFalse("Account IDs not changed", oldAccount.getId().equals(newAccount.getId()));
 
-        display("Old shadow OID", augustusShadowOid);
+        displayValue("Old shadow OID", augustusShadowOid);
         display("Account ID " + oldAccount.getId() + " -> " + newAccount.getId());
 
         Task taskBefore = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_UUID_OID, result);
@@ -266,7 +266,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", 7, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_UUID_OID);
 
@@ -315,7 +315,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         assertFalse("Account IDs not changed", oldAccount.getId().equals(account.getId()));
 
-        display("Old shadow OID", augustusShadowOid);
+        displayValue("Old shadow OID", augustusShadowOid);
         display("Account ID " + oldAccount.getId() + " -> " + account.getId());
 
         Task taskBefore = taskManager.getTaskPlain(TASK_RECONCILE_DUMMY_UUID_OID, result);
@@ -351,7 +351,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", 7, users.size());
 
-        display("Dummy resource", getDummyResource().debugDump());
+        displayValue("Dummy resource", getDummyResource().debugDump());
 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_UUID_OID);
 

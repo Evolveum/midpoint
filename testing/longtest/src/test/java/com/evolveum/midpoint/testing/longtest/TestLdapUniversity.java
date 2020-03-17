@@ -111,7 +111,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        display("initial LDAP content", openDJController.dumpEntries());
+        displayValue("initial LDAP content", openDJController.dumpEntries());
     }
 
     @Test
@@ -141,7 +141,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         then();
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 1, userCount);
 
         display("e0(u0)", findUserByUsername("e0(u0)"));
@@ -192,7 +192,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         then();
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000, 10000L);
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 1, userCount);
 
         display("e0(u0)", findUserByUsername("e0(u0)"));

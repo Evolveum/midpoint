@@ -124,7 +124,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -342,7 +342,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -388,7 +388,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -431,7 +431,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -483,7 +483,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals("Wrong number of constructions", 4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -556,7 +556,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -618,7 +618,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -675,7 +675,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
 
         // TODO
     }
@@ -732,7 +732,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -785,7 +785,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -842,7 +842,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertSuccess(result);
 
         DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = lensContext.getEvaluatedAssignmentTriple();
-        display("Evaluated assignment triple", triple.debugDump());
+        displayValue("Evaluated assignment triple", triple.debugDump());
         assertEquals("Wrong # of evaluated assignments zero set", 0, triple.getZeroSet().size());
         assertEquals("Wrong # of evaluated assignments plus set", 1, triple.getPlusSet().size());
         assertEquals("Wrong # of evaluated assignments minus set", 1, triple.getMinusSet().size());

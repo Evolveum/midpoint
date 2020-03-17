@@ -87,11 +87,9 @@ public class TestPrismParsingXml extends TestPrismParsing {
 
             AssertJUnit.fail("Unexpected success");
         } catch (IllegalStateException e) {
-            // THEN
-            System.out.println("Expected exception: "+e);
+            displayExpectedException(e);
             assertTrue("Unexpected exception message: "+e.getMessage(), e.getMessage().contains("DOCTYPE"));
         }
-
     }
 
     @Test
@@ -102,10 +100,8 @@ public class TestPrismParsingXml extends TestPrismParsing {
 
             AssertJUnit.fail("Unexpected success");
         } catch (IllegalStateException e) {
-            // THEN
-            System.out.println("Expected exception: "+e);
+            displayExpectedException(e);
             assertTrue("Unexpected exception message: "+e.getMessage(), e.getMessage().contains("DOCTYPE"));
         }
-
     }
 }

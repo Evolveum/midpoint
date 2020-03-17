@@ -88,7 +88,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        display("Dummy resource instance", dummyResource.toString());
+        displayValue("Dummy resource instance", dummyResource.toString());
 
         OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
         assertSuccess(testResult);
@@ -1417,7 +1417,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1495,7 +1495,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1614,7 +1614,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1692,7 +1692,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             assertNotReached();
         } catch (ObjectAlreadyExistsException e) {
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1852,7 +1852,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             assertNotReached();
         } catch (ObjectNotFoundException e) {
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -1991,7 +1991,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             provisioningService.addObject(account, null, null, task, result);
         } catch (ObjectAlreadyExistsException e) {
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN

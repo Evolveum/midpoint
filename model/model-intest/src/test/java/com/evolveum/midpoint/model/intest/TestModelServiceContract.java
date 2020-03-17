@@ -161,9 +161,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
             assertNotReached();
 
         } catch (UnsupportedOperationException e) {
-            // THEN
             then();
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         assertFailure(result);
@@ -2055,8 +2054,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
             AssertJUnit.fail("Unexpected executeChanges success");
         } catch (PolicyViolationException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         // THEN
@@ -3325,7 +3323,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     private void assertResultSerialization(OperationResult result) throws SchemaException {
         OperationResultType resultType = result.createOperationResultType();
         String serialized = prismContext.serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
-        display("OperationResultType serialized", serialized);
+        displayValue("OperationResultType serialized", serialized);
     }
 
 }

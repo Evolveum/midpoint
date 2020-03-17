@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.testng.ITestResult;
+import org.testng.SkipException;
 
 /**
  * Mixin with various utility methods, mostly related to test header/footer/section output/logging.
@@ -30,6 +31,10 @@ public interface MidpointTestMixin {
     String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
     String TEST_LOG_SECTION_PREFIX = "----- ";
     String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
+
+    String DISPLAY_OUT_PREFIX = "\n*** ";
+    String DISPLAY_LOG_FORMAT1 = "*** {}";
+    String DISPLAY_LOG_FORMAT2 = "*** {}:\n{}";
 
     /**
      * Context name is {@link #getTestName()} if test method context is available,
@@ -134,9 +139,31 @@ public interface MidpointTestMixin {
         logger().debug("*** {}", text);
     }
 
-    default void display(String title, String value) {
-        System.out.println("\n*** " + title + "\n" + value);
-        logger().debug("*** {}\n{}", title, value);
+    /**
+     * Displays
+     */
+    default void displayValue(String title, Object value) {
+        System.out.println(DISPLAY_OUT_PREFIX + title + "\n" + value);
+        logger().debug(DISPLAY_LOG_FORMAT2, title, value);
+    }
+
+    /**
+     * Displays throwable with title including full stacktrace.
+     * Use for "bad" exceptions, for expected exceptions use {@link #displayExpectedException}.
+     */
+    default void displayException(String title, Throwable e) {
+        System.out.println(DISPLAY_OUT_PREFIX + title);
+        e.printStackTrace();
+        logger().debug(DISPLAY_LOG_FORMAT1, title, e);
+    }
+
+    /**
+     * Displays expected exception without stacktrace (seeing it is rather confusing/disturbing).
+     */
+    default void displayExpectedException(Throwable e) {
+        String expectedExceptionWithClass = "Expected exception " + e.getClass();
+        System.out.println(DISPLAY_OUT_PREFIX + expectedExceptionWithClass + ":\n" + e.getMessage());
+        logger().debug(DISPLAY_LOG_FORMAT2, expectedExceptionWithClass, e.getMessage());
     }
 
     /**
@@ -219,5 +246,17 @@ public interface MidpointTestMixin {
         }
         System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_OUT_SECTION_SUFFIX);
         logger().info(TEST_LOG_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_LOG_SECTION_SUFFIX);
+    }
+
+    /**
+     * Skips test if skip condition is met by throwing {@link SkipException}.
+     * Message will contain the test name and provided description.
+     */
+    default void skipTestIf(boolean skipCondition, String description) {
+        if (skipCondition) {
+            String message = "Skipping " + getTestNameShort() + ": " + description;
+            display(message);
+            throw new SkipException(message);
+        }
     }
 }

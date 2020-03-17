@@ -257,6 +257,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     }
 
     void dumpSynchronizationInformation(SynchronizationInformationType synchronizationInformation) {
-        display("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
+        displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
     }
 }

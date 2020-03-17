@@ -203,7 +203,7 @@ public class TestPolyString extends AbstractPrismTest {
         PolyString polyString = new PolyString(orig);
         polyString.recompute(normalizer);
         String norm = polyString.getNorm();
-        display("X: "+orig+" -> "+norm, unicodeEscape(orig)+"\n"+unicodeEscape(norm));
+        displayValue("X: "+orig+" -> "+norm, unicodeEscape(orig)+"\n"+unicodeEscape(norm));
         assertEquals("orig have changed", orig, polyString.getOrig());
         assertEquals("wrong norm", expectedNorm, polyString.getNorm());
         assertEquals("wrong toString", orig, polyString.toString());

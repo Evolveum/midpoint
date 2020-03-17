@@ -347,6 +347,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             return null;
         } else if (outcome.equals(OperationResultStatusType.SUCCESS.value())) {
             return OperationResultStatus.SUCCESS;
+        } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(outcome)) {
+            return OperationResultStatus.SUCCESS;
         } else {
             return OperationResultStatus.UNKNOWN;
         }

@@ -784,7 +784,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         IntegrationTestTools.assertNoRepoCache();
         SqlRepoTestUtil.assertVersionProgress(null, resource.getVersion());
         lastVersion =  resource.getVersion();
-        display("Initial version", lastVersion);
+        displayValue("Initial version", lastVersion);
 
         assertSuccess(result);
 
@@ -999,7 +999,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         String serializedResource = prismContext.serializerFor(PrismContext.LANG_XML).serialize(resourceBefore);
         String modifiedResourceXml = serializedResource.replace("whatever raw wherever",
                 "<expression><const xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"c:ConstExpressionEvaluatorType\">useless</const></expression>");
-        display("New resource XML", modifiedResourceXml);
+        displayValue("New resource XML", modifiedResourceXml);
 
         PrismObject<ResourceType> modifiedResource = parser.apply(modifiedResourceXml);
         display("New resource", modifiedResource);
@@ -1133,7 +1133,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, getOptions, task, result);
         SqlRepoTestUtil.assertVersionProgress(lastVersion, resourceAfter.getVersion());
         lastVersion = resourceAfter.getVersion();
-        display("Version", lastVersion);
+        displayValue("Version", lastVersion);
 
         Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
         if (xsdSchema != null) {

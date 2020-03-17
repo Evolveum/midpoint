@@ -70,7 +70,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
 
         // THEN
         then();
-        display("Returned user list (" + userList.getObject().size() + " objects)", userList);
+        displayValue("Returned user list (" + userList.getObject().size() + " objects)", userList);
 
         assertUserList(userList);
     }
@@ -91,7 +91,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         }
     }
 
@@ -111,7 +111,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         }
     }
 
@@ -136,7 +136,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
         }
@@ -163,7 +163,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
         }
@@ -192,7 +192,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
 
         // THEN
         then();
-        display("Returned user list (" + userList.getObject().size() + " objects)", userList);
+        displayValue("Returned user list (" + userList.getObject().size() + " objects)", userList);
 
         assertUserList(userList);
     }
@@ -211,7 +211,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
-        display("Current users in midPoint (" + currentUsers.size() + " users)", currentUsers.toString());
+        displayValue("Current users in midPoint (" + currentUsers.size() + " users)", currentUsers.toString());
 
         assertEquals("Unexpected number of returned objects", currentUsers.size(), userList.getObject().size());
     }

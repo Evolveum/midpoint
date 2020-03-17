@@ -106,9 +106,8 @@ public class AboutPageTest extends AbstractSchrodingerTest {
         // @formatter:on
     }
 
-    @Test
+    @Test (enabled = false)
     public void checkJVMPropertiesMidpointHome(){
-        Selenide.sleep(2000);
         Assert.assertFalse(
                 aboutPage.getJVMproperty(AbstractSchrodingerTest.PROPERTY_NAME_MIDPOINT_HOME).isEmpty());
     }

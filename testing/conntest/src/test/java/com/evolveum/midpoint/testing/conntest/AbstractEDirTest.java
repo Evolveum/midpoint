@@ -598,7 +598,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, "loginDisabled", "TRUE");
 
         assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
@@ -656,11 +656,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, "title", "Captain");
 
         Entry groupEntry = assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
-        display("Group entry", groupEntry);
+        displayValue("Group entry", groupEntry);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -924,7 +924,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("Entry", entry);
+        displayValue("Entry", entry);
         assertAttribute(entry, "title", "Captain");
 
         assertEDirNoGroupMember(entry, GROUP_PIRATES_NAME);
