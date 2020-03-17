@@ -130,12 +130,15 @@ public interface MidpointTestMixin {
      */
     default void displayTestFooter(String testTitle, ITestResult testResult) {
         if (testResult.getThrowable() != null) {
-            displayException(testTitle + " thrown unexpected exception", testResult.getThrowable());
+            displayException(testTitle + " threw unexpected exception", testResult.getThrowable());
         }
 
         long testMsDuration = testResult.getEndMillis() - testResult.getStartMillis();
-        System.out.println(TEST_OUT_FOOTER_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
-        logger().info(TEST_LOG_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_LOG_SUFFIX);
+        String finishedLabel = testResult.isSuccess()
+                ? " FINISHED in "
+                : " FINISHED with FAILURE in ";
+        System.out.println(TEST_OUT_FOOTER_PREFIX + testTitle + finishedLabel + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
+        logger().info(TEST_LOG_PREFIX + testTitle + finishedLabel + testMsDuration + " ms" + TEST_LOG_SUFFIX);
     }
 
     default void display(String text) {
@@ -158,7 +161,7 @@ public interface MidpointTestMixin {
     default void displayException(String title, Throwable e) {
         System.out.println(DISPLAY_OUT_PREFIX + title + ":");
         e.printStackTrace(System.out);
-        logger().debug(DISPLAY_LOG_FORMAT1, title, e);
+        logger().warn(DISPLAY_LOG_FORMAT1, title, e);
     }
 
     /**
