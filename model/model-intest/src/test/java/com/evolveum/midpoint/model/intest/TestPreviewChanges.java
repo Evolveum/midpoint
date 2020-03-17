@@ -329,8 +329,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
             modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
             AssertJUnit.fail("Expected exception, but it haven't come");
         } catch (SchemaException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         result.computeStatus();

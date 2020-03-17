@@ -626,7 +626,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         assertFocusModificationSanity(context);
 
-        // WHEN
         when();
         try {
             clockwork.run(context, task, result);
@@ -634,8 +633,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
             fail("unexpected success");
         } catch (ObjectNotFoundException e) {
             then();
-            System.out.println("Expected exception: " + e);
-            e.printStackTrace(System.out);
+            displayExpectedException(e);
             if (!e.getMessage().contains("No policy constraint named 'unresolvable' could be found")) {
                 fail("Exception message was not as expected: " + e.getMessage());
             }
@@ -662,8 +660,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
             fail("unexpected success");
         } catch (SchemaException e) {
             then();
-            System.out.println("Expected exception: " + e);
-            e.printStackTrace(System.out);
+            displayExpectedException(e);
             if (!e.getMessage().contains("Trying to resolve cyclic reference to constraint")) {
                 fail("Exception message was not as expected: " + e.getMessage());
             }
@@ -747,8 +744,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
             fail("unexpected success");
         } catch (SchemaException e) {
             then();
-            System.out.println("Expected exception: " + e);
-            e.printStackTrace(System.out);
+            displayExpectedException(e);
             if (!e.getMessage().contains("Conflicting definitions of 'constraint-B'")) {
                 fail("Exception message was not as expected: " + e.getMessage());
             }
@@ -779,8 +775,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
             fail("unexpected success");
         } catch (PolicyViolationException e) {
             then();
-            System.out.println("Expected exception: " + e);
-            e.printStackTrace(System.out);
+            displayExpectedException(e);
             if (!getTranslatedMessage(e).contains("Role \"Immutable inducements\" is to be modified")) {
                 fail("Exception message was not as expected: " + getTranslatedMessage(e));
             }
@@ -859,8 +854,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
             fail("unexpected success");
         } catch (PolicyViolationException e) {
             then();
-            System.out.println("Expected exception: " + e);
-            e.printStackTrace(System.out);
+            displayExpectedException(e);
             if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete\" is to be modified")) {
                 fail("Exception message was not as expected: " + getTranslatedMessage(e));
             }
@@ -891,8 +885,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
             fail("unexpected success");
         } catch (PolicyViolationException e) {
             then();
-            System.out.println("Expected exception: " + e);
-            e.printStackTrace(System.out);
+            displayExpectedException(e);
             if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete (expression)\" is to be modified")) {
                 fail("Exception message was not as expected: " + getTranslatedMessage(e));
             }

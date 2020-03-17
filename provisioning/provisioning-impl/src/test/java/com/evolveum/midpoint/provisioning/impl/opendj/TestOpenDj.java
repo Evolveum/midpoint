@@ -740,7 +740,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, null, task, result).asObjectable();
             Assert.fail("Expected exception, but haven't got one");
         } catch (ObjectNotFoundException e) {
-            // This is expected
+            displayExpectedException(e);
 
             // Just to close the top-level result.
             result.recordFatalError("Error :-)");
@@ -884,7 +884,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             provisioningService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, task, result);
             Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayExpectedException(ex);
         }
 
         try {
@@ -892,7 +892,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             // objType = container.getObject();
             Assert.fail("Expected exception, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayExpectedException(ex);
             assertTrue(ex.getMessage().contains(ACCOUNT_SPARROW_OID));
         }
 
@@ -2010,8 +2010,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             AssertJUnit.fail("Expected addObject operation to fail but it was successful");
 
         } catch (ObjectAlreadyExistsException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
 
             // The exception should originate from the LDAP layers
             IntegrationTestTools.assertInMessageRecursive(e, "LDAP");
@@ -2036,8 +2035,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             AssertJUnit.fail("Expected addObject operation to fail but it was successful");
 
         } catch (SchemaException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
 
             // This error should be detectable before it reaches a resource. Therefore we check that the
             // cause was not a LDAP exception
@@ -2157,7 +2155,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             provisioningService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, null, task, result);
             Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayExpectedException(ex);
         }
 
         try {
@@ -2165,7 +2163,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             // objType = container.getObject();
             Assert.fail("Expected exception, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            display("Expected exception", ex);
+            displayExpectedException(ex);
             assertTrue(ex.getMessage().contains(ACCOUNT_POSIX_MCMUTTON_OID));
         }
 
@@ -2546,7 +2544,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                     null, task, result).asObjectable();
             Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
         } catch (ObjectNotFoundException ex) {
-            System.out.println("Catched ObjectNotFoundException.");
+            displayExpectedException(ex);
             assertNull(objType);
         }
 

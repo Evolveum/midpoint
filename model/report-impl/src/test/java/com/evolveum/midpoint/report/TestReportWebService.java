@@ -91,7 +91,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         }
     }
 
@@ -111,7 +111,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         }
     }
 
@@ -136,7 +136,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
         }
@@ -163,7 +163,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
         } catch (Fault f) {
             // THEN
             then();
-            display("Expected fault", f);
+            displayException("Expected fault", f);
         } finally {
             login(USER_ADMINISTRATOR_USERNAME);
         }

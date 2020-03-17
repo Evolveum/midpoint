@@ -6,21 +6,9 @@
  */
 package com.evolveum.midpoint.util;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -41,21 +29,28 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 
 /**
  * @author semancik
- *
  */
 public class MiscUtil {
 
     private static final int BUFFER_SIZE = 2048;
 
-    private static final Trace LOGGER = TraceManager.getTrace(MiscUtil.class);
-
-    private static DatatypeFactory df = null;
+    private static DatatypeFactory df;
 
     static {
         try {
@@ -68,7 +63,7 @@ public class MiscUtil {
     @NotNull
     public static <T> Collection<T> union(Collection<T>... sets) {
         Set<T> resultSet = new HashSet<>();
-        for (Collection<T> set: sets) {
+        for (Collection<T> set : sets) {
             if (set != null) {
                 resultSet.addAll(set);
             }
@@ -78,30 +73,12 @@ public class MiscUtil {
 
     public static <T> Collection<? extends T> unionExtends(Collection<? extends T>... sets) {
         Set<T> resultSet = new HashSet<>();
-        for (Collection<? extends T> set: sets) {
+        for (Collection<? extends T> set : sets) {
             if (set != null) {
                 resultSet.addAll(set);
             }
         }
         return resultSet;
-    }
-
-    public static <T> boolean listEquals(List<T> a, List<T> b) {
-        if (a == null && b == null) {
-            return true;
-        }
-        if (a == null || b == null) {
-            return false;
-        }
-        if (a.size() != b.size()) {
-            return false;
-        }
-        for (int i = 0; i < a.size(); i++) {
-            if (!a.get(i).equals(b.get(i))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public static <T> boolean unorderedCollectionEquals(Collection<T> a, Collection<T> b) {
@@ -122,9 +99,9 @@ public class MiscUtil {
     /**
      * Only zero vs non-zero value of comparator is important.
      */
-    public static <A,B> boolean unorderedCollectionEquals(Collection<A> a, Collection<B> b, HeteroComparator<A,B> comparator) {
+    public static <A, B> boolean unorderedCollectionEquals(Collection<A> a, Collection<B> b, HeteroComparator<A, B> comparator) {
         if (a == null && b == null) {
-             return true;
+            return true;
         }
         if (a == null || b == null) {
             return false;
@@ -134,10 +111,10 @@ public class MiscUtil {
         }
         Collection<B> outstanding = new ArrayList<>(b.size());
         outstanding.addAll(b);
-        for (A ao: a) {
+        for (A ao : a) {
             boolean found = false;
             Iterator<B> iterator = outstanding.iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 B oo = iterator.next();
                 if (comparator.isEquivalent(ao, oo)) {
                     iterator.remove();
@@ -156,12 +133,7 @@ public class MiscUtil {
     }
 
     public static <T> boolean unorderedArrayEquals(T[] a, T[] b) {
-        Comparator<T> comparator = new Comparator<T>() {
-            @Override
-            public int compare(T o1, T o2) {
-                return o1.equals(o2) ? 0 : 1;
-            }
-        };
+        Comparator<T> comparator = (o1, o2) -> o1.equals(o2) ? 0 : 1;
         return unorderedArrayEquals(a, b, comparator);
     }
 
@@ -179,10 +151,10 @@ public class MiscUtil {
             return false;
         }
         List<T> outstanding = Arrays.asList(b);
-        for (T ao: a) {
+        for (T ao : a) {
             boolean found = false;
             Iterator<T> iterator = outstanding.iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 T oo = iterator.next();
                 if (comparator.compare(ao, oo) == 0) {
                     iterator.remove();
@@ -202,7 +174,7 @@ public class MiscUtil {
     public static <T> int unorderedCollectionHashcode(Collection<T> collection, Predicate<T> filter) {
         // Stupid implmentation, just add all the hashcodes
         int hashcode = 0;
-        for (T item: collection) {
+        for (T item : collection) {
             if (filter != null && !filter.test(item)) {
                 continue;
             }
@@ -216,8 +188,8 @@ public class MiscUtil {
         StringBuilder fileData = new StringBuilder(BUFFER_SIZE);
         BufferedReader reader = new BufferedReader(new FileReader(file));
         char[] buf = new char[BUFFER_SIZE];
-        int numRead=0;
-        while((numRead=reader.read(buf)) != -1){
+        int numRead;
+        while ((numRead = reader.read(buf)) != -1) {
             String readData = String.valueOf(buf, 0, numRead);
             fileData.append(readData);
             buf = new char[BUFFER_SIZE];
@@ -231,31 +203,18 @@ public class MiscUtil {
             destFile.createNewFile();
         }
 
-        FileChannel source = null;
-        FileChannel destination = null;
-        try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destFile).getChannel();
+        try (FileChannel source = new FileInputStream(sourceFile).getChannel();
+                FileChannel destination = new FileOutputStream(destFile).getChannel()) {
             destination.transferFrom(source, 0, source.size());
-        } finally {
-            if (source != null) {
-                source.close();
-            }
-            if (destination != null) {
-                destination.close();
-            }
         }
     }
 
     /**
      * Copy a directory and its contents.
      *
-     * @param src
-     *            The name of the directory to copy.
-     * @param dst
-     *            The name of the destination directory.
-     * @throws IOException
-     *             If the directory could not be copied.
+     * @param src The name of the directory to copy.
+     * @param dst The name of the destination directory.
+     * @throws IOException If the directory could not be copied.
      */
     public static void copyDirectory(File src, File dst) throws IOException {
         if (src.isDirectory()) {
@@ -276,9 +235,7 @@ public class MiscUtil {
     @SafeVarargs
     public static <T> Collection<T> createCollection(T... items) {
         Collection<T> collection = new ArrayList<>(items.length);
-        for (T item: items) {
-            collection.add(item);
-        }
+        Collections.addAll(collection, items);
         return collection;
     }
 
@@ -287,7 +244,7 @@ public class MiscUtil {
      */
     public static Boolean and(Boolean... operands) {
         Boolean result = null;
-        for (Boolean operand: operands) {
+        for (Boolean operand : operands) {
             if (operand == null) {
                 continue;
             }
@@ -314,8 +271,8 @@ public class MiscUtil {
      *
      * @param date Instance of java.util.Date or a null reference
      * @return XMLGregorianCalendar instance whose value is based upon the
-     *         value in the date parameter. If the date parameter is null then
-     *         this method will simply return null.
+     * value in the date parameter. If the date parameter is null then
+     * this method will simply return null.
      */
     public static XMLGregorianCalendar asXMLGregorianCalendar(java.util.Date date) {
         if (date == null) {
@@ -342,8 +299,8 @@ public class MiscUtil {
      *
      * @param xgc Instance of XMLGregorianCalendar or a null reference
      * @return java.util.Date instance whose value is based upon the
-     *         value in the xgc parameter. If the xgc parameter is null then
-     *         this method will simply return null.
+     * value in the xgc parameter. If the xgc parameter is null then
+     * this method will simply return null.
      */
     public static java.util.Date asDate(XMLGregorianCalendar xgc) {
         if (xgc == null) {
@@ -376,7 +333,7 @@ public class MiscUtil {
 
     private static <T> void carthesian(List<T> items, List<Collection<T>> dimensions, int dimensionNum, Processor<Collection<T>> processor) {
         Collection<T> myDimension = dimensions.get(dimensionNum);
-        for (T item: myDimension) {
+        for (T item : myDimension) {
             items.add(item);
             if (dimensionNum < dimensions.size() - 1) {
                 carthesian(items, dimensions, dimensionNum + 1, processor);
@@ -389,14 +346,14 @@ public class MiscUtil {
 
     public static String concat(Collection<String> stringCollection) {
         StringBuilder sb = new StringBuilder();
-        for (String s: stringCollection) {
+        for (String s : stringCollection) {
             sb.append(s);
         }
         return sb.toString();
     }
 
     public static boolean isAllNull(Collection<?> collection) {
-        for (Object o: collection) {
+        for (Object o : collection) {
             if (o != null) {
                 return false;
             }
@@ -408,7 +365,7 @@ public class MiscUtil {
         if (object == null) {
             return "null";
         }
-        return "("+object.getClass().getSimpleName() + ")"  + object;
+        return "(" + object.getClass().getSimpleName() + ")" + object;
     }
 
     public static String getClass(Object object) {
@@ -455,12 +412,12 @@ public class MiscUtil {
     /**
      * Shallow clone
      */
-    public static <K,V> Map<K,V> cloneMap(Map<K, V> orig) {
+    public static <K, V> Map<K, V> cloneMap(Map<K, V> orig) {
         if (orig == null) {
             return null;
         }
-        Map<K,V> clone = new HashMap<>();
-        for (Entry<K, V> origEntry: orig.entrySet()) {
+        Map<K, V> clone = new HashMap<>();
+        for (Entry<K, V> origEntry : orig.entrySet()) {
             clone.put(origEntry.getKey(), origEntry.getValue());
         }
         return clone;
@@ -477,7 +434,7 @@ public class MiscUtil {
         List<String> lines = new ArrayList<>();
         Scanner scanner = new Scanner(string);
         while (scanner.hasNextLine()) {
-          lines.add(scanner.nextLine());
+            lines.add(scanner.nextLine());
         }
         return lines;
     }
@@ -488,7 +445,7 @@ public class MiscUtil {
     }
 
     public static <T> boolean contains(T element, T[] array) {
-        for (T aElement: array) {
+        for (T aElement : array) {
             if (equals(element, aElement)) {
                 return true;
             }
@@ -508,7 +465,7 @@ public class MiscUtil {
             return null;
         }
         List<T> out = new ArrayList<>(disps.size());
-        for (DisplayableValue<T> disp: disps) {
+        for (DisplayableValue<T> disp : disps) {
             out.add(disp.getValue());
         }
         return out;
@@ -524,9 +481,9 @@ public class MiscUtil {
 
     public static byte[] hexToBinary(String hex) {
         int l = hex.length();
-        byte[] bytes = new byte[l/2];
+        byte[] bytes = new byte[l / 2];
         for (int i = 0; i < l; i += 2) {
-            bytes[i/2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+            bytes[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
                     + Character.digit(hex.charAt(i + 1), 16));
         }
         return bytes;
@@ -540,7 +497,7 @@ public class MiscUtil {
         if (supplyingList == null) {
             return;
         }
-        for (T supplyingElement: supplyingList) {
+        for (T supplyingElement : supplyingList) {
             addIfNotPresent(receivingList, supplyingElement);
         }
     }
@@ -668,7 +625,7 @@ public class MiscUtil {
      */
     public static <T> boolean hasDuplicates(Collection<T> collection) {
         Set<T> set = new HashSet<>();
-        for (T e: collection) {
+        for (T e : collection) {
             if (!set.add(e)) {
                 return true;
             }
@@ -698,8 +655,7 @@ public class MiscUtil {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Throwable> void throwException(Throwable exception) throws T
-    {
+    private static <T extends Throwable> void throwException(Throwable exception) throws T {
         throw (T) exception;
     }
 
@@ -794,10 +750,10 @@ public class MiscUtil {
         return dump.toString();
     }
 
-    public static <K,V> Map<K, V> paramsToMap(Object[] params) {
+    public static <K, V> Map<K, V> paramsToMap(Object[] params) {
         Map<K, V> map = new HashMap<>();
-        for (int i=0; i < params.length; i+=2) {
-            map.put((K)params[i], (V)params[i+1]);
+        for (int i = 0; i < params.length; i += 2) {
+            map.put((K) params[i], (V) params[i + 1]);
         }
         return map;
     }

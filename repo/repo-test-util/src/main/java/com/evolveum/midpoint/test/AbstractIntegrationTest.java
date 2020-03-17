@@ -1900,14 +1900,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.display(title, value);
     }
 
-    public static void display(String title, Throwable e) {
-        IntegrationTestTools.display(title, e);
-    }
-
-    public static void displayExpectedException(Throwable e) {
-        IntegrationTestTools.displayExpectedException(e);
-    }
-
     public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
         IntegrationTestTools.displayPrismValuesCollection(message, collection);
     }
