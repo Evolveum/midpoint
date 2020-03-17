@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.notifications.impl.helpers;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.events.BaseEventImpl;
 import com.evolveum.midpoint.notifications.api.events.Event;

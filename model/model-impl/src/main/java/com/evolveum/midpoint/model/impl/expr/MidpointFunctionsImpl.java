@@ -12,16 +12,12 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.Mapping;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
@@ -31,7 +27,7 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
@@ -296,11 +292,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
-        LensContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+        ModelContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
         if (ctx == null) {
             throw new IllegalStateException("No lens context");
         }
-        LensFocusContext<F> focusContext = ctx.getFocusContext();
+        ModelElementContext<F> focusContext = ctx.getFocusContext();
         if (focusContext == null) {
             throw new IllegalStateException("No focus in lens context");
         }
@@ -308,7 +304,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null, null, false);
-        LensProjectionContext projectionContext = ctx.findProjectionContext(rat);
+        ModelProjectionContext projectionContext = ctx.findProjectionContext(rat);
         if (projectionContext == null) {
             // but check if it is not among list of deleted contexts
             if (scriptContext == null || scriptContext.isEvaluateNew()) {
@@ -379,11 +375,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public boolean isDirectlyAssigned(String targetOid) {
-        LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
         if (ctx == null) {
             throw new IllegalStateException("No lens context");
         }
-        LensFocusContext<? extends FocusType> focusContext = ctx.getFocusContext();
+        ModelElementContext<? extends FocusType> focusContext = ctx.getFocusContext();
         if (focusContext == null) {
             throw new IllegalStateException("No focus in lens context");
         }
@@ -420,16 +416,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @SuppressWarnings("unused")
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
-        LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
         if (lensContext == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with model context");
         }
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
         }
-        Collection<EvaluatedAssignmentImpl<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
-        for (EvaluatedAssignmentImpl<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
+        Collection<? extends EvaluatedAssignment<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
+        for (EvaluatedAssignment<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
             PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
             if (target == null) {
                 continue;
@@ -752,7 +748,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public <F extends ObjectType> ModelElementContext<F> getFocusContext() {
-        LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
         if (lensContext == null) {
             return null;
         }
@@ -1770,18 +1766,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     @NotNull
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
-        LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
         if (lensContext == null) {
             throw new IllegalStateException("No lensContext");
         }
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             return emptySet();
         }
         Collection<PrismValue> rv = new HashSet<>();
-        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+        for (EvaluatedAssignment<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
             if (evaluatedAssignment.isValid()) {
-                for (MappingImpl<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
+                for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
                     if (path.equivalent(mapping.getOutputPath())) {
                         PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
                         if (outputTriple != null) {
@@ -1797,7 +1793,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         // This causes problems here.
         //
         // Until MID-4452 is fixed, here we manually delete the values from the result.
-        LensFocusContext<ObjectType> focusContext = lensContext.getFocusContext();
+        ModelElementContext<ObjectType> focusContext = lensContext.getFocusContext();
         if (focusContext != null) {
             ObjectDelta<ObjectType> delta = focusContext.getDelta();
             if (delta != null) {
@@ -1899,9 +1895,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return archetypeOid == null;
         }
 
-        LensContext<O> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        ModelContext<O> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
         if (lensContext != null) {
-            LensFocusContext<O> focusContext = lensContext.getFocusContext();
+            ModelElementContext<O> focusContext = lensContext.getFocusContext();
             ArchetypeType archetypeType = focusContext.getArchetype();
             if (archetypeType != null) {
                 return archetypeType.getOid().equals(archetypeOid);

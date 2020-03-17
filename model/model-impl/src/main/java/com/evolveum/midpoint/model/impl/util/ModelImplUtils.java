@@ -14,8 +14,8 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -50,9 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -68,10 +65,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,9 +74,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -815,51 +808,4 @@ public class ModelImplUtils {
         return UUID.randomUUID().toString();
     }
 
-    /*
-    the ordering algorithm is: the first level is occupied by
-    the column which previousColumn == null || "" || notExistingColumnNameValue.
-    Each next level contains columns which
-    previousColumn == columnNameFromPreviousLevel
-     */
-    public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
-        if (customColumns == null || customColumns.size() == 0){
-            return new ArrayList<>();
-        }
-        List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
-        List<String> previousColumnValues = new ArrayList<>();
-        previousColumnValues.add(null);
-        previousColumnValues.add("");
-
-        Map<String, String> columnRefsMap = new HashMap<>();
-        for (GuiObjectColumnType column : customColumns){
-            columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
-        }
-
-        List<String> temp = new ArrayList<> ();
-        int index = 0;
-        while (index < customColumns.size()){
-            int sortFrom = index;
-            for (int i = index; i < customColumnsList.size(); i++){
-                GuiObjectColumnType column = customColumnsList.get(i);
-                if (previousColumnValues.contains(column.getPreviousColumn()) ||
-                        !columnRefsMap.containsKey(column.getPreviousColumn())){
-                    Collections.swap(customColumnsList, index, i);
-                    index++;
-                    temp.add(column.getName());
-                }
-            }
-            if (temp.size() == 0){
-                temp.add(customColumnsList.get(index).getName());
-                index++;
-            }
-            if (index - sortFrom > 1){
-                customColumnsList.subList(sortFrom, index - 1)
-                        .sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
-            }
-            previousColumnValues.clear();
-            previousColumnValues.addAll(temp);
-            temp.clear();
-        }
-        return customColumnsList;
-    }
 }
