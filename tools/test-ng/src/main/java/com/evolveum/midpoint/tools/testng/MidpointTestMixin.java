@@ -33,7 +33,7 @@ public interface MidpointTestMixin {
     String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
 
     String DISPLAY_OUT_PREFIX = "\n*** ";
-    String DISPLAY_LOG_FORMAT1 = "*** {}";
+    String DISPLAY_LOG_FORMAT1 = "*** {}:";
     String DISPLAY_LOG_FORMAT2 = "*** {}:\n{}";
 
     /**
@@ -129,6 +129,10 @@ public interface MidpointTestMixin {
      * Not intended for tests classes, used by lifecycle methods in our test superclasses.
      */
     default void displayTestFooter(String testTitle, ITestResult testResult) {
+        if (testResult.getThrowable() != null) {
+            displayException(testTitle + " thrown unexpected exception", testResult.getThrowable());
+        }
+
         long testMsDuration = testResult.getEndMillis() - testResult.getStartMillis();
         System.out.println(TEST_OUT_FOOTER_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
         logger().info(TEST_LOG_PREFIX + testTitle + " FINISHED in " + testMsDuration + " ms" + TEST_LOG_SUFFIX);
@@ -140,7 +144,7 @@ public interface MidpointTestMixin {
     }
 
     /**
-     * Displays
+     * Displays value prefixed with provided title.
      */
     default void displayValue(String title, Object value) {
         System.out.println(DISPLAY_OUT_PREFIX + title + "\n" + value);
@@ -152,8 +156,8 @@ public interface MidpointTestMixin {
      * Use for "bad" exceptions, for expected exceptions use {@link #displayExpectedException}.
      */
     default void displayException(String title, Throwable e) {
-        System.out.println(DISPLAY_OUT_PREFIX + title);
-        e.printStackTrace();
+        System.out.println(DISPLAY_OUT_PREFIX + title + ":");
+        e.printStackTrace(System.out);
         logger().debug(DISPLAY_LOG_FORMAT1, title, e);
     }
 
