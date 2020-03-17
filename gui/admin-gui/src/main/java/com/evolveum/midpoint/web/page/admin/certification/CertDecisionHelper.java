@@ -102,6 +102,21 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
+    public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createReviewerNameColumn(final PageBase page, final String headerKey) {
+        IColumn column;
+        column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey), CertWorkItemDto.F_REVIEWER_NAME) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<CertCaseOrWorkItemDto> rowModel) {
+                CertCaseOrWorkItemDto dto = rowModel.getObject();
+                if (dto instanceof CertWorkItemDto) {
+                    dispatchToObjectDetailsPage(((CertWorkItemDto) dto).getReviewerRef(), page, false);
+                }
+            }
+        };
+        return column;
+    }
+
     public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createConflictingNameColumn(final PageBase page, final String headerKey) {
         return new PropertyColumn<>(page.createStringResource(headerKey), CertCaseOrWorkItemDto.F_CONFLICTING_TARGETS);
     }

@@ -69,8 +69,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
             AssertJUnit.fail("Unexpected success");
         } catch (SecurityViolationException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
     }
 
@@ -188,10 +187,8 @@ public class TestDummySecurity extends AbstractDummyTest {
                     new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
-
         } catch (SecurityViolationException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
     }
 

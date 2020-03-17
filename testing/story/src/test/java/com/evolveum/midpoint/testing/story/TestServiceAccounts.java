@@ -150,9 +150,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
             assertNotReached();
 
         } catch (UnsupportedOperationException e) {
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         assertFailure(result);
@@ -195,9 +194,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
             assertNotReached();
 
         } catch (UnsupportedOperationException e) {
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         assertFailure(result);
@@ -371,9 +369,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
             assertNotReached();
 
         } catch (UnsupportedOperationException e) {
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
         }
 
         assertFailure(result);

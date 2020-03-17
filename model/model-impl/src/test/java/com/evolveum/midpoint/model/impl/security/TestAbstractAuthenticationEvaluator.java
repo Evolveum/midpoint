@@ -208,11 +208,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -239,11 +236,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertPasswordEncodingException(e);
         }
 
@@ -269,11 +263,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertPasswordEncodingException(e);
         }
 
@@ -298,11 +289,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertPasswordEncodingException(e);
         }
 
@@ -323,14 +311,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (UsernameNotFoundException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertNoUserException(e);
         }
-
     }
 
     @Test
@@ -348,14 +332,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (UsernameNotFoundException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertNoUserException(e);
         }
-
     }
 
     /**
@@ -384,7 +364,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -411,9 +391,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
 
@@ -428,9 +406,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
 
@@ -460,11 +436,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertLockedException(e);
         }
 
@@ -487,14 +460,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
 
-            // this is important. The exception should give no indication whether the password is
-            // good or bad
+            // This is important.
+            // The exception should give no indication whether the password is good or bad.
             assertLockedException(e);
         }
 
@@ -542,11 +512,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
 
@@ -561,11 +528,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
 
@@ -580,11 +544,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
 
@@ -611,11 +572,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertLockedException(e);
         }
 
@@ -681,12 +639,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
-
+            displayExpectedException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -879,11 +833,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -934,11 +885,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             AssertJUnit.fail("Unexpected success");
 
         } catch (CredentialsExpiredException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
             assertExpiredException(e);
         }
 
@@ -1065,14 +1013,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (DisabledException e) {
-            // This is expected
-
-            // THEN
             then();
-            display("expected exception", e);
+            displayExpectedException(e);
 
-            // this is important. The exception should give no indication whether the password is
-            // good or bad
+            // This is important.
+            // The exception should give no indication whether the password is good or bad.
             assertDisabledException(e);
         }
 

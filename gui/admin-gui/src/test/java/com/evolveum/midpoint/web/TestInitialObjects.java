@@ -42,7 +42,7 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
                 } catch (Throwable e) {
                     String msg = "Error processing file "+file.getName()+": "+e.getMessage();
                     logger.error(msg, e);
-                    display(msg, e);
+                    displayException(msg, e);
                     throw e;
                 }
             }

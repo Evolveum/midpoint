@@ -251,7 +251,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
                 try {
                     task.refresh(waitResult);
                 } catch (Throwable e) {
-                    display("Exception during task refresh", e);
+                    displayException("Exception during task refresh", e);
                 }
                 OperationResult result = task.getResult();
                 display("Result of timed-out task", result);
