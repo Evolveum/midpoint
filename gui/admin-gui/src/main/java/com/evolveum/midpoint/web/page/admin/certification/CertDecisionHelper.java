@@ -17,9 +17,11 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
@@ -27,18 +29,23 @@ import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandle
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
@@ -112,15 +119,33 @@ public class CertDecisionHelper implements Serializable {
 
     public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createReviewerNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
-        column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey), CertWorkItemDto.F_REVIEWER_NAME) {
+        column = new AbstractColumn<T, String>(page.createStringResource(headerKey)) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<CertCaseOrWorkItemDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
+                                     final IModel<T> rowModel) {
                 CertCaseOrWorkItemDto dto = rowModel.getObject();
+                RepeatingView reviewersPanel = new RepeatingView(componentId);
                 if (dto instanceof CertWorkItemDto) {
-                    dispatchToObjectDetailsPage(((CertWorkItemDto) dto).getReviewerRef(), page, false);
+                    List<ObjectReferenceType> reviewersList = ((CertWorkItemDto) dto).getReviewerRefList();
+                    if (CollectionUtils.isNotEmpty(reviewersList)){
+                        for (ObjectReferenceType reviewer : reviewersList){
+                            reviewersPanel.add(new LinkPanel(reviewersPanel.newChildId(),
+                                    Model.of(WebComponentUtil.getDisplayNameOrName(reviewer))) {
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public void onClick(AjaxRequestTarget target) {
+                                    dispatchToObjectDetailsPage(reviewer, page, false);
+                                }
+                            });
+                        }
+                    }
                 }
+                cellItem.add(reviewersPanel);
             }
+
         };
         return column;
     }

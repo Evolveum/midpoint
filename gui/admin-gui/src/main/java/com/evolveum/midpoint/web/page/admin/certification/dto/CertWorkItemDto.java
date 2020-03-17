@@ -27,6 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * DTO representing a particular workItem.
  *
@@ -42,15 +45,15 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
     public static final String F_REVIEWER_NAME = "reviewerName";
 
     @NotNull private final AccessCertificationWorkItemType workItem;
-    private ObjectReferenceType reviewerRef;
-    private String reviewerName;
+    private List<ObjectReferenceType> reviewerRefList;
+    private List<String> reviewerNameList = new ArrayList<>();
 
     CertWorkItemDto(@NotNull AccessCertificationWorkItemType workItem, @NotNull PageBase page) {
         //noinspection ConstantConditions
         super(CertCampaignTypeUtil.getCase(workItem), page);
         this.workItem = workItem;
-        this.reviewerRef = workItem.getOriginalAssigneeRef();
-        this.reviewerName = computeReviewerName();
+        this.reviewerRefList = workItem.getAssigneeRef();
+        computeReviewerNameList();
     }
 
     public String getComment() {
@@ -82,26 +85,28 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
         return WfContextUtil.getEscalationLevelInfo(workItem);
     }
 
-    public String computeReviewerName(){
-        if (reviewerRef == null){
-            return null;
+    public void computeReviewerNameList(){
+        if (reviewerRefList == null){
+            return;
         }
-        return WebComponentUtil.getDisplayNameOrName(reviewerRef);
+        reviewerRefList.forEach(reviewerRef -> {
+            reviewerNameList.add(WebComponentUtil.getDisplayNameOrName(reviewerRef));
+        });
     }
 
-    public String getReviewerName() {
-        return reviewerName;
+    public List<String> getReviewerNameList() {
+        return reviewerNameList;
     }
 
-    public void setReviewerName(String reviewerName) {
-        this.reviewerName = reviewerName;
+    public void setReviewerName(List<String> reviewerNameList) {
+        this.reviewerNameList = reviewerNameList;
     }
 
-    public ObjectReferenceType getReviewerRef() {
-        return reviewerRef;
+    public List<ObjectReferenceType> getReviewerRefList() {
+        return reviewerRefList;
     }
 
-    public void setReviewerRef(ObjectReferenceType reviewerRef) {
-        this.reviewerRef = reviewerRef;
+    public void setReviewerRefList(List<ObjectReferenceType> reviewerRefList) {
+        this.reviewerRefList = reviewerRefList;
     }
 }
