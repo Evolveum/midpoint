@@ -198,6 +198,11 @@ public class PageCertDecisions extends PageAdminCertification {
         column = helper.createTargetNameColumn(this, "PageCertDecisions.table.targetName");
         columns.add(column);
 
+        if (isDisplayingAllItems()) {
+            column = helper.createReviewerNameColumn(this, "PageCertDecisions.table.reviewer");
+            columns.add(column);
+        }
+
         column = helper.createDetailedInfoColumn(this);
         columns.add(column);
 
