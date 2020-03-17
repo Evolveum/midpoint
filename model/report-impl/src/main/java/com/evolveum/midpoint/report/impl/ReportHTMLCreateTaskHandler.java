@@ -30,6 +30,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportService;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -800,7 +801,7 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
-        List<GuiObjectColumnType> columns = ModelImplUtils.orderCustomColumns(view.getColumn());
+        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(view.getColumn());
         ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
@@ -847,7 +848,7 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
-        List<GuiObjectColumnType> columns = ModelImplUtils.orderCustomColumns(view.getColumn());
+        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(view.getColumn());
         ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");

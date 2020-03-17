@@ -386,7 +386,7 @@ public class GuiProfileCompiler {
         // Not very efficient algorithm. But must do for now.
         List<GuiObjectColumnType> existingColumns = existingView.getColumns();
         existingColumns.addAll(newColumns);
-        List<GuiObjectColumnType> orderedList = ModelImplUtils.orderCustomColumns(existingColumns);
+        List<GuiObjectColumnType> orderedList = MiscSchemaUtil.orderCustomColumns(existingColumns);
         existingColumns.clear();
         existingColumns.addAll(orderedList);
     }

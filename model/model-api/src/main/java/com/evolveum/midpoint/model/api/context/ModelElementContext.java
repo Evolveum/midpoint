@@ -13,6 +13,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationIntentType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -34,6 +36,8 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     PrismObject<O> getObjectNew();
 
     PrismObject<O> getObjectCurrent();
+
+    PrismObject<O> getObjectAny();
 
     void setObjectNew(PrismObject<O> objectNew);
 
@@ -59,5 +63,21 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     Collection<EvaluatedPolicyRule> getPolicyRules();
 
     boolean isOfType(Class<?> aClass);
+
+    /**
+     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
+     * context.
+     * If set to null then the decision is left to "the engine". Null is also a typical value
+     * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
+     */
+    SynchronizationIntent getSynchronizationIntent();
+
+    boolean isAdd();
+
+    boolean isDelete();
+
+    ObjectDelta<O> getDelta() throws SchemaException;
+
+    ArchetypeType getArchetype();
 
 }

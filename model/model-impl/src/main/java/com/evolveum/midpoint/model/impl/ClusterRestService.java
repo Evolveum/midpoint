@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
@@ -255,13 +256,10 @@ public class ClusterRestService {
         return response;
     }
 
-    public static final String REPORT_FILE_PATH = "/reportFiles";
-    public static final String REPORT_FILE_FILENAME_PARAMETER = "filename";
-
     @GET
-    @Path(REPORT_FILE_PATH)
+    @Path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH)
     @Produces("application/octet-stream")
-    public Response getReportFile(@QueryParam(REPORT_FILE_FILENAME_PARAMETER) String fileName, @Context MessageContext mc) {
+    public Response getReportFile(@QueryParam(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER) String fileName, @Context MessageContext mc) {
         Task task = RestServiceUtil.initRequest(mc);
         OperationResult result = new OperationResult(OPERATION_GET_REPORT_FILE);
 
@@ -288,8 +286,8 @@ public class ClusterRestService {
     }
 
     @DELETE
-    @Path(REPORT_FILE_PATH)
-    public Response deleteReportFile(@QueryParam(REPORT_FILE_FILENAME_PARAMETER) String fileName, @Context MessageContext mc) {
+    @Path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH)
+    public Response deleteReportFile(@QueryParam(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER) String fileName, @Context MessageContext mc) {
         Task task = RestServiceUtil.initRequest(mc);
         OperationResult result = new OperationResult(OPERATION_DELETE_REPORT_FILE);
 

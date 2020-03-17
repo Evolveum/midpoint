@@ -74,10 +74,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      */
     @NotNull private final Collection<AssignedFocusMappingEvaluationRequest> focusMappingEvaluationRequests = new ArrayList<>();
 
-    /**
-     * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation
-     * but afterwards.
-     */
     @NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
 
     @NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
