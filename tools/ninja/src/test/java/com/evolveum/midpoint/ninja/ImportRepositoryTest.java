@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.ninja;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -23,8 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
  */
 public class ImportRepositoryTest extends BaseTest {
 
-    @Override
-    protected void beforeMethodInternal(Method method) throws Exception {
+    @BeforeMethod
+    public void initMidpointHome() throws Exception {
         setupMidpointHome();
     }
 

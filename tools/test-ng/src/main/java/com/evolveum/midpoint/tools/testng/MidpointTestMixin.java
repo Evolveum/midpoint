@@ -22,12 +22,12 @@ public interface MidpointTestMixin {
 
     String TEST_LOG_PREFIX = "=====[ ";
     String TEST_LOG_SUFFIX = " ]======================================";
-    String TEST_OUT_PREFIX = "\n\n=====[ ";
+    String TEST_OUT_PREFIX = "\n=====[ ";
     String TEST_OUT_SUFFIX = " ]======================================\n";
     String TEST_OUT_FOOTER_PREFIX = "====== ";
     String TEST_OUT_FOOTER_SUFFIX = "\n";
 
-    String TEST_OUT_SECTION_PREFIX = "\n\n----- ";
+    String TEST_OUT_SECTION_PREFIX = "\n----- ";
     String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
     String TEST_LOG_SECTION_PREFIX = "----- ";
     String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
@@ -116,8 +116,8 @@ public interface MidpointTestMixin {
     }
 
     /**
-     * Displays test header with the test name.
-     * Not intended for tests classes, used by lifecycle methods in our test superclasses.
+     * Displays test header with provided title text.
+     * Not intended for test method body, used by lifecycle methods in our test superclasses.
      */
     default void displayTestTitle(String testTitle) {
         System.out.println(TEST_OUT_PREFIX + testTitle + TEST_OUT_SUFFIX);
@@ -137,21 +137,31 @@ public interface MidpointTestMixin {
         String finishedLabel = testResult.isSuccess()
                 ? " FINISHED in "
                 : " FINISHED with FAILURE in ";
-        System.out.println(TEST_OUT_FOOTER_PREFIX + testTitle + finishedLabel + testMsDuration + " ms" + TEST_OUT_FOOTER_SUFFIX);
-        logger().info(TEST_LOG_PREFIX + testTitle + finishedLabel + testMsDuration + " ms" + TEST_LOG_SUFFIX);
+        String footerText = testTitle + finishedLabel + testMsDuration + " ms";
+        displayTestFooter(footerText);
+    }
+
+    /**
+     * Displays test footer with the provided footer text.
+     * Not intended for test method body, used by lifecycle methods in our test superclasses.
+     */
+    default void displayTestFooter(String footerText) {
+        System.out.println(TEST_OUT_FOOTER_PREFIX + footerText + TEST_OUT_FOOTER_SUFFIX);
+        logger().info(TEST_LOG_PREFIX + footerText + TEST_LOG_SUFFIX);
     }
 
     default void display(String text) {
         System.out.println("\n*** " + text);
-        logger().debug("*** {}", text);
+        logger().info("*** {}", text);
     }
+
 
     /**
      * Displays value prefixed with provided title.
      */
     default void displayValue(String title, Object value) {
         System.out.println(DISPLAY_OUT_PREFIX + title + "\n" + value);
-        logger().debug(DISPLAY_LOG_FORMAT2, title, value);
+        logger().info(DISPLAY_LOG_FORMAT2, title, value);
     }
 
     /**
@@ -170,7 +180,7 @@ public interface MidpointTestMixin {
     default void displayExpectedException(Throwable e) {
         String expectedExceptionWithClass = "Expected exception " + e.getClass();
         System.out.println(DISPLAY_OUT_PREFIX + expectedExceptionWithClass + ":\n" + e.getMessage());
-        logger().debug(DISPLAY_LOG_FORMAT2, expectedExceptionWithClass, e.getMessage());
+        logger().info(DISPLAY_LOG_FORMAT2, expectedExceptionWithClass, e.getMessage());
     }
 
     /**

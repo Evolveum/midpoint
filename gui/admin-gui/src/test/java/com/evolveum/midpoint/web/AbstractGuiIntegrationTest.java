@@ -13,7 +13,6 @@ import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
@@ -25,10 +24,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.util.tester.WicketTester;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -58,8 +54,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -140,39 +134,10 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         tester = new WicketTester(application, true);
     }
 
-    @BeforeMethod
-    public void beforeMethodApplication() {
-    }
-
-    @AfterMethod
-    public void afterMethodApplication() {
-    }
-
     @BeforeClass
-    public void beforeClass() {
-        System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        logger.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName() });
-        logger.info("Loalization serivce : {}", localizationService);
-        String s = localizationService.translate("midpoint.system.build", null, localizationService.getDefaultLocale());
-        logger.info("SsSSSSSSSSSSSSS {}", s);
-    }
-
-    @AfterClass
-    public void afterClass() {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        logger.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<\n", new Object[] { getClass().getName() });
-    }
-
-    @BeforeMethod
-    public void beforeMethod(Method method) {
-        System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        logger.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
-    }
-
-    @AfterMethod
-    public void afterMethod(Method method) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        logger.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
+    public void displayLocalizationAndSystemBuildInfo() {
+        display("Localization service: " + localizationService);
+        display("System build: " + localizationService.translate("midpoint.system.build", null, localizationService.getDefaultLocale()));
     }
 
     protected ModelServiceLocator getServiceLocator(final Task pageTask) {
