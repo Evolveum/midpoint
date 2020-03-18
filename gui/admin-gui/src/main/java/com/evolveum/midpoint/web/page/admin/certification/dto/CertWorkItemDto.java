@@ -9,12 +9,18 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DTO representing a particular workItem.
@@ -28,13 +34,18 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
     public static final String F_COMMENT = "comment";
     @SuppressWarnings("unused")
     public static final String F_RESPONSE = "response";
+    public static final String F_REVIEWER_NAME = "reviewerName";
 
     @NotNull private final AccessCertificationWorkItemType workItem;
+    private List<ObjectReferenceType> reviewerRefList;
+    private List<String> reviewerNameList = new ArrayList<>();
 
     CertWorkItemDto(@NotNull AccessCertificationWorkItemType workItem, @NotNull PageBase page) {
         //noinspection ConstantConditions
         super(CertCampaignTypeUtil.getCase(workItem), page);
         this.workItem = workItem;
+        this.reviewerRefList = workItem.getAssigneeRef();
+        computeReviewerNameList();
     }
 
     public String getComment() {
@@ -64,5 +75,30 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
 
     public String getEscalationLevelInfo() {
         return ApprovalContextUtil.getEscalationLevelInfo(workItem);
+    }
+
+    public void computeReviewerNameList(){
+        if (reviewerRefList == null){
+            return;
+        }
+        reviewerRefList.forEach(reviewerRef -> {
+            reviewerNameList.add(WebComponentUtil.getDisplayNameAndName(reviewerRef));
+        });
+    }
+
+    public List<String> getReviewerNameList() {
+        return reviewerNameList;
+    }
+
+    public void setReviewerName(List<String> reviewerNameList) {
+        this.reviewerNameList = reviewerNameList;
+    }
+
+    public List<ObjectReferenceType> getReviewerRefList() {
+        return reviewerRefList;
+    }
+
+    public void setReviewerRefList(List<ObjectReferenceType> reviewerRefList) {
+        this.reviewerRefList = reviewerRefList;
     }
 }
