@@ -3574,7 +3574,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         clock.resetOverride();
 
-        XMLGregorianCalendar firstTriggerTime = XmlTypeConverter.fromNow("PT1M");
+        XMLGregorianCalendar firstTriggerTime = XmlTypeConverter.fromNow("PT20M");
 
         UserType user = new UserType(prismContext)
                 .name("test990SpecialTimedMapping")
