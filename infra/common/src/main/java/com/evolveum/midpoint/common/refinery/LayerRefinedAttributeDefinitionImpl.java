@@ -418,13 +418,17 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     @NotNull
     @Override
     public ResourceAttribute<T> instantiate() {
-        return refinedAttributeDefinition.instantiate();
+        @NotNull ResourceAttribute<T> resourceAttribute = refinedAttributeDefinition.instantiate();
+        resourceAttribute.setDefinition(this);
+        return resourceAttribute;
     }
 
     @NotNull
     @Override
     public ResourceAttribute<T> instantiate(QName name) {
-        return refinedAttributeDefinition.instantiate(name);
+        @NotNull ResourceAttribute<T> resourceAttribute = refinedAttributeDefinition.instantiate(name);
+        resourceAttribute.setDefinition(this);
+        return resourceAttribute;
     }
 
     @Override
