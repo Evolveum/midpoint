@@ -634,7 +634,7 @@ public class ChangeExecutor {
             throw new IllegalStateException("Projection " + projCtx.toHumanReadableString() + " has null OID, this should not happen");
         }
 
-        if (linkShouldExist(projCtx, shadowAfterModification, result)) {
+        if (linkShouldExist(focusContext, projCtx, shadowAfterModification, result)) {
             // Link should exist
             PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
             if (objectCurrent != null) {
@@ -678,7 +678,7 @@ public class ChangeExecutor {
         }
     }
 
-    private boolean linkShouldExist(LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+    private <F extends FocusType> boolean linkShouldExist(LensFocusContext<F> focusContext, LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
         if (!projCtx.isShadowExistsInRepo()) {
             // Nothing to link to
             return false;
@@ -691,7 +691,7 @@ public class ChangeExecutor {
         }
         if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
                 || projCtx.isDelete()) {
-            return shadowAfterModification != null;
+            return !focusContext.isDelete() && shadowAfterModification != null;
         }
         if (projCtx.hasPendingOperations()) {
             return true;
