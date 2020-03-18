@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static java.util.Collections.emptySet;
+import static org.testng.AssertJUnit.assertEquals;
+
+import javax.xml.namespace.QName;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -17,27 +28,13 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-
-import static java.util.Collections.emptySet;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * The same as ModifyTest but with "executeIfNoChanges" (a.k.a. "reindex") option set.
  * Although this option should do no harm in objects other than certification cases and lookup tables,
  * it is better to check.
- *
- * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class ModifyTestReindex extends ModifyTest {
 
     @Override
@@ -199,7 +196,7 @@ public class ModifyTestReindex extends ModifyTest {
     }
 
     /**
-     *  MID-5128
+     * MID-5128
      */
     @Test
     public void testReindexShadow() throws Exception {
@@ -209,7 +206,7 @@ public class ModifyTestReindex extends ModifyTest {
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("unstable")
                 .beginMetadata()
-                    .modifyApproverRef(APPROVER_OID, UserType.COMPLEX_TYPE)
+                .modifyApproverRef(APPROVER_OID, UserType.COMPLEX_TYPE)
                 .<ShadowType>end()
                 .asPrismObject();
         MutablePrismPropertyDefinition<String> def = prismContext.definitionFactory().createPropertyDefinition(new QName("http://temp/", "attr1"), DOMUtil.XSD_STRING);

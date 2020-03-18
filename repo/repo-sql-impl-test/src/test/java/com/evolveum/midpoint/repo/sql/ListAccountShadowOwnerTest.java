@@ -14,7 +14,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -30,11 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author lazyman
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
     @Test

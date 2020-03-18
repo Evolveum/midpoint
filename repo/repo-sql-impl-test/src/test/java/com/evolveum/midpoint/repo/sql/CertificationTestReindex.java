@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -18,11 +17,9 @@ import org.springframework.test.context.ContextConfiguration;
  * @author mederly
  */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CertificationTestReindex extends CertificationTest {
 
     protected RepoModifyOptions getModifyOptions() {
         return RepoModifyOptions.createExecuteIfNoChanges();
     }
-
 }

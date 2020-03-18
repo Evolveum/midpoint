@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import java.util.*;
+
+import org.hibernate.Session;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -26,27 +40,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
- * Created by Viliam Repan (lazyman).
- *
  * Note: Tests related to extension and attributes were moved into ExtensionTest.
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
     private static final File DATA_FOLDER = new File("./src/test/resources/update");
@@ -184,8 +182,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                         .description("asdf")
                         .targetRef("444", OrgType.COMPLEX_TYPE)
                         .beginMetadata()
-                            .createChannel("zzz")
-                            .modifyApproverRef("555", UserType.COMPLEX_TYPE)
+                        .createChannel("zzz")
+                        .modifyApproverRef("555", UserType.COMPLEX_TYPE)
                         .<AssignmentType>end())
                 .delete(new AssignmentType(prismContext).id(1L))
                 .asItemDeltas();
@@ -277,7 +275,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_ACTIVATION)
-                    .delete(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ENABLED))
+                .delete(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ENABLED))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -310,7 +308,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_ACTIVATION)
-                    .add(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ARCHIVED))
+                .add(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ARCHIVED))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -345,7 +343,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_ACTIVATION)
-                    .replace()
+                .replace()
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -378,8 +376,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF)
-                    .add(createRef(ShadowType.COMPLEX_TYPE, "789"))
-                    .delete(createRef(ShadowType.COMPLEX_TYPE, "456"))
+                .add(createRef(ShadowType.COMPLEX_TYPE, "789"))
+                .delete(createRef(ShadowType.COMPLEX_TYPE, "456"))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -452,9 +450,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_TYPE)
-                    .add("one", "two")
+                .add("one", "two")
                 .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                    .replace("asdf")
+                .replace("asdf")
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -486,9 +484,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF)
-                    .replace(createRef(UserType.COMPLEX_TYPE, "111"))
+                .replace(createRef(UserType.COMPLEX_TYPE, "111"))
                 .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                    .replace("zxcv")
+                .replace("zxcv")
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -524,7 +522,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)
-                    .add(createRef(UserType.COMPLEX_TYPE, "654"))
+                .add(createRef(UserType.COMPLEX_TYPE, "654"))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -559,7 +557,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)
-                    .delete(createRef(UserType.COMPLEX_TYPE, "654"))
+                .delete(createRef(UserType.COMPLEX_TYPE, "654"))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -590,14 +588,14 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_METADATA)
-                    .replace(new MetadataType(prismContext)
-                            .createChannel("ch1")
-                            .modifierRef(createRef(UserType.COMPLEX_TYPE, "44"))
-                            .createApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
-                            .createApproverRef(createRef(UserType.COMPLEX_TYPE, "77"))
-                            .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
-                            .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "66"))
-                    )
+                .replace(new MetadataType(prismContext)
+                        .createChannel("ch1")
+                        .modifierRef(createRef(UserType.COMPLEX_TYPE, "44"))
+                        .createApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
+                        .createApproverRef(createRef(UserType.COMPLEX_TYPE, "77"))
+                        .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
+                        .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "66"))
+                )
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -647,14 +645,14 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_METADATA)
-                    .delete(new MetadataType(prismContext)
-                            .createChannel("ch1")
-                            .modifierRef(createRef(UserType.COMPLEX_TYPE, "44"))
-                            .createApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
-                            .createApproverRef(createRef(UserType.COMPLEX_TYPE, "77"))
-                            .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
-                            .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "66"))
-                    )
+                .delete(new MetadataType(prismContext)
+                        .createChannel("ch1")
+                        .modifierRef(createRef(UserType.COMPLEX_TYPE, "44"))
+                        .createApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
+                        .createApproverRef(createRef(UserType.COMPLEX_TYPE, "77"))
+                        .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "55"))
+                        .modifyApproverRef(createRef(UserType.COMPLEX_TYPE, "66"))
+                )
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -745,7 +743,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                    .replace("asdf2")
+                .replace("asdf2")
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -776,9 +774,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF)
-                    .replace(createRef(UserType.COMPLEX_TYPE, "1112"))
+                .replace(createRef(UserType.COMPLEX_TYPE, "1112"))
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                    .replace("zxcv2")
+                .replace("zxcv2")
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -815,7 +813,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)
-                    .add(createRef(UserType.COMPLEX_TYPE, "6542"))
+                .add(createRef(UserType.COMPLEX_TYPE, "6542"))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -851,7 +849,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 2, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)
-                    .delete(createRef(UserType.COMPLEX_TYPE, "6542"))
+                .delete(createRef(UserType.COMPLEX_TYPE, "6542"))
                 .asItemDeltas();
 
         TestStatementInspector.start();
@@ -1073,7 +1071,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         assertOperationExecutionSize(userOid, 1);
 
         oe = createOperationExecution("repo2");
-        Collection<ItemDelta<?,?>> deltas = prismContext.deltaFor(UserType.class)
+        Collection<ItemDelta<?, ?>> deltas = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_OPERATION_EXECUTION)
                 .add(oe.asPrismContainerValue().clone())
                 .asItemDeltas();
@@ -1113,7 +1111,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test280AddPhoto");
 
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
-        delta.addModificationAddProperty(UserType.F_JPEG_PHOTO, new byte[]{ 1, 2, 3 });
+        delta.addModificationAddProperty(UserType.F_JPEG_PHOTO, new byte[] { 1, 2, 3 });
 
         TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
@@ -1140,7 +1138,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test290ReplacePhoto");
 
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
-        delta.addModificationReplaceProperty(UserType.F_JPEG_PHOTO, new byte[]{4,5,6});
+        delta.addModificationReplaceProperty(UserType.F_JPEG_PHOTO, new byte[] { 4, 5, 6 });
 
         TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
@@ -1167,7 +1165,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test300DeletePhoto");
 
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
-        delta.addModificationDeleteProperty(UserType.F_JPEG_PHOTO, new byte[]{4,5,6});
+        delta.addModificationDeleteProperty(UserType.F_JPEG_PHOTO, new byte[] { 4, 5, 6 });
 
         TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);

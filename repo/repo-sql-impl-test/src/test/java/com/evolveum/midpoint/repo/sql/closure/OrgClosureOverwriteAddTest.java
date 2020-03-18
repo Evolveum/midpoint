@@ -7,28 +7,27 @@
 
 package com.evolveum.midpoint.repo.sql.closure;
 
+import static org.testng.AssertJUnit.assertFalse;
+
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import static org.testng.AssertJUnit.assertFalse;
 
 /**
  * MID-4407
  *
  * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../../ctx-test.xml" })
 public class OrgClosureOverwriteAddTest extends AbstractOrgClosureTest {
 
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 1  };
+    private static final int[] ORG_CHILDREN_IN_LEVEL = { 1, 1 };
     private static final int[] USER_CHILDREN_IN_LEVEL = null;
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 1  };
+    private static final int[] PARENTS_IN_LEVEL = { 0, 1 };
 
     private OrgClosureTestConfiguration configuration;
 

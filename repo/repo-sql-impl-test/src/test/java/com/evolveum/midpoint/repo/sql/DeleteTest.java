@@ -7,28 +7,23 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @author lazyman
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class DeleteTest extends BaseSQLRepoTest {
 
     @Test
@@ -36,7 +31,7 @@ public class DeleteTest extends BaseSQLRepoTest {
         final File file = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!file.exists()) {
             logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
-                    new Object[]{file.getPath()});
+                    new Object[] { file.getPath() });
             return;
         }
 
@@ -46,13 +41,13 @@ public class DeleteTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("Delete Test");
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            logger.info("Adding object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Adding object {}, type {}", new Object[] { i, object.getCompileTimeClass().getSimpleName() });
             oids.add(repositoryService.addObject(object, null, result));
         }
 
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            logger.info("Deleting object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Deleting object {}, type {}", new Object[] { i, object.getCompileTimeClass().getSimpleName() });
 
             repositoryService.deleteObject(object.getCompileTimeClass(), oids.get(i), result);
         }
@@ -108,7 +103,7 @@ public class DeleteTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
 
-        for (int i=0; i< objects.size(); i++ ){
+        for (int i = 0; i < objects.size(); i++) {
             repositoryService.deleteObject((Class) objects.get(i).getCompileTimeClass(), oids.get(i), result);
         }
 

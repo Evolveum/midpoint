@@ -7,17 +7,16 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
+import java.io.File;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class DeleteTestSimple extends BaseSQLRepoTest {
 
     @Test

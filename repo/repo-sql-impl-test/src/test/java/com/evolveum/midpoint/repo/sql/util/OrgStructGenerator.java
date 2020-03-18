@@ -7,16 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
 import java.io.File;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -25,16 +15,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by Viliam Repan (lazyman).
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+import org.apache.commons.io.output.FileWriterWithEncoding;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class OrgStructGenerator extends BaseSQLRepoTest {
 
     @Test(enabled = false)
     public void generateOrgStructure() throws Exception {
-        List<OrgType> orgs = generateOrgStructure(0, new int[]{1, 20, 25, 2}, "Org", null);
+        List<OrgType> orgs = generateOrgStructure(0, new int[] { 1, 20, 25, 2 }, "Org", null);
 
         System.out.println(orgs.size());
 
@@ -89,7 +85,6 @@ public class OrgStructGenerator extends BaseSQLRepoTest {
             orgType.setCostCenter(parentRef.getOid().substring(4));
             orgType.getParentOrgRef().add(parentRef);
         }
-
 
         prismContext.adopt(orgType);
 

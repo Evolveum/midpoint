@@ -6,6 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -14,37 +24,23 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-/**
- * @author lazyman
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class PerformanceTest extends BaseSQLRepoTest {
 
-    private static final String[] GIVEN_NAMES = {"James", "Josephine", "Art", "Lenna", "Donette", "Simona", "Mitsue",
+    private static final String[] GIVEN_NAMES = { "James", "Josephine", "Art", "Lenna", "Donette", "Simona", "Mitsue",
             "Leota", "Sage", "Kris", "Minna", "Abel", "Kiley", "Graciela", "Cammy", "Mattie", "Meaghan", "Gladys", "Yuki",
             "Fletcher", "Bette", "Veronika", "Willard", "Maryann", "Alisha", "Allene", "Chanel", "Ezekiel", "Willow",
             "Bernardo", "Ammie", "Francine", "Ernie", "Albina", "Alishia", "Solange", "Jose", "Rozella", "Valentine",
-            "Kati", "Youlanda", "Dyan", "Roxane", "Lavera", "Erick", "Fatima", "Jina", "Kanisha", "Emerson"};
-    private static final String[] FAMILY_NAMES = {"Butt", "Darakjy", "Venere", "Paprocki", "Foller", "Morasca", "Tollner",
+            "Kati", "Youlanda", "Dyan", "Roxane", "Lavera", "Erick", "Fatima", "Jina", "Kanisha", "Emerson" };
+    private static final String[] FAMILY_NAMES = { "Butt", "Darakjy", "Venere", "Paprocki", "Foller", "Morasca", "Tollner",
             "Dilliard", "Wieser", "Marrier", "Amigon", "Maclead", "Caldarera", "Ruta", "Albares", "Poquette", "Garufi",
             "Rim", "Whobrey", "Flosi", "Nicka", "Inouye", "Kolmetz", "Royster", "Slusarski", "Iturbide", "Caudy", "Chui",
             "Kusko", "Figeroa", "Corrio", "Vocelka", "Stenseth", "Glick", "Sergi", "Shinko", "Stockham", "Ostrosky",
             "Gillian", "Rulapaugh", "Schemmer", "Oldroyd", "Campain", "Perin", "Ferencz", "Saylors", "Briddick",
             "Waycott", "Bowley", "Malet", "Bolognia", "Nestle", "Uyetake", "Mastella", "Klonowski", "Wenner", "Monarrez",
             "Seewald", "Ahle", "Juhas", "Pugh", "Vanausdal", "Hollack", "Lindall", "Yglesias", "Buvens", "Weight",
-            "Morocco", "Eroman"};
+            "Morocco", "Eroman" };
 
     private static final int ORG_COUNT = 10;
     private static final int USER_PER_ORG_COUNT = 10000;
@@ -129,13 +125,12 @@ public class PerformanceTest extends BaseSQLRepoTest {
 
         int COUNT = 100;
         for (int i = 0; i < COUNT; i++) {
-            logger.info("Get operation {} of {}", i+1, COUNT);
+            logger.info("Get operation {} of {}", i + 1, COUNT);
             repositoryService.getObject(UserType.class, oid, null, result);
         }
         long duration = System.currentTimeMillis() - time;
-        logger.info("xxx>> time: {} ms, per get: {} ms", duration, (double) duration/COUNT);
+        logger.info("xxx>> time: {} ms, per get: {} ms", duration, (double) duration / COUNT);
     }
-
 
     private ResourceType createResource(int resourceId) throws SchemaException, IOException {
         PrismObject<ResourceType> prism = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
@@ -215,7 +210,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
     }
 
     private OrgType createOrgType(String name, String description, String identifier, String locality,
-                                  String parentRefOid) {
+            String parentRefOid) {
         OrgType org = new OrgType();
         org.setOid(UUID.randomUUID().toString());
         org.setName(createPoly(name));

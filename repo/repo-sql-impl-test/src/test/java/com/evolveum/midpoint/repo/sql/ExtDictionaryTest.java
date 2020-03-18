@@ -14,7 +14,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -26,8 +25,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class ExtDictionaryTest extends BaseSQLRepoTest {
 
     private static final int ROUNDS = 50;
@@ -36,9 +34,11 @@ public class ExtDictionaryTest extends BaseSQLRepoTest {
 
     static class TestingThread extends Thread {
         Throwable throwable;
+
         TestingThread(Runnable target) {
             super(target);
         }
+
         @Override
         public void run() {
             try {

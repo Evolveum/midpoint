@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager.Edge;
 
 import java.util.*;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -25,11 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = { "../../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
     private static final int[] ORG_CHILDREN_IN_LEVEL = { 5, 3, 3, 3 };
@@ -52,13 +47,6 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
      *  Dunno why. Let's use a timeout of 30 minutes so that the tests would not loop indefinitely.
      */
     public static final long TIMEOUT = 1800L * 1000L;
-
-    // very small scenario
-//    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 1  };
-//    private static final int[] USER_CHILDREN_IN_LEVEL = null;
-//    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2  };
-//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 1, 1    };
-//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 2, 1    };
 
     private OrgClosureTestConfiguration configuration;
 
@@ -512,5 +500,4 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             }
         }
     }
-
 }

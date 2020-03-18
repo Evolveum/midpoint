@@ -41,7 +41,6 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -74,12 +73,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
-/**
- * @author lazyman
- * @author mederly
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("./src/test/resources/query");

@@ -11,18 +11,13 @@ import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RUtilTest extends BaseSQLRepoTest {
 
     private static final String USER_BIG = "user-big.xml";

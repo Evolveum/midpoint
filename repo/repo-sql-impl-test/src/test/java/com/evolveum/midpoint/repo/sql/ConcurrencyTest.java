@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -40,12 +39,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-/**
- * @author Pavol Mederly
- */
-
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ConcurrencyTest extends BaseSQLRepoTest {
 
     private static final long WAIT_FOR_THREAD_NATURAL_STOP_TIME = 300000;

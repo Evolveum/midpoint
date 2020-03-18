@@ -7,17 +7,15 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class EmbeddedServerModeTest extends BaseSQLRepoTest {
 
     @Autowired

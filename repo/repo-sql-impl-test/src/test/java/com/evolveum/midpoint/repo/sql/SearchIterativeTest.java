@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.repo.api.RepositoryService.OP_SEARCH_OBJECTS
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SearchIterativeTest extends BaseSQLRepoTest {
 
     private static final int BASE = 100000;

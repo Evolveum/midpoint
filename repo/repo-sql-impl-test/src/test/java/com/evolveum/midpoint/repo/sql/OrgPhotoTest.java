@@ -6,25 +6,21 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.File;
+
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
-import java.io.File;
-
-import static org.testng.AssertJUnit.assertEquals;
-
-/**
- * @author mederly
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class OrgPhotoTest extends AbstractPhotoTest<OrgType> {
 
     private static final File ORG_FILE = new File(TEST_DIR, "org.xml");

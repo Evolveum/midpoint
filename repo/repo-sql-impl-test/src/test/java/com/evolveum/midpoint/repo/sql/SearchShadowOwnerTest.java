@@ -4,7 +4,16 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
- package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql;
+
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -16,21 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertNotNull;
-
-/**
- * @author lazyman
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SearchShadowOwnerTest extends BaseSQLRepoTest {
 
     @Test
@@ -66,7 +61,7 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("List owner");
 
         //look for account owner
-        PrismObject<UserType> user = repositoryService.searchShadowOwner("11223344", null,  result);
+        PrismObject<UserType> user = repositoryService.searchShadowOwner("11223344", null, result);
 
         assertNotNull("No owner for account", user);
         PrismProperty name = user.findProperty(ObjectType.F_NAME);

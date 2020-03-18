@@ -50,6 +50,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.testing.DbDeleter;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -108,6 +109,8 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     @Autowired protected Protector protector;
     @Autowired protected TestQueryListener queryListener;
 
+    @Autowired private DbDeleter dbDeleter;
+
     protected boolean verbose = false;
 
     @BeforeSuite
@@ -129,17 +132,23 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     private volatile boolean initSystemExecuted = false;
 
     @PostConstruct
-    public void beforeMethod() throws Exception {
+    public void initTestClass() throws Exception {
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
         }
         initSystemExecuted = true;
+        dbDeleter.cleanupTestDatabase();
+        // delete must be first as initSystem can already prepare objects for the test class
         initSystem();
     }
 
+    public void initSystem() throws Exception {
+        // can be overridden in subclasses for once-per-test-class initialization
+    }
+
     @AfterMethod
-    public void afterMethod(Method method) {
+    public final void finalizePersistenceSession(Method method) {
         try {
             Session session = factory.getCurrentSession();
             if (session != null) {
@@ -154,10 +163,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected boolean isH2() {
         return baseHelper.getConfiguration().isUsingH2();
-    }
-
-    public void initSystem() throws Exception {
-
     }
 
     protected Session open() {

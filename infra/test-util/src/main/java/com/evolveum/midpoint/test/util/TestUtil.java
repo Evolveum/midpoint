@@ -145,15 +145,6 @@ public class TestUtil {
         AssertJUnit.fail("No element with name " + elementQName);
     }
 
-    public static void assertExceptionSanity(ObjectAlreadyExistsException e) {
-        LOGGER.debug("Exception (expected) {}", e, e);
-        System.out.println("Exception (expected)");
-        System.out.println(ExceptionUtils.getFullStackTrace(e));
-        assert !e.getMessage().isEmpty() : "Empty exception message";
-        assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("
-                + e.getMessage().length() + " characters): " + e.getMessage();
-    }
-
     public static void displayCleanup(String testName) {
         System.out.println(TEST_OUT_SECTION_PREFIX + " CLEANUP " + testName + TEST_OUT_SECTION_SUFFIX);
         LOGGER.info(TEST_LOG_SECTION_PREFIX + " CLEANUP " + testName + TEST_LOG_SECTION_SUFFIX);

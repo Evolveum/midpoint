@@ -18,7 +18,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SearchTest extends BaseSQLRepoTest {
 
     private static final String DESCRIPTION_TO_FIND = "tralala";

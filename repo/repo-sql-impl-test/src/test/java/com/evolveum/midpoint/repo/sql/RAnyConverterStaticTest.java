@@ -12,7 +12,6 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     private static final String NS_P = "http://example.com/p";

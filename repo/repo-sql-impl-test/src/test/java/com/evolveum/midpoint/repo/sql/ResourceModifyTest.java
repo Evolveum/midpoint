@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -32,11 +31,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-/**
- * @author Radovan Semancik
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ResourceModifyTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/modify");

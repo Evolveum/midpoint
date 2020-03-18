@@ -15,7 +15,6 @@ import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -27,11 +26,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/modify/assignment");

@@ -17,7 +17,6 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -49,8 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Introduced as part of providing "index-only" extension values (MID-5558)
  * and related refactoring of ObjectDeltaUpdater.
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class ExtensionTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/extension");
@@ -247,7 +245,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION, EXT_VISIBLE)
-                    .add("v4")
+                .add("v4")
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -293,7 +291,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION, EXT_WEAPON)
-                    .replace("weapon1", "weapon2")
+                .replace("weapon1", "weapon2")
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -332,7 +330,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION, EXT_WEAPON)
-                    .delete("weapon1", "weapon2")
+                .delete("weapon1", "weapon2")
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -384,9 +382,9 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION, EXT_WEAPON)
-                    .replace("w1")
+                .replace("w1")
                 .item(UserType.F_EXTENSION, EXT_VISIBLE)
-                    .delete("v4", "v5")
+                .delete("v4", "v5")
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -425,7 +423,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION, EXT_LOOT)
-                    .replace(34)
+                .replace(34)
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -757,7 +755,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION)
-                    .delete(existingExtension)
+                .delete(existingExtension)
                 .asObjectDelta("");
         expectedUser.asObjectable().setExtension(null);     // we cannot apply the delta here as expectedUser has hidden1 values in the extension
 
@@ -803,7 +801,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION)
-                    .add(extValue.clone())
+                .add(extValue.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -851,7 +849,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION)
-                    .add(extValue.clone())
+                .add(extValue.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -896,7 +894,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION)
-                    .replace(extValue.clone())
+                .replace(extValue.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -939,7 +937,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_EXTENSION)
-                    .replace()
+                .replace()
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1066,7 +1064,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
-                    .add("w4")
+                .add("w4")
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1102,7 +1100,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
-                    .replace("w2", "w9")
+                .replace("w2", "w9")
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1143,7 +1141,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
-                    .delete("w2")
+                .delete("w2")
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1212,7 +1210,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
-                    .replace()
+                .replace()
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1254,7 +1252,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
-                    .delete(existingExtension.clone())
+                .delete(existingExtension.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1305,7 +1303,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
-                    .add(extValue.clone())
+                .add(extValue.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1361,7 +1359,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
-                    .add(extValue.clone())
+                .add(extValue.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1520,7 +1518,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .add(newAssignment, newAssignment2)
+                .add(newAssignment, newAssignment2)
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1579,7 +1577,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .delete(new AssignmentType(prismContext).id(777L))
+                .delete(new AssignmentType(prismContext).id(777L))
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -1641,7 +1639,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .replace(newAssignment)
+                .replace(newAssignment)
                 .asObjectDelta("");
         delta.applyTo(expectedUser);
 
@@ -2037,9 +2035,9 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_GROUP_NAME), attrGroupNameDefinition)
-                    .replace("ALUMNI")
+                .replace("ALUMNI")
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MANAGER), attrManagerDefinition)
-                    .delete("bob")
+                .delete("bob")
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2076,7 +2074,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
-                    .add("tbrown", "jsmith")
+                .add("tbrown", "jsmith")
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2117,7 +2115,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
-                    .add("tbrown", "jsmith")
+                .add("tbrown", "jsmith")
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2166,7 +2164,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
-                    .delete("tbrown", "jsmith")
+                .delete("tbrown", "jsmith")
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2212,7 +2210,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
-                    .delete("tbrown", "jsmith")
+                .delete("tbrown", "jsmith")
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2256,7 +2254,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
-                    .replace("alice", "bob")
+                .replace("alice", "bob")
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2297,7 +2295,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
-                    .delete(existingAttributes)
+                .delete(existingAttributes)
                 .asObjectDelta("");
         expectedShadow.asObjectable().setAttributes(null);
 
@@ -2348,7 +2346,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
-                    .add(attributes.clone())
+                .add(attributes.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2398,7 +2396,6 @@ public class ExtensionTest extends BaseSQLRepoTest {
         assertCounts(10 + getExtraSafeInsertionSelects(5), 14 + getExtraSafeInsertionSelects(5));
     }
 
-
     /**
      * This is really tricky. We try to add another value to single-valued attributes container.
      */
@@ -2420,7 +2417,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
-                    .add(attributes.clone())
+                .add(attributes.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2490,7 +2487,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
-                    .replace(attributes.clone())
+                .replace(attributes.clone())
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2548,7 +2545,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
-                    .replace()
+                .replace()
                 .asObjectDelta("");
         delta.applyTo(expectedShadow);
 
@@ -2654,7 +2651,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         long overallStart = System.currentTimeMillis();
         long lastBatchStart = overallStart;
         int lastBatchFrom = 0;
-        for (int i = 0; i < ADD_VALUE_ITERATIONS;) {
+        for (int i = 0; i < ADD_VALUE_ITERATIONS; ) {
             String valueA = String.format("value-%09d-a", i);
             String valueB = String.format("value-%09d-b", i);
             List<ItemDelta<?, ?>> addModifications = getPrismContext().deltaFor(UserType.class)

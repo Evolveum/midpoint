@@ -18,7 +18,6 @@ import java.io.File;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -42,11 +41,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class LookupTableTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/lookup");

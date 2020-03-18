@@ -7,19 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Session;
-import org.hibernate.jdbc.Work;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.sql.Connection;
@@ -29,15 +18,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import org.hibernate.Session;
+import org.hibernate.jdbc.Work;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
-/**
- * @author Pavol Mederly
- */
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SequenceTest extends BaseSQLRepoTest {
 
     private static final String TEST_DIR = "src/test/resources/sequence/";
@@ -185,7 +180,6 @@ public class SequenceTest extends BaseSQLRepoTest {
         concurrencyUniversal("Test033", "sequence-unbound.xml", 10000L, mts, true);
     }
 
-
     private void concurrencyUniversal(String name, String sequenceFileName, long duration, WorkerThread[] workerThreads, boolean alwaysOrder) throws Exception {
 
         Session session = getFactory().openSession();
@@ -221,7 +215,7 @@ public class SequenceTest extends BaseSQLRepoTest {
         }
 
         long endTime = System.currentTimeMillis() + STOP_TIMEOUT;
-        for (;;) {
+        for (; ; ) {
             long remaining = endTime - System.currentTimeMillis();
             if (remaining <= 0) {
                 break;
@@ -283,7 +277,6 @@ public class SequenceTest extends BaseSQLRepoTest {
             this(id, 0);
         }
 
-
         public volatile boolean stop = false;
 
         @Override
@@ -326,6 +319,6 @@ public class SequenceTest extends BaseSQLRepoTest {
         public void setOid(String oid) {
             this.oid = oid;
         }
-   }
+    }
 
 }

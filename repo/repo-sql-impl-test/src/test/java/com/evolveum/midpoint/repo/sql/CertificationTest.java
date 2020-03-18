@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -55,7 +54,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_
 import static org.testng.AssertJUnit.*;
 
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CertificationTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/cert");

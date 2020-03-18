@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -63,11 +62,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/modify");

@@ -7,28 +7,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.testng.annotations.BeforeClass;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-/**
- *
- */
 public abstract class AbstractPhotoTest<T extends FocusType> extends BaseSQLRepoTest {
 
     static final File TEST_DIR = new File("src/test/resources/photo");

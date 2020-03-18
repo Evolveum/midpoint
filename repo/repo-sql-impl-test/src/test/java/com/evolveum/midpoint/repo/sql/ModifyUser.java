@@ -6,9 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import java.io.File;
+import java.util.Arrays;
+
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -21,20 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Arrays;
-
 /**
  * This is not real test, it's just used to check how hibernate handles insert/modify of different objects.
- *
- * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class ModifyUser extends BaseSQLRepoTest {
 
     private static final String USER_FULLNAME = "Guybrush Threepwood";

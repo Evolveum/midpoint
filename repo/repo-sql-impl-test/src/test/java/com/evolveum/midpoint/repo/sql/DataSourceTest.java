@@ -8,16 +8,10 @@
 package com.evolveum.midpoint.repo.sql;
 
 import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-
-/**
- * @author lazyman
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test-datasource.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test-datasource.xml" })
 public class DataSourceTest extends BaseSQLRepoTest {
 
     @Test

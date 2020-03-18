@@ -7,23 +7,18 @@
 
 package com.evolveum.midpoint.repo.sql.closure;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-/**
- * @author mederly
- */
-@ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../../ctx-test.xml" })
 public class OrgClosurePerformanceTest1 extends AbstractOrgClosureTest {
 
     // relatively smaller graph
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 4, 5, 0};
+    private static final int[] ORG_CHILDREN_IN_LEVEL = { 1, 2, 3, 4, 5, 0 };
     private static final int[] USER_CHILDREN_IN_LEVEL = null;
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3, 3, 3};
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,0 };
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,0 };
+    private static final int[] PARENTS_IN_LEVEL = { 0, 1, 2, 3, 3, 3 };
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15, 15, 15, 0 };
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15, 15, 15, 0 };
 
     private OrgClosureTestConfiguration configuration;
 
@@ -39,11 +34,30 @@ public class OrgClosurePerformanceTest1 extends AbstractOrgClosureTest {
         configuration.setNodeRoundsForLevel(NODE_ROUNDS_FOR_LEVELS);
     }
 
-    @Test public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
-    @Test public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
-    @Test public void test200AddRemoveLinks() throws Exception { _test200AddRemoveLinks(); }
-    @Test public void test300AddRemoveOrgs() throws Exception { _test300AddRemoveOrgs(); }
-    @Test public void test410RandomUnloadOrgStructure() throws Exception { _test410RandomUnloadOrgStructure(); }
+    @Test
+    public void test100LoadOrgStructure() throws Exception {
+        _test100LoadOrgStructure();
+    }
+
+    @Test
+    public void test150CheckClosure() throws Exception {
+        _test150CheckClosure();
+    }
+
+    @Test
+    public void test200AddRemoveLinks() throws Exception {
+        _test200AddRemoveLinks();
+    }
+
+    @Test
+    public void test300AddRemoveOrgs() throws Exception {
+        _test300AddRemoveOrgs();
+    }
+
+    @Test
+    public void test410RandomUnloadOrgStructure() throws Exception {
+        _test410RandomUnloadOrgStructure();
+    }
 
     @Override
     public OrgClosureTestConfiguration getConfiguration() {

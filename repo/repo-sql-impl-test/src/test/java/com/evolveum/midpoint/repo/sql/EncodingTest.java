@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class EncodingTest extends BaseSQLRepoTest {
 
     /**

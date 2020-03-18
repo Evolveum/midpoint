@@ -20,7 +20,6 @@ import org.hibernate.FetchMode;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -35,18 +34,14 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class OrgStructTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/orgstruct");
@@ -211,10 +206,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
         logger.debug("=======> {}: {}", upperOrgOid, lowerObjectOidCol);
         boolean actual = repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOidCol);
         if (expected != actual) {
-            logger.error("=======X {}: {}; expected={}, actual={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected, actual});
+            logger.error("=======X {}: {}; expected={}, actual={}", new Object[] { upperOrgOid, lowerObjectOidCol, expected, actual });
             assertEquals("Wrong subordinate match: " + upperOrgOid + " to " + lowerObjectOidCol, expected, actual);
         } else {
-            logger.debug("=======O {}: {}; got={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected});
+            logger.debug("=======O {}: {}; got={}", new Object[] { upperOrgOid, lowerObjectOidCol, expected });
         }
     }
 
@@ -290,7 +285,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             logger.info("before modify");
             for (ROrgClosure c : orgClosure) {
-                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", new Object[] { c.getAncestor().getOid(), c.getDescendant().getOid() });
             }
             AssertJUnit.assertEquals(3, orgClosure.size());
         } finally {
@@ -305,7 +300,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             logger.info("after modify");
             for (ROrgClosure c : orgClosure) {
-                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", new Object[] { c.getAncestor().getOid(), c.getDescendant().getOid() });
             }
             AssertJUnit.assertEquals(4, orgClosure.size());
 
@@ -359,7 +354,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             logger.info("after modify incorrect - closure");
             for (ROrgClosure c : orgClosure) {
-                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", new Object[] { c.getAncestor().getOid(), c.getDescendant().getOid() });
             }
             AssertJUnit.assertEquals(5, orgClosure.size());
 

@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import javax.xml.namespace.QName;
 
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -28,11 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-/**
- * Created by Viliam Repan (lazyman).
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
 
     private static final String NAMESPACE = "http://concurrency";

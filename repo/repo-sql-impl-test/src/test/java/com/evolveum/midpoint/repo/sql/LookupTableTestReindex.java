@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 
 /**
  * The same as LookupTableTest but with "executeIfNoChanges" (a.k.a. "reindex") option set.
@@ -17,12 +17,10 @@ import org.springframework.test.context.ContextConfiguration;
  *
  * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class LookupTableTestReindex extends LookupTableTest {
 
     protected RepoModifyOptions getModifyOptions() {
         return RepoModifyOptions.createExecuteIfNoChanges();
     }
-
 }
