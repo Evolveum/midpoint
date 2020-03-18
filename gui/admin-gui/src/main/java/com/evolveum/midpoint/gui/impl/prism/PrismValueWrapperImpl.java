@@ -11,9 +11,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author katka
@@ -85,6 +89,11 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 
 
     protected boolean isChanged() {
+        if (QNameUtil.match(DOMUtil.XSD_QNAME, getParent().getTypeName())) {
+            QName newValueQname = newValue != null ? (QName) newValue.getRealValue() : null;
+            QName oldValueQName = oldValue != null ? (QName) oldValue.getRealValue() : null;
+            return !QNameUtil.match(newValueQname, oldValueQName);
+        }
         return !oldValue.equals(newValue, EquivalenceStrategy.REAL_VALUE);
     }
 
