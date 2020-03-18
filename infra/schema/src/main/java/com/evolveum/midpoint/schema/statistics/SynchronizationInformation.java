@@ -98,29 +98,16 @@ public class SynchronizationInformation {
         this(null);
     }
 
-    public SynchronizationInformationType getStartValue() {
-        return (SynchronizationInformationType) startValue;
-    }
-
-    public synchronized SynchronizationInformationType getDeltaValue() {
-        SynchronizationInformationType rv = toSynchronizationInformationType();
-        return rv;
-    }
-
     public synchronized SynchronizationInformationType getAggregatedValue() {
         SynchronizationInformationType delta = toSynchronizationInformationType();
-        SynchronizationInformationType rv = aggregate(startValue, delta);
-        return rv;
-    }
-
-    private SynchronizationInformationType aggregate(SynchronizationInformationType startValue, SynchronizationInformationType delta) {
         if (startValue == null) {
             return delta;
+        } else {
+            SynchronizationInformationType aggregated = new SynchronizationInformationType();
+            addTo(aggregated, startValue);
+            addTo(aggregated, delta);
+            return aggregated;
         }
-        SynchronizationInformationType rv = new SynchronizationInformationType();
-        addTo(rv, startValue);
-        addTo(rv, delta);
-        return rv;
     }
 
     public static void addTo(SynchronizationInformationType sum, @Nullable SynchronizationInformationType delta) {
@@ -182,7 +169,7 @@ public class SynchronizationInformation {
         addToState(stateAfter, newStateIncrement);
     }
 
-    protected void addToState(Record state, Record increment) {
+    private void addToState(Record state, Record increment) {
         state.countProtected += increment.countProtected;
         state.countNoSynchronizationPolicy += increment.countNoSynchronizationPolicy;
         state.countSynchronizationDisabled += increment.countSynchronizationDisabled;

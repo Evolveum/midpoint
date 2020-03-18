@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.DatatypeConstants;
@@ -21,60 +22,65 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
- * @author Pavol Mederly
+ * Thread safety: Just like EnvironmentalPerformanceInformation, instances of this class may be accessed from
+ * more than one thread at once. Updates are invoked in the context of the thread executing the task.
+ * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
+ *
+ * However, the updates should come from a single thread! Otherwise the "actions boundaries" will not be
+ * applied correctly.
  */
 public class ActionsExecutedInformation {
 
-    /*
-     * Thread safety: Just like EnvironmentalPerformanceInformation, instances of this class may be accessed from
-     * more than one thread at once. Updates are invoked in the context of the thread executing the task.
-     * Queries are invoked either from this thread, or from some observer (task manager or GUI thread).
-     */
+    public enum Part {
+        ALL, RESULTING
+    }
 
+    /**
+     * Base to which the actual value is computed (actualValue = startValue + content in maps)
+     */
     private final ActionsExecutedInformationType startValue;
 
-    // Note: key-related fields in value objects (objectType, channel, ...) are filled-in but ignored in the following two maps
-    // allObjectActions: all executed actions
-    private Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> allObjectActions = new HashMap<>();
-    // resultingObjectActions: "cleaned up" actions - i.e. if an object is added and then modified (in one "logical" operation),
-    // we count it as 1xADD
-    private Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> resultingObjectActions = new HashMap<>();
+    /**
+     * All executed actions.
+     *
+     * Note: key-related fields in value objects i.e. in ObjectActionsExecutedEntryType instances (objectType, channel, ...)
+     * are ignored in the following two maps.
+     */
+    private final Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> allObjectActions = new HashMap<>();
 
-    // operations executed in the current scope: we "clean them up" when markObjectActionExecutedBoundary is called
-    // (indexed by object oid)
-    private Map<String,List<ObjectActionExecuted>> currentScopeObjectActions = new HashMap<>();
+    /**
+     * "Cleaned up" actions. For example, if an object is added and then modified in one "logical" operation, we count these
+     * two operations as a single ADD operation. This is usually what the user is interested in.
+     */
+    private final Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> resultingObjectActions = new HashMap<>();
+
+    /**
+     * Actions that occurred as part of current "logical" operation. We assume that this object is used from single thread
+     * only, so we simply collect all operations. But we are prepared to use ThreadLocal here, if such a need would arise.
+     *
+     * We summarize these actions when markObjectActionExecutedBoundary is called.
+     */
+    private static class CurrentScopeActions {
+        // The map is indexed by object oid.
+        private final Map<String,List<ObjectActionExecuted>> actionsMap = new HashMap<>();
+    }
+
+    private CurrentScopeActions currentScopeActions = new CurrentScopeActions();
 
     public ActionsExecutedInformation(ActionsExecutedInformationType value) {
-        startValue = value;
-    }
-
-    public ActionsExecutedInformation() {
-        this(null);
-    }
-
-    public ActionsExecutedInformationType getStartValue() {
-        return (ActionsExecutedInformationType) startValue;
-    }
-
-    public synchronized ActionsExecutedInformationType getDeltaValue() {
-        ActionsExecutedInformationType rv = toActionsExecutedInformationType();
-        return rv;
+        startValue = value != null ? value.clone() : null;
     }
 
     public synchronized ActionsExecutedInformationType getAggregatedValue() {
         ActionsExecutedInformationType delta = toActionsExecutedInformationType();
-        ActionsExecutedInformationType rv = aggregate(startValue, delta);
-        return rv;
-    }
-
-    private ActionsExecutedInformationType aggregate(ActionsExecutedInformationType startValue, ActionsExecutedInformationType delta) {
         if (startValue == null) {
             return delta;
+        } else {
+            ActionsExecutedInformationType aggregated = new ActionsExecutedInformationType();
+            addTo(aggregated, startValue);
+            addTo(aggregated, delta);
+            return aggregated;
         }
-        ActionsExecutedInformationType rv = new ActionsExecutedInformationType();
-        addTo(rv, startValue);
-        addTo(rv, delta);
-        return rv;
     }
 
     public static void addTo(ActionsExecutedInformationType sum, @Nullable ActionsExecutedInformationType delta) {
@@ -85,12 +91,12 @@ public class ActionsExecutedInformation {
     }
 
     public static void addTo(List<ObjectActionsExecutedEntryType> sumEntries, List<ObjectActionsExecutedEntryType> deltaEntries) {
-        for (ObjectActionsExecutedEntryType entry : deltaEntries) {
-            ObjectActionsExecutedEntryType matchingEntry = findEntry(sumEntries, entry);
-            if (matchingEntry != null) {
-                addToEntry(matchingEntry, entry);
+        for (ObjectActionsExecutedEntryType deltaEntry : deltaEntries) {
+            ObjectActionsExecutedEntryType matchingSumEntry = findMatchingEntry(sumEntries, deltaEntry);
+            if (matchingSumEntry != null) {
+                addToEntry(matchingSumEntry, deltaEntry);
             } else {
-                sumEntries.add(entry);
+                sumEntries.add(deltaEntry.clone());
             }
         }
     }
@@ -115,17 +121,18 @@ public class ActionsExecutedInformation {
         }
     }
 
-    private static ObjectActionsExecutedEntryType findEntry(List<ObjectActionsExecutedEntryType> entries, ObjectActionsExecutedEntryType entry) {
-        for (ObjectActionsExecutedEntryType e : entries) {
-            if (entry.getObjectType().equals(e.getObjectType()) &&
-                    entry.getOperation().equals(e.getOperation()) &&
-                    StringUtils.equals(entry.getChannel(), e.getChannel())) {
+    private static ObjectActionsExecutedEntryType findMatchingEntry(List<ObjectActionsExecutedEntryType> sumEntries, ObjectActionsExecutedEntryType deltaEntry) {
+        for (ObjectActionsExecutedEntryType e : sumEntries) {
+            if (deltaEntry.getObjectType().equals(e.getObjectType()) &&
+                    deltaEntry.getOperation().equals(e.getOperation()) &&
+                    StringUtils.equals(deltaEntry.getChannel(), e.getChannel())) {
                 return e;
             }
         }
         return null;
     }
 
+    @NotNull
     private ActionsExecutedInformationType toActionsExecutedInformationType() {
         ActionsExecutedInformationType rv = new ActionsExecutedInformationType();
         toJaxb(rv);
@@ -150,25 +157,21 @@ public class ActionsExecutedInformation {
     public synchronized void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception) {
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
         ObjectActionExecuted action = new ObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception, now);
-
-        addEntry(allObjectActions, action);
-
         if (action.objectOid == null) {
-            action.objectOid = "dummy-" + ((int) Math.random() * 10000000);     // hack for unsuccessful ADDs
+            action.objectOid = "dummy-" + ((int) (Math.random() * 10000000));     // hack for unsuccessful ADDs
         }
-        addAction(action);
+
+        addAction(allObjectActions, action);
+        addActionToCurrentScope(action);
     }
 
-    protected void addAction(ObjectActionExecuted action) {
-        List<ObjectActionExecuted> actions = currentScopeObjectActions.get(action.objectOid);
-        if (actions == null) {
-            actions = new ArrayList<>();
-            currentScopeObjectActions.put(action.objectOid, actions);
-        }
-        actions.add(action);
+    private void addActionToCurrentScope(ObjectActionExecuted action) {
+        currentScopeActions.actionsMap
+                .computeIfAbsent(action.objectOid, k -> new ArrayList<>())
+                .add(action);
     }
 
-    protected void addEntry(Map<ActionsExecutedObjectsKey,ObjectActionsExecutedEntryType> target, ObjectActionExecuted a) {
+    private void addAction(Map<ActionsExecutedObjectsKey, ObjectActionsExecutedEntryType> target, ObjectActionExecuted a) {
         ActionsExecutedObjectsKey key = new ActionsExecutedObjectsKey(a.objectType, a.changeType, a.channel);
         ObjectActionsExecutedEntryType entry = target.get(key);
         if (entry == null) {
@@ -193,7 +196,8 @@ public class ActionsExecutedInformation {
     }
 
     public synchronized void markObjectActionExecutedBoundary() {
-        for (Map.Entry<String,List<ObjectActionExecuted>> entry : currentScopeObjectActions.entrySet()) {
+        Map<String, List<ObjectActionExecuted>> actionsMap = currentScopeActions.actionsMap;
+        for (Map.Entry<String,List<ObjectActionExecuted>> entry : actionsMap.entrySet()) {
             // Last non-modify operation determines the result
             List<ObjectActionExecuted> actions = entry.getValue();
             assert actions.size() > 0;
@@ -206,25 +210,25 @@ public class ActionsExecutedInformation {
             if (relevant < 0) {
                 // all are "modify" -> take any (we currently don't care whether successful or not; TODO fix this)
                 ObjectActionExecuted actionExecuted = actions.get(actions.size()-1);
-                addEntry(resultingObjectActions, actionExecuted);
+                addAction(resultingObjectActions, actionExecuted);
             } else {
-                addEntry(resultingObjectActions, actions.get(relevant));
+                addAction(resultingObjectActions, actions.get(relevant));
             }
         }
-        currentScopeObjectActions.clear();
+        actionsMap.clear();
     }
 
     private static class ObjectActionExecuted {
-        final String objectName;
-        final String objectDisplayName;
-        final QName objectType;
-        String objectOid;
-        final ChangeType changeType;
-        final String channel;
-        final Throwable exception;
-        final XMLGregorianCalendar timestamp;
+        private final String objectName;
+        private final String objectDisplayName;
+        private final QName objectType;
+        private String objectOid;
+        private final ChangeType changeType;
+        private final String channel;
+        private final Throwable exception;
+        private final XMLGregorianCalendar timestamp;
 
-        ObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception, XMLGregorianCalendar timestamp) {
+        private ObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception, XMLGregorianCalendar timestamp) {
             this.objectName = objectName;
             this.objectDisplayName = objectDisplayName;
             this.objectType = objectType;
@@ -236,17 +240,28 @@ public class ActionsExecutedInformation {
         }
     }
 
-    public static String format(ActionsExecutedInformationType information) {
+    @NotNull
+    public static String format(@NotNull ActionsExecutedInformationType information) {
+        return format(information, null);
+    }
+
+    @NotNull
+    public static String format(@NotNull ActionsExecutedInformationType information, Part part) {
         StringBuilder sb = new StringBuilder();
-        sb.append("  All object actions:\n");
-        for (ObjectActionsExecutedEntryType a : information.getObjectActionsEntry()) {
-            formatActionExecuted(sb, a);
+        if (part == null || part == Part.ALL) {
+            formatActions(sb, information.getObjectActionsEntry(), "  All object actions:\n");
         }
-        sb.append("  Resulting object actions:\n");
-        for (ObjectActionsExecutedEntryType a : information.getResultingObjectActionsEntry()) {
-            formatActionExecuted(sb, a);
+        if (part == null || part == Part.RESULTING) {
+            formatActions(sb, information.getResultingObjectActionsEntry(), "  Resulting object actions:\n");
         }
         return sb.toString();
+    }
+
+    private static void formatActions(StringBuilder sb, List<ObjectActionsExecutedEntryType> entries, String label) {
+        sb.append(label);
+        for (ObjectActionsExecutedEntryType a : entries) {
+            formatActionExecuted(sb, a);
+        }
     }
 
     private static void formatActionExecuted(StringBuilder sb, ObjectActionsExecutedEntryType a) {

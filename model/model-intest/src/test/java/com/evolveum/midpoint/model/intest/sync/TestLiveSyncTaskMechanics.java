@@ -6,15 +6,27 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
+
+import static com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType.*;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.function.Consumer;
+import java.util.ArrayList;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-import com.evolveum.midpoint.test.DummyResourceContoller;
+
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.util.exception.CommonException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -32,11 +44,11 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- *  MID-5353, MID-5513
+ * Tests interruption of live sync task in various scenarios (see MID-5353, MID-5513).
+ * In the second part tests various task statistics (MID-5999, MID-5920).
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -46,10 +58,21 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
     private DummyInterruptedSyncResource interruptedSyncResource;
     private DummyInterruptedSyncImpreciseResource interruptedSyncImpreciseResource;
-    private DummyResourceContoller noPolicyController;
 
-    private static final TestResource RESOURCE_DUMMY_NO_POLICY = new TestResource(TEST_DIR, "resource-dummy-no-policy.xml", "3908fabe-8608-4db0-93ee-e06c5691eb8f");
-    private static final String RESOURCE_DUMMY_NO_POLICY_NAME = "noPolicy";
+    private static final DummyTestResource RESOURCE_DUMMY_NO_POLICY = new DummyTestResource(TEST_DIR,
+            "resource-dummy-no-policy.xml", "3908fabe-8608-4db0-93ee-e06c5691eb8f", "noPolicy");
+    private static final DummyTestResource RESOURCE_DUMMY_XFER1_SOURCE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-xfer1-source.xml", "28867569-2ea5-4ea9-9369-da4d4b624dbf", "xfer1-source");
+    private static final DummyTestResource RESOURCE_DUMMY_XFER1_TARGET_DELETABLE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-xfer1-target-deletable.xml", "2779faac-0116-4dfe-9600-d24e6ba334c5", "xfer1-target-deletable");
+    private static final DummyTestResource RESOURCE_DUMMY_XFER2_SOURCE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-xfer2-source.xml", "b2ac9c8f-0020-46ab-9e5d-10684900a63c", "xfer2-source");
+    private static final DummyTestResource RESOURCE_DUMMY_XFER2_TARGET_NOT_DELETABLE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-xfer2-target-not-deletable.xml", "60a5f2d4-1abc-4178-a687-4a9627779676", "xfer2-target-not-deletable");
+    private static final TestResource ROLE_XFER1 = new TestResource(TEST_DIR, "role-xfer1.xml", "4b141ca2-3172-4d8a-8614-97e01ece5a9e");
+    private static final TestResource ROLE_XFER2 = new TestResource(TEST_DIR, "role-xfer2.xml", "59fdad1b-45fa-4a8c-bda4-d8a6ab980671");
+    private static final TestResource TASK_XFER1 = new TestResource(TEST_DIR, "task-xfer1.xml", "c9306381-efa8-499e-8b16-6d071d680451");
+    private static final TestResource TASK_XFER2 = new TestResource(TEST_DIR, "task-xfer2.xml", "d4f8b735-dfdb-450e-a680-dacfac4fafb0");
 
     private static final TestResource TASK_SLOW_RESOURCE = new TestResource(TEST_DIR, "task-intsync-slow-resource.xml", "ca51f209-1ef5-42b3-84e7-5f639ee8e300");
     private static final TestResource TASK_SLOW_MODEL = new TestResource(TEST_DIR, "task-intsync-slow-model.xml", "c37dda96-e547-41c2-b343-b890bc7fade9");
@@ -71,6 +94,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     private static final int ERROR_ON = 4;
     private static final int USERS = 100;
 
+    private static final int XFER_ACCOUNTS = 20;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -81,52 +106,46 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         interruptedSyncImpreciseResource = new DummyInterruptedSyncImpreciseResource();
         interruptedSyncImpreciseResource.init(dummyResourceCollection, initTask, initResult);
 
-        noPolicyController = initDummyResource(RESOURCE_DUMMY_NO_POLICY_NAME,
-                RESOURCE_DUMMY_NO_POLICY.file, RESOURCE_DUMMY_NO_POLICY.oid, initTask, initResult);
-        noPolicyController.setSyncStyle(DummySyncStyle.DUMB);
+        initDummyResource(RESOURCE_DUMMY_NO_POLICY, initTask, initResult).setSyncStyle(DummySyncStyle.DUMB);
 
-        // Initial run of these tasks must come before accounts are created.
+        initDummyResource(RESOURCE_DUMMY_XFER1_SOURCE, initTask, initResult).setSyncStyle(DummySyncStyle.DUMB);
+        initDummyResource(RESOURCE_DUMMY_XFER1_TARGET_DELETABLE, initTask, initResult);
+        repoAdd(ROLE_XFER1, initResult);
 
-        Consumer<PrismObject<TaskType>> workerThreadsCustomizer = workerThreadsCustomizer(getWorkerThreads());
+        initDummyResource(RESOURCE_DUMMY_XFER2_SOURCE, initTask, initResult).setSyncStyle(DummySyncStyle.DUMB);
+        initDummyResource(RESOURCE_DUMMY_XFER2_TARGET_NOT_DELETABLE, initTask, initResult);
+        repoAdd(ROLE_XFER2, initResult);
 
-        addObject(TASK_SLOW_RESOURCE.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_RESOURCE.oid, false);
+        initLiveSyncTask(TASK_SLOW_RESOURCE, initTask, initResult);
+        initLiveSyncTask(TASK_SLOW_RESOURCE_IMPRECISE, initTask, initResult);
+        initLiveSyncTask(TASK_SLOW_MODEL, initTask, initResult);
+        initLiveSyncTask(TASK_SLOW_MODEL_IMPRECISE, initTask, initResult);
+        initLiveSyncTask(TASK_BATCHED, initTask, initResult);
 
-        addObject(TASK_SLOW_RESOURCE_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_RESOURCE_IMPRECISE.oid, false);
-
-        addObject(TASK_SLOW_MODEL.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_MODEL.oid, false);
-
-        addObject(TASK_SLOW_MODEL_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_SLOW_MODEL_IMPRECISE.oid, false);
-
-        addObject(TASK_BATCHED.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_BATCHED.oid, false);
-
-        addObject(TASK_BATCHED_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
+        addObject(TASK_BATCHED_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
         // Starting this task results in (expected) exception
 
-        addObject(TASK_ERROR.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_ERROR.oid, false);
-
-        addObject(TASK_ERROR_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_ERROR_IMPRECISE.oid, false);
-
-        addObject(TASK_DRY_RUN.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_DRY_RUN.oid, false);
-
-        addObject(TASK_DRY_RUN_WITH_UPDATE.file, initTask, initResult, workerThreadsCustomizer);
-        waitForTaskFinish(TASK_DRY_RUN_WITH_UPDATE.oid, false);
-
-        addObject(TASK_NO_POLICY.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
-        waitForTaskFinish(TASK_NO_POLICY.oid, false);
+        initLiveSyncTask(TASK_ERROR, initTask, initResult);
+        initLiveSyncTask(TASK_ERROR_IMPRECISE, initTask, initResult);
+        initLiveSyncTask(TASK_DRY_RUN, initTask, initResult);
+        initLiveSyncTask(TASK_DRY_RUN_WITH_UPDATE, initTask, initResult);
+        initLiveSyncTask(TASK_NO_POLICY, initTask, initResult);
+        initLiveSyncTask(TASK_XFER1, initTask, initResult);
+        initLiveSyncTask(TASK_XFER2, initTask, initResult);
 
         assertUsers(getNumberOfUsers());
         for (int i = 0; i < USERS; i++) {
             interruptedSyncResource.getController().addAccount(getUserName(i, true));
             interruptedSyncImpreciseResource.getController().addAccount(getUserName(i, false));
         }
+
+        //setGlobalTracingOverride(createModelLoggingTracingProfile());
+    }
+
+    private void initLiveSyncTask(TestResource testResource, Task initTask, OperationResult initResult)
+            throws java.io.IOException, CommonException {
+        addObject(testResource.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
+        waitForTaskFinish(testResource.oid, false);
     }
 
     int getWorkerThreads() {
@@ -615,7 +634,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         Task noPolicyBefore = taskManager.getTaskPlain(TASK_NO_POLICY.oid, result);
         display("Task before", noPolicyBefore);
 
-        noPolicyController.addAccount("no-policy-user");
+        RESOURCE_DUMMY_NO_POLICY.controller.addAccount("no-policy-user");
 
         when();
 
@@ -633,6 +652,229 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertSyncToken(taskAfter, 1);
         assertEquals("Wrong noSyncPolicy counter value", 1, syncInfo.getCountNoSynchronizationPolicy());
         assertEquals("Wrong noSyncPolicyAfter counter value", 1, syncInfo.getCountNoSynchronizationPolicyAfter());
+    }
+
+    /*
+     * Transfer tests: These are created in order to verify "actions executed" counters (MID-5920).
+     * There are two transfers:
+     *
+     * xfer1-source --> xfer1-target-deletable
+     * xfer2-source --> xfer2-target-not-deletable
+     *
+     * In both cases accounts are live synced from the source to repository and then provisioned to the target resource.
+     * After initial provisioning of XFER_ACCOUNTS (10) accounts the accounts are renamed, which has an effect that the target
+     * accounts are attempted to be deleted. This is implemented in xfer1 but not in xfer2, resulting in (expected) failures.
+     *
+     * So, test210+test215 do the initial synchronization of accounts.
+     * Then, test220+test225 do the renaming and live syncing changed accounts.
+     * And test230+test235 repeat the live sync. (Doing nothing in xfer1 case and retrying the failed record in xfer2 case.)
+     */
+
+    /**
+     * Initial synchronization of accounts from Xfer1 Source (setting the stage for MID-5920 tests).
+     */
+    @Test
+    public void test210Xfer1InitialSync() throws Exception {
+        RESOURCE_DUMMY_XFER1_TARGET_DELETABLE.controller.getDummyResource().setOperationDelayOffset(500);
+        doXferInitialSync(1, TASK_XFER1, RESOURCE_DUMMY_XFER1_SOURCE);
+    }
+
+    /**
+     * Initial synchronization of accounts from Xfer2 Source (setting the stage for MID-5920 tests).
+     */
+    @Test
+    public void test215Xfer2InitialSync() throws Exception {
+        doXferInitialSync(2, TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE);
+    }
+
+    private void doXferInitialSync(int index, TestResource xferTask, DummyTestResource xferSource) throws Exception {
+        given();
+
+        assertTask(xferTask.oid, "before")
+                .synchronizationInformation()
+                    .display()
+                    .assertTotal(0, 0)
+                    .end()
+                .actionsExecutedInformation()
+                    .display()
+                    .assertEmpty()
+                    .end();
+
+        for (int i = 0; i < XFER_ACCOUNTS; i++) {
+            String name = String.format("xfer%d-%04d", index, i);
+            xferSource.controller.addAccount(name, name);
+        }
+
+        when();
+
+        waitForTaskNextRun(xferTask.oid, false, 60000, true);
+
+        then();
+
+        assertTask(xferTask.oid, "after")
+                .synchronizationInformation()
+                    .display()
+                    .assertTotal(XFER_ACCOUNTS, XFER_ACCOUNTS)
+                    .assertUnmatched(XFER_ACCOUNTS, 0)
+                    .assertLinked(0, XFER_ACCOUNTS)
+                    .end()
+                .actionsExecutedInformation()
+                    .display()
+                    .resulting()
+                        .assertCount(3*XFER_ACCOUNTS, 0)
+                        .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
+                        .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
+                        .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0)
+                        .end()
+                    .end()
+                .assertClosed()
+                .assertSuccess();
+    }
+
+    /**
+     * Renaming source accounts that results in target accounts deletion - xfer1 (still MID-5920).
+     *
+     * Accounts are renamed on the source, causing their deletion on the target.
+     * These deletions proceed successfully, as xfer1-target has DELETE capability enabled.
+     */
+    @Test
+    public void test220Xfer1RenameAccounts() throws Exception {
+        TaskAsserter<Void> asserter = doXferRenameAndSync(TASK_XFER1, RESOURCE_DUMMY_XFER1_SOURCE);
+        assertXfer1StateAfterRename(asserter);
+    }
+
+    private void assertXfer1StateAfterRename(TaskAsserter<Void> asserter) {
+        asserter
+                .assertSuccess()
+                .synchronizationInformation()
+                    .display()
+                    .assertTotal(2*XFER_ACCOUNTS, 2*XFER_ACCOUNTS) // each account was touched twice
+                    .assertUnmatched(XFER_ACCOUNTS, 0) // this is information from the first run
+                    .assertLinked(XFER_ACCOUNTS, 2*XFER_ACCOUNTS) // this is combined from the first and second runs
+                    .end()
+                .actionsExecutedInformation()
+                    .display()
+                    .resulting()
+                        .assertCount(6*XFER_ACCOUNTS, 0)
+                        .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                        .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                        .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, 2*XFER_ACCOUNTS, 0) // from the first+second runs
+                        .assertCount(MODIFY, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the second runs
+                        .assertCount(DELETE, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the second run
+                        .end()
+                    .end();
+    }
+
+    /**
+     * Renaming source accounts that results in target accounts deletion - xfer2 (still MID-5920).
+     *
+     * Accounts are renamed on the source, causing their deletion on the target.
+     * These deletions fail, as xfer2-target has DELETE capability disabled.
+     */
+    @Test
+    public void test225Xfer2RenameAccounts() throws Exception {
+        int t = getWorkerThreads() > 0 ? getWorkerThreads() : 1;
+        doXferRenameAndSync(TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE)
+                .assertPartialError()
+                .synchronizationInformation()
+                    .display()
+                    .assertTotal(XFER_ACCOUNTS+t, XFER_ACCOUNTS+t) // XFER_ACCOUNTS from the first run, t from the second (failed immediately)
+                    .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
+                    .assertLinked(t, XFER_ACCOUNTS+t) // 1 from the second run
+                .end()
+                .actionsExecutedInformation()
+                    .display()
+                    .resulting()
+                        .assertCount(3*XFER_ACCOUNTS+2*t, t)
+                        .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                        .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                        .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+t, 0) // from the first+second runs
+                        .assertCount(MODIFY, UserType.COMPLEX_TYPE, t, 0) // from the second runs
+                        .assertCount(DELETE, ShadowType.COMPLEX_TYPE, 0, t) // from the second run
+                        .end()
+                    .end();
+    }
+
+    private TaskAsserter<Void> doXferRenameAndSync(TestResource xferTask, DummyTestResource xferSource) throws Exception {
+        given();
+
+        assertTask(xferTask.oid, "before")
+                .synchronizationInformation().display().end()
+                .actionsExecutedInformation().display().end();
+
+        DummyResource resource = xferSource.controller.getDummyResource();
+        for (DummyAccount account : new ArrayList<>(resource.listAccounts())) {
+            account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "_" + account.getName());
+        }
+
+        when();
+
+        waitForTaskNextRun(xferTask.oid, false, 60000, true);
+
+        then();
+
+        return assertTask(xferTask.oid, "after")
+                .assertClosed();
+    }
+
+    /**
+     * Repeated live sync for xfer1: MID-5920.
+     *
+     * As all changes are processed, counters should stay unchanged.
+     */
+    @Test
+    public void test230Xfer1RepeatedLiveSync() throws Exception {
+        TaskAsserter<Void> asserter = doXferLiveSync(TASK_XFER1);
+        assertXfer1StateAfterRename(asserter); // the state is exactly the same as after previous live sync
+    }
+
+    /**
+     * Repeated live sync for xfer2: MID-5920.
+     *
+     * The failed record is synced again, resulting in increase of failure counters.
+     */
+    @Test
+    public void test235Xfer2RepeatedLiveSync() throws Exception {
+        int t = getWorkerThreads() > 0 ? getWorkerThreads() : 1;
+        doXferLiveSync(TASK_XFER2)
+                .assertPartialError()
+                .synchronizationInformation()
+                    .display()
+                        .assertTotal(XFER_ACCOUNTS+3*t, XFER_ACCOUNTS+3*t) // XFER_ACCOUNTS from the first run, t from the second (failed immediately), 2t for the third (first ok, second fails)
+                        .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
+                        .assertLinked(3*t, XFER_ACCOUNTS+3*t) // t from the second run, 2t from the third
+                    .end()
+                .actionsExecutedInformation()
+                    .display()
+                    .resulting()
+                        .assertCount(3*XFER_ACCOUNTS+5*t, 2*t)
+                        .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                        .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                        .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+3*t, 0) // from the first+second+third (10+t+2t) runs
+                        .assertCount(MODIFY, UserType.COMPLEX_TYPE, 2*t, 0) // from the second+third runs (t+t)
+                        .assertCount(DELETE, ShadowType.COMPLEX_TYPE, 0, 2*t) // from the second+third run (t+t)
+                    .end()
+                .end();
+
+        // Note: it seems that the failed delete caused unlinking the account, so the next live sync on the "11-th" account
+        // proceeds without problems.
+    }
+
+    private TaskAsserter<Void> doXferLiveSync(TestResource xferTask) throws Exception {
+        given();
+
+        assertTask(xferTask.oid, "before")
+                .synchronizationInformation().display().end()
+                .actionsExecutedInformation().display().end();
+
+        when();
+
+        waitForTaskNextRun(xferTask.oid, false, 60000, true);
+
+        then();
+
+        return assertTask(xferTask.oid, "after")
+                .assertClosed();
     }
 
     private ObjectQuery getStartsWithQuery(String s) {

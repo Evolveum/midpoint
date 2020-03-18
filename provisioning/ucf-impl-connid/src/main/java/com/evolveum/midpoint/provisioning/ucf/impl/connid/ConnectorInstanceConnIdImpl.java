@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -77,23 +78,16 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -1631,97 +1625,122 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             }
             OperationOptions options = optionsBuilder.build();
 
-            OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
-            connIdResult.addContext("connector", connIdConnectorFacade.getClass());
-            connIdResult.addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass);
-            connIdResult.addArbitraryObjectAsParam("initialToken", initialToken);
-
             AtomicInteger deltasProcessed = new AtomicInteger(0);
-            /*
-             * We assume that the only way how changes are _not_ fetched is that we explicitly tell ConnId to stop
-             * fetching them by returning 'false' from the handler.handle() method. (Or an exception occurs in the sync()
-             * method.)
-             *
-             * In other words, we assume that if we tell ConnId to continue feeding changes to us, we are sure that on
-             * successful exit from sync() method all changes were processed.
-             */
-            AtomicBoolean allChangesFetched = new AtomicBoolean(true);
-            SyncResultsHandler syncHandler = delta -> {
-                recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-                LOGGER.trace("Detected sync delta: {}", delta);
-                OperationResult handleResult = connIdResult.subresult(OP_FETCH_CHANGES + ".handle")
-                        .addArbitraryObjectAsParam("uid", delta.getUid())
-                        .setMinor()
-                        .build();
-                Change change = null;
-                try {
-                    change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, handleResult);
-                    boolean canContinue = changeHandler.handleChange(change, handleResult);
-                    int processed = deltasProcessed.incrementAndGet();
-                    boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
-                    if (!doContinue) {
-                        allChangesFetched.set(false);
-                    }
-                    return doContinue;
-                } catch (Throwable t) {
-                    PrismProperty<?> token = delta.getToken() != null ? createTokenProperty(delta.getToken()) : null;
-                    handleResult.recordFatalError(t);
-                    boolean doContinue = changeHandler.handleError(token, change, t, handleResult);
-                    if (!doContinue) {
-                        allChangesFetched.set(false);
-                    }
-                    return doContinue;
-                } finally {
-                    handleResult.computeStatusIfUnknown();
-                    handleResult.cleanupResult();
-                    connIdResult.summarize(true);
-                    recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-                }
-            };
 
-            SyncToken finalToken;
+            Thread callerThread = Thread.currentThread();
+
+            OperationResult connIdResult = result.subresult(ConnectorFacade.class.getName() + ".sync")
+                    .addContext("connector", connIdConnectorFacade.getClass())
+                    .addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass)
+                    .addArbitraryObjectAsParam("initialToken", initialToken)
+                    .build();
             try {
-                InternalMonitor.recordConnectorOperation("sync");
-                recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-                finalToken = connIdConnectorFacade.sync(requestConnIdObjectClass, initialToken, syncHandler, options);
-                // Note that finalToken value is not quite reliable. The SyncApiOp documentation is not clear on its semantics;
-                // it is only from SyncTokenResultsHandler (SPI) documentation and SyncImpl class that we know this value is
-                // non-null when all changes were fetched. And some of the connectors return null even then.
-                LOGGER.trace("connector sync method returned: {}", finalToken);
-                recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-                connIdResult.computeStatus();
-                connIdResult.cleanupResult();
-                connIdResult.addReturn(OperationResult.RETURN_COUNT, deltasProcessed.get());
-            } catch (Throwable ex) {
-                recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
-                Throwable midpointEx = processConnIdException(ex, this, connIdResult);
-                connIdResult.computeStatusIfUnknown();
-                connIdResult.cleanupResult();
-                result.computeStatus();
-                // Do some kind of acrobatics to do proper throwing of checked exception
-                if (midpointEx instanceof CommunicationException) {
-                    throw (CommunicationException) midpointEx;
-                } else if (midpointEx instanceof GenericFrameworkException) {
-                    throw (GenericFrameworkException) midpointEx;
-                } else if (midpointEx instanceof SchemaException) {
-                    throw (SchemaException) midpointEx;
-                } else if (midpointEx instanceof RuntimeException) {
-                    throw (RuntimeException) midpointEx;
-                } else if (midpointEx instanceof Error) {
-                    throw (Error) midpointEx;
-                } else {
-                    throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
-                }
-            }
-            if (!canRun(reporter)) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "Interrupted by task suspension");
-            }
 
-            if (allChangesFetched.get()) {
-                // We might consider finalToken value here. I.e. it it's non null, we could declare all changes to be fetched.
-                // But as mentioned above, this is not supported explicitly in SyncApiOp. So let's be a bit conservative.
-                LOGGER.trace("Signalling 'all changes fetched' with finalToken = {}", finalToken);
-                changeHandler.handleAllChangesFetched(createTokenProperty(finalToken), result);
+                /*
+                 * We assume that the only way how changes are _not_ fetched is that we explicitly tell ConnId to stop
+                 * fetching them by returning 'false' from the handler.handle() method. (Or an exception occurs in the sync()
+                 * method.)
+                 *
+                 * In other words, we assume that if we tell ConnId to continue feeding changes to us, we are sure that on
+                 * successful exit from sync() method all changes were processed.
+                 */
+                AtomicBoolean allChangesFetched = new AtomicBoolean(true);
+                SyncResultsHandler syncHandler = delta -> {
+
+                    Thread handlingThread = Thread.currentThread();
+                    if (!handlingThread.equals(callerThread)) {
+                        LOGGER.warn("Live Sync changes are being processed in a thread {} that is different from the invoking one ({}). "
+                                + "This can cause issues e.g. with operational statistics reporting.", handlingThread, callerThread);
+                    }
+
+                    recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+                    LOGGER.trace("Detected sync delta: {}", delta);
+                    OperationResult handleResult;
+                    // We can reasonably assume that this handler is NOT called in concurrent threads.
+                    // But - just for sure - let us create subresults in a safe way.
+                    synchronized (connIdResult) {
+                        handleResult = connIdResult.subresult(OP_FETCH_CHANGES + ".handle")
+                                .addArbitraryObjectAsParam("uid", delta.getUid())
+                                .setMinor()
+                                .build();
+                    }
+                    Change change = null;
+                    try {
+                        change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, handleResult);
+                        boolean canContinue = changeHandler.handleChange(change, handleResult);
+                        int processed = deltasProcessed.incrementAndGet();
+                        boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
+                        if (!doContinue) {
+                            allChangesFetched.set(false);
+                        }
+                        return doContinue;
+                    } catch (Throwable t) {
+                        PrismProperty<?> token = delta.getToken() != null ? createTokenProperty(delta.getToken()) : null;
+                        handleResult.recordFatalError(t);
+                        boolean doContinue = changeHandler.handleError(token, change, t, handleResult);
+                        if (!doContinue) {
+                            allChangesFetched.set(false);
+                        }
+                        return doContinue;
+                    } finally {
+                        // Note that operation result may not be known at this moment. The request can be still being processed
+                        // asynchronously. FIXME this has to be resolved
+                        handleResult.computeStatusIfUnknown();
+                        handleResult.cleanupResult();
+                        connIdResult.summarize(true);
+                        recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+                    }
+                };
+
+                SyncToken finalToken;
+                try {
+                    InternalMonitor.recordConnectorOperation("sync");
+                    recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+                    finalToken = connIdConnectorFacade.sync(requestConnIdObjectClass, initialToken, syncHandler, options);
+                    // Note that finalToken value is not quite reliable. The SyncApiOp documentation is not clear on its semantics;
+                    // it is only from SyncTokenResultsHandler (SPI) documentation and SyncImpl class that we know this value is
+                    // non-null when all changes were fetched. And some of the connectors return null even then.
+                    LOGGER.trace("connector sync method returned: {}", finalToken);
+                    connIdResult.computeStatus();
+                    connIdResult.cleanupResult();
+                    connIdResult.addReturn(OperationResult.RETURN_COUNT, deltasProcessed.get());
+                    recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+                } catch (Throwable ex) {
+                    recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
+                    Throwable midpointEx = processConnIdException(ex, this, connIdResult);
+                    connIdResult.computeStatusIfUnknown();
+                    connIdResult.cleanupResult();
+                    result.computeStatus();
+                    // Do some kind of acrobatics to do proper throwing of checked exception
+                    if (midpointEx instanceof CommunicationException) {
+                        throw (CommunicationException) midpointEx;
+                    } else if (midpointEx instanceof GenericFrameworkException) {
+                        throw (GenericFrameworkException) midpointEx;
+                    } else if (midpointEx instanceof SchemaException) {
+                        throw (SchemaException) midpointEx;
+                    } else if (midpointEx instanceof RuntimeException) {
+                        throw (RuntimeException) midpointEx;
+                    } else if (midpointEx instanceof Error) {
+                        throw (Error) midpointEx;
+                    } else {
+                        throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
+                    }
+                }
+                if (!canRun(reporter)) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Interrupted by task suspension");
+                }
+
+                if (allChangesFetched.get()) {
+                    // We might consider finalToken value here. I.e. it it's non null, we could declare all changes to be fetched.
+                    // But as mentioned above, this is not supported explicitly in SyncApiOp. So let's be a bit conservative.
+                    LOGGER.trace("Signalling 'all changes fetched' with finalToken = {}", finalToken);
+                    changeHandler.handleAllChangesFetched(createTokenProperty(finalToken), result);
+                }
+            } catch (Throwable t) {
+                connIdResult.recordFatalError(t);
+                throw t;
+            } finally {
+                connIdResult.computeStatusIfUnknown();
             }
 
             result.recordSuccess();

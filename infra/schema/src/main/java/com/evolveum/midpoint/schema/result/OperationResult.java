@@ -1913,8 +1913,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         OperationResultImportanceType preserveDuringCleanup = getPreserveDuringCleanup();
 
         if (status == OperationResultStatus.UNKNOWN) {
-            LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump());
-            throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
+            IllegalStateException illegalStateException = new IllegalStateException("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN");
+            LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump(), illegalStateException);
+            throw illegalStateException;
         }
         if (subresults == null) {
             return;

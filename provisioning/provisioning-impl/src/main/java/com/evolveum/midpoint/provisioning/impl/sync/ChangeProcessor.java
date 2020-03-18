@@ -91,7 +91,7 @@ public class ChangeProcessor {
 
         try {
 
-            ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, result);
+            ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, workerTask, result);
             if (ctx == null) {
                 request.setSuccess(true);
                 request.onSuccess();
@@ -229,7 +229,7 @@ public class ChangeProcessor {
      */
     @Nullable
     private ProvisioningContext determineProvisioningContext(ProvisioningContext globalCtx, Change change,
-            OperationResult parentResult)
+            Task workerTask, OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, EncryptionException {
         if (change.getObjectClassDefinition() == null) {
@@ -248,10 +248,10 @@ public class ChangeProcessor {
                         change.setOldRepoShadow(existing);
                     }
                 }
-                return globalCtx.spawn(change.getOldRepoShadow());
+                return globalCtx.spawn(change.getOldRepoShadow(), workerTask);
             }
         } else {
-            return globalCtx.spawn(change.getObjectClassDefinition().getTypeName());
+            return globalCtx.spawn(change.getObjectClassDefinition().getTypeName(), workerTask);
         }
     }
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="c9306381-efa8-499e-8b16-6d071d680451"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Live Sync Xfer1</name>
+
+    <extension>
+        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
+    </extension>
+
+    <taskIdentifier>c9306381-efa8-499e-8b16-6d071d680451</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+    <objectRef oid="28867569-2ea5-4ea9-9369-da4d4b624dbf" type="ResourceType"/>     <!-- xfer1 source -->
+    <recurrence>single</recurrence>
+</task>

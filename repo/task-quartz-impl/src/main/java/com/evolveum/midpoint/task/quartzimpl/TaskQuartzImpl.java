@@ -2460,6 +2460,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+        LOGGER.trace("recordIterativeOperationStart: {} in {}", objectDisplayName, this);
         statistics.recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
     }
 
@@ -2483,6 +2484,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
             long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
             SynchronizationInformation.Record newStateIncrement) {
+        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", objectDisplayName, this);
         statistics.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, originalStateIncrement, newStateIncrement);
     }
 
@@ -2490,28 +2492,33 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
             SynchronizationInformation.Record originalStateIncrement,
             SynchronizationInformation.Record newStateIncrement) {
+        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", shadow, this);
         statistics.recordSynchronizationOperationEnd(shadow, started, exception, originalStateIncrement, newStateIncrement);
     }
 
     @Override
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
             ChangeType changeType, String channel, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, objectDisplayName, this);
         statistics.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
     }
 
     @Override
     public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
         statistics.recordObjectActionExecuted(object, changeType, getChannel(), exception);
     }
 
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
             String defaultOid, ChangeType changeType, String channel, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
         statistics.recordObjectActionExecuted(object, objectTypeClass, defaultOid, changeType, channel, exception);
     }
 
     @Override
     public void markObjectActionExecutedBoundary() {
+        LOGGER.trace("markObjectActionExecutedBoundary: {}", this);
         statistics.markObjectActionExecutedBoundary();
     }
 
