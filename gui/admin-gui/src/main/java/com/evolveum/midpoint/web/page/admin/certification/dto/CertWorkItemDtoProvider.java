@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -28,8 +29,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.jetbrains.annotations.NotNull;
 
@@ -95,6 +98,12 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
+    }
+
+    // temporarily copied from 4.0
+    private void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+        getPage().showResult(result);
+        throw new RestartResponseException(PageError.class);
     }
 
     @Override
