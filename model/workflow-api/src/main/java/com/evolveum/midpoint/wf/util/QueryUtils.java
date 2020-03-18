@@ -121,11 +121,7 @@ public class QueryUtils {
                 .ref(principalUserOid)
                 .and()
                 .item(CaseType.F_ARCHETYPE_REF)
-                .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
-                .and()
-                .not()
-                .item(CaseType.F_STATE)
-                .eq(SchemaConstants.CASE_STATE_CLOSED);
+                .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
     }
 
     public static S_AtomicFilterExit filterForCasesOverUser(S_FilterEntryOrEmpty q, String userOid){
