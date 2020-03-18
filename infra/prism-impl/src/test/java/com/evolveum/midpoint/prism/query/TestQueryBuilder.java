@@ -35,11 +35,6 @@ public class TestQueryBuilder extends AbstractPrismTest {
     public static final QName USER_TYPE_QNAME = new QName(NS_FOO, "UserType");
     public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO, "AssignmentType");
 
-    @BeforeMethod
-    public void beforeMethod(Method method) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-    }
-
     @Test
     public void test100EmptyFilter() {
         ObjectQuery actual = getPrismContext().queryFor(UserType.class).build();

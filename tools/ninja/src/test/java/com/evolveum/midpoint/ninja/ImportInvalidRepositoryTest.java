@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -22,14 +22,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
  */
 public class ImportInvalidRepositoryTest extends BaseTest {
 
-    @Override
-    protected void beforeMethodInternal(Method method) throws Exception {
+    @BeforeMethod
+    public void initMidpointHome() throws Exception {
         setupMidpointHome();
     }
 
     @Test
     public void test100Import() {
-        String[] input = new String[]{"-m", getMidpointHome(), "import", "-i", RESOURCES_FOLDER + "/unknown-nodes.zip", "-z"};
+        String[] input = new String[] { "-m", getMidpointHome(), "import", "-i", RESOURCES_FOLDER + "/unknown-nodes.zip", "-z" };
         executeTest(null,
                 context -> {
                     RepositoryService repo = context.getRepository();

@@ -7,18 +7,14 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
-import java.io.*;
-import java.lang.reflect.Method;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import com.codeborne.selenide.Selenide;
-
 import com.codeborne.selenide.testng.BrowserPerClass;
-
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-
-import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +23,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.testng.Assert;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -39,8 +37,8 @@ import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
-
-import static com.codeborne.selenide.Selenide.open;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -48,7 +46,7 @@ import static com.codeborne.selenide.Selenide.open;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@TestPropertySource(properties = {"server.port=8180", "midpoint.schrodinger=true"})
+@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
 @Listeners({ BrowserPerClass.class })
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
@@ -135,16 +133,6 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         aboutPage
                 .clickSwitchToFactoryDefaults()
                 .clickYes();
-    }
-
-    @BeforeMethod
-    public void beforeMethod(Method method) {
-        LOG.info("Starting test {}.{}", method.getDeclaringClass().getName(), method.getName());
-    }
-
-    @AfterMethod
-    public void afterMethod(Method method) {
-        LOG.info("Finished test {}.{}", method.getDeclaringClass().getName(), method.getName());
     }
 
     protected void importObject(File source, Boolean overrideExistingObject) {
