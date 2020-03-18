@@ -634,7 +634,7 @@ public class ChangeExecutor {
             throw new IllegalStateException("Projection " + projCtx.toHumanReadableString() + " has null OID, this should not happen");
         }
 
-        if (linkShouldExist(projCtx, shadowAfterModification, result)) {
+        if (linkShouldExist(focusContext, projCtx, shadowAfterModification, result)) {
             // Link should exist
             PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
             if (objectCurrent != null) {
@@ -678,7 +678,11 @@ public class ChangeExecutor {
         }
     }
 
-    private boolean linkShouldExist(LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+    private <F extends FocusType> boolean linkShouldExist(LensFocusContext<F> focusContext, LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+        if (focusContext.isDelete()) {
+            // if we delete focus, link doesn't exist anymore, but be sure, that the situation is updated in shadow
+            return false;
+        }
         if (!projCtx.isShadowExistsInRepo()) {
             // Nothing to link to
             return false;
