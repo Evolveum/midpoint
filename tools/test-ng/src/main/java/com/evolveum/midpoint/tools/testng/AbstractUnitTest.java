@@ -10,7 +10,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.ITestResult;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 /**
@@ -20,6 +22,16 @@ import org.testng.annotations.BeforeMethod;
 public abstract class AbstractUnitTest implements MidpointTestMixin {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @BeforeClass
+    public void displayTestClassTitle() {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
+    }
+
+    @AfterClass
+    public void displayTestClassFooter() {
+        displayTestFooter("Finishing with TEST CLASS: " + getClass().getName());
+    }
 
     @BeforeMethod
     public void startTestContext(ITestResult testResult) {

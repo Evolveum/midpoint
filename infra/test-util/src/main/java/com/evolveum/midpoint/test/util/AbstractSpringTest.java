@@ -14,6 +14,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
@@ -34,6 +35,16 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * Hides parent's logger, but that one is from commons-logging and we don't want that.
      */
     protected final Trace logger = TraceManager.getTrace(getClass());
+
+    @BeforeClass
+    public void displayTestClassTitle() {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
+    }
+
+    @AfterClass
+    public void displayTestClassFooter() {
+        displayTestFooter("Finishing with TEST CLASS: " + getClass().getName());
+    }
 
     @BeforeMethod
     public void startTestContext(ITestResult testResult) throws Exception {
