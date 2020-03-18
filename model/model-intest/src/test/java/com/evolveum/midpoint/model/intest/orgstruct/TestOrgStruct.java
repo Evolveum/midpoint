@@ -15,6 +15,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,8 +27,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;

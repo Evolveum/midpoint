@@ -46,4 +46,6 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
     Boolean isLegal();
 
     boolean isExists();
+
+    boolean isTombstone();
 }

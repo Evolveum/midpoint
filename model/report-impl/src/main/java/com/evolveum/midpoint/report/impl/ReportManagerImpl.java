@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -15,7 +16,6 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.model.impl.ClusterRestService;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -370,8 +370,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                     return;
                 }
                 clusterExecutionHelper.execute(reportOutput.getNodeRef().getOid(), (client, result1) -> {
-                    client.path(ClusterRestService.REPORT_FILE_PATH);
-                    client.query(ClusterRestService.REPORT_FILE_FILENAME_PARAMETER, fileName);
+                    client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
+                    client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
                     Response response = client.delete();
                     Response.StatusType statusInfo = response.getStatusInfo();
                     LOGGER.debug("Deleting report output file ({}) from {} finished with status {}: {}",
@@ -430,8 +430,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 }
                 Holder<InputStream> inputStreamHolder = new Holder<>();
                 clusterExecutionHelper.execute(reportOutput.getNodeRef().getOid(), (client, result1) -> {
-                    client.path(ClusterRestService.REPORT_FILE_PATH);
-                    client.query(ClusterRestService.REPORT_FILE_FILENAME_PARAMETER, fileName);
+                    client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
+                    client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
                     Response response = client.get();
                     Response.StatusType statusInfo = response.getStatusInfo();
                     LOGGER.debug("Retrieving report output file ({}) from {} finished with status {}: {}",

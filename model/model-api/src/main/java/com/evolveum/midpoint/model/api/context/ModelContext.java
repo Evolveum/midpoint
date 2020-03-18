@@ -90,4 +90,10 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     @NotNull
     ObjectTreeDeltas<F> getTreeDeltas();
+
+    Collection<ResourceShadowDiscriminator> getHistoricResourceObjects();
+
+    Long getSequenceCounter(String sequenceOid);
+
+    void setSequenceCounter(String sequenceOid, long counter);
 }

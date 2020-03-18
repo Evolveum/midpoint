@@ -23,7 +23,6 @@ import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 
@@ -116,7 +114,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
         super(jasperReportsContext, dataset, parametersMap);
     }
 
-    protected abstract Collection<PrismObject<? extends ObjectType>> searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    protected abstract <O extends ObjectType> Collection<PrismObject<O>> searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     protected abstract Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, VariablesMap parameters) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
@@ -158,7 +156,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 
             if (query != null) {
                 Collection<PrismObject<? extends ObjectType>> results;
-                results = searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+                results = (Collection) searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
                 return createDataSourceFromObjects(results);
             } else {
                 if (isAuditReport()) {

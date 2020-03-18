@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.*;
@@ -86,12 +87,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      */
     @NotNull private final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 
-    /**
-     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
-     * context.
-     * If set to null then the decision is left to "the engine". Null is also a typical value
-     * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
-     */
     private SynchronizationIntent synchronizationIntent;
 
     private transient boolean isFresh = false;
@@ -339,15 +334,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         pendingAssignmentPolicyStateModifications.computeIfAbsent(spec, k -> new ArrayList<>()).add(modification);
     }
 
-    public abstract boolean isAdd();
-
     public boolean isModify() {
         // TODO I'm not sure why isModify checks both primary and secondary deltas for focus context, while
         //  isAdd and isDelete care only for the primary delta.
         return ObjectDelta.isModify(getPrimaryDelta()) || ObjectDelta.isModify(getSecondaryDelta());
     }
-
-    public abstract boolean isDelete();
 
     @NotNull
     public SimpleOperationName getOperation() {
