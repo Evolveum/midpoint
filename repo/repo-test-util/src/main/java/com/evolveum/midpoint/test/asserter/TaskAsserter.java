@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -107,6 +109,16 @@ public class TaskAsserter<RA> extends PrismObjectAsserter<TaskType, RA> {
 
     public TaskAsserter<RA> display() {
         super.display();
+        return this;
+    }
+
+    public TaskAsserter<RA> displayOperationResult() {
+        OperationResultType resultBean = getTaskBean().getResult();
+        if (resultBean != null) {
+            IntegrationTestTools.display(desc() + " operation result:\n" + OperationResult.createOperationResult(resultBean).debugDump(1));
+        } else {
+            IntegrationTestTools.display(desc() + " has no operation result");
+        }
         return this;
     }
 

@@ -113,8 +113,8 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
         change.setObjectClassDefinition(ShadowUtil.getObjectClassDefinition(shadow));
 
         LOGGER.trace("Starting to synchronize change: {}", change);
-        ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, false, parentResult);
-        changeProcessor.execute(request, task, null, null);
+        ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, false);
+        changeProcessor.execute(request, task, null, null, parentResult);
     }
 
     private void applyDefinitions(ResourceEventDescription eventDescription,

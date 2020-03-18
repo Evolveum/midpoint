@@ -94,7 +94,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     private static final int ERROR_ON = 4;
     private static final int USERS = 100;
 
-    private static final int XFER_ACCOUNTS = 20;
+    private static final int XFER_ACCOUNTS = 10;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -835,26 +835,33 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
      */
     @Test
     public void test235Xfer2RepeatedLiveSync() throws Exception {
-        int t = getWorkerThreads() > 0 ? getWorkerThreads() : 1;
-        doXferLiveSync(TASK_XFER2)
-                .assertPartialError()
-                .synchronizationInformation()
-                    .display()
-                        .assertTotal(XFER_ACCOUNTS+3*t, XFER_ACCOUNTS+3*t) // XFER_ACCOUNTS from the first run, t from the second (failed immediately), 2t for the third (first ok, second fails)
-                        .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
-                        .assertLinked(3*t, XFER_ACCOUNTS+3*t) // t from the second run, 2t from the third
-                    .end()
-                .actionsExecutedInformation()
-                    .display()
-                    .resulting()
-                        .assertCount(3*XFER_ACCOUNTS+5*t, 2*t)
-                        .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
-                        .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
-                        .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+3*t, 0) // from the first+second+third (10+t+2t) runs
-                        .assertCount(MODIFY, UserType.COMPLEX_TYPE, 2*t, 0) // from the second+third runs (t+t)
-                        .assertCount(DELETE, ShadowType.COMPLEX_TYPE, 0, 2*t) // from the second+third run (t+t)
-                    .end()
-                .end();
+        if (getWorkerThreads() > 0) {
+            doXferLiveSync(TASK_XFER2)
+                    .assertPartialError()
+                    .synchronizationInformation().display().end()
+                    .actionsExecutedInformation().display().end();
+            // No special asserts here. The number of accounts being processed may depend on the timing.
+        } else {
+            doXferLiveSync(TASK_XFER2)
+                    .assertPartialError()
+                    .synchronizationInformation()
+                        .display()
+                            .assertTotal(XFER_ACCOUNTS+3, XFER_ACCOUNTS+3) // XFER_ACCOUNTS from the first run, 1 from the second (failed immediately), 2 for the third (first ok, second fails)
+                            .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
+                            .assertLinked(3, XFER_ACCOUNTS+3) // 1 from the second run, 2 from the third
+                        .end()
+                    .actionsExecutedInformation()
+                        .display()
+                        .resulting()
+                            .assertCount(3*XFER_ACCOUNTS+5, 2)
+                            .assertCount(ADD, UserType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                            .assertCount(ADD, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS, 0) // from the first run
+                            .assertCount(MODIFY, ShadowType.COMPLEX_TYPE, XFER_ACCOUNTS+3, 0) // from the first+second+third (10+1+2) runs
+                            .assertCount(MODIFY, UserType.COMPLEX_TYPE, 2, 0) // from the second+third runs (1+1)
+                            .assertCount(DELETE, ShadowType.COMPLEX_TYPE, 0, 2) // from the second+third run (1+1)
+                        .end()
+                    .end();
+        }
 
         // Note: it seems that the failed delete caused unlinking the account, so the next live sync on the "11-th" account
         // proceeds without problems.

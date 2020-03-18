@@ -77,18 +77,18 @@ public class ChangeProcessor {
      * @param workerTask Task in context of which the worker task is executing.
      * @param coordinatorTask Coordinator task. Might be null.
      */
-    public void execute(ProcessChangeRequest request, Task workerTask, Task coordinatorTask, TaskPartitionDefinitionType partition) {
+    public void execute(ProcessChangeRequest request, Task workerTask, Task coordinatorTask,
+            TaskPartitionDefinitionType partition, OperationResult parentResult) {
 
         ProvisioningContext globalCtx = request.getGlobalContext();
         Change change = request.getChange();
-
-        OperationResult result = request.getParentResult().createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
 
         long started = 0;
         String objectName = null;
         String objectDisplayName = null;
         String objectOid = null;
 
+        OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
         try {
 
             ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, workerTask, result);
@@ -215,9 +215,7 @@ public class ChangeProcessor {
         } finally {
             request.setDone(true);
             result.computeStatusIfUnknown();
-            if (!result.isTraced()) {
-                result.cleanupResult();
-            }
+            result.cleanupResult();
             request.onCompletion(workerTask, coordinatorTask, result);
         }
     }

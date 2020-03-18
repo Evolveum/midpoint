@@ -1683,8 +1683,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                         }
                         return doContinue;
                     } finally {
-                        // Note that operation result may not be known at this moment. The request can be still being processed
-                        // asynchronously. FIXME this has to be resolved
+                        // Asynchronously processed changes (if used) have their own, separate, operation results
+                        // that are tied to the lightweight asynchronous task handlers in ChangeProcessingCoordinator.
+                        //
+                        // So we can safely compute/cleanup/summarize results here.
                         handleResult.computeStatusIfUnknown();
                         handleResult.cleanupResult();
                         connIdResult.summarize(true);
