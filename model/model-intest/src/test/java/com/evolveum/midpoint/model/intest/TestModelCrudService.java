@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.test.DummyResourceContoller;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -48,16 +50,29 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     public static final File RESOURCE_MAROON_FILE = new File(TEST_DIR, "resource-dummy-maroon.xml");
     public static final String RESOURCE_MAROON_OID = "10000000-0000-0000-0000-00000000e104";
 
+    private static final File RESOURCE_MAROON_NO_DELETE_FILE = new File(TEST_DIR, "resource-dummy-maroon-no-delete.xml");
+    private static final String RESOURCE_MAROON_NO_DELETE_OID = "10000000-0000-0000-0000-00000000e105";
+    private static final String RESOURCE_MAROON_NO_DELETE_NAME = "maroonNoDelete";
+
     private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
     private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
 
+    private static final File ACCOUNT_JACK_DUMMY_MAROON_NO_DELETE_FILE = new File(TEST_DIR, "account-jack-dummy-maroon-no-delete.xml");
     private static String accountOid;
 
     @Autowired
     protected ModelCrudService modelCrudService;
 
+    private DummyResourceContoller maroonNoDeleteCtl;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        maroonNoDeleteCtl = initDummyResource(RESOURCE_MAROON_NO_DELETE_NAME, RESOURCE_MAROON_NO_DELETE_FILE, RESOURCE_MAROON_NO_DELETE_OID, initTask, initResult);
+    }
+
     @Test
-    public void test050AddResource() throws Exception {
+    public void test050AddResourceMaroon() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -78,50 +93,12 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_MAROON_OID, null, task, result);
         assertEquals("Wrong orig in resource name", "Dummy Resource Maroon", resourceAfter.asObjectable().getName().getOrig());
         assertEquals("Wrong norm in resource name", "dummy resource maroon", resourceAfter.asObjectable().getName().getNorm());
+
     }
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
-
-        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
-        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
-        accountRefVal.setObject(account);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
-                .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-        modifications.add(accountDelta);
-
-        // WHEN
-        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
-
-        // THEN
-        // Check accountRef
-        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        assertUserJack(userJack);
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-        accountOid = accountRefType.getOid();
-        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
-        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
-
-        // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
-
-        // Check account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
-
-        // Check account in dummy resource
-        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+        testModifyUserJackAddAccount(ACCOUNT_JACK_DUMMY_FILE, dummyResourceCtl);
     }
 
     @Test
@@ -384,5 +361,78 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         result.computeStatus();
         IntegrationTestTools.display(result);
         TestUtil.assertSuccess(result);
+    }
+
+    @Test
+    public void test301modifyJAckAddAccount() throws Exception {
+        testModifyUserJackAddAccount(ACCOUNT_JACK_DUMMY_MAROON_NO_DELETE_FILE, maroonNoDeleteCtl);
+    }
+
+    // test302 has to run after test301, because test302 relies on accountOid set in test301
+    @Test
+    public void test302deleteUserJack() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        //WHEN
+        try {
+            deleteObject(UserType.class, USER_JACK_OID, task, result);
+            fail("Unexpected success. Should fail because resource doesn't support delete and criticality is not set");
+        } catch (UnsupportedOperationException e) {
+            // this is expected
+        }
+
+        //THEN
+        // Check shadow, must be still in repo, becuase resource doesn't support delete
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", maroonNoDeleteCtl.getResourceType());
+        //check that situation was updated MID-4038
+        assertSituation(accountShadow, null);
+
+    }
+
+    private void testModifyUserJackAddAccount(File accountFile, DummyResourceContoller dummyController) throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
+        accountRefVal.setObject(account);
+        ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+                .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+        modifications.add(accountDelta);
+
+        // WHEN
+        modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
+
+        // THEN
+        // Check accountRef
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
+        accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+
+        // Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", dummyController.getResourceType());
+        assertSituation(accountShadow, SynchronizationSituationType.LINKED);
+
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertAccountShadowModel(accountModel, accountOid, "jack", dummyController.getResourceType());
+
+        // Check account in dummy resource
+        assertDummyAccount(dummyController.getDummyResource().getInstanceName(), "jack", "Jack Sparrow", true);
     }
 }

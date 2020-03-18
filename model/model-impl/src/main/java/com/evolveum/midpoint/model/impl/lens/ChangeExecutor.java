@@ -679,6 +679,10 @@ public class ChangeExecutor {
     }
 
     private <F extends FocusType> boolean linkShouldExist(LensFocusContext<F> focusContext, LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+        if (focusContext.isDelete()) {
+            // if we delete focus, link doesn't exist anymore, but be sure, that the situation is updated in shadow
+            return false;
+        }
         if (!projCtx.isShadowExistsInRepo()) {
             // Nothing to link to
             return false;
@@ -691,7 +695,7 @@ public class ChangeExecutor {
         }
         if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
                 || projCtx.isDelete()) {
-            return !focusContext.isDelete() && shadowAfterModification != null;
+            return shadowAfterModification != null;
         }
         if (projCtx.hasPendingOperations()) {
             return true;
