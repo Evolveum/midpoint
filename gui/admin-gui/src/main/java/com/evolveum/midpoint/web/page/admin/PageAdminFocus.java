@@ -574,6 +574,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 switch (accountWrapper.getProjectionStatus()) {
                     case ADD:
                         account = delta.getObjectToAdd();
+                        if (skipAddShadow(account.asObjectable().getResourceRef(), accounts)) {
+                            break;
+                        }
                         addDefaultKindAndIntent(account);
                         WebComponentUtil.encryptCredentials(account, true, getMidpointApplication());
                         refValue.setObject(account);
@@ -581,6 +584,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         break;
                     case DELETE:
                         account = accountWrapper.getObject();
+                        if (skipDeleteShadow(account.asObjectable().getResourceRef(), accounts)) {
+                            break;
+                        }
                         refValue.setObject(account);
                         refDelta.addValueToDelete(refValue);
                         break;
@@ -600,6 +606,44 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         }
 
         return refDelta;
+    }
+
+    private boolean skipAddShadow(ObjectReferenceType resourceRef, List<ShadowWrapper> accounts) {
+        if (resourceRef == null) {
+            return false;
+        }
+        String actualresourceOid = resourceRef.getOid();
+        if (actualresourceOid == null) {
+            return false;
+        }
+        for (ShadowWrapper account : accounts) {
+            if (account.getProjectionStatus().equals(UserDtoStatus.DELETE)
+                    && account.getObject().asObjectable().getResourceRef() != null
+                    && account.getObject().asObjectable().getResourceRef().getOid() != null
+                    && account.getObject().asObjectable().getResourceRef().getOid().equals(actualresourceOid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean skipDeleteShadow(ObjectReferenceType resourceRef, List<ShadowWrapper> accounts) throws SchemaException {
+        if (resourceRef == null) {
+            return false;
+        }
+        String actualresourceOid = resourceRef.getOid();
+        if (actualresourceOid == null) {
+            return false;
+        }
+        for (ShadowWrapper account : accounts) {
+            if (account.getProjectionStatus().equals(UserDtoStatus.ADD)
+                    && account.getObjectDelta().getObjectToAdd().asObjectable().getResourceRef() != null
+                    && account.getObjectDelta().getObjectToAdd().asObjectable().getResourceRef().getOid() != null
+                    && account.getObjectDelta().getObjectToAdd().asObjectable().getResourceRef().getOid().equals(actualresourceOid)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void addDefaultKindAndIntent(PrismObject<ShadowType> account) {
