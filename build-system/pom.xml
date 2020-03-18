@@ -1543,13 +1543,14 @@
 								<!-- There is some kind of conflict between these. TODO: clean up -->
 								<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>								
 
 								<!-- We are making this dependency explicit to detect conflicts early -->
 								<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
 
 								<!-- The xjc-plugin does not compile without dependency on this -->
 								<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
+								<ignoredDependency>xalan:xalan:jar:2.7.2</ignoredDependency>
 
 								<!-- Cannot help myself with this one (commons-configuration 1.6 causes this) TODO: revisit -->
 								<ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>

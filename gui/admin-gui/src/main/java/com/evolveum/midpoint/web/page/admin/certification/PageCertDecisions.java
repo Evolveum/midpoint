@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDtoPro
 import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -64,6 +65,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.xpath.operations.Bool;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -103,9 +105,12 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private CertDecisionHelper helper = new CertDecisionHelper();
 
-    private IModel<Boolean> showNotDecidedOnlyModel = new Model<>(false);
-
     public PageCertDecisions() {
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 
@@ -148,7 +153,8 @@ public class PageCertDecisions extends PageAdminCertification {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this, showNotDecidedOnlyModel);
+                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this,
+                        Model.of(getCertDecisionsStorage().getShowNotDecidedOnly()));
             }
         };
         table.setShowPaging(true);
@@ -485,7 +491,7 @@ public class PageCertDecisions extends PageAdminCertification {
         DataTable table = panel.getDataTable();
         CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
         provider.setQuery(query);
-        provider.setNotDecidedOnly(Boolean.TRUE.equals(showNotDecidedOnlyModel.getObject()));
+        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly().booleanValue());
         table.setCurrentPage(0);
 
         target.add(getFeedbackPanel());
@@ -515,6 +521,10 @@ public class PageCertDecisions extends PageAdminCertification {
 //        }
 //	}
 
+    private CertDecisionsStorage getCertDecisionsStorage(){
+        return getSessionStorage().getCertDecisions();
+    }
+
     private static class SearchFragment extends Fragment {
 
         public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
@@ -542,7 +552,9 @@ public class PageCertDecisions extends PageAdminCertification {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     PageCertDecisions page = (PageCertDecisions) getPage();
+                    page.getCertDecisionsStorage().setShowNotDecidedOnly((Boolean) getDefaultModelObject());
                     page.searchFilterPerformed(target);
+
                 }
             };
         }

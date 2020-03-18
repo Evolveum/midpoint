@@ -639,6 +639,12 @@
             <artifactId>prettytime</artifactId>
             <version>4.0.0.Final</version>
         </dependency>
+        
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <version>2.7.2</version>
+        </dependency>
 
         <!-- Xtext DSL: IDE schema support (experimental) -->
 <!--        <dependency>
