@@ -26,6 +26,11 @@ public class ClusterExecutionOptions {
      */
     private boolean tryAllNodes;
 
+    /**
+     * If true, default "Accept" header values (XML, JSON, YAML) are not applied.
+     */
+    private boolean skipDefaultAccept;
+
     public boolean isTryNodesInTransition() {
         return tryNodesInTransition;
     }
@@ -58,5 +63,22 @@ public class ClusterExecutionOptions {
 
     public static boolean isTryAllNodes(ClusterExecutionOptions options) {
         return options != null && options.isTryAllNodes();
+    }
+
+    public boolean isSkipDefaultAccept() {
+        return skipDefaultAccept;
+    }
+
+    public void setSkipDefaultAccept(boolean skipDefaultAccept) {
+        this.skipDefaultAccept = skipDefaultAccept;
+    }
+
+    public ClusterExecutionOptions skipDefaultAccept() {
+        setSkipDefaultAccept(true);
+        return this;
+    }
+
+    public static boolean isSkipDefaultAccept(ClusterExecutionOptions options) {
+        return options != null && options.isSkipDefaultAccept();
     }
 }
