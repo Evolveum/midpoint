@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -432,6 +433,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 clusterExecutionHelper.execute(reportOutput.getNodeRef().getOid(), (client, result1) -> {
                     client.path(ClusterRestService.REPORT_FILE_PATH);
                     client.query(ClusterRestService.REPORT_FILE_FILENAME_PARAMETER, fileName);
+                    client.accept(MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     Response response = client.get();
                     Response.StatusType statusInfo = response.getStatusInfo();
                     LOGGER.debug("Retrieving report output file ({}) from {} finished with status {}: {}",
