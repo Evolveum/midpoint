@@ -35,32 +35,32 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, Prism
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void setRealValue(T realValue) {
+    public void setRealValue(T newRealValue) {
 
-        realValue = trimValueIfNeeded(realValue);
+        newRealValue = trimValueIfNeeded(newRealValue);
 
-        if (realValue == null) {
+        if (newRealValue == null) {
             getNewValue().setValue(null);
             setStatus(ValueStatus.DELETED);
             return;
         }
 
-        if (realValue instanceof QName) {
-            if (QNameUtil.match((QName) realValue, (QName) getNewValue())) {
+        if (newRealValue instanceof QName) {
+            if (QNameUtil.match((QName) newRealValue, (QName) getRealValue())) {
                 return;
             }
-        } else if (realValue instanceof ItemPath) {
-            if (((ItemPath) realValue).equivalent((ItemPath) getNewValue())) {
+        } else if (newRealValue instanceof ItemPath) {
+            if (((ItemPath) newRealValue).equivalent((ItemPath) getRealValue())) {
                 return;
             }
         } else {
-            if (realValue.equals(getNewValue())) {
+            if (newRealValue.equals(getRealValue())) {
                 return;
             }
         }
 
 
-        getNewValue().setValue(realValue);
+        getNewValue().setValue(newRealValue);
         setStatus(ValueStatus.MODIFIED);
     }
 
