@@ -571,7 +571,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
     private void traceOutput() {
         if (outputTriple != null) {
-            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple));
+            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, prismContext));
         }
     }
 
