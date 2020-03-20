@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.annotations.VisibleForTesting;
 
@@ -269,6 +270,18 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     @NotNull
     Collection<?> getRealValues();
+
+    @Experimental
+    @NotNull
+    default Collection<Object> getRealValuesOrRawTypes(PrismContext prismContext) {
+        List<Object> rv = new ArrayList<>();
+        for (V value : getValues()) {
+            if (value != null) {
+                rv.add(value.getRealValueOrRawType(prismContext));
+            }
+        }
+        return rv;
+    }
 
     /**
      * Returns true if the item contains 0 or 1 values and (by definition) is not multivalued.
