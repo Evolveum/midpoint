@@ -28,9 +28,10 @@
         -->
         <project.starter.module>../../gui/admin-gui</project.starter.module>
         <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
-        <server.port>8180</server.port>
+        <server.port>8080</server.port>
         <midpoint.host>0.0.0.0</midpoint.host>
         <midpoint.home></midpoint.home>
+        <schrodinger.properties></schrodinger.properties>
         <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
         <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
     </properties>

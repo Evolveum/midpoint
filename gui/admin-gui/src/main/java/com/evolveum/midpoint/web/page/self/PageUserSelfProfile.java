@@ -24,47 +24,31 @@ import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Viliam Repan (lazyman)
- * @author Radovan Semancik
- */
 @PageDescriptor(url = {"/self/profile/user"}, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_PROFILE_URL,
-                label = "PageSelfProfile.auth.profile.label",
-                description = "PageSelfProfile.auth.profile.description")})
+                label = "PageUserSelfProfile.auth.profile.label",
+                description = "PageUserSelfProfile.auth.profile.description")})
 public class PageUserSelfProfile extends PageUser {
 
-    private PageAdminFocus page;
+    private static final long serialVersionUID = 1L;
 
     public PageUserSelfProfile() {
         super();
-        page = new PageUser();
-        setResponsePage(page);
+
     }
 
+    //TODO is this even used??
     public PageUserSelfProfile(PageParameters parameters) {
         super(parameters);
-        page = new PageUser(parameters);
-        setResponsePage(page);
     }
-
-    public PageUserSelfProfile(PrismObject<UserType> user) {
-        super(user);
-        page = new PageUser(user);
-        setResponsePage(page);
-    }
-
-    private static final long serialVersionUID = 1L;
-    private static final Trace LOGGER = TraceManager.getTrace(PageUserSelfProfile.class);
 
     @Override
     protected String getObjectOidParameter() {
         return WebModelServiceUtils.getLoggedInFocusOid();
     }
-
 
     @Override
     protected IModel<String> createPageTitleModel() {

@@ -67,6 +67,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -108,6 +110,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
+import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -927,6 +930,8 @@ public final class WebComponentUtil {
         }).collect(Collectors.toList());
 
     }
+
+
 
     public static List<ObjectTypes> createAssignmentHolderTypesList(){
         List<ObjectTypes> objectTypes = new ArrayList<>();
@@ -4505,6 +4510,23 @@ public final class WebComponentUtil {
         }
 
         return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, kind);
+    }
+
+    public static Class<? extends PageBase> resolveSelfPage() {
+        FocusType focusType = WebModelServiceUtils.getLoggedInFocus();
+        if (focusType instanceof UserType) {
+            return PageUserSelfProfile.class;
+        }
+        if (focusType instanceof OrgType) {
+            return PageOrgSelfProfile.class;
+        }
+        if (focusType instanceof RoleType) {
+            return PageRoleSelfProfile.class;
+        }
+        if (focusType instanceof ServiceType) {
+            return PageServiceSelfProfile.class;
+        }
+        return null;
     }
 
 }
