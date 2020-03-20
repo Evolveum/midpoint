@@ -1095,12 +1095,10 @@ public class InboundProcessor {
         boolean tolerateTargetValues = !outputDefinition.isSingleValue() || rangeCompletelyDefined;
 
         if (targetFocusItem != null) {
+            LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}",
+                    DebugUtil.debugDumpLazily(targetFocusItem, 1), DebugUtil.debugDumpLazily(shouldBeItem, 1));
             ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}\ndiff:\n{} ",
-                        DebugUtil.debugDump(targetFocusItem, 1), DebugUtil.debugDump(shouldBeItem, 1),
-                        DebugUtil.debugDump(diffDelta, 1));
-            }
+            LOGGER.trace("The difference is:\n{}", DebugUtil.debugDumpLazily(diffDelta, 1));
 
             if (diffDelta != null) {
                 // this is probably not correct, as the default for
