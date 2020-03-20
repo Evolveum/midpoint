@@ -147,7 +147,6 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         aboutPage
                 .clickSwitchToFactoryDefaults()
                 .clickYes();
-
     }
 
     protected void importObject(File source, Boolean overrideExistingObject) {

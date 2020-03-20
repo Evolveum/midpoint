@@ -26,8 +26,6 @@ import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.component.prism.show.PreviewChangesTab;
@@ -59,23 +57,19 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
         PreviewPage previewPage = null;
 
-        PrismForm<AssignmentHolderBasicTab<UserPage>> f = user.selectTabBasic()
+        PreviewPage f = user.selectTabBasic()
                 .form()
                     .addAttributeValue("name", "jack")
                     .addAttributeValue(UserType.F_GIVEN_NAME, "Jack")
-                    .setPasswordFieldsValues(PasswordType.F_VALUE,"asd123");
-
-        Selenide.screenshot("after password");
-                previewPage = f.and()
+                    .setPasswordFieldsValues(PasswordType.F_VALUE,"asd123")
+                    .and()
                 .and()
                 .clickPreview();
         //@formatter:on
 
-        Selenide.screenshot("preview");
         ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage.selectPanelByName("jack").primaryDeltas();
         assertTrue(primaryDeltaScene.isExpanded(), "Primary deltas should be expanded");
 
-        Selenide.screenshot("deltas");
         List<ScenePanel> deltas = primaryDeltaScene.objectDeltas();
         assertEquals(3, deltas.size(), "Unexpected number of primary deltas");
 
@@ -105,8 +99,6 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                     .and()
                 .clickPreviewChanges();
         //@formatter:on
-
-        Selenide.screenshot("modfifyUser, preview change");
 
         ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage.selectPanelByName("jack").primaryDeltas();
         assertTrue(primaryDeltaScene.isExpanded(), "Primary deltas should be expanded");
@@ -139,7 +131,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                                 .search()
                                     .byName()
                                         .inputValue(ROLE_USER_PREVIEW_NAME)
-                                    .and()
+                                    .updateSearch()
                                 .and()
                             .selectCheckboxByName(ROLE_USER_PREVIEW_NAME)
                         .and()

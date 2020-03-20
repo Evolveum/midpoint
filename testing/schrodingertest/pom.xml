@@ -134,6 +134,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-api</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>

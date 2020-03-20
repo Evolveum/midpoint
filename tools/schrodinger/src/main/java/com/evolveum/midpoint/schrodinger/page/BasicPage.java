@@ -371,7 +371,7 @@ public class BasicPage {
             return mainMenu;
         }
         SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
-        menuItem.waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+        menuItem.waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return menuItem;
     }
@@ -401,7 +401,7 @@ public class BasicPage {
             topLevelMenuChevron.shouldHave(Condition.cssClass("fa-chevron-down")).waitUntil(Condition.cssClass("fa-chevron-down"), MidPoint.TIMEOUT_DEFAULT_2_S);
         }
 
-        SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey(mainMenuKey), index);
+        SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey("span", mainMenuKey), index);
         mainMenu.shouldBe(Condition.visible);
 
         SelenideElement mainMenuLi = mainMenu.parent().parent();
