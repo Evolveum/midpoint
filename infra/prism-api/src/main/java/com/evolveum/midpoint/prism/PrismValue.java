@@ -12,7 +12,10 @@ import com.evolveum.midpoint.prism.metadata.MidpointOriginMetadata;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import org.jetbrains.annotations.NotNull;
@@ -127,8 +130,23 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     @Nullable
     Class<?> getRealClass();
 
+    @Experimental // todo reconsider method name
+    default boolean hasRealClass() {
+        return getRealClass() != null;
+    }
+
     @Nullable
     <T> T getRealValue();
+
+    @Nullable
+    @Experimental // todo reconsider method name
+    default Object getRealValueOrRawType(PrismContext prismContext) {
+        if (hasRealClass()) {
+            return getRealValue();
+        } else {
+            return new RawType(this, getTypeName(), prismContext);
+        }
+    }
 
     // Returns a root of PrismValue tree. For example, if we have a AccessCertificationWorkItemType that has a parent (owner)
     // of AccessCertificationCaseType, which has a parent of AccessCertificationCampaignType, this method returns the PCV
