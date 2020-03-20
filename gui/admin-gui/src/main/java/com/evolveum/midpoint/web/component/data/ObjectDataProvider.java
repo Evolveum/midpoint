@@ -13,6 +13,7 @@ import java.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
 
 import org.apache.commons.lang.Validate;
@@ -174,7 +175,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             result.computeStatusIfUnknown();
         }
 
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result) && !OperationResultStatus.NOT_APPLICABLE.equals(result.getStatus())) {
             getPage().showResult(result);
             throw new RestartResponseException(PageError.class);
         }
