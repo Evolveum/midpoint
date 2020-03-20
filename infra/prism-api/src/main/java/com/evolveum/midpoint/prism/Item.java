@@ -426,6 +426,12 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     ItemDelta<V,D> diff(Item<V,D> other);
 
     /**
+     * Computes a difference (delta) with the specified item using IGNORE_METADATA_CONSIDER_DIFFERENT_IDS equivalence strategy.
+     * Compares item values only -- does NOT dive into lower levels.
+     */
+    ItemDelta<V,D> diffValues(Item<V,D> other);
+
+    /**
      * Computes a difference (delta) with the specified item using given equivalence strategy.
      * Note this method cannot accept general EquivalenceStrategy here; it needs the parameterized strategy.
      */
