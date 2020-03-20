@@ -208,14 +208,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
             @Override
             public boolean isVisible(){
-                return AbstractObjectMainPanel.this.isPreviewButtonVisible();
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL) && AbstractObjectMainPanel.this.isPreviewButtonVisible();
             }
 
             @Override
             public boolean isEnabled() {
-//                PrismContainerDefinition def = getObjectWrapper().getDefinition();
-                if (ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
-                        && !getObjectWrapper().canModify()){
+                if (ItemStatus.NOT_CHANGED == getObjectWrapper().getStatus() && !getObjectWrapper().canModify()){
                     return areSavePreviewButtonsEnabled();
                 }
                 return true;
