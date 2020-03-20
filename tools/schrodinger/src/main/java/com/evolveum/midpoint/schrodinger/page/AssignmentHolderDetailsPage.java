@@ -35,6 +35,11 @@ public abstract class AssignmentHolderDetailsPage extends BasicPage {
         return new ProgressPage();
     }
 
+    public PreviewPage clickPreview() {
+        $(Schrodinger.byDataId("previewChanges")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).click();
+        return new PreviewPage();
+    }
+
     protected TabPanel findTabPanel() {
         SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);

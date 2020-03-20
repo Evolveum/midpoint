@@ -7,30 +7,34 @@
 
 package com.evolveum.midpoint.notifications.impl;
 
-import com.evolveum.midpoint.notifications.api.NotificationManager;
-import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.notifications.impl.events.ResourceObjectEventImpl;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import javax.annotation.PostConstruct;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.OperationStatus;
+import com.evolveum.midpoint.notifications.impl.events.ResourceObjectEventImpl;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Converts provisioning events into notification events.
@@ -42,6 +46,7 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     private static final String DOT_CLASS = AccountOperationListener.class.getName() + ".";
 
+    @Autowired private PrismContext prismContext;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private ChangeNotificationDispatcher provisioningNotificationDispatcher;
     @Autowired private NotificationManager notificationManager;
@@ -138,9 +143,9 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     @NotNull
     private ResourceObjectEventImpl createRequest(OperationStatus status,
-                                              ResourceOperationDescription operationDescription,
-                                              Task task,
-                                              OperationResult result) {
+            ResourceOperationDescription operationDescription,
+            Task task,
+            OperationResult result) {
 
         ResourceObjectEventImpl event = new ResourceObjectEventImpl(lightweightIdentifierGenerator,
                 operationDescription, status);
@@ -173,10 +178,17 @@ public class AccountOperationListener implements ResourceOperationListener {
             return task.getRequestee();
         } else if (shadowOid != null) {
             try {
-                PrismObject<UserType> user = cacheRepositoryService.listAccountShadowOwner(shadowOid, result);
+                ObjectQuery query = prismContext.queryFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .ref(shadowOid)
+                        .build();
+                SearchResultList<PrismObject<UserType>> prismObjects =
+                        cacheRepositoryService.searchObjects(UserType.class, query, null, result);
+                PrismObject<UserType> user = MiscUtil.extractSingleton(prismObjects);
+
                 LOGGER.trace("listAccountShadowOwner for shadow {} yields {}", shadowOid, user);
                 return user;
-            } catch (ObjectNotFoundException e) {
+            } catch (SchemaException e) {
                 LOGGER.trace("There's a problem finding account {}", shadowOid, e);
                 return null;
             }

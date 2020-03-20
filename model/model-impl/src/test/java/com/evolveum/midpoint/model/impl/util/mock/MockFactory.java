@@ -6,11 +6,18 @@
  */
 package com.evolveum.midpoint.model.impl.util.mock;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -24,33 +31,25 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 public class MockFactory {
 
     public static ProvisioningService createProvisioningService() {
         return new ProvisioningService() {
             @Override
-            public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
+            public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) {
                 return 0;
             }
 
@@ -61,77 +60,77 @@ public class MockFactory {
 
             @NotNull
             @Override
-            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                return new SearchResultList(new ArrayList<>(0));
+            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
+                return new SearchResultList<>(new ArrayList<>(0));
             }
 
             @Override
-            public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            public <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
+            public OperationResult testResource(String resourceOid, Task task) {
                 return null;
             }
 
             @Override
-            public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException {
+            public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException {
+            public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
 
             }
 
             @Override
-            public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Task task, OperationResult parentResult) {
 
             }
 
             @Override
-            public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, Task task, OperationResult parentResult) {
 
             }
 
             @Override
-            public <T extends ObjectType> void applyDefinition(PrismObject<T> object, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            public <T extends ObjectType> void applyDefinition(PrismObject<T> object, Task task, OperationResult parentResult) {
 
             }
 
             @Override
-            public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult) {
 
             }
 
@@ -151,7 +150,7 @@ public class MockFactory {
             }
 
             @Override
-            public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition, PrismObject<ShadowType> shadowObject, PrismObject<ShadowType> shadowObjectOld, ResourceType resourceType, String shadowOid, ResourceShadowDiscriminator resourceShadowDiscriminator, ConstraintViolationConfirmer constraintViolationConfirmer, ConstraintsCheckingStrategyType strategy, Task task, OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+            public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition, PrismObject<ShadowType> shadowObject, PrismObject<ShadowType> shadowObjectOld, ResourceType resourceType, String shadowOid, ResourceShadowDiscriminator resourceShadowDiscriminator, ConstraintViolationConfirmer constraintViolationConfirmer, ConstraintsCheckingStrategyType strategy, Task task, OperationResult parentResult) {
                 return null;
             }
 
@@ -166,7 +165,7 @@ public class MockFactory {
             }
 
             @Override
-            public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path, T expectedValue, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path, T expectedValue, Task task, OperationResult result) {
                 return null;
             }
 
@@ -186,12 +185,12 @@ public class MockFactory {
         return new RepositoryService() {
             @Override
             @NotNull
-            public <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+            public <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+            public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult) {
                 return null;
             }
 
@@ -201,77 +200,72 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+            public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-                return new SearchResultList(new ArrayList<>(0));
+            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+                return new SearchResultList<>(new ArrayList<>(0));
             }
 
             @Override
-            public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-                return new SearchResultList(new ArrayList<>(0));
+            public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+                return new SearchResultList<>(new ArrayList<>(0));
             }
 
             @Override
-            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential, OperationResult parentResult) throws SchemaException {
+            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+            public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
                 return 0;
             }
 
             @Override
-            public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException {
+            public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) {
                 return 0;
             }
 
             @Override
-            public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
+            public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) {
                 return false;
             }
 
             @Override
-            public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException {
+            public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) {
                 return false;
             }
 
             @Override
-            public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
+            public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) {
                 return false;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException {
-                return null;
-            }
-
-            @Override
-            public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult) throws ObjectNotFoundException {
+            public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) {
                 return null;
             }
 
@@ -281,17 +275,12 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid, Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-                return null;
-            }
-
-            @Override
-            public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+            public long advanceSequence(String oid, OperationResult parentResult) {
                 return 0;
             }
 
             @Override
-            public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+            public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) {
 
             }
 
@@ -316,7 +305,7 @@ public class MockFactory {
             }
 
             @Override
-            public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) {
                 return false;
             }
 
@@ -331,7 +320,7 @@ public class MockFactory {
             }
 
             @Override
-            public void postInit(OperationResult result) throws SchemaException {
+            public void postInit(OperationResult result) {
 
             }
 
@@ -351,7 +340,7 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+            public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information, OperationResult parentResult) {
 
             }
 
@@ -395,7 +384,7 @@ public class MockFactory {
             }
 
             @Override
-            public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
+            public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult) throws GenericConnectorException {
 
             }
 
