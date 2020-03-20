@@ -15,10 +15,10 @@ import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -29,7 +29,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -65,15 +64,20 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final String ACCOUNT_LEELOO_PROOF_STRANGE = "Hereby and hèrěnow\nThis is a multi-line claim\nwith a sôme of špecial chäracters\nAnd even some CRLF file endings\r\nLike this\r\nAnd to be completely nuts, even some LFRC\n\rThis does not really proves anything\n   It is just trying to reproduce the problem\nIn addition to be quite long\nand ugly\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident,\nsunt in culpa qui officia deserunt mollit anim id est laborum.\nAnd so on …";
 
     private static final String ACCOUNT_RISKY_USERNAME = "risky";
+    private static final String ACCOUNT_GDPR_USERNAME = "gdpr";
 
     private static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
     private static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
 
     private static final String LOCKER_BIG_SECRET = "BIG secret";
 
+    private static final ItemName DATA_PROTECTION = new ItemName(NS_PIRACY, "dataProtection");
+
     private static final ItemName RISK_VECTOR = new ItemName(NS_PIRACY, "riskVector");
     private static final ItemName RISK = new ItemName(NS_PIRACY, "risk");
     private static final ItemName VALUE = new ItemName(NS_PIRACY, "value");
+
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME = "controllerName";
 
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
@@ -93,6 +97,8 @@ public class TestMappingInbound extends AbstractMappingTest {
                             DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
                     controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                             DUMMY_ACCOUNT_ATTRIBUTE_TREASON_RISK_NAME, Integer.class, false, false);
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, String.class, false, false);
                     controller.setSyncStyle(DummySyncStyle.SMART);
                 },
                 initTask, initResult);
@@ -116,7 +122,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         display("Parsed resource schema (tea-green)", returnedSchema);
         ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
-                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 3); // MID-5197
+                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 4); // MID-5197
 
         ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
         assertNotNull("No locker attribute definition", lockerDef);
@@ -749,6 +755,55 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .end()
                     .value(ValueSelector.itemEquals(RISK, "death"))
                         .assertPropertyEquals(VALUE, 1);
+    }
+
+    /**
+     * MID-6129
+     */
+    @Test
+    public void test510UserDataProtection() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        UserType user = new UserType(prismContext)
+                .name(ACCOUNT_GDPR_USERNAME);
+        DataProtectionType protection = new DataProtectionType(prismContext)
+                .controllerName("controller")
+                .controllerContact("controller@evolveum.com");
+        PrismContainerDefinition<DataProtectionType> protectionDef =
+                user.asPrismObject().getDefinition().findContainerDefinition(ItemPath.create(UserType.F_EXTENSION, DATA_PROTECTION));
+        PrismContainer<DataProtectionType> protectionContainer = protectionDef.instantiate();
+        //noinspection unchecked
+        protectionContainer.add(protection.asPrismContainerValue());
+        user.asPrismObject().addExtensionItem(protectionContainer);
+
+        addObject(user.asPrismObject(), task, result);
+
+        DummyAccount account = new DummyAccount(ACCOUNT_GDPR_USERNAME);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "GDPR");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, "new-controller");
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
+
+        when();
+
+        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        waitForTaskFinish(task, true);
+
+        then();
+
+        assertSuccess(task.getResult());
+
+        assertUserAfterByUsername(ACCOUNT_GDPR_USERNAME)
+                .assertExtensionItems(1)
+                .extensionContainer(DATA_PROTECTION)
+                    .assertSize(1)
+                    .value(0)
+                        .assertPropertyEquals(DataProtectionType.F_CONTROLLER_NAME, "new-controller")
+                        .assertPropertyEquals(DataProtectionType.F_CONTROLLER_CONTACT, "new-controller@evolveum.com");
+
     }
 
     protected void importSyncTask() throws FileNotFoundException {

@@ -6,17 +6,16 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.display;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.*;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContainer;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -603,7 +602,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
             resourceFixed.checkConsistence();
 
             // WHEN
-            String xmlBroken = getPrismContext().serializeObjectToString(resourceBroken, PrismContext.LANG_XML);
+            String xmlBroken = getPrismContext().xmlSerializer().serialize(resourceBroken);
             ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
             // THEN
@@ -625,7 +624,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
             PrismObject<ResourceType> resourceUpdated = resourceBroken.clone();
             resourceDelta.applyTo(resourceUpdated);
 
-            String xmlUpdated = getPrismContext().serializeObjectToString(resourceUpdated, PrismContext.LANG_XML);
+            String xmlUpdated = getPrismContext().xmlSerializer().serialize(resourceUpdated);
             System.out.println("UPDATED RESOURCE:");
             System.out.println(xmlUpdated);
             assertFalse("__UNDECLARED__ flag in updated resource", xmlUpdated.contains("__UNDECLARED__"));
@@ -663,6 +662,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         for (PolyStringType expectedValue : expectedValues) {
             if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {
                 found = true;
+                break;
             }
         }
         assertTrue(found);
@@ -697,13 +697,13 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
     @Test(enabled = false)
     public void testReplaceModelOperationContext() throws Exception {
-        PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
+        PrismObject<TaskType> prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
 
-        ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(TaskType.class, prismObject.getOid()
-        );
+        ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(TaskType.class, prismObject.getOid());
+        //noinspection unchecked
         delta.addModificationReplaceContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
 
-        PrismObject changed = prismObject.clone();
+        PrismObject<TaskType> changed = prismObject.clone();
         ItemDeltaCollectionsUtil.applyTo(delta.getModifications(), changed);
         Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
@@ -781,7 +781,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismAsserts.assertEquals("before + delta (narrowed) is different from after", after, workingCopy);
     }
     @Test
-    public void testDiffContainerValues() throws Exception {
+    public void testDiffContainerValues() {
         UserType user1 = new UserType(getPrismContext())
                 .beginAssignment()
                     .id(1L)
@@ -799,30 +799,22 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
                 .beginAssignment()
                     .targetRef("oid-c", RoleType.COMPLEX_TYPE)
                 .end();
-        PrismContainer<Containerable> assignment1 = user1.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
-        PrismContainer<Containerable> assignment2 = user2.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
-        ContainerDelta<Containerable> diff = assignment1.diff(assignment2);
-        ItemDelta<?,?> diffValues = assignment1.diffValues(assignment2);
+        PrismContainer<AssignmentType> assignment1 = user1.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
+        PrismContainer<AssignmentType> assignment2 = user2.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
+        ContainerDelta<AssignmentType> diff = assignment1.diff(assignment2);
 
-        display("assignment1", assignment1);
-        display("assignment2", assignment2);
-        display("diff", diff);
+        PrismTestUtil.display("assignment1", assignment1);
+        PrismTestUtil.display("assignment2", assignment2);
+        PrismTestUtil.display("diff", diff);
 
         assertEquals("Wrong values to add", assignment2.getValues(), diff.getValuesToAdd());
         assertEquals("Wrong values to delete", assignment1.getValues(), diff.getValuesToDelete());
         //noinspection SimplifiedTestNGAssertion
         assertEquals("Wrong values to replace", null, diff.getValuesToReplace());
-
-        display("diffValues", diffValues);
-
-        assertEquals("Wrong values to add", assignment2.getValues(), diffValues.getValuesToAdd());
-        assertEquals("Wrong values to delete", assignment1.getValues(), diffValues.getValuesToDelete());
-        //noinspection SimplifiedTestNGAssertion
-        assertEquals("Wrong values to replace", null, diffValues.getValuesToReplace());
     }
 
     @Test
-    public void testDiffSingleContainerValues() throws Exception {
+    public void testDiffSingleContainerValues() {
         UserType user1 = new UserType(getPrismContext())
                 .beginActivation()
                     .validFrom("2020-03-20T15:11:40.936+01:00")
@@ -836,12 +828,11 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismContainer<ActivationType> activation1 = user1.asPrismObject().findContainer(UserType.F_ACTIVATION);
         PrismContainer<ActivationType> activation2 = user2.asPrismObject().findContainer(UserType.F_ACTIVATION);
 
-        // Note that .diff() is not supported in this context
-        ItemDelta<?, ?> diff = activation1.diffValues(activation2);
+        ItemDelta<?, ?> diff = activation1.diff(activation2);
 
-        display("activation1", activation1);
-        display("activation2", activation2);
-        display("diff", diff);
+        PrismTestUtil.display("activation1", activation1);
+        PrismTestUtil.display("activation2", activation2);
+        PrismTestUtil.display("diff", diff);
 
         assertEquals("Wrong values to add", activation2.getValues(), diff.getValuesToAdd());
         assertEquals("Wrong values to delete", activation1.getValues(), diff.getValuesToDelete());

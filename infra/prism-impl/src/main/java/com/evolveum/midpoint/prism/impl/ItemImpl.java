@@ -592,34 +592,10 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
-    public ItemDelta<V,D> diff(Item<V,D> other) {
-        return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
-    }
-
-    @Override
-    public ItemDelta<V,D> diffValues(Item<V,D> other) {
-        return diff(other, true, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
-    }
-
     public ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy) {
-        return diff(other, false, strategy);
-    }
-
-    public ItemDelta<V,D> diff(Item<V,D> other, boolean rootValuesOnly, @NotNull ParameterizedEquivalenceStrategy strategy) {
-        List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-        diffInternal(other, itemDeltas, rootValuesOnly, strategy);
-        if (itemDeltas.isEmpty()) {
-            return null;
-        }
-        if (itemDeltas.size() > 1) {
-            throw new UnsupportedOperationException("Item multi-delta diff is not supported yet");
-        }
-        return itemDeltas.get(0);
-    }
-
-    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas,
-            ParameterizedEquivalenceStrategy strategy) {
-        diffInternal(other, deltas, false, strategy);
+        List<ItemDelta<V, D>> itemDeltas = new ArrayList<>();
+        diffInternal(other, itemDeltas, true, strategy);
+        return MiscUtil.extractSingleton(itemDeltas);
     }
 
     void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas, boolean rootValuesOnly,
