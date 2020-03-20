@@ -36,8 +36,16 @@ public abstract class AssignmentHolderDetailsPage extends BasicPage {
     }
 
     public PreviewPage clickPreview() {
-        $(Schrodinger.byDataId("previewChanges")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).click();
+        getPreviewButton().waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return new PreviewPage();
+    }
+
+    public boolean isPreviewButtonVisible() {
+        return getPreviewButton().exists();
+    }
+
+    private SelenideElement getPreviewButton() {
+        return $(Schrodinger.byDataId("previewChanges"));
     }
 
     protected TabPanel findTabPanel() {

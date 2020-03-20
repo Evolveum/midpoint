@@ -9,8 +9,8 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      oid="00000000-0000-0000-xxxx-000000000008">
-    <name>rolePreviewChanges</name>
+      oid="00000000-0000-0000-xxxx-000000000018">
+    <name>roleNoPreviewChanges</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.</description>
     <subtype>system</subtype>
     <authorization>
@@ -127,9 +127,5 @@
         <c:item>familyName</c:item>
         <c:item>givenName</c:item>
         <c:item>fullName</c:item>
-    </authorization>
-    <authorization>
-        <name>createUser-previewChanges-ui</name>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#previewChanges</action>
     </authorization>
 </role>
