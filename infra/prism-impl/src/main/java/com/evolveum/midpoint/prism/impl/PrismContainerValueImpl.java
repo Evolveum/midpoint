@@ -1058,7 +1058,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
                 }
             }
             // The "delete" delta will also result from the following diff
-            ((ItemImpl) thisItem).diffInternal(otherItem, deltas, strategy);
+            ((ItemImpl) thisItem).diffInternal(otherItem, deltas, false, strategy);
         }
 
         other.getItems();

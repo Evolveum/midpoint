@@ -438,7 +438,18 @@ public class PrismUnmarshaller {
         } else if (node instanceof MapXNodeImpl || node instanceof PrimitiveXNodeImpl || node.isHeterogeneousList()) {
             PrismPropertyValue<T> pval = parsePropertyValue(node, itemDefinition, pc);
             if (pval != null) {
-                property.add(pval);
+                try {
+                    property.add(pval);
+                } catch (SchemaException e) {
+                    if (pc.isCompat()) {
+                        // Most probably the "apply definition" call while adding the value failed. This occurs for raw
+                        // values with (somewhat) incorrect definitions being added. Overall, this is more a hack than serious
+                        // solution, because we sometimes want to add static-schema-less property values. TODO investigate this.
+                        ((PrismPropertyImpl<T>) property).addForced(pval);
+                    } else {
+                        throw e;
+                    }
+                }
             }
         } else if (node instanceof SchemaXNodeImpl) {
             SchemaDefinitionType schemaDefType = beanUnmarshaller.unmarshalSchemaDefinitionType((SchemaXNodeImpl) node);

@@ -168,6 +168,11 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                             </condition>
                         </set>
                     </target>
+                    <condition>
+                        <script>
+                            <code>input != null</code>
+                        </script>
+                    </condition>
                 </inbound>
             </attribute>
             <attribute>
@@ -177,6 +182,30 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                     <target>
                         <path>extension/locker</path>
                     </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:controllerName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.DataProtectionType
+
+                            new DataProtectionType(prismContext)
+                                .controllerName(input)
+                                .controllerContact(input + '@evolveum.com')
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>extension/dataProtection</path>
+                    </target>
+                    <condition>
+                        <script>
+                            <code>input != null</code>
+                        </script>
+                    </condition>
                 </inbound>
             </attribute>
 
