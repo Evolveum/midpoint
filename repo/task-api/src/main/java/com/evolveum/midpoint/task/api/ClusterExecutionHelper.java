@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.ws.rs.core.Response;
 import java.util.function.BiConsumer;
@@ -28,29 +30,43 @@ import java.util.function.BiConsumer;
  */
 public interface ClusterExecutionHelper {
 
+    @FunctionalInterface
+    interface ClientCode {
+        void execute(WebClient client, NodeType node, OperationResult result);
+    }
+
     /**
      * Executes operation on a specified remote node (by OID).
      */
-    void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code,
+    void execute(@NotNull String nodeOid, @NotNull ClientCode code,
             ClusterExecutionOptions options, String context, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException;
 
     /**
-     * Executes operation on a specified remote node (by node object).
+     * Executes operation on a specified remote node (by OID). If the operation does not succeed it tries to execute
+     * it on other nodes (NOT on the current node).
+     *
+     * @return The node that was ultimately successful in executing the code (or null if none).
      */
-    void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code,
+    PrismObject<NodeType> executeWithFallback(@Nullable String nodeOid, @NotNull ClientCode code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult);
+
+    /**
+     * Executes operation on a specified remote node (by node object).
+     *
+     * @return OperationResult of the execution itself
+     */
+    OperationResult execute(@NotNull NodeType node, @NotNull ClientCode code,
             ClusterExecutionOptions options, String context, OperationResult parentResult)
             throws SchemaException;
 
     /**
      * Executes operation on all cluster nodes except for the current one.
      */
-    void execute(@NotNull BiConsumer<WebClient, OperationResult> code,
-            ClusterExecutionOptions options, String context, OperationResult parentResult);
+    void execute(@NotNull ClientCode code, ClusterExecutionOptions options, String context, OperationResult parentResult);
 
     /**
      * Extracts the result from the REST response.
      */
     <T> T extractResult(Response response, Class<T> expectedClass) throws SchemaException;
-
 }

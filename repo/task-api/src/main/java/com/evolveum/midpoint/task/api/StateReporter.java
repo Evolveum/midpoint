@@ -63,6 +63,7 @@ public class StateReporter {
     private Date lastStarted = null;
 
     public void recordIcfOperationStart(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, String identifier) {
+        LOGGER.trace("recordIcfOperationStart: operation={}, lastOperation={}, identifier={}, task={}", operation, lastOperation, identifier, task);
         if (lastOperation != null) {
             LOGGER.warn("Unfinished operation: {}, resource: {}, OC: {}, started: {}", lastOperation, getResourceName(), lastObjectClass, lastStarted);
         }
@@ -80,11 +81,11 @@ public class StateReporter {
     public void recordIcfOperationSuspend(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef) {
         QName objectClassName = objectClassDef != null ? objectClassDef.getTypeName() : null;
         if (lastOperation != operation) {
-            LOGGER.warn("Suspending operation other than current: finishing {}, last recorded {}",
-                    operation, lastOperation);
+            LOGGER.warn("Suspending operation other than current: finishing {}, last recorded {}, task {}",
+                    operation, lastOperation, task);
         } else if (lastObjectClass == null || !lastObjectClass.getTypeName().equals(objectClassName)) {
-            LOGGER.warn("Suspending operation on object class other than current: finishing on {}, last recorded {}",
-                    objectClassName, lastObjectClass != null ? lastObjectClass.getTypeName() : "(null)");
+            LOGGER.warn("Suspending operation on object class other than current: finishing on {}, last recorded {}, task {}",
+                    objectClassName, lastObjectClass != null ? lastObjectClass.getTypeName() : "(null)", task);
         } else {
             long duration = System.currentTimeMillis() - lastStarted.getTime();
             if (task != null) {
@@ -116,13 +117,14 @@ public class StateReporter {
     }
 
     public void recordIcfOperationEnd(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, Throwable ex, String identifier) {
+        LOGGER.trace("recordIcfOperationEnd: operation={}, lastOperation={}, identifier={}, task={}", operation, lastOperation, identifier, task);
         long duration = -1L;
         if (lastOperation != operation) {
-            LOGGER.warn("Finishing operation other than current: finishing {}, last recorded {}",
-                    operation, lastOperation);
+            LOGGER.warn("Finishing operation other than current: finishing {}, last recorded {}, task {}",
+                    operation, lastOperation, task, new RuntimeException("here"));
         } else if (objectClassDef != null && (lastObjectClass == null || !lastObjectClass.getTypeName().equals(objectClassDef.getTypeName()))) {
-            LOGGER.warn("Finishing operation on object class other than current: finishing on {}, last recorded {}",
-                    getObjectClassName(objectClassDef), getObjectClassName(lastObjectClass));
+            LOGGER.warn("Finishing operation on object class other than current: finishing on {}, last recorded {}, task {}",
+                    getObjectClassName(objectClassDef), getObjectClassName(lastObjectClass), task, new RuntimeException("here"));
         } else {
             duration = System.currentTimeMillis() - lastStarted.getTime();
         }

@@ -256,6 +256,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, controllerInitLambda, task, result);
     }
 
+    protected DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+        resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid, null, task, result);
+        return resource.controller;
+    }
+
     protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
             Task task, OperationResult result) throws Exception {
         return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, null, task, result);
@@ -5789,6 +5794,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(oid);
         return assertUser(user, message);
+    }
+
+    protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+        Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
+        return assertTask(task, message);
     }
 
     protected TaskAsserter<Void> assertTask(Task task, String message) {

@@ -115,7 +115,7 @@ public class SynchronizationInfoAsserter<RA> extends AbstractAsserter<RA> {
         return getDetails();
     }
 
-    public SynchronizationInfoAsserter display() {
+    public SynchronizationInfoAsserter<RA> display() {
         IntegrationTestTools.display(desc(), SynchronizationInformation.format(information));
         return this;
     }

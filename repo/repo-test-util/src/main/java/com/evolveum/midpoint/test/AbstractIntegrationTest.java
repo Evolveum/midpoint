@@ -204,7 +204,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return;
         }
         initSystemExecuted = true;
-        logger.trace("initSystem: initializing class {}", getClass().getName());
 
         // Check whether we are already initialized
         assertNotNull("Repository is not wired properly", repositoryService);

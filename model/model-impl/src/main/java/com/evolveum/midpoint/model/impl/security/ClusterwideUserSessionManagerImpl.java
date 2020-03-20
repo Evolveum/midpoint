@@ -48,10 +48,10 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
 
         // We try to invoke this call also on nodes that are in transition. It is quite important
         // that terminate session is executed on as wide scale as realistically possible.
-        clusterExecutionHelper.execute((client, result1) -> {
+        clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(ClusterRestService.EVENT_TERMINATE_SESSION);
             Response response = client.post(terminateSessionEvent.toEventType());
-            LOGGER.info("Remote-node user session termination finished with status {}, {}",
+            LOGGER.info("Remote-node user session termination finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
             response.close();
         }, new ClusterExecutionOptions().tryNodesInTransition(), "session termination", result);
@@ -68,10 +68,10 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
 
         // We try to invoke this call also on nodes that are in transition. We want to get
         // information as complete as realistically possible.
-        clusterExecutionHelper.execute((client, result1) -> {
+        clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(ClusterRestService.EVENT_LIST_USER_SESSION);
             Response response = client.get();
-            LOGGER.info("Remote-node retrieval of user sessions finished with status {}, {}",
+            LOGGER.info("Remote-node retrieval of user sessions finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
 
             if (response.hasEntity()) {

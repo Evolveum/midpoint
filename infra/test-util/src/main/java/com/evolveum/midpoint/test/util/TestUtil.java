@@ -334,6 +334,12 @@ public class TestUtil {
         assertNoUnknown(result);
     }
 
+    public static void assertPartialError(OperationResultType result) {
+        assertTrue("Expected that operation " + result.getOperation() +
+                " fails partially, but the result was " + result.getStatus(),
+                result.getStatus() == OperationResultStatusType.PARTIAL_ERROR);
+    }
+
     public static void assertPartialError(OperationResult result) {
         assertTrue("Expected that operation " + result.getOperation() + " fails partially, but the result was " + result.getStatus(), result.getStatus() == OperationResultStatus.PARTIAL_ERROR);
         assertNoUnknown(result);
