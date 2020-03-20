@@ -36,7 +36,7 @@ public class RestConnector {
 
     public void addNodeStatus(ClusterStatusInformation info, NodeType nodeInfo, OperationResult result) throws SchemaException {
         ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
-        clusterExecutionHelper.execute(nodeInfo, (client, result1) -> {
+        clusterExecutionHelper.execute(nodeInfo, (client, actualNode, result1) -> {
             client.path(TaskConstants.GET_LOCAL_SCHEDULER_INFORMATION_REST_PATH);
             Response response = client.get();
             Response.StatusType statusInfo = response.getStatusInfo();
@@ -64,7 +64,7 @@ public class RestConnector {
 
     public void stopRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
         ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
-        clusterExecutionHelper.execute(node, (client, result1) -> {
+        clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.STOP_LOCAL_SCHEDULER_REST_PATH);
             Response response = client.post(null);
             Response.StatusType statusInfo = response.getStatusInfo();
@@ -81,7 +81,7 @@ public class RestConnector {
 
     public void startRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
         ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
-        clusterExecutionHelper.execute(node, (client, result1) -> {
+        clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.START_LOCAL_SCHEDULER_REST_PATH);
             Response response = client.post(null);
             Response.StatusType statusInfo = response.getStatusInfo();
@@ -98,7 +98,7 @@ public class RestConnector {
 
     public void stopRemoteTask(String oid, NodeType node, OperationResult result) throws SchemaException {
         ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
-        clusterExecutionHelper.execute(node, (client, result1) -> {
+        clusterExecutionHelper.execute(node, (client, actualNode, result1) -> {
             client.path(TaskConstants.STOP_LOCAL_TASK_REST_PATH_PREFIX + oid + TaskConstants.STOP_LOCAL_TASK_REST_PATH_SUFFIX);
             Response response = client.post(null);
             Response.StatusType statusInfo = response.getStatusInfo();

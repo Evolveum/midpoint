@@ -49,6 +49,11 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-api</artifactId>
+            <version>4.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-api</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>

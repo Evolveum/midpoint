@@ -35,19 +35,19 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
-import java.util.function.BiConsumer;
 
 /**
  *  Helps with the intra-cluster remote code execution.
  */
 @Component
-public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
+public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusterExecutionHelperImpl.class);
 
@@ -63,9 +63,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
     private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
 
     @Override
-    public void execute(@NotNull BiConsumer<WebClient, OperationResult> code,
-            ClusterExecutionOptions options, String context, OperationResult parentResult) {
-
+    public void execute(@NotNull ClientCode code, ClusterExecutionOptions options, String context, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute");
 
         if (!taskManager.isClustered()) {
@@ -102,45 +100,106 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
     }
 
     @Override
-    public void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code,
-            ClusterExecutionOptions options, String context,
+    public void execute(@NotNull String nodeOid, @NotNull ClientCode code, ClusterExecutionOptions options, String context,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         PrismObject<NodeType> node = repositoryService.getObject(NodeType.class, nodeOid, null, parentResult);
         execute(node.asObjectable(), code, options, context, parentResult);
     }
 
     @Override
-    public void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code,
+    public PrismObject<NodeType> executeWithFallback(@Nullable String nodeOid, @NotNull ClientCode code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "executeWithFallback");
+        try {
+            if (nodeOid != null) {
+                PrismObject<NodeType> node = null;
+                try {
+                    node = repositoryService.getObject(NodeType.class, nodeOid, null, result);
+                } catch (Throwable t) {
+                    LOGGER.info("Couldn't get node '{}' - will try other nodes to execute '{}', if they are available: {}",
+                            nodeOid, context, t.getMessage(), t);
+                }
+                if (node != null && tryExecute(node.asObjectable(), code, options, context, result)) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Succeeded on suggested node");
+                    return node;
+                }
+            }
+            SearchResultList<PrismObject<NodeType>> otherClusterNodes = searchOtherClusterNodes(context, result);
+            if (otherClusterNodes != null) {
+                for (PrismObject<NodeType> otherNode : otherClusterNodes.getList()) {
+                    if (nodeOid == null || !nodeOid.equals(otherNode.getOid())) {
+                        if (tryExecute(otherNode.asObjectable(), code, options, context, result)) {
+                            String identifier = otherNode.asObjectable().getNodeIdentifier();
+                            LOGGER.info("Operation '{}' succeeded on node '{}'", context, identifier);
+                            result.recordStatus(OperationResultStatus.SUCCESS, "Succeeded on " + identifier);
+                            return otherNode;
+                        }
+                    }
+                }
+            }
+            return null;
+        } catch (Throwable t) {
+            result.recordFatalError(t); // should not occur
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown(); // "UNKNOWN" should occur only if no node succeeds
+        }
+    }
+
+    /**
+     * @return true if successful
+     */
+    private boolean tryExecute(@NotNull NodeType node, @NotNull ClientCode code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult) {
+        try {
+            OperationResult executionResult = execute(node, code, options, context, parentResult);
+            return executionResult.isSuccess();
+        } catch (Throwable t) {
+            LOGGER.info("Remote execution of '{}' failed on node '{}' (will try other nodes, if available)", context, node, t);
+            return false;
+        }
+    }
+
+    @Override
+    public OperationResult execute(@NotNull NodeType node, @NotNull ClientCode code,
             ClusterExecutionOptions options, String context, OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute.node");
         String nodeIdentifier = node.getNodeIdentifier();
         result.addParam("node", nodeIdentifier);
-
-        boolean isDead = node.getOperationalStatus() == NodeOperationalStatusType.DOWN;
-        boolean isUpAndAlive = taskManager.isUpAndAlive(node);
-        if (isUpAndAlive || ClusterExecutionOptions.isTryAllNodes(options) ||
-                !isDead && ClusterExecutionOptions.isTryNodesInTransition(options)) {
-            try {
-                WebClient client = createClient(node, context);
-                if (client == null) {
-                    return;
+        try {
+            boolean isDead = node.getOperationalStatus() == NodeOperationalStatusType.DOWN;
+            boolean isUpAndAlive = taskManager.isUpAndAlive(node);
+            if (isUpAndAlive || ClusterExecutionOptions.isTryAllNodes(options) ||
+                    !isDead && ClusterExecutionOptions.isTryNodesInTransition(options)) {
+                try {
+                    WebClient client = createClient(node, options, context);
+                    if (client != null) {
+                        code.execute(client, node, result);
+                    } else {
+                        result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
+                                " couldn't be contacted. Maybe URL is not known?"); // todo better error reporting
+                    }
+                } catch (SchemaException | RuntimeException t) {
+                    result.recordFatalError(
+                            "Couldn't invoke operation (" + context + ") on node " + nodeIdentifier + ": " + t.getMessage(), t);
+                    throw t;
                 }
-                code.accept(client, result);
-                result.computeStatusIfUnknown();
-            } catch (SchemaException | RuntimeException t) {
-                result.recordFatalError(
-                        "Couldn't invoke operation (" + context + ") on node " + nodeIdentifier + ": " + t.getMessage(), t);
-                throw t;
+            } else {
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
+                        " is not running (operational state = " + node.getOperationalStatus() +
+                        ", last check in time = " + node.getLastCheckInTime());
             }
-        } else {
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
-                    " is not running (operational state = " + node.getOperationalStatus() +
-                    ", last check in time = " + node.getLastCheckInTime());
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
+        return result;
     }
 
-    private WebClient createClient(NodeType node, String context) throws SchemaException {
+    private WebClient createClient(NodeType node, ClusterExecutionOptions options, String context) throws SchemaException {
         String baseUrl;
         if (node.getUrl() != null) {
             baseUrl = node.getUrl();
@@ -152,7 +211,9 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         String url = baseUrl + "/ws/cluster";
         LOGGER.debug("Going to execute '{}' on '{}'", context, url);
         WebClient client = WebClient.create(url, Arrays.asList(xmlProvider, jsonProvider, yamlProvider));
-        client.accept(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml");
+        if (!ClusterExecutionOptions.isSkipDefaultAccept(options)) {
+            client.accept(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml");
+        }
         client.type(MediaType.APPLICATION_XML);
         NodeType localNode = taskManager.getLocalNode();
         ProtectedStringType protectedSecret = localNode != null ? localNode.getSecret() : null;
