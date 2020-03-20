@@ -43,6 +43,12 @@ public class ExtItemDictionary {
     private Map<Integer, RExtItem> itemsById;
     private Map<RExtItem.Key, RExtItem> itemsByKey;
 
+    @PostConstruct
+    public synchronized void initialize() {
+        itemsByKey = null;
+        itemsById = null;
+    }
+
     private boolean fetchItemsIfNeeded() {
         if (itemsByKey != null) {
             return false;
@@ -125,12 +131,6 @@ public class ExtItemDictionary {
         }
 
         return item;
-    }
-
-    @PostConstruct
-    public synchronized void initialize() {
-        itemsByKey = null;
-        itemsById = null;
     }
 
     private void addExtItemAttempt(RExtItem item) {
