@@ -9,14 +9,22 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -98,8 +106,24 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
     }
 
     private boolean hasValidReferenceValue(SceneItemValue object) {
-        return object != null && object.getSourceValue() != null && object.getSourceValue() instanceof PrismReferenceValue
-                && ((PrismReferenceValue) object.getSourceValue()).getTargetType() != null;
+        PrismReferenceValue target = null;
+        if (object != null && object.getSourceValue() != null
+                && object.getSourceValue() instanceof PrismReferenceValue
+                && (object.getSourceValue() != null)) {
+            target = (PrismReferenceValue) object.getSourceValue();
+        }
+        if (target == null) {
+            return false;
+        }
+
+        QName targetType = target.getTargetType();
+        if (target == null) {
+            return false;
+        }
+
+        Class<? extends ObjectType> targetClass = getPrismContext().getSchemaRegistry().getCompileTimeClass(targetType);
+
+        return WebComponentUtil.isAuthorized(targetClass);
     }
 
     private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {

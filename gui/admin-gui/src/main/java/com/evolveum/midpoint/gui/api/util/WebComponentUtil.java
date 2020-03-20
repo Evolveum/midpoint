@@ -879,6 +879,17 @@ public final class WebComponentUtil {
         return false;
     }
 
+    public static boolean isAuthorized(Class<? extends ObjectType> clazz) {
+        Class<? extends PageBase> detailsPage = WebComponentUtil.getObjectDetailsPage(clazz);
+        PageDescriptor descriptor = detailsPage.getAnnotation(PageDescriptor.class);
+        AuthorizationAction[] actions = descriptor.action();
+        List<String> actionUris = new ArrayList<>();
+        for (AuthorizationAction action : actions) {
+            actionUris.add(action.actionUri());
+        }
+        return isAuthorized(actionUris);
+    }
+
     // TODO: move to util component
     public static Integer safeLongToInteger(Long l) {
         if (l == null) {
