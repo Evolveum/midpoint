@@ -13,25 +13,12 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -42,42 +29,20 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
-import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater;
-import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
-import com.evolveum.midpoint.repo.sql.helpers.SequenceHelper;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.LabeledString;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.repo.sql.helpers.*;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -88,22 +53,17 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author lazyman
- *
+ * <p>
  * Note: don't autowire this class - because of Spring AOP use it couldn't be found by implementation class; only by its interface.
  */
 @Repository
@@ -120,7 +80,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final int RESTART_LIMIT = 1000;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-    private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);
 
     private static final int MAX_CONFLICT_WATCHERS = 10;          // just a safeguard (watchers per thread should be at most 1-2)
     public static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
@@ -139,7 +98,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private OrgClosureManager closureManager;
     @Autowired private BaseHelper baseHelper;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
@@ -219,8 +177,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <RV> RV executeAttemptsNoSchemaException(String oid, String operationName, Class<?> type, String operationVerb, OperationResult subResult,
-            ResultSupplier<RV> supplier) throws ObjectNotFoundException {
+    private <RV> RV executeAttemptsNoSchemaException(
+            String oid, String operationName, Class<?> type, String operationVerb,
+            OperationResult subResult, ResultSupplier<RV> supplier) throws ObjectNotFoundException {
         try {
             return executeAttempts(oid, operationName, type, operationVerb, subResult, supplier);
         } catch (SchemaException e) {
@@ -228,7 +187,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <RV> RV executeQueryAttemptsNoSchemaException(ObjectQuery query, String operationName, Class<?> type, String operationVerb, OperationResult subResult,
+    private <RV> RV executeQueryAttemptsNoSchemaException(ObjectQuery query,
+            String operationName, Class<?> type, String operationVerb, OperationResult subResult,
             Supplier<RV> emptyQueryResultSupplier, ResultQueryBasedSupplier<RV> supplier) {
         try {
             return executeQueryAttempts(query, operationName, type, operationVerb, subResult, emptyQueryResultSupplier, supplier);
@@ -279,29 +239,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return executeAttempts(shadowOid, OP_SEARCH_SHADOW_OWNER, FocusType.class, "searching shadow owner",
                     subResult, () -> objectRetriever.searchShadowOwnerAttempt(shadowOid, options, subResult)
             );
-        } catch (ObjectNotFoundException|SchemaException e) {
-            throw new AssertionError("Should not occur; exception should have been treated in searchShadowOwnerAttempt.", e);
-        }
-    }
-
-    @Override
-    @Deprecated
-    public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
-            throws ObjectNotFoundException {
-        Validate.notEmpty(accountOid, "Oid must not be null or empty.");
-        Validate.notNull(result, "Operation result must not be null.");
-
-        LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
-
-        OperationResult subResult = result.subresult(LIST_ACCOUNT_SHADOW)
-                .addParam("accountOid", accountOid)
-                .build();
-
-        try {
-            return executeAttempts(accountOid, OP_LIST_ACCOUNT_SHADOW_OWNER, UserType.class, "listing account shadow owner",
-                    subResult, () -> objectRetriever.listAccountShadowOwnerAttempt(accountOid, subResult)
-            );
-        } catch (ObjectNotFoundException|SchemaException e) {
+        } catch (ObjectNotFoundException | SchemaException e) {
             throw new AssertionError("Should not occur; exception should have been treated in searchShadowOwnerAttempt.", e);
         }
     }
@@ -363,7 +301,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .build();
 
         return executeQueryAttempts(query, "searchContainers", type, "searching", result,
-                () -> new SearchResultList<>(new ArrayList<T>(0)),
+                () -> new SearchResultList<>(new ArrayList<>(0)),
                 (q) -> objectRetriever.searchContainersAttempt(type, q, options, result));
     }
 
@@ -525,7 +463,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
-                Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -655,41 +593,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-            Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-        Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
-        Validate.notNull(result, "Operation result must not be null.");
-
-        LOGGER.debug("Listing resource object shadows '{}' for resource '{}'.",
-                new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
-        OperationResult subResult = result.subresult(LIST_RESOURCE_OBJECT_SHADOWS)
-                .addParam("oid", resourceOid)
-                .addParam("resourceObjectShadowType", resourceObjectShadowType)
-                .build();
-
-        final String operation = "listing resource object shadows";
-        int attempt = 1;
-
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_LIST_RESOURCE_OBJECT_SHADOWS, ShadowType.class);
-
-        // TODO executeAttempts
-        try {
-            while (true) {
-                try {
-                    return objectRetriever.listResourceObjectShadowsAttempt(resourceOid, resourceObjectShadowType, subResult);
-                } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(resourceOid, operation, attempt, ex, subResult);
-                    pm.registerOperationNewAttempt(opHandle, attempt);
-                }
-            }
-        } finally {
-            pm.registerOperationFinish(opHandle, attempt);
-        }
-    }
-
-    @Override
     public RepositoryDiag getRepositoryDiag() {
         LOGGER.debug("Getting repository diagnostics.");
 
@@ -740,7 +643,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     details.add(new LabeledString(DETAILS_TRANSACTION_ISOLATION,
                             getTransactionIsolation(connection, config)));
 
-
                     Properties info = connection.getClientInfo();
                     if (info == null) {
                         return;
@@ -760,9 +662,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
             // we try to override configuration which was read from sql repo configuration with
             // real configuration from session factory
-            if(sessionFactoryImpl.getDialect() != null) {
-                for(int i =0; i<details.size(); i++) {
-                    if(details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
+            if (sessionFactoryImpl.getDialect() != null) {
+                for (int i = 0; i < details.size(); i++) {
+                    if (details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
                         details.remove(i);
                         break;
                     }
@@ -831,7 +733,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(oid, "Object oid must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.debug("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Getting version for {} with oid '{}'.", new Object[] { type.getSimpleName(), oid });
 
         OperationResult subResult = parentResult.subresult(GET_VERSION)
                 .addQualifier(type.getSimpleName())
@@ -932,11 +834,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         SearchResultMetadata rv = null; // todo what about returning values from other search methods?
         switch (iterationMethod) {
-            case SINGLE_TRANSACTION: rv = searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult); break;
-            case SIMPLE_PAGING: objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult); break;
-            case STRICTLY_SEQUENTIAL_PAGING: objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult); break;
-            case FETCH_ALL: objectRetriever.searchObjectsIterativeByFetchAll(type, query, handler, options, subResult); break;
-            default: throw new AssertionError("iterationMethod: " + iterationMethod);
+            case SINGLE_TRANSACTION:
+                rv = searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult);
+                break;
+            case SIMPLE_PAGING:
+                objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult);
+                break;
+            case STRICTLY_SEQUENTIAL_PAGING:
+                objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult);
+                break;
+            case FETCH_ALL:
+                objectRetriever.searchObjectsIterativeByFetchAll(type, query, handler, options, subResult);
+                break;
+            default:
+                throw new AssertionError("iterationMethod: " + iterationMethod);
         }
         return rv;
     }
@@ -991,12 +902,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
+    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) {
         Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 
-        if (LOGGER.isTraceEnabled())
-            LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[]{upperOrgOid, lowerObjectOids});
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[] { upperOrgOid, lowerObjectOids });
+        }
 
         if (lowerObjectOids.isEmpty()) {
             // trivial case
@@ -1022,7 +934,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-
     @Override
     public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
@@ -1034,8 +945,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addParam("oid", oid)
                 .build();
 
-        if (LOGGER.isTraceEnabled())
-            LOGGER.trace("Advancing sequence {}", oid);
+        if (LOGGER.isTraceEnabled()) { LOGGER.trace("Advancing sequence {}", oid); }
 
         // TODO executeAttempts
         int attempt = 1;
@@ -1055,7 +965,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             pm.registerOperationFinish(opHandle, attempt);
         }
     }
-
 
     @Override
     public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult)
@@ -1194,17 +1103,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException {
+    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) {
         List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
         List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
-        for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
+        for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
             objParentOrgOids.add(objParentOrgRef.getOid());
         }
         return isAnySubordinate(orgOid, objParentOrgOids);
     }
 
     @Override
-    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
+    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) {
         if (object.getOid() == null) {
             return false;
         }
@@ -1319,7 +1228,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     // TODO replace by something in system configuration (postponing until this feature is used more)
 
-    private static final Map<String,Integer> DIAG_INFO_CLEANUP_POLICY = new HashMap<>();
+    private static final Map<String, Integer> DIAG_INFO_CLEANUP_POLICY = new HashMap<>();
+
     static {
         DIAG_INFO_CLEANUP_POLICY.put(SchemaConstants.TASK_THREAD_DUMP_URI, 5);
         DIAG_INFO_CLEANUP_POLICY.put(null, 2);
@@ -1344,7 +1254,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             List<DiagnosticInformationType> oldToPrune = oldInformationList.stream()
                     .filter(i -> infoType.equals(i.getType()))
                     .collect(Collectors.toList());
-            int pruneToSize = limit > 0 ? limit-1 : 0;
+            int pruneToSize = limit > 0 ? limit - 1 : 0;
             if (oldToPrune.size() > pruneToSize) {
                 oldToPrune.sort(Comparator.nullsFirst(Comparator.comparing(i -> XmlTypeConverter.toDate(i.getTimestamp()))));
                 List<DiagnosticInformationType> toDelete = oldToPrune.subList(0, oldToPrune.size() - pruneToSize);

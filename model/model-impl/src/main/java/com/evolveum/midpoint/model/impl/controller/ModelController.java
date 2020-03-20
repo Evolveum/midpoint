@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -1249,57 +1250,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     @Deprecated
-    public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
+    public PrismObject<UserType> findShadowOwner(
+            String accountOid, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SecurityViolationException, SchemaException,
+            ConfigurationException, ExpressionEvaluationException, CommunicationException {
         Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
         Validate.notNull(parentResult, "Result type must not be null.");
 
-        enterModelMethod();
-
-        PrismObject<UserType> user;
-
-        LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{accountOid});
-
-        OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
-        result.addParam("accountOid", accountOid);
-
-        try {
-
-            user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
-            result.recordSuccess();
-        } catch (ObjectNotFoundException ex) {
-            LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
-            result.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
-            throw ex;
-        } catch (RuntimeException | Error ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-                    + " for account with oid {}", ex, accountOid);
-            result.recordFatalError("Couldn't list account shadow owner for account with oid '"
-                    + accountOid + "'.", ex);
-            throw ex;
-        } finally {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(result.dump(false));
-            }
-            exitModelMethod();
-            result.cleanupResult();
-        }
-
-        if (user != null) {
-            try {
-                user = user.cloneIfImmutable();
-                schemaTransformer.applySchemasAndSecurity(user, null, null,null, task, result);
-            } catch (SchemaException | SecurityViolationException | ConfigurationException |
-                    ExpressionEvaluationException | ObjectNotFoundException | CommunicationException ex) {
-                LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-                        + " for account with oid {}", ex, accountOid);
-                result.recordFatalError("Couldn't list account shadow owner for account with oid '"
-                        + accountOid + "'.", ex);
-                throw ex;
-            }
-        }
-
-        return user;
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .ref(accountOid)
+                .build();
+        SearchResultList<PrismObject<UserType>> prismObjects =
+                searchObjects(UserType.class, query, null, task, parentResult);
+        return MiscUtil.extractSingleton(prismObjects);
     }
 
     @Override

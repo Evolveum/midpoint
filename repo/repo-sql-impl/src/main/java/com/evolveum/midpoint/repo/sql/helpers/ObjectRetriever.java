@@ -7,6 +7,23 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static org.apache.commons.lang3.ArrayUtils.getLength;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.xml.namespace.QName;
+
+import org.hibernate.*;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -42,22 +59,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.*;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.query.Query;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.ArrayUtils.getLength;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author lazyman, mederly
@@ -66,7 +67,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 public class ObjectRetriever {
 
     public static final String CLASS_DOT = ObjectRetriever.class.getName() + ".";
-    public static final String OPERATION_GET_OBJECT_INTERNAL = CLASS_DOT + "getObjectInternal";
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectRetriever.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
@@ -232,7 +232,7 @@ public class ObjectRetriever {
             query.setParameter("oid", shadowOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
-            @SuppressWarnings({"unchecked", "raw"})
+            @SuppressWarnings({ "unchecked", "raw" })
             List<GetObjectResult> focuses = query.list();
             LOGGER.trace("Found {} focuses, transforming data to JAXB types.", focuses != null ? focuses.size() : 0);
 
@@ -257,8 +257,7 @@ public class ObjectRetriever {
         return owner;
     }
 
-    public PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result)
-            throws ObjectNotFoundException {
+    public PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result) {
         LOGGER_PERFORMANCE.debug("> list account shadow owner oid={}", accountOid);
         PrismObject<UserType> userType = null;
         Session session = null;
@@ -268,7 +267,7 @@ public class ObjectRetriever {
             query.setParameter("oid", accountOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
-            @SuppressWarnings({"unchecked", "raw"})
+            @SuppressWarnings({ "unchecked", "raw" })
             List<GetObjectResult> users = query.list();
             LOGGER.trace("Found {} users, transforming data to JAXB types.", users != null ? users.size() : 0);
 
@@ -333,8 +332,8 @@ public class ObjectRetriever {
         return count;
     }
 
-
     //TODO copied from QueryInterpreter, remove if full support for searching AssignmentHolderType is implemented MID-5579
+
     /**
      * Both ObjectType and AssignmentHolderType are mapped to RObject. So when searching for AssignmentHolderType it is not sufficient to
      * query this table. This method hacks this situation a bit by introducing explicit type filter for AssignmentHolderType.
@@ -391,7 +390,7 @@ public class ObjectRetriever {
             QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             rQuery = engine.interpret(query, type, options, false, session);
 
-            @SuppressWarnings({"unchecked", "raw"})
+            @SuppressWarnings({ "unchecked", "raw" })
             List<GetObjectResult> queryResult = rQuery.list();
             LOGGER.trace("Found {} objects, translating to JAXB.", queryResult != null ? queryResult.size() : 0);
 
@@ -456,21 +455,21 @@ public class ObjectRetriever {
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             if (cases) {
-                @SuppressWarnings({"unchecked", "raw"})
+                @SuppressWarnings({ "unchecked", "raw" })
                 List<GetContainerableResult> items = rQuery.list();
                 LOGGER.trace("Found {} items (cases), translating to JAXB.", items.size());
-                Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
+                Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
                 for (GetContainerableResult item : items) {
                     @SuppressWarnings({ "raw", "unchecked" })
                     C value = (C) caseHelper.updateLoadedCertificationCase(item, campaignsCache, options, session, result);
                     list.add(value);
                 }
             } else if (workItems) {
-                @SuppressWarnings({"unchecked", "raw"})
+                @SuppressWarnings({ "unchecked", "raw" })
                 List<GetCertificationWorkItemResult> items = rQuery.list();
                 LOGGER.trace("Found {} work items, translating to JAXB.", items.size());
-                Map<String,PrismContainerValue<AccessCertificationCaseType>> casesCache = new HashMap<>();
-                Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
+                Map<String, PrismContainerValue<AccessCertificationCaseType>> casesCache = new HashMap<>();
+                Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
                 for (GetCertificationWorkItemResult item : items) {
                     //LOGGER.trace("- {}", item);
                     @SuppressWarnings({ "raw", "unchecked" })
@@ -479,17 +478,17 @@ public class ObjectRetriever {
                 }
             } else {
                 assert caseWorkItems;
-                @SuppressWarnings({"unchecked", "raw"})
+                @SuppressWarnings({ "unchecked", "raw" })
                 List<GetContainerableIdOnlyResult> items = rQuery.list();
                 LOGGER.trace("Found {} items (case work items), translating to JAXB.", items.size());
-                Map<String,PrismObject<CaseType>> casesCache = new HashMap<>();
+                Map<String, PrismObject<CaseType>> casesCache = new HashMap<>();
 
                 for (GetContainerableIdOnlyResult item : items) {
                     try {
                         @SuppressWarnings({ "raw", "unchecked" })
                         C value = (C) caseManagementHelper.updateLoadedCaseWorkItem(item, casesCache, options, session, result);
                         list.add(value);
-                    } catch (ObjectNotFoundException|DtoTranslationException e) {
+                    } catch (ObjectNotFoundException | DtoTranslationException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve case work item for {}", e, item);
                     }
                 }
@@ -745,7 +744,7 @@ public class ObjectRetriever {
     }
 
     private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
-                                                 PrismObject object, Session session) throws SchemaException {
+            PrismObject object, Session session) throws SchemaException {
 
         PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
 
@@ -753,7 +752,7 @@ public class ObjectRetriever {
         query.setParameter("oid", object.getOid());
         query.setParameter("ownerType", RObjectExtensionType.ATTRIBUTES);
 
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         List<Integer> identifiers = query.list();
         if (identifiers == null || identifiers.isEmpty()) {
             return;
@@ -785,7 +784,7 @@ public class ObjectRetriever {
         RItemKind rValType = extItem.getKind();
         MutableItemDefinition<?> def;
         if (rValType == RItemKind.PROPERTY) {
-            def  = prismContext.definitionFactory().createPropertyDefinition(name, type);
+            def = prismContext.definitionFactory().createPropertyDefinition(name, type);
         } else if (rValType == RItemKind.REFERENCE) {
             def = prismContext.definitionFactory().createReferenceDefinition(name, type);
         } else {
@@ -795,40 +794,6 @@ public class ObjectRetriever {
         def.setMaxOccurs(-1);
         def.setRuntimeSchema(true);
         return def;
-    }
-
-    public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(
-            String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
-
-        LOGGER_PERFORMANCE.debug("> list resource object shadows {}, for resource oid={}",
-                resourceObjectShadowType.getSimpleName(), resourceOid);
-        List<PrismObject<T>> list = new ArrayList<>();
-        Session session = null;
-        try {
-            session = baseHelper.beginReadOnlyTransaction();
-            Query query = session.getNamedQuery("listResourceObjectShadows");
-            query.setParameter("oid", resourceOid);
-            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
-
-            @SuppressWarnings({"unchecked", "raw"})
-            List<GetObjectResult> shadows = query.list();
-            LOGGER.debug("Query returned {} shadows, transforming to JAXB types.", shadows != null ? shadows.size() : 0);
-
-            if (shadows != null) {
-                for (GetObjectResult shadow : shadows) {
-                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, null, null, session, result);
-                    list.add(prismObject);
-                }
-            }
-            session.getTransaction().commit();
-        } catch (SchemaException | RuntimeException ex) {
-            baseHelper.handleGeneralException(ex, session, result);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, result);
-        }
-
-        return list;
     }
 
     private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type)
@@ -847,7 +812,7 @@ public class ObjectRetriever {
     }
 
     public <T extends ObjectType> String getVersionAttempt(Class<T> type, String oid, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException {
         LOGGER_PERFORMANCE.debug("> get version {}, oid={}", type.getSimpleName(), oid);
 
         String version = null;
@@ -874,8 +839,7 @@ public class ObjectRetriever {
     }
 
     public <T extends ObjectType> void searchObjectsIterativeAttempt(Class<T> type, ObjectQuery query, ResultHandler<T> handler,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, Set<String> retrievedOids)
-            throws SchemaException {
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, Set<String> retrievedOids) {
         Set<String> newlyRetrievedOids = new HashSet<>();
         Session session = null;
         try {
@@ -945,7 +909,8 @@ public class ObjectRetriever {
                 remaining = paging.getMaxSize() != null ? paging.getMaxSize() : repositoryService.countObjects(type, query, options, result) - offset;
             }
 
-main:       while (remaining > 0) {
+            main:
+            while (remaining > 0) {
                 paging.setOffset(offset);
                 paging.setMaxSize(remaining < batchSize ? remaining : batchSize);
 
@@ -974,23 +939,23 @@ main:       while (remaining > 0) {
 
     /**
      * Strictly-sequential version of paged search.
-     *
+     * <p>
      * Assumptions:
-     *  - During processing of returned object(s), any objects can be added, deleted or modified.
-     *
+     * - During processing of returned object(s), any objects can be added, deleted or modified.
+     * <p>
      * Guarantees:
-     *  - We return each object that existed in the moment of search start:
-     *     - exactly once if it was not deleted in the meanwhile,
-     *     - at most once otherwise.
-     *  - However, we may or may not return any objects that were added during the processing.
-     *
+     * - We return each object that existed in the moment of search start:
+     * - exactly once if it was not deleted in the meanwhile,
+     * - at most once otherwise.
+     * - However, we may or may not return any objects that were added during the processing.
+     * <p>
      * Constraints:
-     *  - There can be no ordering prescribed. We use our own ordering.
-     *  - We also disallow any explicit paging - except for maxSize setting.
-     *
-     *  Implementation is very simple - we fetch objects ordered by OID, and remember last OID fetched.
-     *  Obviously no object will be present in output more than once.
-     *  Objects that are not deleted will be there exactly once, provided their oid is not changed.
+     * - There can be no ordering prescribed. We use our own ordering.
+     * - We also disallow any explicit paging - except for maxSize setting.
+     * <p>
+     * Implementation is very simple - we fetch objects ordered by OID, and remember last OID fetched.
+     * Obviously no object will be present in output more than once.
+     * Objects that are not deleted will be there exactly once, provided their oid is not changed.
      */
     public <T extends ObjectType> void searchObjectsIterativeByPagingStrictlySequential(
             Class<T> type, ObjectQuery query, ResultHandler<T> handler,
@@ -1017,7 +982,8 @@ main:       while (remaining > 0) {
 
             ObjectPaging paging = prismContext.queryFactory().createPaging();
             pagedQuery.setPaging(paging);
-main:       for (;;) {
+            main:
+            for (; ; ) {
                 paging.setCookie(lastOid != null ? lastOid : NULL_OID_MARKER);
                 paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
 
@@ -1145,7 +1111,7 @@ main:       for (;;) {
         }
     }
 
-    private void attachDiagDataIfRequested(Item<?,?> item, byte[] fullObject, Collection<SelectorOptions<GetOperationOptions>> options) {
+    private void attachDiagDataIfRequested(Item<?, ?> item, byte[] fullObject, Collection<SelectorOptions<GetOperationOptions>> options) {
         if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
             item.setUserData(RepositoryService.KEY_DIAG_DATA, new RepositoryObjectDiagnosticData(getLength(fullObject)));
         }
