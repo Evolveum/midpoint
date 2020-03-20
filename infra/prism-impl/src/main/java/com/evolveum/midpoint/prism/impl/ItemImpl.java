@@ -596,9 +596,18 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
     }
 
+    @Override
+    public ItemDelta<V,D> diffValues(Item<V,D> other) {
+        return diff(other, true, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
+    }
+
     public ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+        return diff(other, false, strategy);
+    }
+
+    public ItemDelta<V,D> diff(Item<V,D> other, boolean rootValuesOnly, @NotNull ParameterizedEquivalenceStrategy strategy) {
         List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-        diffInternal(other, itemDeltas, strategy);
+        diffInternal(other, itemDeltas, rootValuesOnly, strategy);
         if (itemDeltas.isEmpty()) {
             return null;
         }
@@ -609,6 +618,11 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     }
 
     void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas,
+            ParameterizedEquivalenceStrategy strategy) {
+        diffInternal(other, deltas, false, strategy);
+    }
+
+    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas, boolean rootValuesOnly,
             ParameterizedEquivalenceStrategy strategy) {
         ItemDelta delta = createDelta();
         if (other == null) {
@@ -632,7 +646,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
                 boolean found = false;
                 while (iterator.hasNext()) {
                     PrismValueImpl otherValue = (PrismValueImpl) iterator.next();
-                    if (thisValue.representsSameValue(otherValue, true)) {
+                    if (!rootValuesOnly && thisValue.representsSameValue(otherValue, true)) {
                         found = true;
                         // Matching IDs, look inside to figure out internal deltas
                         ((PrismValueImpl) thisValue).diffMatchingRepresentation(otherValue, deltas, strategy);

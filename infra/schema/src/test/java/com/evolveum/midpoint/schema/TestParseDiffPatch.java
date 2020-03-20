@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.display;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
@@ -777,5 +779,73 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismObject<SystemConfigurationType> workingCopy = before.clone();
         deltaNarrowed.applyTo(workingCopy);
         PrismAsserts.assertEquals("before + delta (narrowed) is different from after", after, workingCopy);
+    }
+    @Test
+    public void testDiffContainerValues() throws Exception {
+        UserType user1 = new UserType(getPrismContext())
+                .beginAssignment()
+                    .id(1L)
+                    .targetRef("oid-a", RoleType.COMPLEX_TYPE)
+                .<UserType>end()
+                .beginAssignment()
+                    .id(2L)
+                    .targetRef("oid-b", RoleType.COMPLEX_TYPE)
+                .end();
+        UserType user2 = new UserType(getPrismContext())
+                .beginAssignment()
+                    .id(3L)
+                    .targetRef("oid-a", RoleType.COMPLEX_TYPE)
+                .<UserType>end()
+                .beginAssignment()
+                    .targetRef("oid-c", RoleType.COMPLEX_TYPE)
+                .end();
+        PrismContainer<Containerable> assignment1 = user1.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
+        PrismContainer<Containerable> assignment2 = user2.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
+        ContainerDelta<Containerable> diff = assignment1.diff(assignment2);
+        ItemDelta<?,?> diffValues = assignment1.diffValues(assignment2);
+
+        display("assignment1", assignment1);
+        display("assignment2", assignment2);
+        display("diff", diff);
+
+        assertEquals("Wrong values to add", assignment2.getValues(), diff.getValuesToAdd());
+        assertEquals("Wrong values to delete", assignment1.getValues(), diff.getValuesToDelete());
+        //noinspection SimplifiedTestNGAssertion
+        assertEquals("Wrong values to replace", null, diff.getValuesToReplace());
+
+        display("diffValues", diffValues);
+
+        assertEquals("Wrong values to add", assignment2.getValues(), diffValues.getValuesToAdd());
+        assertEquals("Wrong values to delete", assignment1.getValues(), diffValues.getValuesToDelete());
+        //noinspection SimplifiedTestNGAssertion
+        assertEquals("Wrong values to replace", null, diffValues.getValuesToReplace());
+    }
+
+    @Test
+    public void testDiffSingleContainerValues() throws Exception {
+        UserType user1 = new UserType(getPrismContext())
+                .beginActivation()
+                    .validFrom("2020-03-20T15:11:40.936+01:00")
+                    .validTo("2020-03-21T15:11:40.936+01:00")
+                .end();
+        UserType user2 = new UserType(getPrismContext())
+                .beginActivation()
+                    .validFrom("2020-02-20T15:11:40.936+01:00")
+                    .validTo("2020-02-21T15:11:40.936+01:00")
+                .end();
+        PrismContainer<ActivationType> activation1 = user1.asPrismObject().findContainer(UserType.F_ACTIVATION);
+        PrismContainer<ActivationType> activation2 = user2.asPrismObject().findContainer(UserType.F_ACTIVATION);
+
+        // Note that .diff() is not supported in this context
+        ItemDelta<?, ?> diff = activation1.diffValues(activation2);
+
+        display("activation1", activation1);
+        display("activation2", activation2);
+        display("diff", diff);
+
+        assertEquals("Wrong values to add", activation2.getValues(), diff.getValuesToAdd());
+        assertEquals("Wrong values to delete", activation1.getValues(), diff.getValuesToDelete());
+        //noinspection SimplifiedTestNGAssertion
+        assertEquals("Wrong values to replace", null, diff.getValuesToReplace());
     }
 }

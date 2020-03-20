@@ -292,6 +292,11 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
         return delegate().diff(other);
     }
 
+    @Override
+    public ItemDelta<V, D> diffValues(Item<V, D> other) {
+        return delegate().diffValues(other);
+    }
+
     public final ItemDelta<V, D> diff(
             Item<V, D> other,
             @NotNull ParameterizedEquivalenceStrategy strategy) {
