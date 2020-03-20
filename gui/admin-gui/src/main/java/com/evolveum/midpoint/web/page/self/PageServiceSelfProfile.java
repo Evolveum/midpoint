@@ -26,18 +26,16 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-/**
- * @author Viliam Repan (lazyman)
- * @author Radovan Semancik
- */
 @PageDescriptor(url = {"/self/profile/service"}, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_PROFILE_URL,
-                label = "PageSelfProfile.auth.profile.label",
-                description = "PageSelfProfile.auth.profile.description")})
+                label = "PageServiceSelfProfile.auth.profile.label",
+                description = "PageServiceSelfProfile.auth.profile.description")})
 public class PageServiceSelfProfile extends PageService {
+
+    private static final long serialVersionUID = 1L;
 
     public PageServiceSelfProfile() {
         super();
@@ -46,13 +44,6 @@ public class PageServiceSelfProfile extends PageService {
     public PageServiceSelfProfile(PageParameters parameters) {
         super(parameters);
     }
-
-    public PageServiceSelfProfile(PrismObject<ServiceType> service) {
-        super(service);
-    }
-
-    private static final long serialVersionUID = 1L;
-    private static final Trace LOGGER = TraceManager.getTrace(PageServiceSelfProfile.class);
 
     @Override
     protected String getObjectOidParameter() {

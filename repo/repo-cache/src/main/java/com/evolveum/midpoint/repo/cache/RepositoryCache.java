@@ -6,6 +6,26 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.repo.cache.RepositoryCache.PassReasonType.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.SelectorOptions.findRootOptions;
+import static com.evolveum.midpoint.schema.cache.CacheType.*;
+import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
+import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
+
+import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PreDestroy;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -31,35 +51,16 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PreDestroy;
-import java.util.Objects;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.evolveum.midpoint.repo.cache.RepositoryCache.PassReasonType.*;
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
-import static com.evolveum.midpoint.schema.SelectorOptions.findRootOptions;
-import static com.evolveum.midpoint.schema.cache.CacheType.*;
-import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
-import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Read-through write-through per-session repository cache.
- *
+ * <p>
  * TODO doc
  * TODO logging perf measurements
  *
  * @author Radovan Semancik
- *
  */
-@Component(value="cacheRepositoryService")
+@Component(value = "cacheRepositoryService")
 public class RepositoryCache implements RepositoryService, Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
@@ -73,7 +74,6 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     private static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
     private static final String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
     private static final String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
-    private static final String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     private static final String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
     private static final String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
     private static final String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
@@ -1070,7 +1070,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
     @NotNull
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-                                                    OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, parentResult);
     }
 
@@ -1360,45 +1360,6 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         }
         //LOGGER.info("Cache: PASS REASON: other: {}", options);
         return new PassReason(UNSUPPORTED_OPTION, cloned.toString());
-    }
-
-    @Override
-    @Deprecated
-    public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
-            throws ObjectNotFoundException {
-        OperationResult result = parentResult.subresult(LIST_ACCOUNT_SHADOW_OWNER)
-                .addParam("accountOid", accountOid)
-                .build();
-        Long startTime = repoOpStart();
-        try {
-            return repositoryService.listAccountShadowOwner(accountOid, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            repoOpEnd(startTime);
-            result.computeStatusIfUnknown();
-        }
-    }
-
-    @Override
-    public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-            Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException {
-        OperationResult result = parentResult.subresult(LIST_RESOURCE_OBJECT_SHADOWS)
-                .addParam("resourceOid", resourceOid)
-                .addParam("resourceObjectShadowType", resourceObjectShadowType)
-                .build();
-        Long startTime = repoOpStart();
-        try {
-            return repositoryService.listResourceObjectShadows(resourceOid, resourceObjectShadowType, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            repoOpEnd(startTime);
-            result.computeStatusIfUnknown();
-        }
     }
 
     @Override
@@ -1754,7 +1715,6 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         cacheRegistry.unregisterCacheableService(this);
     }
 
-
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
         return repositoryService.createAndRegisterConflictWatcher(oid);
@@ -1914,10 +1874,12 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     private static final class PassReason {
         private final PassReasonType type;
         private final String comment;
+
         private PassReason(PassReasonType type) {
             this.type = type;
             this.comment = null;
         }
+
         private PassReason(PassReasonType type, String comment) {
             this.type = type;
             this.comment = comment;
@@ -1976,14 +1938,14 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     public Collection<SingleCacheStateInformationType> getStateInformation() {
         List<SingleCacheStateInformationType> rv = new ArrayList<>();
         rv.add(new SingleCacheStateInformationType(prismContext)
-                        .name(LocalObjectCache.class.getName())
-                        .size(LocalObjectCache.getTotalSize(LOCAL_OBJECT_CACHE_INSTANCE)));
+                .name(LocalObjectCache.class.getName())
+                .size(LocalObjectCache.getTotalSize(LOCAL_OBJECT_CACHE_INSTANCE)));
         rv.add(new SingleCacheStateInformationType(prismContext)
-                        .name(LocalQueryCache.class.getName())
-                        .size(LocalQueryCache.getTotalSize(LOCAL_QUERY_CACHE_INSTANCE)));
+                .name(LocalQueryCache.class.getName())
+                .size(LocalQueryCache.getTotalSize(LOCAL_QUERY_CACHE_INSTANCE)));
         rv.add(new SingleCacheStateInformationType(prismContext)
-                        .name(LocalVersionCache.class.getName())
-                        .size(LocalVersionCache.getTotalSize(LOCAL_VERSION_CACHE_INSTANCE)));
+                .name(LocalVersionCache.class.getName())
+                .size(LocalVersionCache.getTotalSize(LOCAL_VERSION_CACHE_INSTANCE)));
         rv.addAll(globalObjectCache.getStateInformation());
         rv.addAll(globalVersionCache.getStateInformation());
         rv.addAll(globalQueryCache.getStateInformation());

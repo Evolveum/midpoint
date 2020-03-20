@@ -41,6 +41,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.xml.namespace.QName;
@@ -304,7 +305,11 @@ public class UserMenuPanel extends BasePanel {
     }
 
     private String getFocusType() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return "Unknown";
+        }
+        Object principal = authentication.getPrincipal();
 
         if (principal == null || principal.equals("anonymousUser")) {
             return "Unknown";
