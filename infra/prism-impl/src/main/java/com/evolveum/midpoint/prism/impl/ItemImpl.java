@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -485,6 +487,15 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
             }
             newValue.applyDefinition(definition, false);
         }
+        return values.add(newValue);
+    }
+
+    /**
+     * Adds a given value with no checks, no definition application, and so on.
+     * For internal use only.
+     */
+    @Experimental
+    public boolean addForced(@NotNull V newValue) {
         return values.add(newValue);
     }
 
