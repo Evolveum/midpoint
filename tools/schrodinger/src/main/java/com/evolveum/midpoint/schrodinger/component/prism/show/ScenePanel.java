@@ -39,11 +39,6 @@ public class ScenePanel<T> extends Component<T> {
         return partialScenes;
     }
 
-    public SceneItemLine itemDeltas() {
-        SelenideElement element = $(Schrodinger.byDataId("itemsTable"));
-        return new SceneItemLine(this, element);
-    }
-
     public PartialSceneHeader header() {
         SelenideElement element = $(Schrodinger.byDataId("headerPanel"));
         return new PartialSceneHeader(this, element);
