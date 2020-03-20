@@ -337,6 +337,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertNoMinusAttributeValues(plusAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
+        assertTrue("Old legal variable for projection context is not true", accContext.isLegalOld());
+        assertTrue("Legal variable for projection context is not true", accContext.isLegal());
+        assertTrue("Old assigned variable for projection context is not true", accContext.isAssignedOld());
+        assertTrue("Assigned variable for projection context is not true", accContext.isAssigned());
     }
 
     @Test
