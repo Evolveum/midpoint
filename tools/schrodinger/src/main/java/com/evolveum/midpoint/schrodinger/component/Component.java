@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.schrodinger.component;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -36,5 +39,14 @@ public abstract class Component<T> {
 
     public SelenideElement getParentElement() {
         return parentElement;
+    }
+
+    protected SelenideElement getDisplayedElement(ElementsCollection elements) {
+        for (SelenideElement element : elements) {
+            if (element.isDisplayed()) {
+                return element;
+            }
+        }
+        return null;
     }
 }
