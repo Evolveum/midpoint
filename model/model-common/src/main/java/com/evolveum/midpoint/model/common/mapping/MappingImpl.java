@@ -479,7 +479,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
         for (Source<?, ?> source : sources) {
             MappingSourceEvaluationTraceType sourceTrace = new MappingSourceEvaluationTraceType(prismContext);
             sourceTrace.setName(source.getName());
-            sourceTrace.setItemDeltaItem(source.toItemDeltaItemType());
+            sourceTrace.setItemDeltaItem(source.toItemDeltaItemType(prismContext));
             trace.getSource().add(sourceTrace);
         }
     }
