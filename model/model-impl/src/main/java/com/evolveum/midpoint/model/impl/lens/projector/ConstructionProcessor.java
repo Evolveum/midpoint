@@ -103,8 +103,13 @@ public class ConstructionProcessor {
             if (plusConstructionPack != null && plusConstructionPack.hasStrongConstruction()) {
 
                 if (plusConstructionPack.hasValidAssignment()) {
-                    LOGGER.trace("Construction {}: assigned (valid)", desc);
-                    consumer.onAssigned(key, desc);
+                    if (zeroConstructionPack != null && zeroConstructionPack.hasValidAssignment()) {
+                        LOGGER.trace("Construction {}: unchanged (valid) + assigned (valid)", desc);
+                        consumer.onUnchangedValid(key, desc);
+                    } else {
+                        LOGGER.trace("Construction {}: assigned (valid)", desc);
+                        consumer.onAssigned(key, desc);
+                    }
                 } else if (zeroConstructionPack != null && zeroConstructionPack.hasValidAssignment()) {
                     LOGGER.trace("Construction {}: unchanged (valid) + assigned (invalid)", desc);
                     consumer.onUnchangedValid(key, desc);
