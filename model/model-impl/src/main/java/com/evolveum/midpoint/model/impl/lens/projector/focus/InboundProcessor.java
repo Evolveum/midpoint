@@ -1092,7 +1092,7 @@ public class InboundProcessor {
         if (targetFocusItem != null) {
             LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}",
                     DebugUtil.debugDumpLazily(targetFocusItem, 1), DebugUtil.debugDumpLazily(shouldBeItem, 1));
-            ItemDelta diffDelta = targetFocusItem.diffValues(shouldBeItem);
+            ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
             LOGGER.trace("The difference is:\n{}", DebugUtil.debugDumpLazily(diffDelta, 1));
 
             if (diffDelta != null) {

@@ -378,17 +378,6 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
     }
 
     public ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> diff(
-            Item<PrismPropertyValue<T>, PrismPropertyDefinition<T>> other) {
-        return realProperty.diff(other);
-    }
-
-    @Override
-    public ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> diffValues(
-            Item<PrismPropertyValue<T>, PrismPropertyDefinition<T>> other) {
-        return realProperty.diffValues(other);
-    }
-
-    public ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> diff(
             Item<PrismPropertyValue<T>, PrismPropertyDefinition<T>> other,
             @NotNull ParameterizedEquivalenceStrategy strategy) {
         return realProperty.diff(other, strategy);

@@ -7,12 +7,12 @@
 package com.evolveum.midpoint.model.intest.mapping;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -21,27 +21,17 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
-
-import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -68,10 +58,16 @@ public class TestMappingInbound extends AbstractMappingTest {
     protected static final String ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI = "Leeloominaï Lekatariba Lamina-Tchaï Ekbat De Sebat";
     protected static final String ACCOUNT_LEELOO_PROOF_STRANGE = "Hereby and hèrěnow\nThis is a multi-line claim\nwith a sôme of špecial chäracters\nAnd even some CRLF file endings\r\nLike this\r\nAnd to be completely nuts, even some LFRC\n\rThis does not really proves anything\n   It is just trying to reproduce the problem\nIn addition to be quite long\nand ugly\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident,\nsunt in culpa qui officia deserunt mollit anim id est laborum.\nAnd so on …";
 
-    protected static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
-    protected static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
+    private static final String ACCOUNT_GDPR_USERNAME = "gdpr";
+
+    private static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
+    private static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
 
     private static final String LOCKER_BIG_SECRET = "BIG secret";
+
+    private static final ItemName DATA_PROTECTION = new ItemName(NS_PIRACY, "dataProtection");
+
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME = "controllerName";
 
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
@@ -89,6 +85,8 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .setSensitive(true);
                     controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                             DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, String.class, false, false);
                     controller.setSyncStyle(DummySyncStyle.SMART);
                 },
                 initTask, initResult);
@@ -115,7 +113,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         display("Parsed resource schema (tea-green)", returnedSchema);
         ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
-                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 2); // MID-5197
+                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 3); // MID-5197
 
         ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
         assertNotNull("No locker attribute definition", lockerDef);
@@ -634,6 +632,62 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0);
         dummyAuditService.assertExecutionSuccess();
+    }
+
+    /**
+     * MID-6129
+     */
+    @Test
+    public void test510UserDataProtection() throws Exception {
+        final String TEST_NAME = "test510UserDataProtection";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        UserType user = new UserType(prismContext)
+                .name(ACCOUNT_GDPR_USERNAME);
+        DataProtectionType protection = new DataProtectionType(prismContext)
+                .controllerName("controller")
+                .controllerContact("controller@evolveum.com");
+        PrismContainerDefinition<DataProtectionType> protectionDef =
+                user.asPrismObject().getDefinition().findContainerDefinition(ItemPath.create(UserType.F_EXTENSION, DATA_PROTECTION));
+        PrismContainer<DataProtectionType> protectionContainer = protectionDef.instantiate();
+        //noinspection unchecked
+        protectionContainer.add(protection.asPrismContainerValue());
+        user.asPrismObject().addExtensionItem(protectionContainer);
+
+        addObject(user.asPrismObject(), task, result);
+
+        DummyAccount account = new DummyAccount(ACCOUNT_GDPR_USERNAME);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "GDPR");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, "new-controller");
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        waitForTaskFinish(task, true);
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        assertSuccess(task.getResult());
+
+        assertUserAfterByUsername(ACCOUNT_GDPR_USERNAME)
+                .assertExtensionItems(1);
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_GDPR_USERNAME);
+        PrismContainerValue<?> extensionPcvAfter = userAfter.getExtensionContainerValue();
+        assertEquals("Wrong # of extension items", 1, extensionPcvAfter.getItems().size());
+        PrismContainer<DataProtectionType> protectionContainerAfter = extensionPcvAfter.findContainer(DATA_PROTECTION);
+        assertEquals(1, protectionContainerAfter.size());
+        DataProtectionType protectionAfter = protectionContainerAfter.getValue().asContainerable();
+        assertEquals("new-controller", protectionAfter.getControllerName());
+        assertEquals("new-controller@evolveum.com", protectionAfter.getControllerContact());
     }
 
     protected void importSyncTask() throws FileNotFoundException {

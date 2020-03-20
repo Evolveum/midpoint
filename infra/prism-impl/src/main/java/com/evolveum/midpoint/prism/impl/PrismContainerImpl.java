@@ -689,7 +689,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
     public List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy) {
         List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-        diffInternal(other, itemDeltas, strategy);
+        diffInternal(other, itemDeltas, false, strategy);
         return itemDeltas;
     }
 
