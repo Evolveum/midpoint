@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
 import java.io.File;
 import java.util.List;
 
+import com.codeborne.selenide.Screenshots;
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,6 +33,8 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static org.testng.Assert.*;
+
 public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     private static final String TEST_DIR = "./src/test/resources/page/preview";
@@ -42,11 +42,15 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
     private static final File ROLE_USER_PREVIEW_FILE = new File(TEST_DIR, "role-user-preview.xml");
     private static final String ROLE_USER_PREVIEW_NAME = "rolePreviewChanges";
 
+    private static final File ROLE_USER_NO_PREVIEW_FILE = new File(TEST_DIR, "role-user-no-preview.xml");
+    private static final String ROLE_USER_NO_PREVIEW_NAME = "roleNoPreviewChanges";
+
     @Override
     protected void initSystem(Task task, OperationResult initResult) throws Exception {
         super.initSystem(task, initResult);
 
         repoAddObjectFromFile(ROLE_USER_PREVIEW_FILE, initResult);
+        repoAddObjectFromFile(ROLE_USER_NO_PREVIEW_FILE, initResult);
     }
 
     @Test
@@ -55,9 +59,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         //@formatter:off
         UserPage user = basicPage.newUser();
 
-        PreviewPage previewPage = null;
-
-        PreviewPage f = user.selectTabBasic()
+        PreviewPage previewPage = user.selectTabBasic()
                 .form()
                     .addAttributeValue("name", "jack")
                     .addAttributeValue(UserType.F_GIVEN_NAME, "Jack")
@@ -97,7 +99,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                             .addAttributeValue(UserType.F_FAMILY_NAME, "Sparrow")
                         .and()
                     .and()
-                .clickPreviewChanges();
+                .clickPreview();
         //@formatter:on
 
         ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage.selectPanelByName("jack").primaryDeltas();
@@ -157,7 +159,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                         .addAttributeValue(UserType.F_FULL_NAME, "Jack Sparrow")
                     .and()
                 .and()
-                .clickPreviewChanges();
+                .clickPreview();
 
         ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage.selectPanelByName("jack").primaryDeltas();
         assertTrue(primaryDeltaScene.isExpanded(), "Primary deltas should be expanded");
@@ -177,5 +179,67 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
+    @Test
+    public void test005unassignRolePreview() {
+        //@formatter:off
+        ProgressPage previewPage = basicPage.listUsers()
+                .table()
+                    .clickByName("jack")
+                        .selectTabAssignments()
+                            .table()
+                                .removeByName(ROLE_USER_PREVIEW_NAME)
+                            .and()
+                        .and()
+                    .clickSave();
+        //@formatter:on
+
+        assertTrue(previewPage.feedback().isSuccess());
+
+    }
+
+    @Test
+    public void test006assignRoleNoPreview() {
+        //@formatter:off
+        ProgressPage previewPage = basicPage.listUsers()
+                .table()
+                    .clickByName("jack")
+                        .selectTabAssignments()
+                            .clickAddAssignemnt()
+                                .selectType(ConstantsUtil.ASSIGNMENT_TYPE_SELECTOR_ROLE)
+                                .table()
+                                    .search()
+                                        .byName()
+                                            .inputValue(ROLE_USER_NO_PREVIEW_NAME)
+                                            .updateSearch()
+                                        .and()
+                                    .selectCheckboxByName(ROLE_USER_NO_PREVIEW_NAME)
+                                .and()
+                            .clickAdd()
+                        .and()
+                    .clickSave();
+        //@formatter:on
+
+        assertTrue(previewPage.feedback().isSuccess());
+
+    }
+
+    @Test
+    public void test007loginWithUserJack() {
+
+        midPoint.logout();
+
+        basicPage = midPoint.formLogin().login("jack", "asd123");
+
+        UserPage userPage = basicPage.profile()
+                .selectTabBasic()
+                    .form()
+                        .addAttributeValue(UserType.F_FULL_NAME, "Jack Sparrow")
+                    .and()
+                .and();
+
+        Selenide.screenshot("previewVisible");
+        assertFalse(userPage.isPreviewButtonVisible(), "Preview button should not be visible");
+        midPoint.logout();
+    }
 
 }
