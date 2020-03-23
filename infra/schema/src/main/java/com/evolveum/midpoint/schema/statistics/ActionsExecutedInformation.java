@@ -90,7 +90,7 @@ public class ActionsExecutedInformation {
             if (matchingEntry != null) {
                 addToEntry(matchingEntry, entry);
             } else {
-                sumEntries.add(entry);
+                sumEntries.add(entry.clone());
             }
         }
     }

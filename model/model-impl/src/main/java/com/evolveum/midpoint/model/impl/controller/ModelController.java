@@ -743,11 +743,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery origQuery,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
+        // using clone of object query here because authorization mechanism adds additional (secuirty) filters to the (original) query
+        // at the end objectQuery contains additional filters as many times as the authZ mechanism is called.
+        // for more info see MID-6115
+        ObjectQuery query = origQuery != null ? origQuery.clone() : null;
         if (query != null) {
             ModelImplUtils.validatePaging(query.getPaging());
         }
@@ -1073,12 +1077,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
+    public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery origQuery,
             final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
+        // see MID-6115
+        ObjectQuery query = origQuery != null ? origQuery.clone() : null;
         if (query != null) {
             ModelImplUtils.validatePaging(query.getPaging());
         }
@@ -1176,10 +1182,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
+    public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery origQuery,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException, ExpressionEvaluationException {
 
+        // see MID-6115
+        ObjectQuery query = origQuery != null ? origQuery.clone() : null;
         OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
         result.addParam(OperationResult.PARAM_QUERY, query);
 

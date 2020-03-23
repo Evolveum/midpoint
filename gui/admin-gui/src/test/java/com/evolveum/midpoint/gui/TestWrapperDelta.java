@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
@@ -347,7 +348,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         SystemConfigurationType systemConfigBefore = getSystemConfiguration();
 
         WrapperContext ctx = new WrapperContext(task, result);
-        PrismObjectWrapper objectWrapper =createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
+        PrismObjectWrapper objectWrapper = createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
 
         PrismContainerWrapper<LoggingConfigurationType> loggingConfig = objectWrapper.findContainer(SystemConfigurationType.F_LOGGING);
         PrismContainerWrapper<Containerable> profilingClassLogger = loggingConfig.findContainer(ItemName.fromQName(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
@@ -380,6 +381,98 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         if(!appenderLevel.getValues().get(0).getRealValue().equals("MIDPOINT_PROFILE_LOG")) {
             AssertJUnit.fail("Expected value: " + "MIDPOINT_PROFILE_LOG" + " after executing of changes. Values present: " + appenderLevel.getValues().get(0).getRealValue());
         }
+
+    }
+
+    @Test
+    public void test310modifySystemConfigurationAddCollectionView() throws Exception {
+        final String TEST_NAME = "test310modifySystemConfigurationAddCollectionView";
+        TestUtil.displayTestTitle(TEST_NAME);
+        Task task = taskManager.createTaskInstance(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ModelServiceLocator locator = getServiceLocator(task);
+
+        SystemConfigurationType systemConfigBefore = getSystemConfiguration();
+
+        WrapperContext ctx = new WrapperContext(task, result);
+        PrismObjectWrapper objectWrapper = createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
+        ItemPath guiObjectViewPath = ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS, GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
+        PrismContainerWrapper<GuiObjectListViewType> collections = objectWrapper.findContainer(guiObjectViewPath);
+
+        //GIVEN
+        PrismContainerValue<GuiObjectListViewType> newCollection = collections.getItem().createNewValue();
+        ctx.setShowEmpty(true);
+        PrismContainerValueWrapper<GuiObjectListViewType> newCollectionValueWrapper = locator.createValueWrapper(collections, newCollection, ValueStatus.ADDED, ctx);
+        collections.getValues().add(newCollectionValueWrapper);
+
+        PrismPropertyWrapper<QName> type = newCollectionValueWrapper.findProperty(GuiObjectListViewType.F_TYPE);
+        type.getValue().setRealValue(new QName("RoleType"));
+
+        PrismPropertyWrapper<String> identifier = newCollectionValueWrapper.findProperty(GuiObjectListViewType.F_IDENTIFIER);
+        identifier.getValue().setRealValue("my-roles-collection");
+
+        // WHEN
+        ObjectDelta<SystemConfigurationType> delta = objectWrapper.getObjectDelta();
+        GuiObjectListViewType expectedValue = new GuiObjectListViewType(prismContext);
+        expectedValue.setIdentifier("my-roles-collection");
+        expectedValue.setType(new QName("RoleType"));
+        assertModification(delta, guiObjectViewPath, ModificationTypeType.ADD, expectedValue);
+
+        executeChanges(delta, null, task, result);
+
+        //THEN
+        SystemConfigurationType systemConfigAfter = getSystemConfiguration();
+        AdminGuiConfigurationType adminGuiConfig = systemConfigAfter.getAdminGuiConfiguration();
+        assertNotNull("Unexpecteed empty admin gui configuration.", adminGuiConfig);
+
+        GuiObjectListViewsType collectionViews = adminGuiConfig.getObjectCollectionViews();
+        assertNotNull("Unexpected empty gui obejct collection views", collectionViews);
+
+        GuiObjectListViewType myRolesCollection = null;
+        for (GuiObjectListViewType collectionView : collectionViews.getObjectCollectionView()) {
+            if ("my-roles-collection".equals(collectionView.getIdentifier())) {
+                myRolesCollection = collectionView;
+            }
+        }
+
+        assertNotNull("Newly added collection view not present in system configuration, something strange", myRolesCollection);
+        assertFalse("c:RoleType should not be eqals to RoleType", RoleType.COMPLEX_TYPE.equals(myRolesCollection.getType()));
+        assertTrue("c:RoleType should match RoleType", QNameUtil.match(RoleType.COMPLEX_TYPE, myRolesCollection.getType()));
+
+    }
+
+    @Test
+    public void test311modifySystemConfigurationModifyCollectionType() throws Exception {
+        final String TEST_NAME = "test311modifySystemConfigurationModifyCollectionType";
+        TestUtil.displayTestTitle(TEST_NAME);
+        Task task = taskManager.createTaskInstance(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ModelServiceLocator locator = getServiceLocator(task);
+
+        SystemConfigurationType systemConfigBefore = getSystemConfiguration();
+
+        WrapperContext ctx = new WrapperContext(task, result);
+        PrismObjectWrapper objectWrapper = createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
+        ItemPath guiObjectViewPath = ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS, GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
+        PrismContainerWrapper<GuiObjectListViewType> collections = objectWrapper.findContainer(guiObjectViewPath);
+
+        PrismContainerValueWrapper<GuiObjectListViewType> foundCollection = null;
+        for (PrismContainerValueWrapper<GuiObjectListViewType> collection : collections.getValues()) {
+            GuiObjectListViewType collectionRealValue = collection.getRealValue();
+            if ("my-roles-collection".equals(collectionRealValue.getIdentifier())) {
+                foundCollection = collection;
+                break;
+            }
+        }
+        // GIVEN
+        PrismPropertyWrapper<QName> collectionType = foundCollection.findProperty(GuiObjectListViewType.F_TYPE);
+        collectionType.getValue().setRealValue(RoleType.COMPLEX_TYPE);
+
+        // WHEN
+        ObjectDelta<SystemConfigurationType> systemConfigDelta = objectWrapper.getObjectDelta();
+        assertTrue("Delta should be empty!", systemConfigDelta.isEmpty());
 
     }
 

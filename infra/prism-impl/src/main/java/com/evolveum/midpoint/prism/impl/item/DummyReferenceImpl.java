@@ -306,11 +306,6 @@ public class DummyReferenceImpl implements PrismReference {
     }
 
     public ItemDelta<PrismReferenceValue, PrismReferenceDefinition> diff(
-            Item<PrismReferenceValue, PrismReferenceDefinition> other) {
-        return realReference.diff(other);
-    }
-
-    public ItemDelta<PrismReferenceValue, PrismReferenceDefinition> diff(
             Item<PrismReferenceValue, PrismReferenceDefinition> other,
             @NotNull ParameterizedEquivalenceStrategy strategy) {
         return realReference.diff(other, strategy);

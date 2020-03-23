@@ -282,7 +282,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
         objectDelta.setOid(getOid());
 
         Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
-        diffInternal(other, itemDeltas, strategy);
+        diffInternal(other, itemDeltas, false, strategy);
         objectDelta.addModifications(itemDeltas);
 
         return objectDelta;

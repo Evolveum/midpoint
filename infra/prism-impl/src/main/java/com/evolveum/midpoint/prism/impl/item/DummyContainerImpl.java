@@ -488,11 +488,6 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
     }
 
     public ItemDelta<PrismContainerValue<C>, PrismContainerDefinition<C>> diff(
-            Item<PrismContainerValue<C>, PrismContainerDefinition<C>> other) {
-        return realContainer.diff(other);
-    }
-
-    public ItemDelta<PrismContainerValue<C>, PrismContainerDefinition<C>> diff(
             Item<PrismContainerValue<C>, PrismContainerDefinition<C>> other,
             @NotNull ParameterizedEquivalenceStrategy strategy) {
         return realContainer.diff(other, strategy);

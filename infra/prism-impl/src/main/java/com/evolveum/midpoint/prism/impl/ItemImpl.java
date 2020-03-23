@@ -542,23 +542,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         }
     }
 
-    public ItemDelta<V,D> diff(Item<V,D> other) {
-        return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
-    }
-
     public ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy) {
-        List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-        diffInternal(other, itemDeltas, strategy);
-        if (itemDeltas.isEmpty()) {
-            return null;
-        }
-        if (itemDeltas.size() > 1) {
-            throw new UnsupportedOperationException("Item multi-delta diff is not supported yet");
-        }
-        return itemDeltas.get(0);
+        List<ItemDelta<V, D>> itemDeltas = new ArrayList<>();
+        diffInternal(other, itemDeltas, true, strategy);
+        return MiscUtil.extractSingleton(itemDeltas);
     }
 
-    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas,
+    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas, boolean rootValuesOnly,
             ParameterizedEquivalenceStrategy strategy) {
         ItemDelta delta = createDelta();
         if (other == null) {
@@ -582,7 +572,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
                 boolean found = false;
                 while (iterator.hasNext()) {
                     PrismValueImpl otherValue = (PrismValueImpl) iterator.next();
-                    if (thisValue.representsSameValue(otherValue, true)) {
+                    if (!rootValuesOnly && thisValue.representsSameValue(otherValue, true)) {
                         found = true;
                         // Matching IDs, look inside to figure out internal deltas
                         ((PrismValueImpl) thisValue).diffMatchingRepresentation(otherValue, deltas, strategy);

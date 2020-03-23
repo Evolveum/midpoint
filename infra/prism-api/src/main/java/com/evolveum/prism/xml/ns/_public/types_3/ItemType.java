@@ -94,11 +94,11 @@ public class ItemType implements Serializable, JaxbVisitable {
                 '}';
     }
 
-    public static ItemType fromItem(Item item) {
+    public static ItemType fromItem(Item item, PrismContext prismContext) {
         if (item != null) {
             ItemType rv = new ItemType();
             rv.setName(item.getElementName());
-            rv.value.addAll(item.getRealValues());
+            rv.value.addAll(item.getRealValuesOrRawTypes(prismContext));
             return rv;
         } else {
             return null;

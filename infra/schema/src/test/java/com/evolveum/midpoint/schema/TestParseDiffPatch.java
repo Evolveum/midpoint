@@ -6,49 +6,47 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -671,7 +669,7 @@ public class TestParseDiffPatch {
             resourceFixed.checkConsistence();
 
             // WHEN
-            String xmlBroken = getPrismContext().serializeObjectToString(resourceBroken, PrismContext.LANG_XML);
+            String xmlBroken = getPrismContext().xmlSerializer().serialize(resourceBroken);
             ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
             // THEN
@@ -693,7 +691,7 @@ public class TestParseDiffPatch {
             PrismObject<ResourceType> resourceUpdated = resourceBroken.clone();
             resourceDelta.applyTo(resourceUpdated);
 
-            String xmlUpdated = getPrismContext().serializeObjectToString(resourceUpdated, PrismContext.LANG_XML);
+            String xmlUpdated = getPrismContext().xmlSerializer().serialize(resourceUpdated);
             System.out.println("UPDATED RESOURCE:");
             System.out.println(xmlUpdated);
             assertFalse("__UNDECLARED__ flag in updated resource", xmlUpdated.contains("__UNDECLARED__"));
@@ -737,6 +735,7 @@ public class TestParseDiffPatch {
         for (PolyStringType expectedValue: expectedValues) {
             if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {
                 found = true;
+                break;
             }
         }
         assertTrue(found);
@@ -812,13 +811,13 @@ public class TestParseDiffPatch {
 
     @Test(enabled = false)
     public void testReplaceModelOperationContext() throws Exception {
-        PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
+        PrismObject<TaskType> prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
 
-        ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(TaskType.class, prismObject.getOid()
-        );
+        ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(TaskType.class, prismObject.getOid());
+        //noinspection unchecked
         delta.addModificationReplaceContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
 
-        PrismObject changed = prismObject.clone();
+        PrismObject<TaskType> changed = prismObject.clone();
         ItemDeltaCollectionsUtil.applyTo(delta.getModifications(), changed);
         Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
@@ -844,4 +843,63 @@ public class TestParseDiffPatch {
         assertEquals("'after' is different from the object with differences applied", after, differencesApplied);
     }
 
+    @Test
+    public void testDiffContainerValues() {
+        UserType user1 = new UserType(getPrismContext())
+                .beginAssignment()
+                    .id(1L)
+                    .targetRef("oid-a", RoleType.COMPLEX_TYPE)
+                .<UserType>end()
+                .beginAssignment()
+                    .id(2L)
+                    .targetRef("oid-b", RoleType.COMPLEX_TYPE)
+                .end();
+        UserType user2 = new UserType(getPrismContext())
+                .beginAssignment()
+                    .id(3L)
+                    .targetRef("oid-a", RoleType.COMPLEX_TYPE)
+                .<UserType>end()
+                .beginAssignment()
+                    .targetRef("oid-c", RoleType.COMPLEX_TYPE)
+                .end();
+        PrismContainer<AssignmentType> assignment1 = user1.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
+        PrismContainer<AssignmentType> assignment2 = user2.asPrismObject().findContainer(UserType.F_ASSIGNMENT);
+        ContainerDelta<AssignmentType> diff = assignment1.diff(assignment2);
+
+        PrismTestUtil.display("assignment1", assignment1);
+        PrismTestUtil.display("assignment2", assignment2);
+        PrismTestUtil.display("diff", diff);
+
+        assertEquals("Wrong values to add", assignment2.getValues(), diff.getValuesToAdd());
+        assertEquals("Wrong values to delete", assignment1.getValues(), diff.getValuesToDelete());
+        //noinspection SimplifiedTestNGAssertion
+        assertEquals("Wrong values to replace", null, diff.getValuesToReplace());
+    }
+
+    @Test
+    public void testDiffSingleContainerValues() {
+        UserType user1 = new UserType(getPrismContext())
+                .beginActivation()
+                    .validFrom("2020-03-20T15:11:40.936+01:00")
+                    .validTo("2020-03-21T15:11:40.936+01:00")
+                .end();
+        UserType user2 = new UserType(getPrismContext())
+                .beginActivation()
+                    .validFrom("2020-02-20T15:11:40.936+01:00")
+                    .validTo("2020-02-21T15:11:40.936+01:00")
+                .end();
+        PrismContainer<ActivationType> activation1 = user1.asPrismObject().findContainer(UserType.F_ACTIVATION);
+        PrismContainer<ActivationType> activation2 = user2.asPrismObject().findContainer(UserType.F_ACTIVATION);
+
+        ItemDelta<?, ?> diff = activation1.diff(activation2);
+
+        PrismTestUtil.display("activation1", activation1);
+        PrismTestUtil.display("activation2", activation2);
+        PrismTestUtil.display("diff", diff);
+
+        assertEquals("Wrong values to add", activation2.getValues(), diff.getValuesToAdd());
+        assertEquals("Wrong values to delete", activation1.getValues(), diff.getValuesToDelete());
+        //noinspection SimplifiedTestNGAssertion
+        assertEquals("Wrong values to replace", null, diff.getValuesToReplace());
+    }
 }

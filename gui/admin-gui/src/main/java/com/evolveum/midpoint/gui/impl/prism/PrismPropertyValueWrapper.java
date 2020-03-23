@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,11 +35,32 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, Prism
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void setRealValue(T realValue) {
+    public void setRealValue(T newRealValue) {
 
-        realValue = trimValueIfNeeded(realValue);
+        newRealValue = trimValueIfNeeded(newRealValue);
 
-        getNewValue().setValue(realValue);
+        if (newRealValue == null) {
+            getNewValue().setValue(null);
+            setStatus(ValueStatus.DELETED);
+            return;
+        }
+
+        if (newRealValue instanceof QName) {
+            if (QNameUtil.match((QName) newRealValue, (QName) getRealValue())) {
+                return;
+            }
+        } else if (newRealValue instanceof ItemPath) {
+            if (((ItemPath) newRealValue).equivalent((ItemPath) getRealValue())) {
+                return;
+            }
+        } else {
+            if (newRealValue.equals(getRealValue())) {
+                return;
+            }
+        }
+
+
+        getNewValue().setValue(newRealValue);
         setStatus(ValueStatus.MODIFIED);
     }
 

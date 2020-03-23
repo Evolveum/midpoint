@@ -294,9 +294,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
     public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType,
             String objectOid) {
-        if (synchronizationInformation != null) {
-            synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
-        }
+        // no-op
     }
 
     public synchronized void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType,

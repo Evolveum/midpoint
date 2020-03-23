@@ -5884,6 +5884,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         PrismObject<UserType> user = getUser(oid);
         return assertUser(user, message);
     }
+
+    protected TaskAsserter<Void> assertTask(Task task, String message) {
+        return assertTask(task.getUpdatedTaskObject().asObjectable(), message);
+    }
+
+    protected TaskAsserter<Void> assertTask(TaskType task, String message) {
+        return TaskAsserter.forTask(task.asPrismObject(), message);
+    }
+
     protected RepoOpAsserter createRepoOpAsserter(PerformanceInformation performanceInformation, String details) {
         return new RepoOpAsserter(performanceInformation, details);
     }
