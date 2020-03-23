@@ -223,6 +223,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         Form evidenceForm = new Form(ID_CASE_WORK_ITEM_EVIDENCE_FORM);
         evidenceForm.add(new VisibleBehaviour(() -> CaseTypeUtil.isManualProvisioningCase(parentCase) &&
                 (!SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
+        evidenceForm.setMultiPart(true);
         add(evidenceForm);
 
         UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, parentCase != null &&
