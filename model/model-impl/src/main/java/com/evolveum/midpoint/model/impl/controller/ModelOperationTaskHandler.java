@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,5 +147,10 @@ public class ModelOperationTaskHandler implements TaskHandler {
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(MODEL_OPERATION_TASK_URI, this);
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -110,5 +111,10 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.ACCESS_CERTIFICATION;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }
 }

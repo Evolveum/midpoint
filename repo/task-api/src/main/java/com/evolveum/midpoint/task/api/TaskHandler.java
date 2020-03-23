@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -43,12 +44,14 @@ public interface TaskHandler {
      *             to all tasks
      * @return a user-understandable name, like "LiveSync" or "Workflow"
      */
+    @Deprecated
     String getCategoryName(Task task);
 
     /**
      * Returns names of task categories provided by this handler. Usually it will be one-item list.
      * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
      */
+    @Deprecated
     default List<String> getCategoryNames() {
         return null;
     }
@@ -58,4 +61,8 @@ public interface TaskHandler {
         return new StatisticsCollectionStrategy();
     }
 
+    /**
+     * @return Archetype OID for tasks that are powered by this handler.
+     */
+    String getArchetypeOid();
 }
