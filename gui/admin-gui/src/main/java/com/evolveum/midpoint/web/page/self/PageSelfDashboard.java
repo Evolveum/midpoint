@@ -609,7 +609,7 @@ public class PageSelfDashboard extends PageSelf {
 
                     PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
                             resourceRef.getOid(), this, task, result);
-                    name = WebComponentUtil.getName(resource);
+                    name = WebComponentUtil.getName(resource, false);
                     description = constr.getDescription();
                 }
             }
