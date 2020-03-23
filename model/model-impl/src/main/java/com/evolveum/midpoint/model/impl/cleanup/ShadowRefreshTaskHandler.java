@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.cleanup;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -103,5 +105,10 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
         };
         handler.setStopOnError(false);
         return handler;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

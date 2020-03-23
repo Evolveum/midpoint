@@ -15,11 +15,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -227,5 +224,10 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
     public Throwable getFailure() {
         return failure;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

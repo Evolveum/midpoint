@@ -245,6 +245,11 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         return TaskCategory.ACCESS_CERTIFICATION;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
+    }
+
     public void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.debug("Launching closing task handler for campaign {} as asynchronous task", toShortString(campaign));

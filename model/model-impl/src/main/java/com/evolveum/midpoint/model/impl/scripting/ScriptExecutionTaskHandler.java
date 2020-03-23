@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import org.jetbrains.annotations.NotNull;
@@ -85,5 +86,10 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value();
     }
 }

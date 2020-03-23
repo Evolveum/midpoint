@@ -35,15 +35,7 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -114,7 +106,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
         taskManager.registerHandler(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1, this);
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2, this);
-        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
+        taskManager.registerDeprecatedHandlerUri(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
     }
 
     @Override
@@ -334,4 +326,8 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
         return getValidityPolicyConstraint(coordinatorTask) != null;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
+    }
 }

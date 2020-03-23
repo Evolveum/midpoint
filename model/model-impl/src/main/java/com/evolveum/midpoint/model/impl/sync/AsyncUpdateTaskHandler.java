@@ -18,6 +18,7 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,5 +89,10 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.ASYNCHRONOUS_UPDATE;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value();
     }
 }

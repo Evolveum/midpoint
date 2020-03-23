@@ -345,4 +345,9 @@ public class PartitioningTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(); // todo
+    }
 }
