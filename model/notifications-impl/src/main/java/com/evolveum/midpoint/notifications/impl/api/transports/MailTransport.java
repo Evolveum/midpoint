@@ -222,6 +222,7 @@ public class MailTransport implements Transport {
 
             try {
                 MimeMessage mimeMessage = new MimeMessage(session);
+                mimeMessage.setSentDate(new Date());
                 String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
 
