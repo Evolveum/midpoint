@@ -58,6 +58,7 @@ public class ProgressReporter implements ProgressListener {
     // Operation result got from the asynchronous operation (null if async op not yet finished)
     private OperationResult asyncOperationResult;
     private ModelContext<? extends ObjectType> previewResult;
+    private Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperation;
 
     private long operationStartTime;            // if 0, operation hasn't start yet
     private long operationDurationTime;         // if >0, operation has finished
@@ -93,6 +94,14 @@ public class ProgressReporter implements ProgressListener {
 
     public void setAsyncOperationResult(OperationResult asyncOperationResult) {
         this.asyncOperationResult = asyncOperationResult;
+    }
+
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> getObjectDeltaOperation() {
+        return objectDeltaOperation;
+    }
+
+    public void setObjectDeltaOperation(Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperation) {
+        this.objectDeltaOperation = objectDeltaOperation;
     }
 
     public void setPreviewResult(ModelContext<? extends ObjectType> previewResult) {

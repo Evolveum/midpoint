@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.model.api.util.ModelContextUtil;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -427,6 +430,24 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
 
         super.savePerformed(target);
+    }
+
+    @Override
+    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
+        if (isPreviewRequested()) {
+            super.finishProcessing(target, executedDeltas, returningFromAsync, result);
+            return;
+        }
+
+        if (result.isSuccess() && executedDeltas != null) {
+            //TODO change to inProgress result, so there is a link to existing task
+            String taskOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+            if (taskOid != null) {
+                result.recordInProgress();
+                result.setBackgroundTaskOid(taskOid);
+            }
+        }
+        super.finishProcessing(target, executedDeltas, returningFromAsync, result);
     }
 
     private boolean checkScheduleFilledForReccurentTask(PrismObjectWrapper<TaskType> taskWrapper) {
