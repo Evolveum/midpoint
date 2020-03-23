@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
+import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Application;
@@ -189,7 +189,8 @@ public class PasswordPanel extends InputPanel {
                 if (pageBase == null){
                     return false;
                 }
-                if (pageBase instanceof PageSelfProfile){
+                if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
+                    || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
                     return false;
                 }
                 if (pageBase instanceof PageUser && !((PageUser) pageBase).isLoggedInUserPage()

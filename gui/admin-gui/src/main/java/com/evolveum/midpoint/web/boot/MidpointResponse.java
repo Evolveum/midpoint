@@ -57,9 +57,15 @@ public class MidpointResponse extends Response {
                         value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
                     }
                 } else if (value.contains(contextPath + "/")) {
-                    String partAfterHostname = value.substring(value.indexOf("://") + 3);
-                    partAfterHostname = partAfterHostname.substring(partAfterHostname.indexOf("/"));
-                    value = publicUrlPrefix + partAfterHostname.substring(partAfterHostname.indexOf(contextPath) + contextPath.length());
+                    if (value.startsWith(contextPath)) {
+                        value = publicUrlPrefix + value.substring(contextPath.length());
+                    } else if (value.startsWith("/")){
+                        value = publicUrlPrefix + value;
+                    } else {
+                        String partAfterHostname = value.substring(value.indexOf("://") + 3);
+                        partAfterHostname = partAfterHostname.substring(partAfterHostname.indexOf("/"));
+                        value = publicUrlPrefix + partAfterHostname.substring(partAfterHostname.indexOf(contextPath) + contextPath.length());
+                    }
                 }
             }
         }

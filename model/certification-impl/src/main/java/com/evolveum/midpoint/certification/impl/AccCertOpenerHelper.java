@@ -146,16 +146,29 @@ public class AccCertOpenerHelper {
         definition.setLastCampaignIdUsed(null);
         AccessCertificationCampaignType campaign = createCampaignObject(definition, task, result);
         AccessCertificationObjectBasedScopeType scope;
+        ObjectFilter objectFilter;
+        Class<? extends ObjectType> objectClass;
+        Class<? extends ObjectType> focusClass = focus.asObjectable().getClass();
         if ((campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType)) {
             scope = (AccessCertificationObjectBasedScopeType) campaign.getScopeDefinition();
+            ObjectFilter focusFilter = prismContext.queryFor(focusClass).id(focus.getOid()).buildFilter();
+            Class<? extends ObjectType> originalObjectClass = ObjectTypes.getObjectTypeClass(scope.getObjectType());
+            if (scope.getSearchFilter() != null) {
+                ObjectFilter parsedFilter = getQueryConverter().parseFilter(scope.getSearchFilter(), originalObjectClass);
+                objectFilter = prismContext.queryFactory().createAnd(parsedFilter, focusFilter);
+            } else {
+                objectFilter = prismContext.queryFor(focusClass).id(focus.getOid()).buildFilter();
+            }
+            objectClass = originalObjectClass;
         } else {
             // TODO!
             scope = new AccessCertificationAssignmentReviewScopeType(prismContext);
             campaign.setScopeDefinition(scope);
+            objectFilter = prismContext.queryFor(focusClass).id(focus.getOid()).buildFilter();
+            objectClass = focusClass;
         }
-        Class<? extends ObjectType> focusClass = focus.asObjectable().getClass();
-        scope.setObjectType(ObjectTypes.getObjectType(focusClass).getTypeQName());
-        ObjectFilter objectFilter = prismContext.queryFor(focusClass).id(focus.getOid()).buildFilter();
+
+        scope.setObjectType(ObjectTypes.getObjectType(objectClass).getTypeQName());
         scope.setSearchFilter(getQueryConverter().createSearchFilterType(objectFilter));
         return campaign;
     }

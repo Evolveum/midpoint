@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -369,6 +370,8 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SELF_REGISTRATION_FINISH_QNAME = new QName(NS_AUTHORIZATION_UI, "selfRegistFinish");
     public static final String AUTZ_UI_SELF_REGISTRATION_FINISH_URL = NS_AUTHORIZATION_UI + "#selfRegistFinish";
 
+    public static final QName AUTZ_UI_PREVIEW_CHANGES_QNAME = new QName(NS_AUTHORIZATION_UI, "previewChanges");
+    public static final String AUTZ_UI_PREVIEW_CHANGES_URL = NS_AUTHORIZATION_UI + "#previewChanges";
 
     //About
 //    public static final QName AUTZ_UI_ABOUT_MIDPOINT_QNAME = new QName(NS_AUTHORIZATION, "aboutMidpoint");

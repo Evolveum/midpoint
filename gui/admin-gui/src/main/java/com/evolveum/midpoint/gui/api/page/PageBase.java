@@ -1987,7 +1987,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_DASHBOARD, "PageAdmin.menu.selfDashboard",
                 PageSelfDashboard.class);
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_PROFILE, "PageAdmin.menu.profile",
-                PageSelfProfile.class);
+                WebComponentUtil.resolveSelfPage());
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CREDENTIALS, "PageAdmin.menu.credentials",
                 PageSelfCredentials.class);
         if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {

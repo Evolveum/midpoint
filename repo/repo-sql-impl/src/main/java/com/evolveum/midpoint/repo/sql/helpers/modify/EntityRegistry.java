@@ -7,9 +7,23 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
+import javax.xml.namespace.QName;
+
+import org.hibernate.Metamodel;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -17,20 +31,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.Metamodel;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
-import javax.xml.namespace.QName;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -45,11 +45,13 @@ public class EntityRegistry {
 
     private Metamodel metamodel;
 
-    private Map<Class, ManagedType> jaxbMappings = new HashMap<>();
+    // we know that some <?> represent the same type in one entry, but there is no way to capture that information
 
-    private Map<ManagedType, Map<String, Attribute>> attributeNameOverrides = new HashMap<>();
+    private Map<Class<?>, ManagedType<?>> jaxbMappings = new HashMap<>();
 
-    private Map<ManagedType, Map<UniformItemPath, Attribute>> attributeNamePathOverrides = new HashMap<>();
+    private Map<ManagedType<?>, Map<String, Attribute<?, ?>>> attributeNameOverrides = new HashMap<>();
+
+    private Map<ManagedType<?>, Map<UniformItemPath, Attribute<?, ?>>> attributeNamePathOverrides = new HashMap<>();
 
     @PostConstruct
     public void init() {
@@ -57,18 +59,19 @@ public class EntityRegistry {
 
         metamodel = sessionFactory.getMetamodel();
 
-        for (EntityType entity : metamodel.getEntities()) {
-            Class javaType = entity.getJavaType();
-            Ignore ignore = (Ignore) javaType.getAnnotation(Ignore.class);
+        for (EntityType<?> entity : metamodel.getEntities()) {
+            Class<?> javaType = entity.getJavaType();
+            Ignore ignore = javaType.getAnnotation(Ignore.class);
             if (ignore != null) {
                 continue;
             }
 
-            Class jaxb;
+            Class<?> jaxb;
             if (RObject.class.isAssignableFrom(javaType)) {
-                jaxb = RObjectType.getType(javaType).getJaxbClass();
+                //noinspection unchecked,rawtypes
+                jaxb = RObjectType.getType((Class<? extends RObject>) javaType).getJaxbClass();
             } else {
-                JaxbType jaxbType = (JaxbType) javaType.getAnnotation(JaxbType.class);
+                JaxbType jaxbType = javaType.getAnnotation(JaxbType.class);
                 if (jaxbType == null) {
                     throw new IllegalStateException("Unknown jaxb type for " + javaType.getName());
                 }
@@ -78,12 +81,12 @@ public class EntityRegistry {
             jaxbMappings.put(jaxb, entity);
 
             // create override map
-            Map<String, Attribute> overrides = new HashMap<>();
-            Map<UniformItemPath, Attribute> pathOverrides = new HashMap<>();
+            Map<String, Attribute<?, ?>> overrides = new HashMap<>();
+            Map<UniformItemPath, Attribute<?, ?>> pathOverrides = new HashMap<>();
 
-            for (Attribute attribute : (Set<Attribute>) entity.getAttributes()) {
-                Class jType = attribute.getJavaType();
-                JaxbPath[] paths = (JaxbPath[]) jType.getAnnotationsByType(JaxbPath.class);
+            for (Attribute<?, ?> attribute : entity.getAttributes()) {
+                Class<?> jType = attribute.getJavaType();
+                JaxbPath[] paths = jType.getAnnotationsByType(JaxbPath.class);
                 if (paths == null || paths.length == 0) {
                     paths = ((Method) attribute.getJavaMember()).getAnnotationsByType(JaxbPath.class);
                 }
@@ -121,33 +124,36 @@ public class EntityRegistry {
         LOGGER.debug("Initialization finished");
     }
 
-    public ManagedType getJaxbMapping(Class jaxbType) {
-        return jaxbMappings.get(jaxbType);
+    public <T> ManagedType<T> getJaxbMapping(Class<T> jaxbType) {
+        //noinspection unchecked
+        return (ManagedType<T>) jaxbMappings.get(jaxbType);
     }
 
-    public ManagedType getMapping(Class entityType) {
+    public <T> ManagedType<T> getMapping(Class<T> entityType) {
         return metamodel.managedType(entityType);
     }
 
-    public Attribute findAttribute(ManagedType type, String name) {
+    public <T> Attribute<T, ?> findAttribute(ManagedType<T> type, String name) {
         try {
-            return type.getAttribute(name);
+            //noinspection unchecked
+            return (Attribute<T, ?>) type.getAttribute(name);
         } catch (IllegalArgumentException ex) {
             return null;
         }
     }
 
-    public Attribute findAttributeOverride(ManagedType type, String nameOverride) {
-        Map<String, Attribute> overrides = attributeNameOverrides.get(type);
+    public <T> Attribute<T, ?> findAttributeOverride(ManagedType<T> type, String nameOverride) {
+        Map<String, Attribute<?, ?>> overrides = attributeNameOverrides.get(type);
         if (overrides == null) {
             return null;
         }
 
-        return overrides.get(nameOverride);
+        //noinspection unchecked
+        return (Attribute<T, ?>) overrides.get(nameOverride);
     }
 
-    public boolean hasAttributePathOverride(ManagedType type, ItemPath pathOverride) {
-        Map<UniformItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
+    public boolean hasAttributePathOverride(ManagedType<?> type, ItemPath pathOverride) {
+        Map<UniformItemPath, Attribute<?, ?>> overrides = attributeNamePathOverrides.get(type);
         if (overrides == null) {
             return false;
         }
@@ -163,8 +169,9 @@ public class EntityRegistry {
         return false;
     }
 
-    public Attribute findAttributePathOverride(ManagedType type, ItemPath pathOverride) {
-        Map<UniformItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
+    public <T> Attribute<T,?> findAttributePathOverride(ManagedType<T> type, ItemPath pathOverride) {
+        //noinspection unchecked,rawtypes
+        Map<UniformItemPath, Attribute<T, ?>> overrides = (Map) attributeNamePathOverrides.get(type);
         if (overrides == null) {
             return null;
         }

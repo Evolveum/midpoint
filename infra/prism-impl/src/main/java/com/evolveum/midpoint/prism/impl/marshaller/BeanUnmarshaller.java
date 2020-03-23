@@ -251,7 +251,11 @@ public class BeanUnmarshaller {
 
         if (Containerable.class.isAssignableFrom(beanClass)) {
             // This could have come from inside; note we MUST NOT parse this as PrismValue, because for objects we would lose oid/version
-            return prismContext.parserFor(mapOrList.toRootXNode()).type(beanClass).parseRealValue();
+            return prismContext
+                    .parserFor(mapOrList.toRootXNode())
+                    .context(pc)
+                    .type(beanClass)
+                    .parseRealValue();
         } else if (SearchFilterType.class.isAssignableFrom(beanClass)) {
             if (mapOrList instanceof MapXNodeImpl) {
                 T bean = (T) unmarshalSearchFilterType((MapXNodeImpl) mapOrList, (Class<? extends SearchFilterType>) beanClass, pc);
@@ -1011,7 +1015,10 @@ public class BeanUnmarshaller {
             RawType raw = new RawType(xsubnode, prismContext);
             // FIXME UGLY HACK: parse value if possible
             if (xsubnode.getTypeQName() != null) {
-                PrismValue value = prismContext.parserFor(xsubnode.toRootXNode()).parseItemValue();    // TODO what about objects? oid/version will be lost here
+                PrismValue value = prismContext
+                        .parserFor(xsubnode.toRootXNode())
+                        .context(pc)
+                        .parseItemValue();    // TODO what about objects? oid/version will be lost here
                 if (value != null && !value.isRaw()) {
                     raw = new RawType(value, xsubnode.getTypeQName(), prismContext);
                 }

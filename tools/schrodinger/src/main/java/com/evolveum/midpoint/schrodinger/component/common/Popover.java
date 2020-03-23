@@ -12,6 +12,8 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.openqa.selenium.Keys;
+
 /**
  * Created by matus on 3/22/2018.
  */
@@ -21,20 +23,28 @@ public class Popover<T> extends Component<T> {
     }
 
     public Popover<T> inputValue(String input) {
-        getParentElement().$(Schrodinger.byDataId("textInput")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(input);
+        getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("textInput"))).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(input);
 
         return this;
     }
 
+    public Popover<T> inputValueWithEnter(String input) {
+        SelenideElement inputField = getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("textInput")));
+        inputField.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(input);
+        inputField.sendKeys(Keys.ENTER);
+        return this;
+    }
+
     public T updateSearch() {
-        getParentElement().$(Schrodinger.byDataId("update")).click();
-        getParentElement().$(Schrodinger.byDataId("update")).waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        SelenideElement button = getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("update")));
+        button.click();
+        button.waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return this.getParent();
     }
 
     public T close() {
-        getParentElement().$(Schrodinger.byDataId("close")).click();
+        getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("searchSimple"))).click();
 
         return this.getParent();
     }

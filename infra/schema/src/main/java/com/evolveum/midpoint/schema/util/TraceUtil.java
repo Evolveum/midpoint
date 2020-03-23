@@ -8,12 +8,15 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AnyValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NamedValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -55,8 +58,27 @@ public class TraceUtil {
 
     private static void setAnyValueTypeContent(Object object, AnyValueType anyValue, PrismContext prismContext) {
         if (object instanceof PrismValue) {
-            object = ((PrismValue) object).getRealValue();
+            PrismValue prismValue = (PrismValue) object;
+            boolean emptyEmbeddedValue = prismValue instanceof PrismPropertyValue && ((PrismPropertyValue) prismValue).getValue() == null;
+            if (emptyEmbeddedValue) {
+                // very strange case - let's simply skip it; there's nothing to store to AnyValueType here
+            } else {
+                if (prismValue.hasRealClass()) {
+                    setAnyValueReal(prismValue.getRealValue(), anyValue, prismContext);
+                } else {
+                    setAnyValueDynamic(prismValue, anyValue, prismContext);
+                }
+            }
+        } else {
+            setAnyValueReal(object, anyValue, prismContext);
         }
+    }
+
+    private static void setAnyValueDynamic(PrismValue prismValue, AnyValueType anyValue, PrismContext prismContext) {
+        anyValue.setValue(new RawType(prismValue, prismValue.getTypeName(), prismContext));
+    }
+
+    private static void setAnyValueReal(Object object, AnyValueType anyValue, PrismContext prismContext) {
         if (object != null) {
             QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(object.getClass());
             if (typeName != null) {
@@ -78,7 +100,7 @@ public class TraceUtil {
         return isAtLeast(level, TracingLevelType.NORMAL);
     }
 
-    public static boolean isAtLeast(TracingLevelType level, @NotNull TracingLevelType threshold) {
+    private static boolean isAtLeast(TracingLevelType level, @NotNull TracingLevelType threshold) {
         return level != null && level.ordinal() >= threshold.ordinal();
     }
 }

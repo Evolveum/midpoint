@@ -161,6 +161,7 @@
                             import com.evolveum.midpoint.model.impl.expr.*
                             import com.evolveum.midpoint.schema.*
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder
 
                             GROUPER_RESOURCE_OID = '1eff65de-5bb6-483d-9edf-8cc2c2ee0233'
 
