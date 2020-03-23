@@ -10,7 +10,12 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -23,6 +28,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Testing ad hoc certification (when changing parent orgs).
@@ -47,6 +53,9 @@ public class TestAdHocCertification extends AbstractCertificationTest {
     protected static final File USER_INDIGO_FILE = new File(TEST_DIR, "user-indigo.xml");
     protected static final String USER_INDIGO_OID = "11b35bd2-9b2f-4a00-94fa-7ed0079a7500";
 
+    protected static final File USER_EMPTY_FILE = new File(TEST_DIR, "user-empty.xml");
+    protected static final String USER_EMPTY_OID = "11b35bd2-9b2f-4a00-94fa-7ed0079a7511";
+
     protected AccessCertificationDefinitionType assignmentCertificationDefinition;
     protected AccessCertificationDefinitionType modificationCertificationDefinition;
 
@@ -60,10 +69,38 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         modificationCertificationDefinition = repoAddObjectFromFile(MODIFICATION_CERT_DEF_FILE, AccessCertificationDefinitionType.class, initResult).asObjectable();
         repoAddObjectFromFile(ORG_LABORATORY_FILE, initResult);
         repoAddObjectFromFile(USER_INDIGO_FILE, initResult);
+        repoAddObjectFromFile(USER_EMPTY_FILE, initResult);
     }
 
     @Test
-    public void test010HireIndigo() throws Exception {
+    public void test010HireUserOutOfScope() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+        assignOrg(USER_INDIGO_OID, ORG_LABORATORY_OID, task, result);
+
+        // THEN
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = getAllCampaigns(result);
+        assertEquals("Wrong # of campaigns", 1, campaigns.size());
+        AccessCertificationObjectBasedScopeType scope = (AccessCertificationObjectBasedScopeType) campaigns.get(0).asObjectable().getScopeDefinition();
+        Class<? extends ObjectType> objectClass = ObjectTypes.getObjectTypeClass(scope.getObjectType());
+        ObjectFilter parsedFilter = prismContext.getQueryConverter().parseFilter(scope.getSearchFilter(), objectClass);
+        assertTrue("Unexpected type of scope filter, expected AndFilter", parsedFilter instanceof AndFilter);
+        for (ObjectFilter subFilter : ((AndFilter)parsedFilter).getConditions()) {
+            assertTrue("Unexpected type of subfilter in scope filter, expected EqualFilter or InOidFilter", (subFilter instanceof EqualFilter || subFilter instanceof InOidFilter));
+        }
+    }
+
+    @Test
+    public void test020HireIndigo() throws Exception {
         // GIVEN
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -90,7 +127,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
     }
 
     @Test
-    public void test020ModifyIndigo() throws Exception {
+    public void test030ModifyIndigo() throws Exception {
         // GIVEN
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
