@@ -164,6 +164,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="manualProvisioningContext" type="tns:ManualProvisioningContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information related to manual resource provisioning request that is to be executed.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1243,5 +1253,21 @@
             <!-- TODO something like "replaceCurrentAssignee" ? -->
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ManualProvisioningContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes the context of the manual provisioning request that is represented by a case.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="manualProvisioningContext" type="tns:ManualProvisioningContextType" />
 
 </xsd:schema>
