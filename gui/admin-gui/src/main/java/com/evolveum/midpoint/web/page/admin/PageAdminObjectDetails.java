@@ -920,7 +920,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
     }
-    
+
     protected boolean processDeputyAssignments(boolean previewOnly){
         return false;
     }

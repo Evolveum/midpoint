@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
+import com.evolveum.midpoint.gui.impl.prism.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.prism.Containerable;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -40,7 +42,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
@@ -87,7 +91,8 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler);
+                ItemEditabilityHandler editabilityHandler = wrapper -> getBasicTabEditability(wrapper.getPath());
+                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler, editabilityHandler);
             }
         });
 
@@ -107,7 +112,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler);
+                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler, getTaskEditabilityHandler());
             }
         });
 
@@ -127,7 +132,8 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler);
+                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE,
+                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler, getTaskEditabilityHandler());
             }
         });
 
@@ -147,7 +153,9 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)), visibilityHandler);
+                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE,
+                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)),
+                        visibilityHandler, getTaskEditabilityHandler());
             }
         });
 
@@ -326,11 +334,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
 
-    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler) {
+    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(visibilityHandler)
-                    .editabilityHandler(getTaskEditabilityHandler())
+                    .editabilityHandler(editabilityHandler)
+                    .mandatoryHandler(getItemMandatoryHandler())
                     .showOnTopLevel(true);
             Panel panel = getDetailsPage().initItemPanel(id, typeName, model, builder.build());
             return panel;
@@ -346,12 +355,66 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
             return ItemVisibility.HIDDEN;
         }
+
+        if (TaskType.F_SUBTASK_REF.equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (TaskType.F_SUBTYPE.equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (TaskType.F_LIFECYCLE_STATE.equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+//        if (TaskType.F_HANDLER_URI.equivalent(path)) {
+//            if (CollectionUtils.isNotEmpty(getTask().getArchetypeRef())) {
+//                return ItemVisibility.HIDDEN;
+//            }
+//        }
+
+
         return ItemVisibility.AUTO;
+    }
+
+    private boolean getBasicTabEditability(ItemPath path) {
+        if (WebComponentUtil.isRunningTask(getTask())) {
+            return false;
+        }
+
+        List<ItemPath> pathsToHide = Arrays.asList(TaskType.F_EXECUTION_STATUS, TaskType.F_NODE, TaskType.F_NODE_AS_OBSERVED,TaskType.F_RESULT_STATUS,
+                TaskType.F_RESULT, TaskType.F_NEXT_RUN_START_TIMESTAMP, TaskType.F_NEXT_RETRY_TIMESTAMP, TaskType.F_UNPAUSE_ACTION, TaskType.F_TASK_IDENTIFIER,
+                TaskType.F_PARENT, TaskType.F_WAITING_REASON, TaskType.F_STATE_BEFORE_SUSPEND, TaskType.F_CATEGORY, TaskType.F_OTHER_HANDLERS_URI_STACK,
+                TaskType.F_CHANNEL, TaskType.F_DEPENDENT_TASK_REF, TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP, TaskType.F_COMPLETION_TIMESTAMP
+        );
+
+        for (ItemPath pathToHide : pathsToHide) {
+            if (pathToHide.equivalent(path)) {
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
+    private ItemMandatoryHandler getItemMandatoryHandler() {
+        return itemWrapper -> {
+            if (TaskType.F_RECURRENCE.equivalent(itemWrapper.getPath())) {
+                return false;
+            }
+            return itemWrapper.isMandatory();
+        };
     }
 
 
     private ItemEditabilityHandler getTaskEditabilityHandler(){
-        ItemEditabilityHandler editableHandler = wrapper -> !WebComponentUtil.isRunningTask(((PageTask)getDetailsPage()).getTask());
+        ItemEditabilityHandler editableHandler = wrapper -> !WebComponentUtil.isRunningTask(getTask());
         return editableHandler;
+    }
+
+    private TaskType getTask() {
+        return getObject().asObjectable();
     }
 }

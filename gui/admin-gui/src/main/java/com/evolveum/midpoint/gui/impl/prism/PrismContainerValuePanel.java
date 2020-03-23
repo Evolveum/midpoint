@@ -296,6 +296,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return settings.getEditabilityHandler();
     }
 
+    private ItemMandatoryHandler getMandatoryHandler() {
+        if (settings == null) {
+            return null;
+        }
+        return settings.getMandatoryHandler();
+    }
+
     private boolean isShowOnTopLevel() {
         if (settings == null) {
             return false;
@@ -316,6 +323,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(getVisibilityHandler())
                     .editabilityHandler(getReadabilityHandler())
+                    .mandatoryHandler(getMandatoryHandler())
                     .showOnTopLevel(isShowOnTopLevel());
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
             panel.setOutputMarkupId(true);

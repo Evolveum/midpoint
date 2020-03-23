@@ -24,6 +24,11 @@ public class ItemPanelSettingsBuilder {
             return this;
         }
 
+        public ItemPanelSettingsBuilder mandatoryHandler(ItemMandatoryHandler handler) {
+            settings.setMandatoryHandler(handler);
+            return this;
+        }
+
         public ItemPanelSettingsBuilder showOnTopLevel(boolean showOnTopLevel) {
             settings.setShowOnTopLevel(showOnTopLevel);
             return this;
