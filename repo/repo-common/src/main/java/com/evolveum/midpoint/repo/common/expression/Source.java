@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -90,14 +91,14 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
     }
 
     @NotNull
-    public ItemDeltaItemType toItemDeltaItemType() throws SchemaException {
+    public ItemDeltaItemType toItemDeltaItemType(PrismContext prismContext) throws SchemaException {
         ItemDeltaItemType rv = new ItemDeltaItemType();
-        rv.setOldItem(ItemType.fromItem(getItemOld()));
+        rv.setOldItem(ItemType.fromItem(getItemOld(), prismContext));
         ItemDelta<V, D> delta = getDelta();
         if (delta != null) {
             rv.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(delta));
         }
-        rv.setNewItem(ItemType.fromItem(getItemNew()));
+        rv.setNewItem(ItemType.fromItem(getItemNew(), prismContext));
         return rv;
     }
 }

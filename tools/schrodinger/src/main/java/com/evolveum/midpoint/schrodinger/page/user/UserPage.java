@@ -68,12 +68,6 @@ public class UserPage extends AssignmentHolderDetailsPage {
         return this;
     }
 
-    public PreviewPage clickPreviewChanges() {
-        $(Schrodinger.byDataId("previewChanges")).click();
-        return new PreviewPage();
-    }
-
-
     public ProjectionsTab<UserPage> selectTabProjections() {
         SelenideElement element = findTabPanel().clickTab("pageAdminFocus.projections");
         Selenide.sleep(2000);

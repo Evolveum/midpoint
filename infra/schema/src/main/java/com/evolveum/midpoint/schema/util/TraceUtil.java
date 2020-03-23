@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -58,10 +59,15 @@ public class TraceUtil {
     private static void setAnyValueTypeContent(Object object, AnyValueType anyValue, PrismContext prismContext) {
         if (object instanceof PrismValue) {
             PrismValue prismValue = (PrismValue) object;
-            if (prismValue.hasRealClass()) {
-                setAnyValueReal(prismValue.getRealValue(), anyValue, prismContext);
+            boolean emptyEmbeddedValue = prismValue instanceof PrismPropertyValue && ((PrismPropertyValue) prismValue).getValue() == null;
+            if (emptyEmbeddedValue) {
+                // very strange case - let's simply skip it; there's nothing to store to AnyValueType here
             } else {
-                setAnyValueDynamic(prismValue, anyValue, prismContext);
+                if (prismValue.hasRealClass()) {
+                    setAnyValueReal(prismValue.getRealValue(), anyValue, prismContext);
+                } else {
+                    setAnyValueDynamic(prismValue, anyValue, prismContext);
+                }
             }
         } else {
             setAnyValueReal(object, anyValue, prismContext);
@@ -94,7 +100,7 @@ public class TraceUtil {
         return isAtLeast(level, TracingLevelType.NORMAL);
     }
 
-    public static boolean isAtLeast(TracingLevelType level, @NotNull TracingLevelType threshold) {
+    private static boolean isAtLeast(TracingLevelType level, @NotNull TracingLevelType threshold) {
         return level != null && level.ordinal() >= threshold.ordinal();
     }
 }
