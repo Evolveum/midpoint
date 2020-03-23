@@ -16,6 +16,7 @@ import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -70,11 +71,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -809,4 +805,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         return TaskCategory.RECONCILIATION;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value();
+    }
 }

@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -188,5 +190,10 @@ public class MockParallelTaskHandler implements TaskHandler {
     @Override
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy().maintainIterationStatistics().fromZero();
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

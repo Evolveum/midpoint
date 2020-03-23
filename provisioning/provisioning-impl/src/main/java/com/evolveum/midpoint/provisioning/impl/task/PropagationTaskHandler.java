@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.task;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,10 +32,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Task handler for provisioning propagation of one resource.
@@ -112,4 +110,8 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
         return ShadowType.class;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
+    }
 }

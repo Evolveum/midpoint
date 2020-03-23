@@ -7,10 +7,6 @@
   -->
 
 <user oid="50053534-36dc-11e6-86f7-035182a6f678"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>empty</name>
 </user>

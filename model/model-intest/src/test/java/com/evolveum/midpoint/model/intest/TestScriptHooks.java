@@ -10,6 +10,12 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,29 +30,33 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * @author Radovan Semancik
  */
+@SuppressWarnings({ "FieldCanBeLocal", "unused" })
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/scripthooks");
 
-    protected static final File RESOURCE_DUMMY_HOOK_FILE = new File(TEST_DIR, "resource-dummy-hook.xml");
-    protected static final String RESOURCE_DUMMY_HOOK_OID = "10000000-0000-0000-0000-000004444001";
-    protected static final String RESOURCE_DUMMY_HOOK_NAME = "hook";
+    private static final File RESOURCE_DUMMY_HOOK_FILE = new File(TEST_DIR, "resource-dummy-hook.xml");
+    private static final String RESOURCE_DUMMY_HOOK_OID = "10000000-0000-0000-0000-000004444001";
+    private static final String RESOURCE_DUMMY_HOOK_NAME = "hook";
 
     private static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 
     private static final File GENERIC_BLACK_PEARL_FILE = new File(TEST_DIR, "generic-blackpearl.xml");
 
     private static final File SYSTEM_CONFIGURATION_HOOKS_FILE = new File(TEST_DIR, "system-configuration-hooks.xml");
+    private static final File SYSTEM_CONFIGURATION_PRIMARY_DELTA_HOOK_FILE = new File(TEST_DIR, "system-configuration-primary-delta-hook.xml");
 
-    protected DummyResource dummyResourceHook;
-    protected DummyResourceContoller dummyResourceCtlHook;
-    protected ResourceType resourceDummyHookType;
-    protected PrismObject<ResourceType> resourceDummyHook;
+    private DummyResource dummyResourceHook;
+    private DummyResourceContoller dummyResourceCtlHook;
+    private ResourceType resourceDummyHookType;
+    private PrismObject<ResourceType> resourceDummyHook;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -165,5 +175,48 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         StaticHookRecorder.assertInvocationCount("foo", 10);
         StaticHookRecorder.assertInvocationCount("bar", 10);
         StaticHookRecorder.assertInvocationCount("bar-user", 1);
+    }
+
+    /**
+     * MID-6122
+     */
+    @Test
+    public void test200DeleteAssignment() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        XMLGregorianCalendar dayBeforeYesterday = XmlTypeConverter.fromNow("-P2D");
+        XMLGregorianCalendar yesterday = XmlTypeConverter.fromNow("-P1D");
+
+        PrismObject<ObjectType> newConfiguration = prismContext.parseObject(SYSTEM_CONFIGURATION_PRIMARY_DELTA_HOOK_FILE);
+        repositoryService.addObject(newConfiguration, RepoAddOptions.createOverwrite(), result);
+
+        UserType user = new UserType(prismContext)
+                .name("test200")
+                .beginAssignment()
+                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .subtype("fragile")
+                    .beginActivation()
+                        .effectiveStatus(ActivationStatusType.ENABLED)
+                        .validFrom(dayBeforeYesterday)
+                        .validTo(yesterday)
+                    .<AssignmentType>end()
+                .end();
+        repoAddObject(user.asPrismObject(), result);
+
+        when();
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("new-name"))
+                .asObjectDelta(user.getOid());
+        executeChanges(delta, null, task, result);
+
+        then();
+        result.computeStatus();
+        assertSuccess(result);
+        assertUser(user.getOid(), "after")
+                .display()
+                .assertAssignments(0)
+                .assertFullName("new-name");
     }
 }

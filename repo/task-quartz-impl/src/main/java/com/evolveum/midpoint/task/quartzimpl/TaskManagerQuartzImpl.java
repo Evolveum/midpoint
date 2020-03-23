@@ -74,6 +74,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static java.util.Collections.emptySet;
@@ -134,6 +135,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     // primary handlers URIs - these will be taken into account when searching for handler matching a given task category
     private Map<String,TaskHandler> primaryHandlersUris = new HashMap<>();
+
+    // all non-deprecated handlers URIs
+    private Map<String,TaskHandler> nonDeprecatedHandlersUris = new HashMap<>();
 
     private final Set<TaskDeletionListener> taskDeletionListeners = new HashSet<>();
 
@@ -1709,12 +1713,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     public void registerHandler(String uri, TaskHandler handler) {
         LOGGER.trace("Registering task handler for URI {}", uri);
         handlers.put(uri, handler);
+        nonDeprecatedHandlersUris.put(uri, handler);
         primaryHandlersUris.put(uri, handler);
     }
 
     @Override
     public void registerAdditionalHandlerUri(String uri, TaskHandler handler) {
         LOGGER.trace("Registering additional URI for a task handler: {}", uri);
+        nonDeprecatedHandlersUris.put(uri, handler);
+        handlers.put(uri, handler);
+    }
+
+    @Override
+    public void registerDeprecatedHandlerUri(String uri, TaskHandler handler) {
+        LOGGER.trace("Registering additional (deprecated) URI for a task handler: {}", uri);
         handlers.put(uri, handler);
     }
 
@@ -1766,6 +1778,23 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             LOGGER.warn("More task handlers found for category {}; returning none.", category);
             return null;
         }
+    }
+
+    @Override
+    public Collection<String> getAllHandlerUris(boolean nonDeprecatedOnly) {
+        return Collections.unmodifiableSet(getHandlerUriMap(nonDeprecatedOnly).keySet());
+    }
+
+    private Map<String, TaskHandler> getHandlerUriMap(boolean nonDeprecatedOnly) {
+        return nonDeprecatedOnly ? nonDeprecatedHandlersUris : handlers;
+    }
+
+    @Override
+    public Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly) {
+        return getHandlerUriMap(nonDeprecatedOnly).entrySet().stream()
+                .filter(entry -> archetypeOid.equals(entry.getValue().getArchetypeOid()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
     }
     //endregion
 
