@@ -401,7 +401,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
    }
 
     public void refresh(AjaxRequestTarget target) {
-        getObjectModel().reset();
+        if (!isAdd()) {
+            getObjectModel().reset();
+        }
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
         target.add(getFeedbackPanel());
@@ -413,7 +415,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 }
             }
         }
-   }
+    }
 
    public int getRefreshInterval() {
         return 30;

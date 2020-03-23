@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,6 +36,7 @@ public class WrapperContext {
     private boolean showEmpty;
 
     private ItemStatus objectStatus;
+    private PrismObject<?> object;
 
     //Shadow related attributes
     private ResourceType resource;
@@ -144,6 +146,14 @@ public class WrapperContext {
         return virtualItemSpecification;
     }
 
+    public PrismObject<?> getObject() {
+        return object;
+    }
+
+    public void setObject(PrismObject<?> object) {
+        this.object = object;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -156,6 +166,7 @@ public class WrapperContext {
         ctx.setCreateOperational(createOperational);
         ctx.setVirtualContainers(virtualContainers);
         ctx.setVirtualItemSpecification(virtualItemSpecification);
+        ctx.setObject(object);
         return ctx;
     }
 }

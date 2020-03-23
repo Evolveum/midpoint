@@ -37,9 +37,9 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperFactoryImpl.class);
 
-    @Autowired private ModelService modelService;
-    @Autowired private SchemaHelper schemaHelper;
-    @Autowired private TaskManager taskManager;
+    @Autowired protected ModelService modelService;
+    @Autowired protected SchemaHelper schemaHelper;
+    @Autowired protected TaskManager taskManager;
 
     private static final String DOT_CLASS = PrismPropertyWrapperFactoryImpl.class.getSimpleName() + ".";
     private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
@@ -69,14 +69,14 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 
     @Override
     protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
-            ItemStatus status) {
+            ItemStatus status, WrapperContext wrapperContext) {
         getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
         PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
         PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
         if (valueEnumerationRef != null) {
             //TODO: task and result from context
-            Task task = taskManager.createTaskInstance(OPERATION_LOAD_LOOKUP_TABLE);
-            OperationResult result = new OperationResult(OPERATION_LOAD_LOOKUP_TABLE);
+            Task task = wrapperContext.getTask();
+            OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
             Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
                     .createLookupTableRetrieveOptions(schemaHelper);
 

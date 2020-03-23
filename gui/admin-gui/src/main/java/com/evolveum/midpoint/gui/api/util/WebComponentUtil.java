@@ -4540,4 +4540,10 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static boolean isArchetypeAssignment(AssignmentType assignmentType) {
+        if (assignmentType.getTargetRef() == null) {
+            return false;
+        }
+        return QNameUtil.match(assignmentType.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE);
+    }
 }

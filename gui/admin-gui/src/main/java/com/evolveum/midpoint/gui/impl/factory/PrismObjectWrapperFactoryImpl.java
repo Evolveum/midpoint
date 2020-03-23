@@ -62,6 +62,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         if (context.getObjectStatus() == null) {
             context.setObjectStatus(status);
         }
+        context.setObject(object);
 
         Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(object, context.getTask(), context.getResult());
         context.setVirtualContainers(virtualContainers);

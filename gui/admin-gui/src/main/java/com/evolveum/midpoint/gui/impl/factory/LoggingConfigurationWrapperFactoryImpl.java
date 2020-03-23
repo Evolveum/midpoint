@@ -103,9 +103,9 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 
     @Override
     protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
-            ItemStatus status) {
+            ItemStatus status, WrapperContext ctx) {
         registry.registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
-        return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
+        return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 
     @Override

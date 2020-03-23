@@ -90,9 +90,15 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
-                ItemEditabilityHandler editabilityHandler = wrapper -> getBasicTabEditability(wrapper.getPath());
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler, editabilityHandler);
+                return new TaskBasicTabPanel(panelId, getObjectModel()) {
+                    @Override
+                    protected void updateHandlerPerformed(AjaxRequestTarget target) {
+                        parentPage.refresh(target);
+                    }
+                };
+//                ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
+//                ItemEditabilityHandler editabilityHandler = wrapper -> getBasicTabEditability(wrapper.getPath());
+//                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler, editabilityHandler);
             }
         });
 
@@ -339,7 +345,6 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(visibilityHandler)
                     .editabilityHandler(editabilityHandler)
-                    .mandatoryHandler(getItemMandatoryHandler())
                     .showOnTopLevel(true);
             Panel panel = getDetailsPage().initItemPanel(id, typeName, model, builder.build());
             return panel;
@@ -350,64 +355,6 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
         return null;
     }
-
-    private ItemVisibility getBasicTabVisibility(ItemPath path) {
-        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (TaskType.F_SUBTASK_REF.equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (TaskType.F_SUBTYPE.equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (TaskType.F_LIFECYCLE_STATE.equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
-
-//        if (TaskType.F_HANDLER_URI.equivalent(path)) {
-//            if (CollectionUtils.isNotEmpty(getTask().getArchetypeRef())) {
-//                return ItemVisibility.HIDDEN;
-//            }
-//        }
-
-
-        return ItemVisibility.AUTO;
-    }
-
-    private boolean getBasicTabEditability(ItemPath path) {
-        if (WebComponentUtil.isRunningTask(getTask())) {
-            return false;
-        }
-
-        List<ItemPath> pathsToHide = Arrays.asList(TaskType.F_EXECUTION_STATUS, TaskType.F_NODE, TaskType.F_NODE_AS_OBSERVED,TaskType.F_RESULT_STATUS,
-                TaskType.F_RESULT, TaskType.F_NEXT_RUN_START_TIMESTAMP, TaskType.F_NEXT_RETRY_TIMESTAMP, TaskType.F_UNPAUSE_ACTION, TaskType.F_TASK_IDENTIFIER,
-                TaskType.F_PARENT, TaskType.F_WAITING_REASON, TaskType.F_STATE_BEFORE_SUSPEND, TaskType.F_CATEGORY, TaskType.F_OTHER_HANDLERS_URI_STACK,
-                TaskType.F_CHANNEL, TaskType.F_DEPENDENT_TASK_REF, TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP, TaskType.F_COMPLETION_TIMESTAMP
-        );
-
-        for (ItemPath pathToHide : pathsToHide) {
-            if (pathToHide.equivalent(path)) {
-                return false;
-            }
-        }
-
-        return true;
-
-    }
-
-    private ItemMandatoryHandler getItemMandatoryHandler() {
-        return itemWrapper -> {
-            if (TaskType.F_RECURRENCE.equivalent(itemWrapper.getPath())) {
-                return false;
-            }
-            return itemWrapper.isMandatory();
-        };
-    }
-
 
     private ItemEditabilityHandler getTaskEditabilityHandler(){
         ItemEditabilityHandler editableHandler = wrapper -> !WebComponentUtil.isRunningTask(getTask());
