@@ -150,7 +150,9 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
 
         // WHEN
         // We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-        String userXml = prismContext.serializerFor(getOutputFormat()).serialize(originalUser);
+        String userXml = prismContext.serializerFor(getOutputFormat())
+                .options(SerializationOptions.createSerializeCompositeObjects())
+                .serialize(originalUser);
 
         // THEN
         System.out.println("Serialized user:");
@@ -193,7 +195,9 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
 
         // WHEN
         // We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-        String userXml = prismContext.serializeObjectToString(originalUser, getOutputFormat());
+        String userXml = prismContext.serializerFor(getOutputFormat())
+                .options(SerializationOptions.createSerializeCompositeObjects())
+                .serialize(originalUser);
 
         // THEN
         System.out.println("Serialized user:");
@@ -386,7 +390,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         user.checkConsistence();
         assertUserJackContent(user, expectRawInConstructions, true, withIncomplete);
         assertUserExtensionAdhoc(user);
-        assertVisitor(user, 58);
+        assertVisitor(user, 62);
     }
 
     private void assertUserExtensionAdhoc(PrismObject<UserType> user) {
