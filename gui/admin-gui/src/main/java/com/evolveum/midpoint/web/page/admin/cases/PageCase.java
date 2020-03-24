@@ -109,7 +109,18 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
                             });
                 } else if (matchCaseType(SystemObjectsType.ARCHETYPE_MANUAL_CASE)) {
-                    //todo manual case tab
+                    tabs.add(0,
+                            new PanelTab(parentPage.createStringResource("PageCase.manualOperationDetailsTab"),
+                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_MANUAL_OPERATION_DETAILS_URL, true, parentPage)) {
+
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return new ManualCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                }
+
+                            });
                 }
                 if (!matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)) {
 

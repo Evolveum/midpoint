@@ -2038,7 +2038,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
-            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
+            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null){
+                @Override
+                protected boolean isMenuActive() {
+                    StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+                    return dashboard.getOid().equals(dashboardOid.toString());
+                }
+            };
             item.getItems().add(menu);
         });
 

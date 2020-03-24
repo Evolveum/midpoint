@@ -70,15 +70,7 @@ public class CaseTypeUtil {
         if (aCase == null || CollectionUtils.isEmpty(aCase.getArchetypeRef())){
             return false;
         }
-        for (ObjectReferenceType ort : aCase.getArchetypeRef()){
-            if (ort == null){
-                continue;
-            }
-            if (SystemObjectsType.ARCHETYPE_MANUAL_CASE.value().equals(ort.getOid())){
-                return true;
-            }
-        }
-        return false;
+        return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
     }
 
     public static boolean isApprovalCase(CaseType aCase) {
