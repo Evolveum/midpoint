@@ -6,18 +6,32 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.*;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,22 +43,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
     private static final String ID_MAIN_PANEL = "main";
     private static final String ID_HANDLER = "handler";
+
+    private static final String DOT_CLASS = TaskBasicTabPanel.class.getName() + ".";
+    private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
 
 
     public TaskBasicTabPanel(String id, IModel<PrismObjectWrapper<TaskType>> model) {
@@ -88,6 +94,15 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     }
                 }
 
+                PrismObjectWrapperFactory<TaskType> wrapperFactory = TaskBasicTabPanel.this.getPageBase().findObjectWrapperFactory(getTask().asPrismObject().getDefinition());
+                Task task = getPageBase().createSimpleTask(OPERATION_UPDATE_WRAPPER);
+                OperationResult result = task.getResult();
+                WrapperContext ctx = new WrapperContext(task, result);
+                try {
+                    wrapperFactory.updateWrapper(TaskBasicTabPanel.this.getModelObject(), ctx);
+                } catch (SchemaException e) {
+                    LOGGER.error("Unexpected problem occurs during updating wrapper. Reason: {}", e.getMessage(), e);
+                }
                 updateHandlerPerformed(target);
 
             }
@@ -144,6 +159,11 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         String taskHandler = getTask().getHandlerUri();
 
         if (taskHandler == null) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (hasArchetypeAssignemnt() && !isUtilityArchetypeAssignemnt() && !isSystemArchetypeAssignemnt()) {
+            //Visibility defined in archetype definition
             return ItemVisibility.AUTO;
         }
 
