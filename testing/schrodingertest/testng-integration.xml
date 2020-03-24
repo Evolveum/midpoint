@@ -98,4 +98,9 @@
             <class name="com.evolveum.midpoint.testing.schrodinger.ImportTest"/>
         </classes>
     </test>
+    <test name="Schrodinger.page.HomePageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.HomePageTest"/>
+        </classes>
+    </test>
 </suite>
