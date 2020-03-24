@@ -10,10 +10,15 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -25,16 +30,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
@@ -59,7 +62,34 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         TaskHandlerSelectorPanel handlerSelectorPanel = new TaskHandlerSelectorPanel(ID_HANDLER, PrismPropertyWrapperModel.fromContainerWrapper(getModel(), TaskType.F_HANDLER_URI), settings) {
             @Override
             protected void onUpdatePerformed(AjaxRequestTarget target) {
+                String newHandlerUri = getTask().getHandlerUri();
+                if (StringUtils.isBlank(newHandlerUri) || !newHandlerUri.startsWith("http://")) {
+                    LOGGER.trace("Nothing to do, handler still not set");
+                    return;
+                }
+
+                TaskHandler taskHandler = getPageBase().getTaskManager().getHandler(newHandlerUri);
+                if (taskHandler == null) {
+                    LOGGER.trace("Nothing to do, cannot find TaskHandler for {}", newHandlerUri);
+                    return;
+                }
+
+                if (!hasArchetypeAssignemnt()) {
+                    try {
+                        PrismContainerWrapper<AssignmentType> archetypeAssignment = TaskBasicTabPanel.this.getModelObject().findContainer(TaskType.F_ASSIGNMENT);
+                        PrismContainerValue<AssignmentType> archetypeAssignmentValue = archetypeAssignment.getItem().createNewValue();
+                        AssignmentType newArchetypeAssignment = archetypeAssignmentValue.asContainerable();
+                        newArchetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(taskHandler.getArchetypeOid(), ObjectTypes.ARCHETYPE));
+                        WebPrismUtil.createNewValueWrapper(archetypeAssignment, archetypeAssignmentValue, getPageBase(), target);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Exception during assignment lookup, reason: {}", e.getMessage(), e);
+                        getSession().error("Cannot set seleted handler: " + e.getMessage());
+                        return;
+                    }
+                }
+
                 updateHandlerPerformed(target);
+
             }
         };
         handlerSelectorPanel.add(new VisibleEnableBehaviour() {
@@ -107,14 +137,95 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             return ItemVisibility.HIDDEN;
         }
 
-//        if (TaskType.F_HANDLER_URI.equivalent(path)) {
-//            if (CollectionUtils.isNotEmpty(getTask().getArchetypeRef())) {
-//                return ItemVisibility.HIDDEN;
-//            }
-//        }
+        if (TaskType.F_DIAGNOSTIC_INFORMATION.equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
 
+        String taskHandler = getTask().getHandlerUri();
 
-        return ItemVisibility.AUTO;
+        if (taskHandler == null) {
+            return ItemVisibility.AUTO;
+        }
+
+        List<ItemPath> pathsToShow = new ArrayList<>();
+        if (taskHandler.endsWith("synchronization/task/delete/handler-3")) {
+            pathsToShow = Arrays.asList(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE,
+                    SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OPTION_RAW));
+        } else if (taskHandler.endsWith("model/execute-deltas/handler-3")) {
+            pathsToShow = Arrays.asList(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_DELTA,
+                    SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS));
+        } else if (taskHandler.endsWith("model/synchronization/task/execute/handler-3")) {
+            pathsToShow = Arrays.asList(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_DELTA,
+                    SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+        } else if (taskHandler.endsWith("task/jdbc-ping/handler-3")) {
+            //TODO
+        } else if (taskHandler.endsWith("model/auditReindex/handler-3")) {
+            //no extension attributes
+        } else if (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
+                || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+                || taskHandler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3")
+                || taskHandler.endsWith("task/generic-partitioning/handler-3")) {
+            //TODO
+        } else if (taskHandler.endsWith("task/workers-creation/handler-3")) {
+            //TODO
+        } else if (taskHandler.endsWith("task/workers-restart/handler-3")) {
+            //no attributes
+        } else if (taskHandler.endsWith("model/synchronization/task/delete-not-updated-shadow/handler-3")) {
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
+                    //TODO notUpdatesShadowsDurtion
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
+                    TaskType.F_OBJECT_REF);
+        } else if (taskHandler.endsWith("model/shadowRefresh/handler-3")) {
+            pathsToShow = Arrays.asList(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+        } else if (taskHandler.endsWith("model/object-integrity-check/handler-3")) {
+            pathsToShow = Arrays.asList(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+        } else if (taskHandler.endsWith("model/shadow-integrity-check/handler-3")) {
+            pathsToShow = Arrays.asList(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DIAGNOSE),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_FIX),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+        } else if (taskHandler.endsWith("model/reindex/handler-3")) {
+            pathsToShow = Arrays.asList(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY,
+                    SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+        } else if (taskHandler.endsWith("model/trigger/scanner/handler-3")) {
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+        } else if (taskHandler.endsWith("model/focus-validity-scanner/handler-3model/partitioned-focus-validity-scanner/handler-3#1")
+                    || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#2")) {
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
+                    // TODO policyRule ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.PO),
+                    SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE,
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
+        }
+
+        return shouldShowItem(path, pathsToShow);
+
+    }
+
+    private ItemVisibility shouldShowItem(ItemPath path, List<ItemPath> pathsToShow) {
+        if (!path.startsWithName(TaskType.F_EXTENSION)) {
+            return ItemVisibility.AUTO;
+        }
+
+        for (ItemPath pathToShow : pathsToShow) {
+            if (pathToShow.equivalent(path)) {
+                return ItemVisibility.AUTO;
+            }
+        }
+
+        return ItemVisibility.HIDDEN;
+
     }
 
     private boolean getBasicTabEditability(ItemPath path) {
@@ -156,7 +267,9 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         if (task.getAssignment() == null) {
             return false;
         }
-        List<AssignmentType> archetypeAssignments = task.getAssignment().stream().filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)).collect(Collectors.toList());
+        List<AssignmentType> archetypeAssignments = task.getAssignment()
+                .stream()
+                    .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)).collect(Collectors.toList());
         return CollectionUtils.isNotEmpty(archetypeAssignments);
     }
 
@@ -167,7 +280,8 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         }
         List<AssignmentType> archetypeAssignments = task.getAssignment()
                 .stream()
-                    .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType) && SystemObjectsType.ARCHETYPE_UTILITY_TASK.value().equals(assignmentType.getTargetRef().getOid()))
+                    .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)
+                            && SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value().equals(assignmentType.getTargetRef().getOid()))
                 .collect(Collectors.toList());
         return CollectionUtils.isNotEmpty(archetypeAssignments);
     }
@@ -179,7 +293,8 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         }
         List<AssignmentType> archetypeAssignments = task.getAssignment()
                 .stream()
-                .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType) && SystemObjectsType.ARCHETYPE_UTILITY_TASK.value().equals(assignmentType.getTargetRef().getOid()))
+                .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)
+                        && SystemObjectsType.ARCHETYPE_UTILITY_TASK.value().equals(assignmentType.getTargetRef().getOid()))
                 .collect(Collectors.toList());
         return CollectionUtils.isNotEmpty(archetypeAssignments);
     }

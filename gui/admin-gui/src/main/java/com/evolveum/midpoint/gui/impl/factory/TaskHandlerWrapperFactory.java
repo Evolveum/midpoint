@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -81,10 +82,10 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
                 Collection<String> handlers;
                 if (assignmentTypes.isEmpty()) {
                     // TODO all handlers
-                    handlers = taskManager.getAllTaskCategories();
+                    handlers = taskManager.getAllHandlerUris(true);
                 } else if (assignmentTypes.size() == 1) {
-                    //TODO archetype handlers
-                    handlers = taskManager.getAllTaskCategories();
+                    AssignmentType archetypeAssignment = assignmentTypes.iterator().next();
+                    handlers = taskManager.getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
                 } else {
                     throw new UnsupportedOperationException("More than 1 archetype, this is not supported");
                 }
@@ -93,6 +94,7 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
                 handlers.forEach(handler -> {
                     LookupTableRowType row = new LookupTableRowType(getPrismContext());
                     row.setKey(handler);
+                    handler = normalizeHandler(handler);
                     PolyStringType handlerLabel = new PolyStringType(handler);
                     PolyStringTranslationType translation = new PolyStringTranslationType();
                     translation.setKey(handler);
@@ -108,6 +110,13 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
         return propertyWrapper;
     }
 
+    private String normalizeHandler(String handler) {
+        handler = StringUtils.remove(handler, "-3");
+        handler = StringUtils.removeStart(handler, "http://").replace("-", "/").replace("#", "/");
+        String[] split = handler.split("/");
+        handler = "TaskHandlerSelector." + StringUtils.join(split, ".");
+        return handler;
+    }
 
 
     @Override
