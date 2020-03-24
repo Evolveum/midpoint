@@ -1738,6 +1738,13 @@
                                 <!-- We don't want anything here, ideally... -->
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
+                                <!--
+                                TODO: Experimental proposal for midpoint packages, but if there is no disagreement, just delete this todo in 2021 :-)
+                                Anything from midPoint is in one version, no conflict should occur and there is no real
+                                need to declare transitive dependencies (e.g. *-impl implying *-api, etc.).
+                                -->
+                                <ignoredUsedUndeclaredDependency>com.evolveum.midpoint.*:*</ignoredUsedUndeclaredDependency>
+
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
