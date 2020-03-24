@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -21,7 +22,7 @@ public class TemplateMappingEvaluationRequest extends FocalMappingEvaluationRequ
 
     public TemplateMappingEvaluationRequest(@NotNull ObjectTemplateMappingType mapping,
             @NotNull ObjectTemplateType objectTemplate) {
-        super(mapping, objectTemplate);
+        super(mapping, MappingKindType.TEMPLATE, objectTemplate);
     }
 
     @Override
