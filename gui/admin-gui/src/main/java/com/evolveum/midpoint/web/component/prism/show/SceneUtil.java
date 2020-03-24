@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,17 @@ public class SceneUtil {
                 ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(projectionObjectDelta.getPrimaryDelta(), prismContext);
                 scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
             }
+        }
+        return new WrapperScene(scenes, displayNameKey);
+    }
+
+    public static Scene visualizeObjectDeltaType(ObjectDeltaType objectDeltaType, String displayNameKey,
+            PrismContext prismContext, ModelInteractionService modelInteractionService,
+            ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        List<Scene> scenes = new ArrayList<>();
+        if (objectDeltaType != null) {
+            ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+            scenes.add(modelInteractionService.visualizeDelta(delta, false, objectRef, task, result));
         }
         return new WrapperScene(scenes, displayNameKey);
     }
