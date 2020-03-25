@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -80,7 +78,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     return;
                 }
 
-                if (!hasArchetypeAssignemnt()) {
+                if (!WebComponentUtil.hasAnyArchetypeAssignemnt(getTask())) {
                     try {
                         PrismContainerWrapper<AssignmentType> archetypeAssignment = TaskBasicTabPanel.this.getModelObject().findContainer(TaskType.F_ASSIGNMENT);
                         PrismContainerValue<AssignmentType> archetypeAssignmentValue = archetypeAssignment.getItem().createNewValue();
@@ -111,7 +109,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
 
             @Override
             public boolean isVisible() {
-                return !hasArchetypeAssignemnt() || isSystemArchetypeAssignemnt() || isUtilityArchetypeAssignemnt();
+                return satisfyArchetypeAssignment();
             }
 
         });
@@ -136,9 +134,9 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
     }
 
     private ItemVisibility getBasicTabVisibility(ItemPath path) {
-        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
+//        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
+//            return ItemVisibility.HIDDEN;
+//        }
 
         if (TaskType.F_SUBTASK_REF.equivalent(path)) {
             return ItemVisibility.HIDDEN;
@@ -162,7 +160,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             return ItemVisibility.AUTO;
         }
 
-        if (hasArchetypeAssignemnt() && !isUtilityArchetypeAssignemnt() && !isSystemArchetypeAssignemnt()) {
+        if (!satisfyArchetypeAssignment()) {
             //Visibility defined in archetype definition
             return ItemVisibility.AUTO;
         }
@@ -253,7 +251,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             return false;
         }
 
-        if ((!hasArchetypeAssignemnt() || isSystemArchetypeAssignemnt() || isUtilityArchetypeAssignemnt()) && getTask().getHandlerUri() == null) {
+        if (satisfyArchetypeAssignment() && getTask().getHandlerUri() == null) {
             return false;
         }
 
@@ -273,6 +271,12 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
 
     }
 
+    private boolean satisfyArchetypeAssignment() {
+        return !WebComponentUtil.hasAnyArchetypeAssignemnt(getTask())
+                || WebComponentUtil.hasArchetypeAssignment(getTask(), SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value())
+                || WebComponentUtil.hasArchetypeAssignment(getTask(), SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+    }
+
     private ItemMandatoryHandler getItemMandatoryHandler() {
         return itemWrapper -> {
             if (TaskType.F_RECURRENCE.equivalent(itemWrapper.getPath())) {
@@ -282,42 +286,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         };
     }
 
-    private boolean hasArchetypeAssignemnt() {
-        TaskType task = getTask();
-        if (task.getAssignment() == null) {
-            return false;
-        }
-        List<AssignmentType> archetypeAssignments = task.getAssignment()
-                .stream()
-                    .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)).collect(Collectors.toList());
-        return CollectionUtils.isNotEmpty(archetypeAssignments);
-    }
 
-    private boolean isSystemArchetypeAssignemnt() {
-        TaskType task = getTask();
-        if (task.getAssignment() == null) {
-            return false;
-        }
-        List<AssignmentType> archetypeAssignments = task.getAssignment()
-                .stream()
-                    .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)
-                            && SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value().equals(assignmentType.getTargetRef().getOid()))
-                .collect(Collectors.toList());
-        return CollectionUtils.isNotEmpty(archetypeAssignments);
-    }
-
-    private boolean isUtilityArchetypeAssignemnt() {
-        TaskType task = getTask();
-        if (task.getAssignment() == null) {
-            return false;
-        }
-        List<AssignmentType> archetypeAssignments = task.getAssignment()
-                .stream()
-                .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)
-                        && SystemObjectsType.ARCHETYPE_UTILITY_TASK.value().equals(assignmentType.getTargetRef().getOid()))
-                .collect(Collectors.toList());
-        return CollectionUtils.isNotEmpty(archetypeAssignments);
-    }
 
     @Override
     public Collection<Component> getComponentsToUpdate() {

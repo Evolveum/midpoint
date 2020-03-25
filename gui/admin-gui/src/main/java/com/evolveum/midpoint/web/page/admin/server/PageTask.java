@@ -88,6 +88,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private Boolean refreshEnabled;
 
+    private TaskTabsVisibility taskTabsVisibility;
+
     public PageTask() {
         initialize(null);
     }
@@ -541,6 +543,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
+        taskTabsVisibility = new TaskTabsVisibility();
+        taskTabsVisibility.computeAll(this, getObjectWrapper());
         return new TaskMainPanel(id, getObjectModel(), this);
     }
 
@@ -574,5 +578,23 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
         return refreshEnabled;
 
+    }
+
+    @Override
+    public void refresh(AjaxRequestTarget target) {
+        TaskTabsVisibility taskTabsVisibilityNew = new TaskTabsVisibility();
+        taskTabsVisibilityNew.computeAll(this, getObjectWrapper());
+
+        boolean soft = false;
+        if (taskTabsVisibilityNew.equals(taskTabsVisibility)) {
+            soft = true;
+        }
+
+        taskTabsVisibility = taskTabsVisibilityNew;
+        super.refresh(target, soft);
+    }
+
+    public TaskTabsVisibility getTaskTabVisibilty() {
+        return taskTabsVisibility;
     }
 }

@@ -10,7 +10,11 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
@@ -56,19 +60,45 @@ class TaskTabsVisibility implements Serializable {
         return schedulingVisible;
     }
 
-    public boolean computeWorkManagementVisible(){
-        workManagementVisible = true;   //todo when work management should be visible?
+    public boolean computeWorkManagementVisible(TaskType taskType){
+        String taskHandler = taskType.getHandlerUri();
+        if (WebComponentUtil.hasArchetypeAssignment(taskType, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) || (taskHandler != null &&
+                (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
+                || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+                || taskHandler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3")
+                || taskHandler.endsWith("task/generic-partitioning/handler-3")
+                || taskHandler.endsWith("task/workers-creation/handler-3")))) {
+            workManagementVisible = true;
+        }
         return workManagementVisible;
     }
 
     public boolean computeCleanupPolicyVisible(){
-        cleanupPolicyVisible = true;   //todo when cleanup policy should be visible?
+        cleanupPolicyVisible = false;   //todo when cleanup policy should be visible?
         return cleanupPolicyVisible;
     }
 
     public boolean computeSubtasksAndThreadsVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
 
-        return subtasksAndThreadsVisible = taskWrapper.getObject().findReference(TaskType.F_SUBTASK_REF) != null;
+        PrismReference subtasks =  taskWrapper.getObject().findReference(TaskType.F_SUBTASK_REF);
+        if (subtasks == null) {
+            return subtasksAndThreadsVisible = false;
+        }
+        if (CollectionUtils.isEmpty(subtasks.getValues())) {
+            return subtasksAndThreadsVisible = false;
+        }
+
+        boolean allEmpty = true;
+        for (PrismReferenceValue val : subtasks.getValues()) {
+            if (!val.isEmpty()) {
+                allEmpty = false;
+                break;
+            }
+        }
+
+        return subtasksAndThreadsVisible = allEmpty;
+
+
 
         // TODO we want to show subtasks always when subtasks exist. Following should be the behavior for tables on subtasks tab.
 //        boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
@@ -129,9 +159,10 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public void computeAll(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        computeBasicVisible(parentPage, taskWrapper.getObject().asObjectable());
-        computeSchedulingVisible(parentPage, taskWrapper.getObject().asObjectable());
-        computeWorkManagementVisible();
+        TaskType taskType = taskWrapper.getObject().asObjectable();
+        computeBasicVisible(parentPage, taskType);
+        computeSchedulingVisible(parentPage, taskType);
+        computeWorkManagementVisible(taskType);
         computeCleanupPolicyVisible();
         computeSubtasksAndThreadsVisible(parentPage, taskWrapper);
         computeProgressVisible(parentPage);
@@ -139,7 +170,7 @@ class TaskTabsVisibility implements Serializable {
         computeInternalPerformanceVisible(parentPage, taskWrapper);
         computeOperationVisible(parentPage, taskWrapper);
         computeResultVisible(parentPage, taskWrapper);
-        computeErrorsVisible(parentPage, taskWrapper.getObject().asObjectable());
+        computeErrorsVisible(parentPage, taskType);
     }
 
     public boolean computeProgressVisible(PageTask parentPage) {
@@ -236,6 +267,8 @@ class TaskTabsVisibility implements Serializable {
             return false;
         if (progressVisible != that.progressVisible)
             return false;
+        if (workManagementVisible != that.workManagementVisible)
+            return false;
         if (environmentalPerformanceVisible != that.environmentalPerformanceVisible)
             return false;
         if (operationVisible != that.operationVisible)
@@ -252,6 +285,7 @@ class TaskTabsVisibility implements Serializable {
         result = 31 * result + (schedulingVisible ? 1 : 0);
         result = 31 * result + (subtasksAndThreadsVisible ? 1 : 0);
         result = 31 * result + (progressVisible ? 1 : 0);
+        result = 31 * result + (workManagementVisible ? 1 : 0);
         result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
         result = 31 * result + (operationVisible ? 1 : 0);
         result = 31 * result + (resultVisible ? 1 : 0);

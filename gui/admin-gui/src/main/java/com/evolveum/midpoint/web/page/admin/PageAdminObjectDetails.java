@@ -400,7 +400,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return false;
    }
 
-    public void refresh(AjaxRequestTarget target) {
+   public void refresh(AjaxRequestTarget target) {
+        refresh(target, true);
+   }
+
+    public void refresh(AjaxRequestTarget target, boolean soft) {
+
         if (!isAdd()) {
             getObjectModel().reset();
         }
@@ -408,12 +413,16 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         target.add(getOperationalButtonsPanel());
         target.add(getFeedbackPanel());
 
-        for (Component component : getMainPanel().getTabbedPanel()) {
-            if (component instanceof RefreshableTabPanel) {
-                for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
-                    target.add(c);
+        if (soft) {
+            for (Component component : getMainPanel().getTabbedPanel()) {
+                if (component instanceof RefreshableTabPanel) {
+                    for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
+                        target.add(c);
+                    }
                 }
             }
+        } else {
+            target.add(getMainPanel().getTabbedPanel());
         }
     }
 

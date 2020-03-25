@@ -201,6 +201,6 @@ public class CleanUpTaskHandler implements TaskHandler {
 
     @Override
     public String getArchetypeOid() {
-        return SystemObjectsType.TASK_CLEANUP.value();
+        return SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
     }
 }

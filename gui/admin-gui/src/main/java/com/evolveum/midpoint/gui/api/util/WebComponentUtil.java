@@ -4540,10 +4540,34 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static <AH extends AssignmentHolderType> boolean hasAnyArchetypeAssignemnt(AH assignmentHolder) {
+        if (assignmentHolder.getAssignment() == null) {
+            return false;
+        }
+        List<AssignmentType> archetypeAssignments = assignmentHolder.getAssignment()
+                .stream()
+                .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)).collect(Collectors.toList());
+        return CollectionUtils.isNotEmpty(archetypeAssignments);
+    }
+
     public static boolean isArchetypeAssignment(AssignmentType assignmentType) {
         if (assignmentType.getTargetRef() == null) {
             return false;
         }
         return QNameUtil.match(assignmentType.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE);
     }
+
+
+    public static <AH extends AssignmentHolderType> boolean hasArchetypeAssignment(AH assignmentHolder, String archetypeOid) {
+        if (assignmentHolder.getAssignment() == null) {
+            return false;
+        }
+        List<AssignmentType> archetypeAssignments = assignmentHolder.getAssignment()
+                .stream()
+                .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType)
+                        && archetypeOid.equals(assignmentType.getTargetRef().getOid()))
+                .collect(Collectors.toList());
+        return CollectionUtils.isNotEmpty(archetypeAssignments);
+    }
+
 }
