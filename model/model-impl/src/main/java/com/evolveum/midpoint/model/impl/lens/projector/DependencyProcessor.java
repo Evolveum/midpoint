@@ -11,11 +11,18 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -30,7 +37,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -45,6 +51,8 @@ public class DependencyProcessor {
 
     @Autowired
     private ProvisioningService provisioningService;
+    @Autowired
+    private TaskManager taskManager;
 
     public <F extends ObjectType> void resetWaves(LensContext<F> context) throws PolicyViolationException {
     }
@@ -134,26 +142,32 @@ public class DependencyProcessor {
             LensProjectionContext dependencyProjectionContext = findDependencyTargetContext(context, projectionContext, outDependency);
             if (dependencyProjectionContext == null || dependencyProjectionContext.isDelete()) {
                 ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = ResourceTypeUtil.getDependencyStrictness(outDependency);
+                String nameRefResource = getResourceNameFromRef(refDiscr);
+                String refResourceMessage = "";
+                if (nameRefResource != null) {
+                    refResourceMessage = " resource "+nameRefResource+"(oid:"+refDiscr.getResourceOid()+") ";
+                }
+                String projectionResourceMessage = " resource "+projectionContext.getResourceName()+"(oid:"+projectionContext.getResourceOid()+")";
                 if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied strict dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
-                    throw new PolicyViolationException("Unsatisfied strict dependency in resource "+projectionContext.getResourceName()+"(oid:" + projectionContext.getResourceOid()+
-                            ") of account "+projectionContext.getResourceShadowDiscriminator()+" dependent on "+refDiscr+": Account not provisioned");
+                    throw new PolicyViolationException("Unsatisfied strict dependency of account ["+projectionContext.getResourceShadowDiscriminator()+projectionResourceMessage+
+                            "] dependent on ["+refDiscr+refResourceMessage+"]: Account not provisioned");
                 } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied lax dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
                     // independent object not in the context, just ignore it
-                    LOGGER.debug("Unsatisfied lax dependency in resource "+projectionContext.getResourceName()+"(oid:" + projectionContext.getResourceOid()+
-                            ") of account "+projectionContext.getResourceShadowDiscriminator()+" dependent on "+refDiscr+"; dependency skipped");
+                    LOGGER.debug("Unsatisfied lax dependency of account ["+projectionContext.getResourceShadowDiscriminator()+projectionResourceMessage+
+                            "] dependent on ["+refDiscr+refResourceMessage+"]: dependency skipped");
                 } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied relaxed dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
                     // independent object not in the context, just ignore it
-                    LOGGER.debug("Unsatisfied relaxed dependency in resource "+projectionContext.getResourceName()+"(oid:" + projectionContext.getResourceOid()+
-                            ") of account "+projectionContext.getResourceShadowDiscriminator()+" dependent on "+refDiscr+"; dependency skipped");
+                    LOGGER.debug("Unsatisfied relaxed dependency of account ["+projectionContext.getResourceShadowDiscriminator()+projectionResourceMessage+
+                            "] dependent on ["+refDiscr+refResourceMessage+"]: dependency skipped");
                 } else {
                     throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+refDiscr);
                 }
@@ -190,6 +204,21 @@ public class DependencyProcessor {
 //        LOGGER.trace("Wave for {}: {}", resultAccountContext.getResourceAccountType(), wave);
         resultAccountContext.setWave(determinedWave);
         return resultAccountContext;
+    }
+
+    private String getResourceNameFromRef(ResourceShadowDiscriminator refDiscr) {
+        String name = null;
+        try {
+            Task task = taskManager.createTaskInstance("Load resource");
+            GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
+            PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, refDiscr.getResourceOid(), options, task, task.getResult());
+            name = resource.getName().getOrig();
+        } catch (Exception e) {
+            //ignoring exception and return null
+            return null;
+        }
+        return name;
     }
 
     private <F extends ObjectType> LensProjectionContext determineProjectionWaveDeprovision(LensContext<F> context,
