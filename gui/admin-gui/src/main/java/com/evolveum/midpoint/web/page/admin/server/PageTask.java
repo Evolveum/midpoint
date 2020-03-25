@@ -137,8 +137,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     protected void initOperationalButtons(RepeatingView repeatingView) {
-        super.initOperationalButtons(repeatingView);
-
         createSuspendButton(repeatingView);
         createResumeButton(repeatingView);
         createRunNowButton(repeatingView);

@@ -138,22 +138,22 @@ public class DependencyProcessor {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied strict dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
-                    throw new PolicyViolationException("Unsatisfied strict dependency of account "+projectionContext.getResourceShadowDiscriminator()+
-                        " dependent on "+refDiscr+": Account not provisioned");
+                    throw new PolicyViolationException("Unsatisfied strict dependency in resource "+projectionContext.getResourceName()+"(oid:" + projectionContext.getResourceOid()+
+                            ") of account "+projectionContext.getResourceShadowDiscriminator()+" dependent on "+refDiscr+": Account not provisioned");
                 } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied lax dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
                     // independent object not in the context, just ignore it
-                    LOGGER.debug("Unsatisfied lax dependency of account "+projectionContext.getResourceShadowDiscriminator()+
-                        " dependent on "+refDiscr+"; dependency skipped");
+                    LOGGER.debug("Unsatisfied lax dependency in resource "+projectionContext.getResourceName()+"(oid:" + projectionContext.getResourceOid()+
+                            ") of account "+projectionContext.getResourceShadowDiscriminator()+" dependent on "+refDiscr+"; dependency skipped");
                 } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied relaxed dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
                     // independent object not in the context, just ignore it
-                    LOGGER.debug("Unsatisfied relaxed dependency of account "+projectionContext.getResourceShadowDiscriminator()+
-                        " dependent on "+refDiscr+"; dependency skipped");
+                    LOGGER.debug("Unsatisfied relaxed dependency in resource "+projectionContext.getResourceName()+"(oid:" + projectionContext.getResourceOid()+
+                            ") of account "+projectionContext.getResourceShadowDiscriminator()+" dependent on "+refDiscr+"; dependency skipped");
                 } else {
                     throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+refDiscr);
                 }
