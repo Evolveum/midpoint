@@ -97,7 +97,10 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         List<ButtonInlineMenuItem> buttonMenuItems = new ArrayList<>();
         menuItems.forEach(menuItem -> {
             if (menuItem instanceof ButtonInlineMenuItem){
-                if (isHeaderPanel && !menuItem.isHeaderMenuItem() || !menuItem.getVisible().getObject()){
+                if (isHeaderPanel && !menuItem.isHeaderMenuItem() || !menuItem.getVisible().getObject()) {
+                    return;
+                }
+                if (menuItem.getVisibilityChecker() != null && !menuItem.getVisibilityChecker().isVisible(rowModel, isHeaderPanel)) {
                     return;
                 }
                 buttonMenuItems.add((ButtonInlineMenuItem) menuItem);
