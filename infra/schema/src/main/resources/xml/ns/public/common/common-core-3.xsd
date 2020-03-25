@@ -2592,12 +2592,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType">
+                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The user that owns this task. It usually means the user that started the task
                                 or a system user that is used to execute the task. The owner will be used to
-                                determine access rights of the task, will be used for auditing, etc.
+                                determine access rights of the task, will be used for auditing, etc. If owner
+                                isn't set, currently logged in user is used.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -2647,7 +2648,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
+                    <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Execution status provides information about the task overall high-level execution state.
@@ -2888,11 +2889,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType">
+                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether the task activity is to be executed only once (single-run tasks)
-                                or periodically (recurring tasks).
+                                or periodically (recurring tasks). If nothing set explicitly, single-run
+                                task is created.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

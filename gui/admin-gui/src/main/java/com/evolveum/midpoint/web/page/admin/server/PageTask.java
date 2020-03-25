@@ -4,6 +4,11 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
@@ -344,7 +349,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void createCleanupPerformanceButton(RepeatingView repeatingView) {
-        AjaxIconButton cleanupPerformance = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
+        AjaxCompositedIconButton cleanupPerformance = new AjaxCompositedIconButton(repeatingView.newChildId(), getTaskCleanupCompositedIcon(GuiStyleConstants.CLASS_ICON_PERFORMANCE),
                 createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance")) {
 
             @Override
@@ -364,7 +369,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void createCleanupResultsButton(RepeatingView repeatingView) {
-        AjaxIconButton cleanupResults = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
+        AjaxCompositedIconButton cleanupResults = new AjaxCompositedIconButton(repeatingView.newChildId(), getTaskCleanupCompositedIcon(GuiStyleConstants.CLASS_ICON_TASK_RESULTS),
                 createStringResource("operationalButtonsPanel.cleanupResults")) {
 
             @Override
@@ -414,6 +419,15 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             result.recordFatalError("Cannot save tasks changes, " + e.getMessage(), e);
         }
         afterOperation(target, result);
+    }
+
+    private CompositedIcon getTaskCleanupCompositedIcon(String basicIconClass){
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+        CompositedIcon icon = iconBuilder
+                .setBasicIcon(basicIconClass, IconCssStyle.IN_ROW_STYLE)
+                .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ICON_TRASH), IconCssStyle.BOTTOM_RIGHT_STYLE)
+                .build();
+        return icon;
     }
 
     private void afterOperation(AjaxRequestTarget target, OperationResult result) {
