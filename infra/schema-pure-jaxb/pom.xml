@@ -177,8 +177,7 @@
                             <laxSchemaValidation>true</laxSchemaValidation>
                             <verbose>false</verbose>
                             <xjcSourceExcludeFilters>
-                                <!-- This is a workaround for xjc bug described here: https://java.net/projects/jaxb/lists/users/archive/2005-12/message/33 -->
-                                <!-- It presents itself on Windows machines. -->
+                                <!-- These exclusions are a workaround for xjc bug that occurs only on Windows machines. -->
                                 <!-- We simply exclude any imported files. So, after a new imported file is present, please add it into this list. -->
                                 <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
                                     <patterns>
@@ -187,7 +186,8 @@
                                         <pattern>\\types-3\.xsd</pattern>      <!-- to match types but not api-types -->
                                         <pattern>/types-3\.xsd</pattern>       <!-- to match types but not api-types -->
                                         <pattern>common-.*\.xsd</pattern>
-                                        <pattern>scripting-3\.xsd</pattern>
+                                        <pattern>/scripting/.*</pattern>
+                                        <pattern>\\scripting\\.*</pattern>
                                         <pattern>resource-schema-3\.xsd</pattern>
                                     </patterns>
                                 </filter>
