@@ -131,7 +131,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isWorkManagementVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isWorkManagementVisible(getTask());
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
@@ -174,7 +174,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isSubtasksAndThreadsVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isSubtasksAndThreadsVisible(getTask());
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.subtasks.title"), subtasksTabVisibility) {

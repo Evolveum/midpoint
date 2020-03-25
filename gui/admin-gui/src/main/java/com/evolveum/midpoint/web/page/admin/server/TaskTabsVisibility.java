@@ -28,6 +28,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Used to determine whether tabs have to be refreshed - by comparing instances of this class before and after task update.
@@ -78,25 +79,21 @@ class TaskTabsVisibility implements Serializable {
         return cleanupPolicyVisible;
     }
 
-    public boolean computeSubtasksAndThreadsVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
+    public boolean computeSubtasksAndThreadsVisible(TaskType task) {
 
-        PrismReference subtasks =  taskWrapper.getObject().findReference(TaskType.F_SUBTASK_REF);
-        if (subtasks == null) {
-            return subtasksAndThreadsVisible = false;
-        }
-        if (CollectionUtils.isEmpty(subtasks.getValues())) {
+        List<ObjectReferenceType> subtasks =  task.getSubtaskRef();
+        if (CollectionUtils.isEmpty(subtasks)) {
             return subtasksAndThreadsVisible = false;
         }
 
         boolean allEmpty = true;
-        for (PrismReferenceValue val : subtasks.getValues()) {
-            if (!val.isEmpty()) {
+        for (ObjectReferenceType subtask : subtasks) {
+            if (!subtask.asReferenceValue().isEmpty()){
                 allEmpty = false;
-                break;
             }
         }
 
-        return subtasksAndThreadsVisible = allEmpty;
+        return subtasksAndThreadsVisible = !allEmpty;
 
 
 
@@ -164,7 +161,7 @@ class TaskTabsVisibility implements Serializable {
         computeSchedulingVisible(parentPage, taskType);
         computeWorkManagementVisible(taskType);
         computeCleanupPolicyVisible();
-        computeSubtasksAndThreadsVisible(parentPage, taskWrapper);
+        computeSubtasksAndThreadsVisible(taskType);
         computeProgressVisible(parentPage);
         computeEnvironmentalPerformanceVisible(parentPage, taskWrapper);
         computeInternalPerformanceVisible(parentPage, taskWrapper);
@@ -214,7 +211,8 @@ class TaskTabsVisibility implements Serializable {
         return schedulingVisible;
     }
 
-    public boolean isWorkManagementVisible() {
+    public boolean isWorkManagementVisible(TaskType task) {
+        workManagementVisible = computeWorkManagementVisible(task);
         return workManagementVisible;
     }
 
@@ -222,7 +220,8 @@ class TaskTabsVisibility implements Serializable {
         return cleanupPolicyVisible;
     }
 
-    public boolean isSubtasksAndThreadsVisible() {
+    public boolean isSubtasksAndThreadsVisible(TaskType task) {
+        subtasksAndThreadsVisible = computeSubtasksAndThreadsVisible(task);
         return subtasksAndThreadsVisible;
     }
 
