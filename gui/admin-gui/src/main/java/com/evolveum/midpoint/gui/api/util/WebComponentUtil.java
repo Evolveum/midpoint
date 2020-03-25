@@ -4182,8 +4182,27 @@ public final class WebComponentUtil {
         OperationResult result = new OperationResult(operation);
         Task task = pageBase.createSimpleTask(operation);
         try {
-            Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(), "pageWorkItem.delta",
+            Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(),
+                    CaseTypeUtil.isClosed(caseObject) ? "pageWorkItem.changesApplied" : "pageWorkItem.delta",
                     pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
+            return new SceneDto(deltasScene);
+        } catch (SchemaException | ExpressionEvaluationException ex){
+            LOGGER.error("Unable to create delta visualization for case {}: {}", caseObject, ex.getLocalizedMessage(), ex);
+        }
+        return null;
+    }
+
+    public static SceneDto createSceneDtoForManualCase(CaseType caseObject, PageBase pageBase, String operation){
+        if (caseObject == null || caseObject.getManualProvisioningContext() == null ||
+                caseObject.getManualProvisioningContext().getPendingOperation() == null) {
+            return null;
+        }
+        ObjectReferenceType objectRef = caseObject.getObjectRef();
+        OperationResult result = new OperationResult(operation);
+        Task task = pageBase.createSimpleTask(operation);
+        try {
+            Scene deltasScene = SceneUtil.visualizeObjectDeltaType(caseObject.getManualProvisioningContext().getPendingOperation().getDelta(),
+                    CaseTypeUtil.isClosed(caseObject) ? "pageWorkItem.changesApplied" : "pageWorkItem.changesToBeApplied", pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
             return new SceneDto(deltasScene);
         } catch (SchemaException | ExpressionEvaluationException ex){
             LOGGER.error("Unable to create delta visualization for case {}: {}", caseObject, ex.getLocalizedMessage(), ex);

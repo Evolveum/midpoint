@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.ManualCaseTabPanel;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -105,7 +106,12 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
             @Override
             protected SceneDto load() {
                 PageBase pageBase = WorkItemDetailsPanel.this.getPageBase();
-                return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
+                CaseType parentCase = CaseTypeUtil.getCase(WorkItemDetailsPanel.this.getModelObject());
+                if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
+                    return WebComponentUtil.createSceneDtoForManualCase(parentCase, pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
+                } else {
+                    return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
+                }
             }
         };
         evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
@@ -180,10 +186,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         add(reasonPanel);
 
 
-        if (CaseTypeUtil.isApprovalCase(parentCase)){
+        if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)){
             ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
             scenePanel.setOutputMarkupId(true);
-            scenePanel.add(new VisibleBehaviour(() -> CaseTypeUtil.isApprovalCase(parentCase)));
             add(scenePanel);
         } else {
             add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));

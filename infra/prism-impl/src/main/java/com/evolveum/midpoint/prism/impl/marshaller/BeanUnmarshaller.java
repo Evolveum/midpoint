@@ -801,8 +801,8 @@ public class BeanUnmarshaller {
 
         private void computeParamTypeFromGetter(String propName, Class<?> getterReturnType) throws SchemaException {
             if (!Collection.class.isAssignableFrom(getterReturnType)) {
-                throw new SchemaException("Cannot find getter for field " + actualPropertyName + " in " + beanClass
-                        + " does not return collection, cannot use it to set value");
+                throw new SchemaException("Cannot find setter for field " + actualPropertyName + " in " + beanClass
+                        + ". The getter was found, but it does not return collection - so it cannot be used to set the value.");
             }
             // getter.genericReturnType = Collection<...>
             Type typeArgument = inspector.getTypeArgument(getter.getGenericReturnType(),

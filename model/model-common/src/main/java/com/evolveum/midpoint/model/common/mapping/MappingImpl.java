@@ -12,6 +12,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -61,6 +63,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
     // configuration properties (unmodifiable)
     private final MappingType mappingType;
+    private final MappingKindType mappingKind;
     private final ExpressionFactory expressionFactory;
     private final ExpressionVariables variables;
     private final PrismContext prismContext;
@@ -134,6 +137,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         expressionFactory = builder.expressionFactory;
         variables = builder.variables;
         mappingType = builder.mappingType;
+        mappingKind = builder.mappingKind;
         objectResolver = builder.objectResolver;
         securityContextManager = builder.securityContextManager;
         defaultSource = builder.defaultSource;
@@ -400,7 +404,10 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
                 .build();
         if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
             // temporary solution - to avoid checking level at too many places
-            trace = new MappingEvaluationTraceType(prismContext);
+            trace = new MappingEvaluationTraceType(prismContext)
+                    .mapping(mappingType.clone())
+                    .mappingKind(mappingKind)
+                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext));
             trace.setMapping(mappingType.clone());
             result.addTrace(trace);
         } else {
@@ -1270,6 +1277,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
     public PrismValueDeltaSetTripleProducer<V, D> clone() {
         MappingImpl<V, D> clone = new Builder<V, D>()
                 .mappingType(mappingType)
+                .mappingKind(mappingKind)
                 .contextDescription(contextDescription)
                 .expressionFactory(expressionFactory)
                 .securityContextManager(securityContextManager)
@@ -1457,6 +1465,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         private ExpressionFactory expressionFactory;
         private ExpressionVariables variables = new ExpressionVariables();
         private MappingType mappingType;
+        private MappingKindType mappingKind;
         private ObjectResolver objectResolver;
         private SecurityContextManager securityContextManager;
         private Source<?, ?> defaultSource;
@@ -1494,6 +1503,11 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
         public Builder<V, D> mappingType(MappingType val) {
             mappingType = val;
+            return this;
+        }
+
+        public Builder<V, D> mappingKind(MappingKindType val) {
+            mappingKind = val;
             return this;
         }
 

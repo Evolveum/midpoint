@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -271,12 +272,12 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("XNode(map:"+subnodes.size()+" entries)");
+        StringBuilder sb = new StringBuilder("XNode(map:"+subnodes.size()+" entries) {");
         sb.append("\n");
-        subnodes.entrySet().forEach(entry -> {
-            sb.append(entry.toString());
-            sb.append("; \n");
-        });
+        sb.append(subnodes.entrySet().stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(";\n")));
+        sb.append(" }");
         return sb.toString();
     }
 

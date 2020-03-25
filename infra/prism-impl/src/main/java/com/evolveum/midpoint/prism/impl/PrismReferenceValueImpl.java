@@ -710,4 +710,13 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
             }
         }
     }
+
+    @Override
+    public void accept(Visitor visitor) {
+        super.accept(visitor);
+        if (object != null) {
+            //noinspection unchecked
+            object.accept(visitor);
+        }
+    }
 }

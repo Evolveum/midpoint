@@ -38,12 +38,14 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
         MappingPreExpression {
 
     @NotNull protected final MT mapping;
+    @NotNull protected final MappingKindType mappingKind;
     @NotNull protected final OO originObject;
 
     private String mappingInfo;                           // lazily computed
 
-    FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull OO originObject) {
+    FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull MappingKindType mappingKind, @NotNull OO originObject) {
         this.mapping = mapping;
+        this.mappingKind = mappingKind;
         this.originObject = originObject;
     }
 
@@ -70,6 +72,11 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
     @NotNull
     public OO getOriginObject() {
         return originObject;
+    }
+
+    @NotNull
+    public MappingKindType getMappingKind() {
+        return mappingKind;
     }
 
     /**

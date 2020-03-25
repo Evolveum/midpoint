@@ -192,6 +192,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         if (relation != null){
             targetRef.setRelation(relation);
         }
+        targetRef.asReferenceValue().setObject(object.asPrismObject());
 
         AssignmentType assignment = new AssignmentType();
         assignment.setTargetRef(targetRef);

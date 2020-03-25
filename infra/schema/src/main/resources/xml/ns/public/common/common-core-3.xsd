@@ -15604,6 +15604,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="operationKind" type="tns:OperationKindType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kind of operation (e.g. clockwork execution, mapping evaluation, repository access). To be used
+                        for easy navigation, result filtering, and so on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
             <xsd:element name="importance" type="tns:OperationResultImportanceType" minOccurs="0">
                 <xsd:annotation>

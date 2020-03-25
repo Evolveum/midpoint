@@ -32,7 +32,7 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
     private AssignmentType assignmentType;
 
     public AutoassignRoleMappingEvaluationRequest(@NotNull AutoassignMappingType mapping, @NotNull AbstractRoleType role) {
-        super(mapping, role);
+        super(mapping, MappingKindType.AUTO_ASSIGN, role);
     }
 
     @Override

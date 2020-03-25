@@ -20,14 +20,22 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -43,6 +51,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import javax.xml.namespace.QName;
+
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestCryptoUtil extends AbstractUnitTest {
 
@@ -50,6 +60,7 @@ public class TestCryptoUtil extends AbstractUnitTest {
     private static final File FILE_USER_JACK = new File(TEST_DIR, "user-jack.xml");
     private static final File FILE_TASK_MODIFY_JACK_PASSWORD = new File(TEST_DIR, "task-modify-jack-password.xml");
     private static final File FILE_TASK_ADD_JACK = new File(TEST_DIR, "task-add-jack.xml");
+    private static final File FILE_TASK_ADD_ACCOUNT = new File(TEST_DIR, "task-add-account.xml");
     private static final File FILE_SYSTEM_CONFIGURATION = new File(TEST_DIR, "system-configuration.xml");
 
     private static final String KEYSTORE_PATH = TEST_RESOURCES_PATH + "/keystore.jceks";
@@ -100,6 +111,76 @@ public class TestCryptoUtil extends AbstractUnitTest {
         CryptoUtil.encryptValues(protector, task);
 
         // THEN
+        String serialized = prismContext.xmlSerializer().serialize(task);
+        System.out.println("After encryption:\n" + serialized);
+        assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
+
+        CryptoUtil.checkEncrypted(task);
+    }
+
+    /**
+     * MID-6086
+     */
+    @Test
+    public void test125EncryptAddAccountTask() throws Exception {
+        given();
+        PrismContext prismContext = getPrismContext();
+        PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_ADD_ACCOUNT).xml().parse();
+
+        when();
+        CryptoUtil.encryptValues(protector, task);
+
+        then();
+        String serialized = prismContext.xmlSerializer().serialize(task);
+        System.out.println("After encryption:\n" + serialized);
+        assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
+
+        CryptoUtil.checkEncrypted(task);
+    }
+
+    /**
+     * MID-6086
+     */
+    @Test
+    public void test127EncryptAddAccountTaskManuallyConstructed() throws Exception {
+        given();
+        PrismContext prismContext = getPrismContext();
+        PrismObject<TaskType> task = new TaskType(prismContext)
+                .name("test127")
+                .asPrismObject();
+        PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = task.getDefinition()
+                .findPropertyDefinition(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS));
+        PrismProperty<ObjectDeltaType> deltas = deltasDefinition.instantiate();
+
+        ShadowType shadow = new ShadowType(prismContext)
+                .name("some-shadow");
+        PrismContainerDefinition<Containerable> attributesDef = shadow.asPrismObject().getDefinition()
+                .findContainerDefinition(ShadowType.F_ATTRIBUTES);
+        PrismContainer<?> attributes = attributesDef.instantiate();
+        shadow.asPrismObject().add(attributes);
+
+        MutablePrismPropertyDefinition<ProtectedStringType> passwordDef = prismContext.definitionFactory()
+                .createPropertyDefinition(
+                        new QName(SchemaConstants.NS_ICF_SCHEMA, "password"), ProtectedStringType.COMPLEX_TYPE);
+        PrismProperty<ProtectedStringType> password = passwordDef.instantiate();
+        ProtectedStringType passwordRealValue = new ProtectedStringType();
+        passwordRealValue.setClearValue(PASSWORD_PLAINTEXT);
+        password.setRealValue(passwordRealValue);
+        attributes.add(password);
+
+        PrismReferenceValue linkToAdd = ObjectTypeUtil.createObjectRefWithFullObject(shadow, prismContext).asReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(linkToAdd)
+                .asObjectDelta("some-oid");
+
+        deltas.addRealValue(DeltaConvertor.toObjectDeltaType(userDelta, null));
+        task.addExtensionItem(deltas);
+
+        when();
+        CryptoUtil.encryptValues(protector, task);
+
+        then();
         String serialized = prismContext.xmlSerializer().serialize(task);
         System.out.println("After encryption:\n" + serialized);
         assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
