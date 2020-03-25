@@ -26,6 +26,9 @@
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+            schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"/>
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
         <xsd:annotation>
