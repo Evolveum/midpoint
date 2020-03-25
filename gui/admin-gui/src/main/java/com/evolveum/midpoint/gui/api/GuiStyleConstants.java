@@ -218,6 +218,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_TEXT = "fa fa-text-width";
 
     public static final String CLASS_ICON_TRASH = "fa fa-trash-o";
+    public static final String CLASS_ICON_PERFORMANCE = "fa fa-area-chart";
+    public static final String CLASS_ICON_TASK_RESULTS = "fa fa-list-alt";
 
 
 }
