@@ -153,21 +153,21 @@ public class DependencyProcessor {
                         LOGGER.trace("  processing dependency: {}: unsatisfied strict dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
                     throw new PolicyViolationException("Unsatisfied strict dependency of account ["+projectionContext.getResourceShadowDiscriminator().toHumanReadableDescription(false)+
-                            projectionResourceMessage+"] dependent on ["+refDiscr.toHumanReadableDescription(false)+refResourceMessage+"]: Account not provisioned");
+                            projectionResourceMessage+"] dependent on ["+refDiscr.toHumanReadableDescription(nameRefResource == null)+refResourceMessage+"]: Account not provisioned");
                 } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied lax dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
                     // independent object not in the context, just ignore it
                     LOGGER.debug("Unsatisfied lax dependency of account ["+projectionContext.getResourceShadowDiscriminator().toHumanReadableDescription(false)
-                            +projectionResourceMessage+"] dependent on ["+refDiscr.toHumanReadableDescription(false)+refResourceMessage+"]: dependency skipped");
+                            +projectionResourceMessage+"] dependent on ["+refDiscr.toHumanReadableDescription(nameRefResource == null)+refResourceMessage+"]: dependency skipped");
                 } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("  processing dependency: {}: unsatisfied relaxed dependency", PrettyPrinter.prettyPrint(outDependency));
                     }
                     // independent object not in the context, just ignore it
                     LOGGER.debug("Unsatisfied relaxed dependency of account ["+projectionContext.getResourceShadowDiscriminator().toHumanReadableDescription(false)+
-                            projectionResourceMessage+"] dependent on ["+refDiscr.toHumanReadableDescription(false)+refResourceMessage+"]: dependency skipped");
+                            projectionResourceMessage+"] dependent on ["+refDiscr.toHumanReadableDescription(nameRefResource == null)+refResourceMessage+"]: dependency skipped");
                 } else {
                     throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+refDiscr);
                 }
