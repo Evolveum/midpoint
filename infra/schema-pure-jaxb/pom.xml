@@ -181,7 +181,7 @@
                                 <!-- We simply exclude any imported files. So, after a new imported file is present, please add it into this list. -->
                                 <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
                                     <patterns>
-                                        <pattern>annotation-3\.xsd</pattern>
+                                        <pattern>public.annotation-3\.xsd</pattern> <!-- only from prism, not resource annotation -->
                                         <pattern>query-3\.xsd</pattern>
                                         <pattern>\\types-3\.xsd</pattern>      <!-- to match types but not api-types -->
                                         <pattern>/types-3\.xsd</pattern>       <!-- to match types but not api-types -->
