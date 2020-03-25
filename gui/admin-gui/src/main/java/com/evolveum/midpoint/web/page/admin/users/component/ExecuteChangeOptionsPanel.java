@@ -11,6 +11,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -26,6 +30,8 @@ import java.util.List;
  */
 public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto> {
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(ExecuteChangeOptionsPanel.class);
 
     private static final String ID_FORCE = "force";
     private static final String ID_FORCE_CONTAINER = "forceContainer";
@@ -108,8 +114,16 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                 KEEP_DISPLAYING_RESULTS_HELP,
                 showKeepDisplayingResults);
 
+        boolean canRecordTrace;
+        try {
+            canRecordTrace = getPageBase().isAuthorized(ModelAuthorizationAction.RECORD_TRACE.getUrl());
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check trace recording authorization", t);
+            canRecordTrace = false;
+        }
+
         WebMarkupContainer tracingContainer = new WebMarkupContainer(ID_TRACING_CONTAINER);
-        tracingContainer.setVisible(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()));
+        tracingContainer.setVisible(canRecordTrace && WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()));
         add(tracingContainer);
 
         DropDownChoice tracing = new DropDownChoice<>(ID_TRACING, PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING),

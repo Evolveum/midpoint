@@ -26,12 +26,15 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -143,6 +146,7 @@ public class Clockwork {
     @Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
     @Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
     @Autowired(required = false)
     private HookRegistry hookRegistry;
@@ -246,12 +250,15 @@ public class Clockwork {
 
     // todo check authorization in this method
     private <F extends ObjectType> boolean startTracingIfRequested(LensContext<F> context, Task task,
-            OperationResultBuilder builder, OperationResult parentResult) throws SchemaException {
+            OperationResultBuilder builder, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         // If the result is already traced, we could abstain from recording the final trace ourselves.
         // But I think it's more reasonable to do that, because e.g. if there is clockwork-inside-clockwork processing,
         // we would like to have two traces, even if the second one is contained also within the first one.
         TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
         if (tracingProfile != null) {
+            securityEnforcer.authorize(ModelAuthorizationAction.RECORD_TRACE.getUrl(), null,
+                    AuthorizationParameters.EMPTY, null, task, parentResult);
             builder.tracingProfile(tracer.compileProfile(tracingProfile, parentResult));
             return true;
         } else if (task.getTracingRequestedFor().contains(TracingRootType.CLOCKWORK_RUN)) {
