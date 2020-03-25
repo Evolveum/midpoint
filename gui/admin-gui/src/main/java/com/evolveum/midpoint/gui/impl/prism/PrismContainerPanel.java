@@ -85,7 +85,8 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
             ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                     .visibilityHandler(visibilityHandler)
                     .editabilityHandler(editabilityHandler)
-                    .showOnTopLevel(itemPanelSettings == null ? false : itemPanelSettings.isShowOnTopLevel())
+                    .showOnTopLevel(isShowOnTopLevel())
+                    .mandatoryHandler(getMandatoryHandler())
                     .build();
             PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(),
                     settings) {

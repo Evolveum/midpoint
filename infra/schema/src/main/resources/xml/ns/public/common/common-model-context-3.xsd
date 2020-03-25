@@ -1449,6 +1449,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -1492,11 +1493,52 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="autoAssign">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Role auto-assign mapping.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO_ASSIGN"/>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="construction">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mapping used in a construction.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONSTRUCTION"/>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="policyRuleCondition">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition for policy rule.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POLICY_RULE_CONDITION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="assignmentCondition">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition for assignment or inducement.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT_CONDITION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="condition">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Various auxiliary "condition" mappings e.g. when evaluating condition for global policy rule,
-                        for assignment/inducement, etc.
+                        Other conditions.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CONDITION"/>
@@ -2525,4 +2567,256 @@
 <!--    </xsd:complexType>-->
 <!--    <xsd:element name="anyValues" type="tns:AnyValuesType" />-->
 
+    <xsd:simpleType name="OperationKindType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Kind of operation (captured by OperationResult).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="clockworkExecution">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whole execution (run) of the clockwork.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOCKWORK_EXECUTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="clockworkClick">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Single click of the clockwork.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOCKWORK_CLICK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="projectorExecution">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution of the projector.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROJECTOR_EXECUTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="mappingEvaluation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of a mapping.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MAPPING_EVALUATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="scriptEvaluation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of a script.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SCRIPT_EVALUATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="repositoryCache">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Repository cache operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPOSITORY_CACHE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="repository">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Repository operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="other">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other kind of operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OTHER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TraceVisualizationInstructionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to visualize trace file.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="instruction" type="tns:TraceVisualizationInstructionType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="traceVisualizationInstructions" type="tns:TraceVisualizationInstructionsType" />
+
+    <xsd:complexType name="TraceVisualizationInstructionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to visualize trace file.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0" />
+            <xsd:element name="selector" type="tns:TraceSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Any of these selectors may match. (TODO reconsider)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visualization" type="tns:TraceVisualizationType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="traceVisualizationInstruction" type="tns:TraceVisualizationInstructionType" />
+
+    <xsd:complexType name="TraceSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects an operation trace. If more conditions are specified, all of them must apply.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="traceType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the trace to match. Applies if any of the types match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationKind" type="tns:OperationKindType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kind of operation to match. Applies if any of the kinds matches.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="traceSelector" type="tns:TraceSelectorType" />
+
+    <xsd:complexType name="TraceVisualizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How a traced operation is to be visualized.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="generic" type="tns:GenericTraceVisualizationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Generic visualization type (off, one-liner, detailed). TODO.
+                        The interpretation is left to the particular trace visualizer.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="showOperationalItems" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should operational items be displayed?
+                        The interpretation is left to the particular trace visualizer.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="traceVisualization" type="tns:TraceVisualizationType" />
+
+    <xsd:simpleType name="GenericTraceVisualizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generic visualization type (off, one-liner, detailed). TODO.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="stop">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The trace nor its children are not visualized.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STOP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hide">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The trace is not visualized. But its children could be.
+                        This is the default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIDE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oneLine">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The trace is visualized in "one-line" mode. No details.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONE_LINE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="detailed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The trace is visualized in details.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DETAILED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

@@ -130,6 +130,7 @@ public class MappingEvaluator {
 
                     builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
 
+                    builder.mappingKind(MappingKindType.OUTBOUND);
                     builder.originType(OriginType.OUTBOUND);
                     builder.originObject(projCtx.getResource());
 
@@ -551,27 +552,8 @@ public class MappingEvaluator {
                 || (aPrioriTargetItem.isEmpty() && !aPrioriTargetItem.isIncomplete());
     }
 
-    public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> MappingImpl<V, D> createFocusMapping(final MappingFactory mappingFactory,
-            final LensContext<AH> context, final MappingType mappingType, ObjectType originObject,
-            ObjectDeltaObject<AH> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
-            XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Integer iteration = null;
-        String iterationToken = null;
-        if (focusOdo.getNewObject() != null) {
-            AH focusNewType = focusOdo.getNewObject().asObjectable();
-            iteration = focusNewType.getIteration();
-            iterationToken = focusNewType.getIterationToken();
-        } else if (focusOdo.getOldObject() != null) {
-            AH focusOldType = focusOdo.getOldObject().asObjectable();
-            iteration = focusOldType.getIteration();
-            iterationToken = focusOldType.getIterationToken();
-        }
-        return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, null, focusOdo.getAnyObject(), assignmentPathVariables,
-                iteration, iterationToken, configuration, now, contextDesc, task, result);
-    }
-
-    public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> MappingImpl<V, D> createFocusMapping(
-            final MappingFactory mappingFactory, final LensContext<AH> context, final MappingType mappingType, ObjectType originObject,
+    <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> MappingImpl<V, D> createFocusMapping(
+            final MappingFactory mappingFactory, final LensContext<AH> context, final MappingType mappingType, MappingKindType mappingKind, ObjectType originObject,
             ObjectDeltaObject<AH> focusOdo, Source<V, D> defaultSource, PrismObject<T> defaultTargetObject, AssignmentPathVariables assignmentPathVariables,
             Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
             XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -644,6 +626,7 @@ public class MappingEvaluator {
                 .targetContext(defaultTargetObject.getDefinition())
                 .variables(variables)
                 .originalTargetValues(targetValues)
+                .mappingKind(mappingKind)
                 .originType(OriginType.USER_POLICY)
                 .originObject(originObject)
                 .objectResolver(objectResolver)

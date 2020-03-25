@@ -33,8 +33,8 @@ public class ShadowAttributesWrapperFactoryImpl<C extends Containerable> extends
 
     @Override
     protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
-            PrismContainer<C> childContainer, ItemStatus status) {
+            PrismContainer<C> childContainer, ItemStatus status, WrapperContext ctx) {
         getRegistry().registerWrapperPanel(ShadowAttributesType.COMPLEX_TYPE, PrismContainerPanel.class);
-        return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
+        return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 }

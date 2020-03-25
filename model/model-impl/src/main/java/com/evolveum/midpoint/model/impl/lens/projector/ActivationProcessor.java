@@ -42,18 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectLifecycleDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
@@ -493,6 +482,8 @@ public class ActivationProcessor {
         params.setContext(context);
 
         params.setInitializer(builder -> {
+            builder.mappingKind(MappingKindType.OUTBOUND);
+
             // Source: legal
             ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSourceIdi = getLegalIdi(projCtx);
             Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource
@@ -583,6 +574,8 @@ public class ActivationProcessor {
 
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer =
             builder -> {
+                builder.mappingKind(MappingKindType.OUTBOUND);
+
                 // Source: administrativeStatus, validFrom or validTo
                 ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
 
@@ -663,6 +656,7 @@ public class ActivationProcessor {
                 builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
 
                 builder.originType(OriginType.OUTBOUND);
+                builder.mappingKind(MappingKindType.OUTBOUND);
                 builder.originObject(projCtx.getResource());
 
                 initializer.initialize(builder);

@@ -57,7 +57,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
     private static final String ID_REMOVE_BUTTON = "removeButton";
     private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 
-    protected ItemPanelSettings itemPanelSettings;
+    private ItemPanelSettings itemPanelSettings;
 
 
     public ItemPanel(String id, IModel<IW> model, ItemPanelSettings itemPanelSettings) {
@@ -281,40 +281,47 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         }
 
 
-      private boolean isVisibleValue(IModel<VW> model) {
+        private boolean isVisibleValue(IModel<VW> model) {
             VW value = model.getObject();
             return !ValueStatus.DELETED.equals(value.getStatus());
         }
 
-    public ItemVisibilityHandler getVisibilityHandler() {
-        if (itemPanelSettings == null) {
-            return null;
-        }
-        return itemPanelSettings.getVisibilityHandler();
-    }
-
-    public ItemEditabilityHandler getEditabilityHandler() {
-        if (itemPanelSettings == null) {
-            return null;
-        }
-        return itemPanelSettings.getEditabilityHandler();
-    }
-
-    protected boolean isShowOnTopLevel() {
-         if (itemPanelSettings == null) {
-             return false;
-        }
-         return itemPanelSettings.isShowOnTopLevel();
-    }
-
-
-    protected boolean isHeaderVisible() {
-         if (itemPanelSettings == null) {
-             return true;
+        public ItemVisibilityHandler getVisibilityHandler() {
+            if (itemPanelSettings == null) {
+                return null;
+            }
+            return itemPanelSettings.getVisibilityHandler();
         }
 
-         return itemPanelSettings.isHeaderVisible();
-    }
+        public ItemEditabilityHandler getEditabilityHandler() {
+            if (itemPanelSettings == null) {
+                return null;
+            }
+            return itemPanelSettings.getEditabilityHandler();
+        }
+
+        public ItemMandatoryHandler getMandatoryHandler() {
+            if (itemPanelSettings == null) {
+                return null;
+            }
+            return itemPanelSettings.getMandatoryHandler();
+        }
+
+        protected boolean isShowOnTopLevel() {
+             if (itemPanelSettings == null) {
+                 return false;
+            }
+             return itemPanelSettings.isShowOnTopLevel();
+        }
+
+
+        protected boolean isHeaderVisible() {
+             if (itemPanelSettings == null) {
+                 return true;
+            }
+
+             return itemPanelSettings.isHeaderVisible();
+        }
 
     public ItemPanelSettings getSettings() {
          return itemPanelSettings;

@@ -7,8 +7,13 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+
+import java.util.Collection;
 
 /**
  * A page that supports progress reporting, e.g. page for editing users, orgs, roles.
@@ -22,7 +27,7 @@ public interface ProgressReportingAwarePage {
 
     void startProcessing(AjaxRequestTarget target, OperationResult result);
 
-    void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync);
+    void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result);
 
     void continueEditing(AjaxRequestTarget target);
 }

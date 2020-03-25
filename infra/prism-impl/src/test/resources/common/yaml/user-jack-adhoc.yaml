@@ -53,8 +53,12 @@ user:
       cipherData:
         cipherValue: "blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB"
   accountRef:
-  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
     type: "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType"
+    object:
+      oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+      name: "jsparrow"
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"       # deliberately without specifying the type, as it should be taken from the definition
   - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112"
     type: "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType"
     description: "This is a reference with a filter"

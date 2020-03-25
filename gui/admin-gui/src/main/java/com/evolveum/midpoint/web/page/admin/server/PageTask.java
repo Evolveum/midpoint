@@ -4,6 +4,19 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.util.ModelContextUtil;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -74,6 +87,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private static final int REFRESH_INTERVAL = 2000;
 
     private Boolean refreshEnabled;
+
+    private TaskTabsVisibility taskTabsVisibility;
 
     public PageTask() {
         initialize(null);
@@ -414,8 +429,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         try {
             PrismPropertyWrapper<TaskExecutionStatusType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
             executionStatus.getValue().setRealValue(TaskExecutionStatusType.RUNNABLE);
+
+            setupOwner(taskWrapper);
+            setupRecurrence(taskWrapper);
+
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Error while setting task execution status", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Error while finishing task settings.", e);
             target.add(getFeedbackPanel());
             return;
         }
@@ -427,6 +446,63 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
 
         super.savePerformed(target);
+    }
+
+    private void setupOwner(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
+        PrismReferenceWrapper<Referencable> taskOwner = taskWrapper.findReference(ItemPath.create(TaskType.F_OWNER_REF));
+        if (taskOwner == null) {
+            return;
+        }
+        PrismReferenceValueWrapperImpl<Referencable> taskOwnerValue = taskOwner.getValue();
+        if (taskOwnerValue == null){
+            return;
+        }
+
+        if (taskOwnerValue.getNewValue() == null || taskOwnerValue.getNewValue().isEmpty()) {
+            GuiProfiledPrincipal guiPrincipal = SecurityUtils.getPrincipalUser();
+            if (guiPrincipal == null) {
+                //BTW something very strange must happened
+                return;
+            }
+            FocusType focus = guiPrincipal.getFocus();
+            taskOwnerValue.setRealValue(ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT));
+        }
+    }
+
+    private void setupRecurrence(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
+        PrismPropertyWrapper<TaskRecurrenceType> recurrenceWrapper = taskWrapper.findProperty(ItemPath.create(TaskType.F_RECURRENCE));
+        if (recurrenceWrapper == null) {
+            return;
+        }
+
+        PrismPropertyValueWrapper<TaskRecurrenceType> recurrenceWrapperValue = recurrenceWrapper.getValue();
+        if (recurrenceWrapperValue == null) {
+            return;
+        }
+
+        if (recurrenceWrapperValue.getNewValue() == null || recurrenceWrapperValue.getNewValue().isEmpty()) {
+            recurrenceWrapperValue.setRealValue(TaskRecurrenceType.SINGLE);
+        }
+
+
+    }
+
+    @Override
+    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
+        if (isPreviewRequested()) {
+            super.finishProcessing(target, executedDeltas, returningFromAsync, result);
+            return;
+        }
+
+        if (result.isSuccess() && executedDeltas != null) {
+            //TODO change to inProgress result, so there is a link to existing task
+            String taskOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+            if (taskOid != null) {
+                result.recordInProgress();
+                result.setBackgroundTaskOid(taskOid);
+            }
+        }
+        super.finishProcessing(target, executedDeltas, returningFromAsync, result);
     }
 
     private boolean checkScheduleFilledForReccurentTask(PrismObjectWrapper<TaskType> taskWrapper) {
@@ -467,6 +543,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
+        taskTabsVisibility = new TaskTabsVisibility();
+        taskTabsVisibility.computeAll(this, getObjectWrapper());
         return new TaskMainPanel(id, getObjectModel(), this);
     }
 
@@ -500,5 +578,23 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
         return refreshEnabled;
 
+    }
+
+    @Override
+    public void refresh(AjaxRequestTarget target) {
+        TaskTabsVisibility taskTabsVisibilityNew = new TaskTabsVisibility();
+        taskTabsVisibilityNew.computeAll(this, getObjectWrapper());
+
+        boolean soft = false;
+        if (taskTabsVisibilityNew.equals(taskTabsVisibility)) {
+            soft = true;
+        }
+
+        taskTabsVisibility = taskTabsVisibilityNew;
+        super.refresh(target, soft);
+    }
+
+    public TaskTabsVisibility getTaskTabVisibilty() {
+        return taskTabsVisibility;
     }
 }

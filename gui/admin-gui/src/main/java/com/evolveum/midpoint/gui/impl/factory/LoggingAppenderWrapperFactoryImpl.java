@@ -46,7 +46,7 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
 
     @Override
     protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
-            ItemStatus status) {
+            ItemStatus status, WrapperContext ctx) {
         getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
         PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
         propertyWrapper.setPredefinedValues(getPredefinedValues(parent));

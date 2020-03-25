@@ -270,7 +270,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
             @Override
             public void visit(Visitable visitable) {
                 visits.add(visitable);
-                System.out.println("Visiting: "+visitable);
+                System.out.println("#" + visits.size() + ": Visiting: "+visitable);
             }
         };
         visitable.accept(visitor);
@@ -281,7 +281,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         final List<Visitable> visits = new ArrayList<>();
         Visitor visitor = visitable1 -> {
             visits.add(visitable1);
-            System.out.println("Visiting(path="+path+",recursive="+recursive+"): "+ visitable1);
+            System.out.println("#" + visits.size() + ": Visiting(path="+path+",recursive="+recursive+"): "+ visitable1);
         };
         visitable.accept(visitor, path, recursive);
         assertEquals("Wrong number of visits for path "+path, expectedVisits, visits.size());
@@ -296,7 +296,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         user.assertDefinitions("test");
         assertUserJackContent(user, expectRawInConstructions, expectFullPolyName, withIncomplete);
         assertUserJackExtension(user, withIncomplete);
-        assertVisitor(user, 71);
+        assertVisitor(user, 75);
 
         assertPathVisitor(user, UserType.F_ASSIGNMENT, true, 9);
         assertPathVisitor(user, ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID), true, 3);

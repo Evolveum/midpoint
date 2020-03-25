@@ -76,13 +76,13 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
             status = ItemStatus.ADDED;
         }
 
-        PrismContainerWrapper<C> itemWrapper = createWrapper(parent, childItem, status);
+        PrismContainerWrapper<C> itemWrapper = createWrapper(parent, childItem, status, context);
         itemWrapper.setShowEmpty(context.isCreateIfEmpty(), false);
         return itemWrapper;
     }
 
     protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
-            ItemStatus status) {
+            ItemStatus status, WrapperContext ctx) {
 
         try {
             ObjectType objectType = (ObjectType) parent.getRealValue();
@@ -94,7 +94,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
             }
 
             if (shadow.getResourceRef().getOid() == null) {
-                return super.createWrapper(parent, childContainer, status);
+                return super.createWrapper(parent, childContainer, status, ctx);
             }
             Task task = taskManager.createTaskInstance("Load resource ref");
             OperationResult result = task.getResult();
@@ -104,7 +104,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
             if (!result.isAcceptable()) {
                 LOGGER.error("Cannot find resource referenced from shadow. {}", result.getMessage());
                 result.recordPartialError("Could not find resource referenced from shadow.");
-                return super.createWrapper(parent, childContainer, status);
+                return super.createWrapper(parent, childContainer, status, ctx);
             }
 
             ShadowKindType kind = shadow.getKind();
@@ -115,7 +115,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                     || (!(association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class))
                     && !(association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)))) {
                 LOGGER.debug("Association for {} is not supported", association.getComplexTypeDefinition().getTypeClass());
-                return super.createWrapper(parent, childContainer, status);
+                return super.createWrapper(parent, childContainer, status, ctx);
             }
             result = new OperationResult(CREATE_ASSOCIATION_WRAPPER);
             //we need to switch association wrapper to single value
@@ -129,13 +129,13 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
             RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, shadowIntent);
             if (oc == null) {
                 LOGGER.debug("Association for {}/{} not supported by resource {}", kind, shadowIntent, resource);
-                return super.createWrapper(parent, childContainer, status);
+                return super.createWrapper(parent, childContainer, status, ctx);
             }
             Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
 
             if (CollectionUtils.isEmpty(refinedAssociationDefinitions)) {
                 LOGGER.debug("Association for {}/{} not supported by resource {}", kind, shadowIntent, resource);
-                return super.createWrapper(parent, childContainer, status);
+                return super.createWrapper(parent, childContainer, status, ctx);
             }
 
             PrismContainer associationTransformed = associationDefinition.instantiate();
@@ -144,7 +144,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
                 registry.registerWrapperPanel(associationTransformed.getDefinition().getTypeName(), PrismContainerPanel.class);
                 associationWrapper = new ShadowAssociationWrapperImpl((PrismContainerValueWrapper<C>) parent, associationTransformed, status);
             } else {
-                return super.createWrapper(parent, childContainer, status);
+                return super.createWrapper(parent, childContainer, status, ctx);
             }
 
             WrapperContext context = new WrapperContext(task, result);

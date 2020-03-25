@@ -91,7 +91,7 @@ public class MappingSetEvaluator {
             PrismObject<T> targetObject = targetSpecification.getTargetObject(updatedFocusOdo);
 
             MappingImpl<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, request.getMapping(),
-                    request.getOriginObject(), updatedFocusOdo, request.constructDefaultSource(updatedFocusOdo),
+                    request.getMappingKind(), request.getOriginObject(), updatedFocusOdo, request.constructDefaultSource(updatedFocusOdo),
                     targetObject, request.getAssignmentPathVariables(), iteration, iterationToken,
                     context.getSystemConfiguration(), now, description, task, result);
             if (mapping == null) {

@@ -635,6 +635,7 @@ public class PolicyRuleProcessor {
                 .createMappingBuilder();
         ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition());
         builder = builder.mappingType(condition)
+                .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + globalPolicyRule.getName())
                 .sourceContext(focusOdo)
                 .defaultTargetDefinition(

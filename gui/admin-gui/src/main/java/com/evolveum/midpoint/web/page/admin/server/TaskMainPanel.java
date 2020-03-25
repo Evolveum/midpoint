@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
+import com.evolveum.midpoint.gui.impl.prism.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.prism.Containerable;
@@ -32,6 +33,9 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -40,7 +44,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
@@ -68,17 +74,17 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     @Override
     protected List<ITab> createTabs(PageAdminObjectDetails<TaskType> parentPage) {
         List<ITab> tabs = new ArrayList<>();
-        TaskTabsVisibility taskTabsVisibility = new TaskTabsVisibility();
-        taskTabsVisibility.computeAll((PageTask) parentPage, getObjectWrapper());
+
+        PageTask parentTaskPage = (PageTask) parentPage;
 
         ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_BASIC_URL, (PageTask) parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_BASIC_URL, parentTaskPage){
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isBasicVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isBasicVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.basic.title"), basicTabVisibility) {
@@ -86,8 +92,15 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler);
+                return new TaskBasicTabPanel(panelId, getObjectModel()) {
+                    @Override
+                    protected void updateHandlerPerformed(AjaxRequestTarget target) {
+                        parentPage.refresh(target);
+                    }
+                };
+//                ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
+//                ItemEditabilityHandler editabilityHandler = wrapper -> getBasicTabEditability(wrapper.getPath());
+//                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler, editabilityHandler);
             }
         });
 
@@ -98,7 +111,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isSchedulingVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isSchedulingVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.schedule.title"), scheduleTabVisibility) {
@@ -107,7 +120,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler);
+                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler, getTaskEditabilityHandler());
             }
         });
 
@@ -118,7 +131,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isWorkManagementVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isWorkManagementVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
@@ -126,30 +139,33 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler);
+                ItemVisibilityHandler visibilityHandler = wrapper -> getWorkManagementVisibility(wrapper.getPath());
+                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE,
+                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler, getTaskEditabilityHandler());
             }
         });
 
-        ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_CLEANUP_POLICIES_URL, parentPage){
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isCleanupPolicyVisible();
-            }
-        };
-        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.cleanupPolicies.title"), cleanupPoliciesTabVisibility) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)), visibilityHandler);
-            }
-        });
+//        ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>
+//                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_CLEANUP_POLICIES_URL, parentPage){
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible(){
+//                return super.isVisible() && taskTabsVisibility.isCleanupPolicyVisible();
+//            }
+//        };
+//        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.cleanupPolicies.title"), cleanupPoliciesTabVisibility) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public WebMarkupContainer createPanel(String panelId) {
+//                ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
+//                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE,
+//                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)),
+//                        visibilityHandler, getTaskEditabilityHandler());
+//            }
+//        });
 
         ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<TaskType>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SUBTASKS_URL, parentPage){
@@ -158,7 +174,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isSubtasksAndThreadsVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isSubtasksAndThreadsVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.subtasks.title"), subtasksTabVisibility) {
@@ -178,7 +194,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isInternalPerformanceVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isInternalPerformanceVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.operationStats.title"), operationStatsAndInternalPerfTabsVisibility) {
@@ -198,7 +214,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isEnvironmentalPerformanceVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isEnvironmentalPerformanceVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.environmentalPerformance.title"), envPerfTabVisibility) {
@@ -218,7 +234,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isOperationVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isOperationVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTaskEdit.operation"), operationTabVisibility) {
@@ -237,7 +253,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isInternalPerformanceVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isInternalPerformanceVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.internalPerformance.title"), internalPerfTabsVisibility) {
@@ -256,7 +272,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isResultVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isResultVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.result.title"), resultTabVisibility) {
@@ -276,7 +292,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public boolean isVisible(){
-                return super.isVisible() && taskTabsVisibility.isErrorsVisible();
+                return super.isVisible() && parentTaskPage.getTaskTabVisibilty().isErrorsVisible();
             }
         };
         tabs.add(new PanelTab(parentPage.createStringResource("pageTask.errors.title"), errorsTabVisibility) {
@@ -289,6 +305,33 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         });
 
         return tabs;
+    }
+
+    private ItemVisibility getWorkManagementVisibility(ItemPath path) {
+        TaskType task = getTask();
+        String handler = task.getHandlerUri();
+        if (handler == null) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_PARTITIONS).equivalent(path)) {
+            if (handler.endsWith("task/workers-creation/handler-3")) {
+                return ItemVisibility.AUTO;
+            } else {
+                return ItemVisibility.HIDDEN;
+            }
+        }
+
+        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_WORKERS).equivalent(path)) {
+            if (handler.endsWith("task/lightweight-partitioning/handler-3") || handler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+                || handler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3") || handler.endsWith("task/generic-partitioning/handler-3")) {
+                return ItemVisibility.AUTO;
+            }
+            return ItemVisibility.HIDDEN;
+        }
+
+        return ItemVisibility.AUTO;
+
     }
 
     protected void initLayoutSaveAndRunButton() {
@@ -326,11 +369,11 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     }
 
 
-    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler) {
+    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(visibilityHandler)
-                    .editabilityHandler(getTaskEditabilityHandler())
+                    .editabilityHandler(editabilityHandler)
                     .showOnTopLevel(true);
             Panel panel = getDetailsPage().initItemPanel(id, typeName, model, builder.build());
             return panel;
@@ -342,16 +385,13 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         return null;
     }
 
-    private ItemVisibility getBasicTabVisibility(ItemPath path) {
-        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
-        return ItemVisibility.AUTO;
-    }
-
-
     private ItemEditabilityHandler getTaskEditabilityHandler(){
-        ItemEditabilityHandler editableHandler = wrapper -> !WebComponentUtil.isRunningTask(((PageTask)getDetailsPage()).getTask());
+        ItemEditabilityHandler editableHandler = wrapper -> !WebComponentUtil.isRunningTask(getTask());
         return editableHandler;
     }
+
+    private TaskType getTask() {
+        return getObject().asObjectable();
+    }
+
 }
