@@ -16,8 +16,6 @@ import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 
-import java.util.List;
-
 /**
  * Created by lazyman on 09/03/2017.
  */
@@ -42,10 +40,6 @@ public class ExactMatchMountedMapper extends MountedMapper {
     protected boolean urlStartsWithMountedSegments(Url url) {
         if (url == null) {
             return false;
-        }
-        int segmentsSize = url.getSegments().size();
-        if (segmentsSize != 0 && StringUtils.isBlank(url.getSegments().get(segmentsSize-1))) {
-            url.getSegments().remove(segmentsSize-1);
         }
 
         if (!(pageParametersEncoder instanceof PageParametersEncoder)) {
