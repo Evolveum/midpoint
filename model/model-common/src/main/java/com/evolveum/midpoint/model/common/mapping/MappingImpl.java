@@ -64,6 +64,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
     // configuration properties (unmodifiable)
     private final MappingType mappingType;
     private final MappingKindType mappingKind;
+    private final ItemPath implicitSourcePath;
+    private final ItemPath implicitTargetPath;
     private final ExpressionFactory expressionFactory;
     private final ExpressionVariables variables;
     private final PrismContext prismContext;
@@ -138,6 +140,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         variables = builder.variables;
         mappingType = builder.mappingType;
         mappingKind = builder.mappingKind;
+        implicitSourcePath = builder.implicitSourcePath;
+        implicitTargetPath = builder.implicitTargetPath;
         objectResolver = builder.objectResolver;
         securityContextManager = builder.securityContextManager;
         defaultSource = builder.defaultSource;
@@ -407,6 +411,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             trace = new MappingEvaluationTraceType(prismContext)
                     .mapping(mappingType.clone())
                     .mappingKind(mappingKind)
+                    .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
+                    .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
                     .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext));
             trace.setMapping(mappingType.clone());
             result.addTrace(trace);
@@ -1278,6 +1284,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         MappingImpl<V, D> clone = new Builder<V, D>()
                 .mappingType(mappingType)
                 .mappingKind(mappingKind)
+                .implicitSourcePath(implicitSourcePath)
+                .implicitTargetPath(implicitTargetPath)
                 .contextDescription(contextDescription)
                 .expressionFactory(expressionFactory)
                 .securityContextManager(securityContextManager)
@@ -1466,6 +1474,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         private ExpressionVariables variables = new ExpressionVariables();
         private MappingType mappingType;
         private MappingKindType mappingKind;
+        private ItemPath implicitSourcePath; // for tracing purposes
+        private ItemPath implicitTargetPath; // for tracing purposes
         private ObjectResolver objectResolver;
         private SecurityContextManager securityContextManager;
         private Source<?, ?> defaultSource;
@@ -1508,6 +1518,16 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
         public Builder<V, D> mappingKind(MappingKindType val) {
             mappingKind = val;
+            return this;
+        }
+
+        public Builder<V, D> implicitSourcePath(ItemPath val) {
+            implicitSourcePath = val;
+            return this;
+        }
+
+        public Builder<V, D> implicitTargetPath(ItemPath val) {
+            implicitTargetPath = val;
             return this;
         }
 

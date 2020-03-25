@@ -944,6 +944,14 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ClockworkTraceType">
                 <xsd:sequence>
+                    <xsd:element name="focusLoadedRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                                <a:composite>true</a:composite>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -964,6 +972,21 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ClockworkTraceType">
                 <xsd:sequence>
+                    <xsd:element name="shadowLoadedRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                                <a:composite>true</a:composite>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="resourceName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1403,6 +1426,8 @@
                     <xsd:element name="timeConstraintValid" type="xsd:boolean" minOccurs="0"/>
                     <xsd:element name="conditionResultOld" type="xsd:boolean" minOccurs="0"/>
                     <xsd:element name="conditionResultNew" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="implicitSourcePath" type="t:ItemPathType" minOccurs="0"/>
+                    <xsd:element name="implicitTargetPath" type="t:ItemPathType" minOccurs="0"/>
                     <xsd:element name="source" type="tns:MappingSourceEvaluationTraceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:appinfo>
@@ -2571,6 +2596,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Kind of operation (captured by OperationResult).
+                HIGHLY EXPERIMENTAL. Maybe it will be scrapped in the near future.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.1</a:since>
@@ -2648,6 +2674,88 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="focusLoadCheck">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Check whether focus should be loaded.
+                        TODO really?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FOCUS_LOAD_CHECK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="focusLoad">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus load check that resulted in focus being loaded.
+                        TODO really?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FOCUS_LOAD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="projectionLoad">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Projection load.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROJECTION_LOAD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fullProjectionLoad">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full projection load.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL_PROJECTION_LOAD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="focusChangeExecution">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution of focus change.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FOCUS_CHANGE_EXECUTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="projectionChangeExecution">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution of projection change.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROJECTION_CHANGE_EXECUTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="provisioning">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Provisioning API operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROVISIONING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="connector">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Connector operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONNECTOR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="other">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2674,6 +2782,13 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="instruction" type="tns:TraceVisualizationInstructionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="dataFlow" type="tns:TraceDataFlowVisualizationInstructionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of the data flow(s) to be visualized.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="traceVisualizationInstructions" type="tns:TraceVisualizationInstructionsType" />
@@ -2753,10 +2868,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="showOperationalItems" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="data" type="tns:TraceDataSelectionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Should operational items be displayed?
+                        What kind of data are to be shown?
                         The interpretation is left to the particular trace visualizer.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -2807,6 +2922,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="brief">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The trace is visualized in brief form - potentially multiline but less detailed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BRIEF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="detailed">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2817,6 +2942,97 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The trace is visualized in full details.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:simpleType name="TraceDataSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generic data selection rule.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No "instance" data shown.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="nonOperational">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Non-operational data shown.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NON_OPERATIONAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All data is shown.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TraceDataFlowVisualizationInstructionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of the data flow(s) to be visualized.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Initial set of items to be shown.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lookBackward" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to look backward i.e. to the source(s) for specified item(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lookForward" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to look forward i.e. to the target(s) derived from specified item(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="traceDataFlowVisualizationInstruction" type="tns:TraceDataFlowVisualizationInstructionType" />
 </xsd:schema>

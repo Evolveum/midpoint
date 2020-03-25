@@ -723,6 +723,7 @@ public class InboundProcessor {
                 .variableResolver(variableProducer)
                 .valuePolicyResolver(createStringPolicyResolver(context))
                 .mappingKind(MappingKindType.INBOUND)
+                .implicitSourcePath(ShadowType.F_ATTRIBUTES.append(accountAttributeQName))
                 .originType(OriginType.INBOUND)
                 .originObject(resource);
 
@@ -1317,6 +1318,8 @@ public class InboundProcessor {
                         .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
                         .valuePolicyResolver(createStringPolicyResolver(context))
                         .mappingKind(MappingKindType.INBOUND)
+                        .implicitSourcePath(sourcePath)
+                        .implicitTargetPath(targetPath)
                         .originType(OriginType.INBOUND)
                         .originObject(projContext.getResource());
 

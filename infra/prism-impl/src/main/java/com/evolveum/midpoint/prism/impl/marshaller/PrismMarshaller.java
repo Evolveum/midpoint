@@ -212,7 +212,7 @@ public class PrismMarshaller {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
             warnIfItemsToSkip(itemValue, itemsToSkip);
-            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName);
+            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName, ctx);
         } else if (itemValue instanceof PrismContainerValue<?>) {
             xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition) definition, ctx, itemsToSkip);
         } else {
@@ -453,7 +453,8 @@ public class PrismMarshaller {
 
     //region Serializing properties - specific functionality
     @NotNull
-    private <T> XNodeImpl serializePropertyValue(@NotNull PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, QName typeNameIfNoDefinition) throws SchemaException {
+    private <T> XNodeImpl serializePropertyValue(@NotNull PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition,
+            QName typeNameIfNoDefinition, SerializationContext ctx) throws SchemaException {
         @Nullable QName typeName = definition != null ? definition.getTypeName() : typeNameIfNoDefinition;
         ExpressionWrapper expression = value.getExpression();
         if (expression != null) {
@@ -467,7 +468,7 @@ public class PrismMarshaller {
         } else if (realValue instanceof PolyStringType) {   // should not occur ...
             return beanMarshaller.marshalPolyString(((PolyStringType) realValue).toPolyString());
         } else if (beanMarshaller.canProcess(typeName)) {
-            XNodeImpl xnode = beanMarshaller.marshall(realValue);
+            XNodeImpl xnode = beanMarshaller.marshall(realValue, ctx);
             if (xnode == null) {
                 // Marshaling attempt may process the expression in raw element
                 expression = value.getExpression();
