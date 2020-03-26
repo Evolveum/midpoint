@@ -132,6 +132,7 @@ public class MappingEvaluator {
 
                     builder.mappingKind(MappingKindType.OUTBOUND);
                     builder.originType(OriginType.OUTBOUND);
+                    builder.implicitTargetPath(projectionPropertyPath);
                     builder.originObject(projCtx.getResource());
 
                     initializer.initialize(builder);

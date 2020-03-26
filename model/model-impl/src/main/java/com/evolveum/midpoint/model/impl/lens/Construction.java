@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
@@ -467,7 +468,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         //noinspection CaughtExceptionImmediatelyRethrown
         try {
 
-            evaluatedMapping = evaluateMapping(builder, attrName, outputDefinition, null, task, result);
+            evaluatedMapping = evaluateMapping(builder, ShadowType.F_ATTRIBUTES.append(attrName),
+                    attrName, outputDefinition, null, task, result);
 
         } catch (SchemaException e) {
             throw new SchemaException(getAttributeEvaluationErrorMessage(attrName, e), e);
@@ -582,16 +584,17 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
                         .originType(OriginType.ASSIGNMENTS)
                         .originObject(getSource());
 
+        ItemPath implicitTargetPath = ShadowType.F_ASSOCIATION.append(assocName); // not quite correct
         MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
-                mappingBuilder, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
+                mappingBuilder, implicitTargetPath, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
 
-        LOGGER.trace("Evaluated mapping for association " + assocName + ": " + evaluatedMapping);
+        LOGGER.trace("Evaluated mapping for association {}: {}", assocName, evaluatedMapping);
         return evaluatedMapping;
     }
 
     @SuppressWarnings("ConstantConditions")
     private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
-            MappingImpl.Builder<V, D> builder, QName mappingQName, D outputDefinition,
+            MappingImpl.Builder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
@@ -601,6 +604,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
         builder = builder.mappingQName(mappingQName)
                 .mappingKind(MappingKindType.CONSTRUCTION)
+                .implicitTargetPath(implicitTargetPath)
                 .sourceContext(getFocusOdo())
                 .defaultTargetDefinition(outputDefinition)
                 .originType(getOriginType())

@@ -228,6 +228,7 @@ public class OutboundProcessor {
         mappingBuilder.rootNode(focusOdo);
         mappingBuilder.originType(OriginType.OUTBOUND);
         mappingBuilder.mappingKind(MappingKindType.OUTBOUND);
+        mappingBuilder.implicitTargetPath(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName));
         mappingBuilder.refinedObjectClassDefinition(rOcDef);
 
         if (projCtx.isDelete()) {
