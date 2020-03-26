@@ -1672,7 +1672,9 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         for (QName itemName : itemNames) {
             Item<?, ?> item = findItemByQName(itemName);
             ItemPath itemPath = item.getPath().removeIds();
-            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(keep, itemPath)) {
+            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(keep, itemPath)
+                && !ItemPathCollectionsUtil.containsSubpathOrEquivalent(keep, itemPath)) {
+                System.out.println("Removing " + itemPath + " because not in " + keep);
                 removeItem(ItemName.fromQName(itemName), Item.class);
             } else {
                 if (item instanceof PrismContainer) {

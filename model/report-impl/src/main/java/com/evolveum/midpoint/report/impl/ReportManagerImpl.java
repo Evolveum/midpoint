@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.Task;
@@ -95,6 +98,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     @Autowired private ModelService modelService;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
     @PostConstruct
     public void init() {
@@ -426,6 +430,12 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         try {
             ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task,
                     result).asObjectable();
+
+            // Extra safety check: traces can be retrieved only when special authorization is present
+            if (ObjectTypeUtil.hasArchetype(reportOutput, SystemObjectsType.ARCHETYPE_TRACE.value())) {
+                securityEnforcer.authorize(ModelAuthorizationAction.READ_TRACE.getUrl(), null,
+                        AuthorizationParameters.EMPTY, null, task, result);
+            }
 
             String filePath = reportOutput.getFilePath();
             if (StringUtils.isEmpty(filePath)) {
