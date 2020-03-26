@@ -38,4 +38,21 @@
         <familyName>Toothrot</familyName>
     </user>
 
+    <!-- match oid -->
+    <user oid="c0c010c0-d34d-b33f-f00d-111111111113">
+        <name>elizabethT</name>
+        <fullName>Elizabeth Turner</fullName>
+        <givenName>Elizabeth</givenName>
+        <familyName>Turner</familyName>
+    </user>
+
+    <!-- match name -->
+    <user oid="123345">
+        <name>james</name>
+        <subtype>admiral</subtype>
+        <fullName>James Norrington</fullName>
+        <givenName>James</givenName>
+        <familyName>Norrington</familyName>
+    </user>
+
 </objects>

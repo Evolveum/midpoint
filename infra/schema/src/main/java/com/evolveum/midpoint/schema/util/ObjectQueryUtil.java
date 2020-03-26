@@ -71,6 +71,16 @@ public class ObjectQueryUtil {
                 .build();
     }
 
+    public static <O extends ObjectType> ObjectQuery createOidQuery(PrismObject<O> object) throws SchemaException {
+        return createOidQuery(object.getOid(), object.getPrismContext());
+    }
+
+    public static ObjectQuery createOidQuery(String oid, PrismContext prismContext) throws SchemaException {
+        return prismContext.queryFor(ObjectType.class)
+                .id(oid)
+                .build();
+    }
+
     public static ObjectQuery createOrigNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
         return prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_NAME).eq(name).matchingOrig()
