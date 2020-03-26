@@ -436,11 +436,27 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         refresh(target);
     }
 
+    @Override
+    public void savePerformed(AjaxRequestTarget target) {
+        savePerformed(target, false);
+    }
+
+    private boolean saveAndRun = false;
+
     public void saveAndRunPerformed(AjaxRequestTarget target) {
+        saveAndRun = true;
+        savePerformed(target, true);
+    }
+
+    private void savePerformed(AjaxRequestTarget target, boolean run) {
         PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
         try {
             PrismPropertyWrapper<TaskExecutionStatusType> executionStatus = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATUS));
-            executionStatus.getValue().setRealValue(TaskExecutionStatusType.RUNNABLE);
+            if (run) {
+                executionStatus.getValue().setRealValue(TaskExecutionStatusType.RUNNABLE);
+            } else {
+                executionStatus.getValue().setRealValue(TaskExecutionStatusType.SUSPENDED);
+            }
 
             setupOwner(taskWrapper);
             setupRecurrence(taskWrapper);
@@ -452,7 +468,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
 
         if (!checkScheduleFilledForReccurentTask(taskWrapper)) {
-            getSession().error("Cannot run recurring task without setting scheduling for it.");
+            if (run) {
+                getSession().error("Cannot run recurring task without setting scheduling for it.");
+            } else {
+                getSession().warn("Cannot run recurring task without setting scheduling for it.");
+            }
             target.add(getFeedbackPanel());
             return;
         }
@@ -507,10 +527,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
 
         if (result.isSuccess() && executedDeltas != null) {
-            //TODO change to inProgress result, so there is a link to existing task
             String taskOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
             if (taskOid != null) {
-                result.recordInProgress();
+                if (saveAndRun) {
+                    result.recordInProgress();
+                }
                 result.setBackgroundTaskOid(taskOid);
             }
         }
