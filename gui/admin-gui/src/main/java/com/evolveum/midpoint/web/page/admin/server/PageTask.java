@@ -4,24 +4,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.util.ModelContextUtil;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -35,15 +17,27 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -64,6 +58,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -283,7 +278,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 ajaxDownloadBehavior.initiate(target);
             }
         };
-        download.add(new VisibleBehaviour(() -> isDownloadReportVisible()));
+        download.add(new VisibleBehaviour(this::isDownloadReportVisible));
         download.add(AttributeAppender.append("class", "btn-primary"));
         repeatingView.add(download);
     }
@@ -294,20 +289,15 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private ReportOutputType getReportOutput() {
-        PrismProperty<String> reportOutput = getReportOutputProperty();
+        String reportOutput = getReportOutputProperty();
         if (reportOutput == null) {
-            return null;
-        }
-
-        String reportOutputOid = reportOutput.getRealValue();
-        if (reportOutputOid == null) {
             return null;
         }
 
         Task opTask = createSimpleTask(OPERATION_LOAD_REPORT_OUTPUT);
         OperationResult result = opTask.getResult();
 
-        PrismObject<ReportOutputType> report = WebModelServiceUtils.loadObject(ReportOutputType.class, reportOutputOid, this, opTask, result);
+        PrismObject<ReportOutputType> report = WebModelServiceUtils.loadObject(ReportOutputType.class, reportOutput, this, opTask, result);
         if (report == null) {
             return null;
         }
@@ -318,9 +308,14 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     }
 
-    private PrismProperty<String> getReportOutputProperty() {
+    private String getReportOutputProperty() {
         PrismObject<TaskType> task = getTask().asPrismObject();
-        return task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
+        PrismProperty<String> reportOutput = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
+        if (reportOutput == null) {
+            return null;
+        }
+
+        return reportOutput.getRealValue();
     }
 
     private void createRefreshNowIconButton(RepeatingView repeatingView) {
@@ -423,11 +418,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private CompositedIcon getTaskCleanupCompositedIcon(String basicIconClass){
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
-        CompositedIcon icon = iconBuilder
+        return iconBuilder
                 .setBasicIcon(basicIconClass, IconCssStyle.IN_ROW_STYLE)
                 .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ICON_TRASH), IconCssStyle.BOTTOM_RIGHT_STYLE)
                 .build();
-        return icon;
     }
 
     private void afterOperation(AjaxRequestTarget target, OperationResult result) {
