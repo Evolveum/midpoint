@@ -7,38 +7,36 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
  * Created by honchar.
@@ -92,8 +90,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
 
-//    private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
-
     public AuditEventRecordProvider(Component component, @Nullable IModel<ObjectCollectionType> objectCollectionModel, @NotNull SerializableSupplier<Map<String, Object>> parametersSupplier) {
         super(component);
         this.objectCollectionModel = objectCollectionModel;
@@ -102,31 +98,77 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     }
 
     private void initSorting(){
-        String sortParameter = "";
-        SortOrder sortOrder = null;
-        if (getPageStorage() != null && getPageStorage().getPaging() != null && getPageStorage().getPaging().getOrderBy() != null){
-            sortParameter = getPageStorage().getPaging().getOrderBy().last() != null ?
-                    getPageStorage().getPaging().getOrderBy().last().toString() : "";
-        }
-        if (getPageStorage() != null && getPageStorage().getPaging() != null && getPageStorage().getPaging().getDirection() != null){
-            sortOrder = OrderDirection.ASCENDING.equals(getPageStorage().getPaging().getDirection()) ?
-                    SortOrder.ASCENDING : SortOrder.DESCENDING;
-        }
-        setSort(StringUtils.isNotEmpty(sortParameter) ? sortParameter : TIMESTAMP_VALUE_PARAMETER,
-                sortOrder != null ? sortOrder : DEFAULT_SORT_ORDER);
+        ObjectPaging paging = getPaging();
+        String sortParameter = getSortParameter(paging);
+        SortOrder sortOrder = getOrder(paging);
+        setSort(sortParameter, sortOrder);
     }
+
+    private ObjectPaging getPaging() {
+        if (getPageStorage() == null) {
+            return null;
+        }
+        return getPageStorage().getPaging();
+    }
+
+    private String getSortParameter(ObjectPaging paging) {
+        if (paging == null) {
+            return TIMESTAMP_VALUE_PARAMETER;
+        }
+
+        ItemPath orderBy = paging.getOrderBy();
+        if (orderBy == null) {
+            return TIMESTAMP_VALUE_PARAMETER;
+        }
+
+        ItemName name = orderBy.lastName();
+        if (name == null) {
+            return TIMESTAMP_VALUE_PARAMETER;
+        }
+        return name.getLocalPart();
+
+    }
+
+    private SortOrder getOrder(ObjectPaging paging) {
+        if (paging == null) {
+            return DEFAULT_SORT_ORDER;
+        }
+
+        OrderDirection direction = paging.getDirection();
+        if (direction == null) {
+            return DEFAULT_SORT_ORDER;
+        }
+
+        return OrderDirection.ASCENDING == direction ? SortOrder.ASCENDING : SortOrder.DESCENDING;
+
+    }
+
 
     @Override
     public Iterator<AuditEventRecordType> internalIterator(long first, long count) {
         saveCurrentPage(first, count);
-        List<AuditEventRecordType> recordsList = listRecords(true, first, count);
+        Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+        OperationResult result = task.getResult();
+        List<AuditEventRecordType> recordsList = null;
+        try {
+             recordsList = listRecords(first, count, task, result);
+        } catch (Exception e) {
+            result.recordFatalError(getPage().createStringResource("AuditEventProvider.message.internalIterator.fatalError", e.getMessage()).getString(), e);
+            LoggingUtils.logException(LOGGER, "Cannot list audit records: " + e.getMessage(), e);
+        }
+        result.computeStatusIfUnknown();
+        getPage().showResult(result, false);
+
+        if (recordsList == null) {
+            recordsList = Collections.emptyList();
+        }
         return recordsList.iterator();
     }
 
     protected int internalSize() {
         String query;
         String origQuery;
-        Map<String, Object> parameters = new HashMap<String, Object>();
+        Map<String, Object> parameters = new HashMap<>();
         origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
         if(StringUtils.isNotBlank(origQuery)) {
             query = generateFullQuery(origQuery, false, true);
@@ -150,24 +192,23 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         return count;
      }
 
-    private List<AuditEventRecordType> listRecords(boolean ordered, long first, long count) {
+    private List<AuditEventRecordType> listRecords(long first, long count, Task task, OperationResult result) {
         String query;
         String origQuery;
-        Map<String, Object> parameters = new HashMap<String, Object>();
+        Map<String, Object> parameters = new HashMap<>();
         origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
         if(StringUtils.isNotBlank(origQuery)) {
-            query = generateFullQuery(origQuery, ordered, false);
+            query = generateFullQuery(origQuery, true, false);
         } else {
             parameters = parametersSupplier.get();
-            query = generateFullQuery(parameters, ordered, false);
+            query = generateFullQuery(parameters, true, false);
         }
 
         parameters.put(SET_FIRST_RESULT_PARAMETER, (int) first);
         parameters.put(SET_MAX_RESULTS_PARAMETER, (int) count);
 
         List<AuditEventRecord> auditRecords = null;
-        Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
-        OperationResult result = task.getResult();
+
         try {
             auditRecords = getAuditService().listRecords(query, parameters, task, result);
         } catch (Exception e) {
@@ -285,7 +326,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
         }
         ObjectCollectionType collection = getCollectionForQuery();
-        String query = "";
+        String query;
         if (collection == null || collection.getAuditSearch() == null
                 || collection.getAuditSearch().getRecordQuery() == null) {
             query = AUDIT_RECORDS_QUERY_CORE;
@@ -309,7 +350,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             query = AUDIT_RECORDS_QUERY_SELECT + query;
         }
-        query += conditions.stream().collect(Collectors.joining(" and "));
+        query += String.join(" and ", conditions);
         if (ordered) {
             query += getQueryOrderByPart();
         }
@@ -349,6 +390,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         }
     }
 
+    @NotNull
     @Override
     protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
         if (sortParam != null && sortParam.getProperty() != null) {
