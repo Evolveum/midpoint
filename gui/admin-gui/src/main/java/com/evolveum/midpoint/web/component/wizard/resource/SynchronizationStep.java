@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -710,7 +711,7 @@ public class SynchronizationStep extends WizardStep {
                 ObjectDelta<ResourceType> delta = parentPage.computeDiff(oldResource, newResource);
                 if (!delta.isEmpty()) {
                     parentPage.logDelta(delta);
-                    Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                     modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
                     parentPage.resetModels();
                     syncDtoModel.reset();

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -391,8 +392,8 @@ public class CapabilityStep extends WizardStep {
                 ObjectDelta<ResourceType> delta = parentPage.computeDiff(oldResource, resourceObject);
                 if (!delta.isEmpty()) {
                     parentPage.logDelta(delta);
-                    @SuppressWarnings("unchecked") Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
-                            .createDeltaCollection(delta);
+                    @SuppressWarnings("unchecked") Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil
+                            .createCollection(delta);
                     modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);
                     parentPage.resetModels();
                     saved = true;

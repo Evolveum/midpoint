@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -254,7 +255,7 @@ public class PageCertDefinition extends PageAdminCertification {
                 getPrismContext().adopt(delta);
                 ModelExecuteOptions options = new ModelExecuteOptions();
                 options.setRaw(true);
-                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, result);
+                getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, result);
             }
             result.computeStatus();
         } catch (Exception ex) {

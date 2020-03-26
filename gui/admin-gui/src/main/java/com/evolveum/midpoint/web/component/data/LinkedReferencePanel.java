@@ -15,7 +15,9 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -111,10 +113,10 @@ public class LinkedReferencePanel<O extends ObjectType, R extends Referencable> 
         nameLink.setOutputMarkupId(true);
         add(nameLink);
 
-        ObjectType referencedObject= referencedObjectModel.getObject();
+        ObjectType referencedObject = referencedObjectModel.getObject();
         ObjectReferenceType referencedObjectRef = null;
         if (referencedObject != null) {
-            referencedObjectRef = WebComponentUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName().getOrig(), WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
+            referencedObjectRef = ObjectTypeUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName(), ObjectTypes.getObjectType(referencedObject.getClass()));
             PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory().createReferenceValue(referencedObject.getOid(),
                     WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
             referenceValue.setObject(referencedObject.asPrismObject());
