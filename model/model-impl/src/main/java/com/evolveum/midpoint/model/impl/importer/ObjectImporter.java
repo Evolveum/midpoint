@@ -325,34 +325,64 @@ public class ObjectImporter {
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
-            if (isTrue(options.isOverwrite()) && isNotTrue(options.isKeepOid()) && object.getOid() == null) {
+            if (isTrue(options.isOverwrite()) && isNotTrue(options.isKeepOid())) {
                    // This is overwrite, without keep oid, therefore we do not have conflict on OID
                 // this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
                 result.muteLastSubresultError();
-                ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
-                List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
-                if (foundObjects.size() == 1) {
-                    PrismObject<T> foundObject = foundObjects.iterator().next();
-                    String deletedOid = deleteObject(foundObject, repository, result);
-                       if (deletedOid != null) {
-                           if (object.canRepresent(TaskType.class)) {
-                               taskManager.onTaskDelete(deletedOid, result);
-                           }
-                           if (isTrue(options.isKeepOid())) {
-                               object.setOid(deletedOid);
-                           }
-                           addObject(object, false, options, task, result);
-                           result.recordSuccess();
-                       } else {
-                           // cannot delete, throw original exception
-                        result.recordFatalError("Object already exists, cannot overwrite", e);
-                        throw e;
-                       }
+                PrismObject<T> foundObject;
+                if (object.getOid() == null) {
+                    ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
+                    List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
+                    if (foundObjects.size() != 1) {
+                        // Cannot locate conflicting object
+                        String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjects.size()+" objects with same name exist";
+                        result.recordFatalError(message, e);
+                        throw new ObjectAlreadyExistsException(message, e);
+                    }
+                    foundObject = foundObjects.iterator().next();
                 } else {
-                    // Cannot locate conflicting object
-                    String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjects.size()+" objects with same name exist";
-                    result.recordFatalError(message, e);
-                     throw new ObjectAlreadyExistsException(message, e);
+                    ObjectQuery queryByName = ObjectQueryUtil.createNameQuery(object);
+                    List<PrismObject<T>> foundObjectsByName = repository.searchObjects(object.getCompileTimeClass(), queryByName, null, result);
+                    ObjectQuery queryByOid = ObjectQueryUtil.createOidQuery(object);
+                    List<PrismObject<T>> foundObjectsByOid = repository.searchObjects(object.getCompileTimeClass(), queryByOid, null, result);
+                    if (foundObjectsByName.size() == 1 && foundObjectsByOid.isEmpty()) {
+                        foundObject = foundObjectsByName.iterator().next();
+                    } else if (foundObjectsByName.isEmpty() && foundObjectsByOid.size() == 1) {
+                        foundObject = foundObjectsByOid.iterator().next();
+                    } else if (foundObjectsByName.size() == 1 && foundObjectsByOid.size() == 1) {
+                        PrismObject<T> foundObjectByName = foundObjectsByName.iterator().next();
+                        PrismObject<T> foundObjectByOid = foundObjectsByOid.iterator().next();
+                        if (foundObjectByName.getOid().equals(foundObjectByOid.getOid())) {
+                            foundObject = foundObjectByName;
+                        } else {
+                            String message = "Conflicting object already exists but it was not possible to precisely locate it, found object by name "+foundObjectByName.getName().getOrig()+
+                                    "(oid:"+foundObjectByName.getOid()+") and found object by oid "+foundObjectByOid.getName().getOrig()+"(oid:"+foundObjectByOid.getOid()+") not same";
+                            result.recordFatalError(message, e);
+                            throw new ObjectAlreadyExistsException(message, e);
+                        }
+                    } else {
+                        String message = "Conflicting object already exists but it was not possible to precisely locate it, "+foundObjectsByName.size()+" objects with same name exist and "+
+                                foundObjectsByOid.size()+" objects with same oid exist";
+                        result.recordFatalError(message, e);
+                        throw new ObjectAlreadyExistsException(message, e);
+                    }
+                }
+
+                String deletedOid = deleteObject(foundObject, repository, result);
+                if (deletedOid != null) {
+                    if (object.canRepresent(TaskType.class)) {
+                        taskManager.onTaskDelete(deletedOid, result);
+                    }
+                    if (isTrue(options.isKeepOid())) {
+                        object.setOid(deletedOid);
+                    }
+                    addObject(object, false, options, task, result);
+                    result.recordSuccess();
+                    // cannot delete, throw original exception
+
+                } else {
+                    result.recordFatalError("Object already exists, cannot overwrite", e);
+                    throw e;
                 }
             } else {
                 result.recordFatalError(e);

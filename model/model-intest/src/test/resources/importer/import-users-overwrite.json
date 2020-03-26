@@ -24,5 +24,22 @@
       "givenName" : "Herman",
       "familyName" : "Toothrot"
     }
+  }, {
+    "user" : {
+      "oid" : "c0c010c0-d34d-b33f-f00d-111111111113",
+      "name" : "elizabethT",
+      "fullName" : "Elizabeth Turner",
+      "givenName" : "Elizabeth",
+      "familyName" : "Turner"
+    }
+  }, {
+    "user" : {
+      "oid" : "12345",
+      "name" : "james",
+      "fullName" : "James Norrington",
+      "givenName" : "James",
+      "familyName" : "Norrington",
+      "subtype" : "admiral"
+    }
   } ]
 }
