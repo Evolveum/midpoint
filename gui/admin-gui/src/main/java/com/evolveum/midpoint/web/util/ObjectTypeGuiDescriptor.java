@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.util;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author lazyman
  */
@@ -101,6 +103,7 @@ public enum ObjectTypeGuiDescriptor {
         return blackIcon;
     }
 
+    @NotNull
     public String getLocalizationKey() {
         return localizationKey;
     }
