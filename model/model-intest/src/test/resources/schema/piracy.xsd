@@ -107,6 +107,8 @@
             <xsd:element name="riskVector" type="tns:RiskVectorType" minOccurs="0" maxOccurs="unbounded"/>
             <!-- Single valued extension property (can be statically-defined) to test MID-6129 -->
             <xsd:element name="dataProtection" type="c:DataProtectionType" minOccurs="0"/>
+
+            <xsd:element name="booleanFlag" type="xsd:boolean" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
 

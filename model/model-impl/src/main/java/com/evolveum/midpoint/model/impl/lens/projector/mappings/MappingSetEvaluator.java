@@ -220,6 +220,7 @@ public class MappingSetEvaluator {
         consolidator.setStrengthSelector(StrengthSelector.ALL);
 
         ItemDelta itemDelta = consolidator.consolidateToDelta();
+        itemDelta.simplify();
 
         LOGGER.trace("Updating focus ODO with delta:\n{}", itemDelta.debugDumpLazily());
         focusOdoCloned.update(itemDelta);
