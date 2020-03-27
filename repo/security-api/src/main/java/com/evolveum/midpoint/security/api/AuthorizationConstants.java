@@ -225,6 +225,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_CONFIGURATION_EVALUATE_MAPPING = new QName(NS_AUTHORIZATION_UI, "configEvaluateMapping");
     public static final String AUTZ_UI_CONFIGURATION_EVALUATE_MAPPING_URL = NS_AUTHORIZATION_UI + "#configEvaluateMapping";
 
+    public static final QName AUTZ_UI_TRACE_VIEW = new QName(NS_AUTHORIZATION_UI, "traceView");
+    public static final String AUTZ_UI_TRACE_VIEW_URL = NS_AUTHORIZATION_UI + "#traceView";
+
     //Roles
     public static final QName AUTZ_UI_ROLES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "rolesAll");
     public static final String AUTZ_UI_ROLES_ALL_URL = NS_AUTHORIZATION_UI + "#rolesAll";
