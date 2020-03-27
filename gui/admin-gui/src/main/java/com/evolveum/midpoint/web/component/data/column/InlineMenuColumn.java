@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T, Void> {
+public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T, String> {
 
     public InlineMenuColumn(IModel<String> displayModel) {
         super(displayModel);
