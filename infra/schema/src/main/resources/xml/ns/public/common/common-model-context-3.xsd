@@ -2782,10 +2782,12 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="instruction" type="tns:TraceVisualizationInstructionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="columns" type="tns:TraceVisualizationColumnsType" minOccurs="0" />
             <xsd:element name="dataFlow" type="tns:TraceDataFlowVisualizationInstructionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specification of the data flow(s) to be visualized.
+                        Currently not implemented.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2817,6 +2819,30 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="traceVisualizationInstruction" type="tns:TraceVisualizationInstructionType" />
+
+    <xsd:complexType name="TraceVisualizationColumnsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What columns to visualize?
+                Volatile - will be changed soon.
+                E.g. we want to specify exact order of columns.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="invocationId" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="duration" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="durationBefore" type="xsd:boolean" minOccurs="0" />
+            <!-- The following two be replaced by references to enums instead of strings -->
+            <xsd:element name="countFor" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="timeFor" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="traceVisualizationColumns" type="tns:TraceVisualizationColumnsType" />
 
     <xsd:complexType name="TraceSelectorType">
         <xsd:annotation>
