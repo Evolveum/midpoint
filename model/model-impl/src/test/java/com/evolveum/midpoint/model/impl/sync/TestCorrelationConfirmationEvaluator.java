@@ -7,14 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +32,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static org.testng.AssertJUnit.*;
+
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelIntegrationTest {
@@ -49,6 +46,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
     private static final String CORRELATION_SECOND_FILTER = TEST_DIR + "/correlation-second-filter.xml";
     private static final String CORRELATION_WITH_CONDITION = TEST_DIR + "/correlation-with-condition.xml";
     private static final String CORRELATION_WITH_CONDITION_EMPL_NUMBER = TEST_DIR + "/correlation-with-condition-emplNumber.xml";
+    private static final String CORRELATION_WITH_CONDITION_NAME = TEST_DIR + "/correlation-with-condition-name.xml";
 
     @Autowired private RepositoryService repositoryService;
     @Autowired private SynchronizationExpressionsEvaluator evaluator;
@@ -152,7 +150,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         assertNotNull(userType);
         userType.asObjectable().setName(new PolyStringType("JACK"));
 
-        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE, RESOURCE_DUMMY_FILE, task, result);
+        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, Collections.singletonList(CORRELATION_CASE_INSENSITIVE), RESOURCE_DUMMY_FILE, task, result);
 
         try {
             boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
@@ -176,7 +174,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         assertNotNull(userType);
         userType.asObjectable().setEmployeeNumber("JaCk");
 
-        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER, RESOURCE_DUMMY_FILE, task, result);
+        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, Collections.singletonList(CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER), RESOURCE_DUMMY_FILE, task, result);
 
         try {
             boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
@@ -190,15 +188,20 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         }
     }
 
-    private SynchronizationContext<UserType> createSynchronizationContext(File account, String correlationFilter, File resource, Task task, OperationResult result) throws SchemaException, IOException {
+    private SynchronizationContext<UserType> createSynchronizationContext(File account, List<String> correlationFilters, File resource, Task task, OperationResult result) throws SchemaException, IOException {
 
         ShadowType shadow = parseObjectType(account, ShadowType.class);
 
-        ConditionalSearchFilterType query = PrismTestUtil.parseAtomicValue(new File(correlationFilter), ConditionalSearchFilterType.COMPLEX_TYPE);
+        List<ConditionalSearchFilterType> conditionalSearchFilterTypes = new ArrayList<>(correlationFilters.size());
+        for (String correlationFilter : correlationFilters) {
+            ConditionalSearchFilterType query = PrismTestUtil.parseAtomicValue(new File(correlationFilter), ConditionalSearchFilterType.COMPLEX_TYPE);
+            conditionalSearchFilterTypes.add(query);
+        }
+
 
         ResourceType resourceType = parseObjectType(resource, ResourceType.class);
         resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
-        resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
+        resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().addAll(conditionalSearchFilterTypes);
 
         ObjectSynchronizationType objectSynchronizationType = resourceType.getSynchronization().getObjectSynchronization().get(0);
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -243,5 +246,41 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         PrismObject<UserType> jack = matchedUsers.get(0);
         assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "JACK", "Jack Sparrow", "Jack", "Sparrow");
+    }
+
+    @Test
+    public void test007CorrelationMatchWithCondition() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        //assert jack
+        assertNotNull(userType);
+
+
+        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE,
+                Arrays.asList(CORRELATION_WITH_CONDITION, CORRELATION_WITH_CONDITION_EMPL_NUMBER), RESOURCE_DUMMY_FILE, task, result);
+
+        boolean matches = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
+
+        assertTrue("At least one correlation matches", matches);
+    }
+
+    @Test
+    public void test008CorrelationNoMatchWithCondition() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        //assert jack
+        assertNotNull(userType);
+
+
+        SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE,
+                Arrays.asList(CORRELATION_WITH_CONDITION, CORRELATION_WITH_CONDITION_NAME), RESOURCE_DUMMY_FILE, task, result);
+
+        boolean matches = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
+
+        assertFalse("No correlation condition should match", matches);
     }
 }

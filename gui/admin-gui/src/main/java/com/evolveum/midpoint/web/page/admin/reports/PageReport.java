@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 import org.apache.wicket.RestartResponseException;
@@ -296,7 +297,7 @@ public class PageReport extends PageAdmin {
             }
             if (delta != null) {
                             getPrismContext().adopt(delta);
-                            getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+                            getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             }
 
         } catch (Exception e) {

@@ -28,3 +28,14 @@ objects:
     fullName: "Guybrush Threepwood"
     givenName: "Guybrush"
     familyName: "Threepwood"
+- user:
+    oid: "c0c010c0-d34d-b33f-f00d-111111111113"
+    name: "elizabethS"
+    fullName: "Elizabeth Swann"
+    givenName: "Elizabeth"
+    familyName: "Swann"
+- user:
+    name: "james"
+    fullName: "James Norrington"
+    givenName: "James"
+    familyName: "Norrington"

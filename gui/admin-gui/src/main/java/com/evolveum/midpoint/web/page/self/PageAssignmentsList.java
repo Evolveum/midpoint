@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -467,7 +468,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             partialProcessing.setProjection(SKIP);
             ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
             modelContext = getModelInteractionService()
-                    .previewChanges(WebComponentUtil.createDeltaCollection(delta), recomputeOptions, task, result);
+                    .previewChanges(MiscUtil.createCollection(delta), recomputeOptions, task, result);
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
                     .getEvaluatedAssignmentTriple();
             if (evaluatedAssignmentTriple != null) {

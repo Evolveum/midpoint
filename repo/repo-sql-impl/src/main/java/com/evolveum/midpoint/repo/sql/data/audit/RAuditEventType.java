@@ -34,7 +34,14 @@ public enum RAuditEventType {
 
     WORKFLOW_PROCESS_INSTANCE(AuditEventType.WORKFLOW_PROCESS_INSTANCE),
 
-    RECONCILIATION(AuditEventType.RECONCILIATION);
+    RECONCILIATION(AuditEventType.RECONCILIATION),
+
+    SUSPEND_TASK(AuditEventType.SUSPEND_TASK),
+
+    RESUME_TASK(AuditEventType.RESUME_TASK),
+
+    RUN_TASK_IMMEDIATELY(AuditEventType.RUN_TASK_IMMEDIATELY);
+
 
     private AuditEventType type;
 

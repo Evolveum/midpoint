@@ -83,9 +83,11 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
             try {
                 PrismObject<LookupTableType> lookupTable = modelService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
                 propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
+                result.computeStatusIfUnknown();
             } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
                     | ConfigurationException | ExpressionEvaluationException e) {
                 LOGGER.error("Cannot load lookup table for {} ", item);
+                result.recordFatalError("Cannot load lookupTable for " + item + ", Reason: " + e.getMessage(), e);
                 //TODO throw???
             }
         }
