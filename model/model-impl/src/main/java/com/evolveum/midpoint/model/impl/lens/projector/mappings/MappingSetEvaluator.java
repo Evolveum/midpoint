@@ -46,7 +46,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta
 @Component
 public class MappingSetEvaluator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingSetEvaluator.class);
 
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private MappingFactory mappingFactory;
