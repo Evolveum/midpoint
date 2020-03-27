@@ -12,8 +12,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 
-//@ContextConfiguration(locations = { "classpath:ctx-rest-test.xml" })
-//@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRestServiceXml extends TestAbstractRestService {
 
     @Override
