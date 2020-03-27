@@ -66,6 +66,7 @@
             <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMigration"/>
+            <class name="com.evolveum.midpoint.model.intest.TestFunctions"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
