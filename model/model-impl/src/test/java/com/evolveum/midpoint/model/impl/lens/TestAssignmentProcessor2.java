@@ -177,8 +177,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -237,8 +237,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
         // THEN
         then();
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
         assertSuccess(result);
 
         // assignment of construction R1-0
@@ -282,7 +282,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         projector.project(context, "", task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
         result.computeStatus();
         assertSuccess("Projector failed (result)", result);
@@ -310,8 +310,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -379,8 +379,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -458,8 +458,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -537,8 +537,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
         // THEN
         then();
-        display("Output context", context);
-        display("Evaluated assignment", evaluatedAssignment);
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment", evaluatedAssignment);
 
         assertSuccess("Assignment evaluator failed (result)", result);
 
@@ -604,8 +604,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -685,8 +685,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -755,8 +755,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -835,8 +835,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -896,8 +896,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1048,8 +1048,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         recording = false;
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1499,8 +1499,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1555,8 +1555,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1610,8 +1610,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1665,8 +1665,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1718,8 +1718,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1785,8 +1785,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         result.computeStatus();
         assertSuccess("Assignment processor failed (result)", result);
@@ -1851,8 +1851,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         processAssignments(context, result, task);
 
         // THEN
-        display("Output context", context);
-        display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+        displayDumpable("Output context", context);
+        displayDumpable("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
 
         assertSuccess("Assignment processor failed (result)", result);
 

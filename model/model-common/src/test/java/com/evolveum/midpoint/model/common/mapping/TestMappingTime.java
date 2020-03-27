@@ -30,18 +30,15 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Radovan Semancik
- */
 public class TestMappingTime extends AbstractUnitTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     private static final String MAPPING_TIME_FROM_TO_FILENAME = "mapping-time-from-to.xml";
     private static final String MAPPING_TIME_ACTIVATION = "mapping-time-deferred-delete.xml";

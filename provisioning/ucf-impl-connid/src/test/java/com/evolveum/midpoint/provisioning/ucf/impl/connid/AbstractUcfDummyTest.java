@@ -28,8 +28,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
-import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -45,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public abstract class AbstractUcfDummyTest extends AbstractSpringTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     protected static final File RESOURCE_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "resource-dummy.xml");
     protected static final File CONNECTOR_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "connector-dummy.xml");
@@ -100,10 +99,6 @@ public abstract class AbstractUcfDummyTest extends AbstractSpringTest
             int maxOccurs) {
         QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
         PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
-    }
-
-    protected void displayValue(String title, DebugDumpable value) {
-        PrismTestUtil.display(title, value);
     }
 
     public void displayValue(String title, Object value) {

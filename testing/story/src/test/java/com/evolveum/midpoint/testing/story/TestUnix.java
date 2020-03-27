@@ -262,7 +262,7 @@ public class TestUnix extends AbstractStoryTest {
         IntegrationTestTools.displayXml("Initialized resource", resourceOpenDj);
 
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceOpenDj, prismContext);
-        display("OpenDJ schema (resource)", resourceSchema);
+        displayDumpable("OpenDJ schema (resource)", resourceSchema);
 
         ObjectClassComplexTypeDefinition ocDefPosixAccount = resourceSchema.findObjectClassDefinition(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         assertNotNull("No objectclass " + OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME + " in resource schema", ocDefPosixAccount);
@@ -273,7 +273,7 @@ public class TestUnix extends AbstractStoryTest {
         assertTrue("Objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary", ocDefPosixGroup.isAuxiliary());
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceOpenDj);
-        display("OpenDJ schema (refined)", refinedSchema);
+        displayDumpable("OpenDJ schema (refined)", refinedSchema);
 
         RefinedObjectClassDefinition rOcDefPosixAccount = refinedSchema.getRefinedDefinition(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         assertNotNull("No refined objectclass " + OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME + " in resource schema", rOcDefPosixAccount);
@@ -353,7 +353,7 @@ public class TestUnix extends AbstractStoryTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        display("OC def", editObjectClassDefinition);
+        displayDumpable("OC def", editObjectClassDefinition);
 
         PrismAsserts.assertPropertyDefinition(editObjectClassDefinition,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING, 1, -1);
@@ -659,7 +659,7 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(0);
@@ -724,7 +724,7 @@ public class TestUnix extends AbstractStoryTest {
     }
 
     protected void assertTest132Audit() {
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(2);
@@ -766,7 +766,7 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(0);
@@ -800,7 +800,7 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(1);
@@ -839,7 +839,7 @@ public class TestUnix extends AbstractStoryTest {
     }
 
     protected void assertTest135Audit() {
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(2);
@@ -940,7 +940,7 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         assertTest137Account(shadow);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(0);
@@ -1630,7 +1630,7 @@ public class TestUnix extends AbstractStoryTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
                 ShadowKindType.ACCOUNT, "default", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -1652,7 +1652,7 @@ public class TestUnix extends AbstractStoryTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
                 ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -1674,7 +1674,7 @@ public class TestUnix extends AbstractStoryTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
                 ShadowKindType.ENTITLEMENT, "unixGroup", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();

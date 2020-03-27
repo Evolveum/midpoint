@@ -7,10 +7,8 @@
 <role oid="12345678-d34d-b33f-f00d-555555556668"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Mutinier</name>
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Mutineer</name>
     <inducement id="1111">
         <construction id="60004">
             <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
@@ -24,7 +22,7 @@
                     <expression>
                         <script>
                             <code>
-                                'Damned ' + (description==null?"mutinier":description)
+                                'Damned ' + (description==null?"mutineer":description)
                             </code>
                         </script>
                     </expression>

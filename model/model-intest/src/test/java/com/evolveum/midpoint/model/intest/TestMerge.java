@@ -110,7 +110,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> leftObjectdelta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(leftObjectdelta);
@@ -218,7 +218,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> delta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(delta);
@@ -320,7 +320,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> delta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(delta);
@@ -418,7 +418,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> leftObjectdelta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(leftObjectdelta);

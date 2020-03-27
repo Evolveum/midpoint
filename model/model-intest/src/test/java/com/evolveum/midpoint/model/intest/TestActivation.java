@@ -467,7 +467,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertModifyTimestamp(userJack, start, end);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -482,7 +482,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
             ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
             if (objectDelta.getObjectTypeClass() == ShadowType.class) {
                 PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
-                display("Audit enableTimestamp delta", enableTimestampDelta);
+                displayDumpable("Audit enableTimestamp delta", enableTimestampDelta);
                 assertNotNull("EnableTimestamp delta vanished from audit record", enableTimestampDelta);
                 found = true;
             }
@@ -612,7 +612,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyDisabled("jack");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
     }
 
@@ -671,7 +671,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         DummyAccount account = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        display("Account after change", account);
+        displayDumpable("Account after change", account);
 
         assertUserJack(userJack, USER_JACK_FULL_NAME);
 
@@ -1307,7 +1307,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         checkAdminStatusFor15x(userAfter, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1326,7 +1326,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 //                    continue;
 //                }
                 PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
-                display("Audit enableTimestamp delta", enableTimestampDelta);
+                displayDumpable("Audit enableTimestamp delta", enableTimestampDelta);
                 assertNotNull("EnableTimestamp delta vanished from audit record, delta: " + objectDelta, enableTimestampDelta);
                 found = true;
             }
@@ -1841,7 +1841,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
         display("user after", userAfter);
 
-        display("Dummy", getDummyResource());
+        displayDumpable("Dummy", getDummyResource());
 
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
 
@@ -1880,7 +1880,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
         display("user after", userAfter);
 
-        display("Dummy", getDummyResource());
+        displayDumpable("Dummy", getDummyResource());
 
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
 
@@ -1964,7 +1964,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertRoleMembershipRef(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
 
         DummyAccount dummyAccount = assertDummyAccount(null, USER_RAPP_USERNAME);
-        display("dummy account", dummyAccount);
+        displayDumpable("dummy account", dummyAccount);
         assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
         assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
@@ -2055,7 +2055,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("Account shadow after", accountMancomb);
 
         DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        display("Account after", dummyAccountAfter);
+        displayDumpable("Account after", dummyAccountAfter);
 
         assertNotNull("No mancomb account shadow", accountMancomb);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID,
@@ -2427,7 +2427,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertEffectiveStatus(objectAfter, ActivationStatusType.ENABLED);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
     }
 
@@ -2458,7 +2458,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", user1);
 
         DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.TRUE);
 
         String accountOid = getSingleLinkOid(user1);
@@ -2496,7 +2496,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", user1);
 
         DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.FALSE);
 
         String accountOid = getSingleLinkOid(user1);

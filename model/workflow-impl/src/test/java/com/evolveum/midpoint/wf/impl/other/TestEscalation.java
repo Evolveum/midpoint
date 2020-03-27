@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.wf.impl.other;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -24,23 +37,11 @@ import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestEscalation extends AbstractWfTestPolicy {
 
@@ -161,7 +162,6 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test130CompleteAfter14Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         clock.resetOverride();
@@ -235,7 +235,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         assertEquals("Wrong # of triggers", 2, aCase.getTrigger().size());
 
         displayCollection("audit records", dummyAuditService.getRecords());
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
 
         assertEquals("Wrong # of work items", 2, workItems.size());
         assertEquals("The work item deadlines differ after escalation", workItems.get(0).getDeadline(), workItems.get(1).getDeadline());
@@ -271,12 +271,12 @@ public class TestEscalation extends AbstractWfTestPolicy {
             if (event instanceof WorkItemCompletionEventType) {
                 WorkItemCompletionEventType c = (WorkItemCompletionEventType) event;
                 eventMap.put(c.getExternalWorkItemId(), c);
-                assertNotNull("No result in "+c, c.getOutput());
-                assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getOutput().getOutcome()));
-                assertNotNull("No cause in "+c, c.getCause());
-                assertEquals("Wrong cause type in "+c, WorkItemEventCauseTypeType.TIMED_ACTION, c.getCause().getType());
-                assertEquals("Wrong cause name in "+c, "auto-reject", c.getCause().getName());
-                assertEquals("Wrong cause display name in "+c, "Automatic rejection at deadline", c.getCause().getDisplayName());
+                assertNotNull("No result in " + c, c.getOutput());
+                assertEquals("Wrong outcome in " + c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getOutput().getOutcome()));
+                assertNotNull("No cause in " + c, c.getCause());
+                assertEquals("Wrong cause type in " + c, WorkItemEventCauseTypeType.TIMED_ACTION, c.getCause().getType());
+                assertEquals("Wrong cause name in " + c, "auto-reject", c.getCause().getName());
+                assertEquals("Wrong cause display name in " + c, "Automatic rejection at deadline", c.getCause().getDisplayName());
             }
         }
         displayValue("completion event map", eventMap);
@@ -286,10 +286,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
         List<AuditEventRecord> workItemAuditRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
         assertEquals("Wrong # of work item audit records", 2, workItemAuditRecords.size());
         for (AuditEventRecord r : workItemAuditRecords) {
-            assertEquals("Wrong causeType in "+r, Collections.singleton("timedAction"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_TYPE));
-            assertEquals("Wrong causeName in "+r, Collections.singleton("auto-reject"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_NAME));
-            assertEquals("Wrong causeDisplayName in "+r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_DISPLAY_NAME));
-            assertEquals("Wrong result in "+r, "Rejected", r.getResult());
+            assertEquals("Wrong causeType in " + r, Collections.singleton("timedAction"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_TYPE));
+            assertEquals("Wrong causeName in " + r, Collections.singleton("auto-reject"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_NAME));
+            assertEquals("Wrong causeDisplayName in " + r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_DISPLAY_NAME));
+            assertEquals("Wrong result in " + r, "Rejected", r.getResult());
         }
         displayCollection("notifications - process", dummyTransport.getMessages("dummy:simpleWorkflowNotifier-Processes"));
         List<Message> notifications = dummyTransport.getMessages("dummy:simpleWorkflowNotifier-WorkItems");
@@ -302,8 +302,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     private void assertContains(Message notification, String text) {
         if (!notification.getBody().contains(text)) {
-            fail("No '"+text+"' in "+notification);
+            fail("No '" + text + "' in " + notification);
         }
     }
-
 }

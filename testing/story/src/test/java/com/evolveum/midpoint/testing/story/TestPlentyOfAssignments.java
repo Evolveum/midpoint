@@ -184,7 +184,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
 //        inspector.assertRead(RoleType.class, NUMBER_OF_CHEESE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
@@ -224,7 +224,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
 //        assertRepositoryReadCount(4); // may be influenced by tasks
@@ -266,7 +266,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
 //        assertRepositoryReadCount(4); // may be influenced by tasks
@@ -401,7 +401,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
@@ -443,7 +443,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
@@ -485,7 +485,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
@@ -503,7 +503,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     private void assertBobDummy(int expectedBottlesOfRum) throws Exception {
         DummyAccount dummyAccount = assertDummyAccount(null, USER_BOB_USERNAME, USER_BOB_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         List<Object> expectedDrinks = new ArrayList<>(expectedBottlesOfRum + 1);
         for (int i = 0; i < expectedBottlesOfRum; i++) {
             expectedDrinks.add(formatRum(i));
@@ -551,7 +551,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
         displayValue("Prism clones", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_CLONE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
@@ -593,7 +593,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
@@ -635,7 +635,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
@@ -653,7 +653,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
     private void assertAliceDummy(int expectedGroups) throws Exception {
         DummyAccount dummyAccount = assertDummyAccount(null, USER_ALICE_USERNAME, USER_ALICE_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         for (int i = 0; i < expectedGroups; i++) {
             assertDummyGroupMember(null, formatGroupName(i), USER_ALICE_USERNAME);
         }

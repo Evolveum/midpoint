@@ -164,12 +164,12 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
 
     @Test
     public void test001SanityAzure() throws Exception {
-        display("Dummy resource azure", dummyResourceSteelBlue);
+        displayDumpable("Dummy resource azure", dummyResourceSteelBlue);
 
         // WHEN
         ResourceSchema resourceSchemaAzure = RefinedResourceSchemaImpl.getResourceSchema(resourceDummySteelBlueType, prismContext);
 
-        display("Dummy azure resource schema", resourceSchemaAzure);
+        displayDumpable("Dummy azure resource schema", resourceSchemaAzure);
 
         // THEN
         dummyResourceCtlSteelBlue.assertDummyResourceSchemaSanityExtended(resourceSchemaAzure);
@@ -180,7 +180,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         // WHEN
         RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
 
-        display("Dummy azure refined schema", refinedSchemaAzure);
+        displayDumpable("Dummy azure refined schema", refinedSchemaAzure);
 
         // THEN
         dummyResourceCtlSteelBlue.assertRefinedSchemaSanity(refinedSchemaAzure);

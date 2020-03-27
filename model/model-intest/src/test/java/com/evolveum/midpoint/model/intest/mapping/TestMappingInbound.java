@@ -119,7 +119,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN_NAME);
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
-        display("Parsed resource schema (tea-green)", returnedSchema);
+        displayDumpable("Parsed resource schema (tea-green)", returnedSchema);
         ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
                         DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 4); // MID-5197
@@ -353,7 +353,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         // notifications
         notificationManager.setDisabled(true);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
     }
 
@@ -440,7 +440,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .getOid();
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -478,7 +478,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
     }
 
@@ -509,7 +509,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -548,7 +548,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -584,7 +584,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
     }
 
@@ -615,7 +615,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -655,7 +655,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -692,7 +692,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();

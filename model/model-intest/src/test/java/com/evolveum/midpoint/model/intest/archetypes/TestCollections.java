@@ -83,7 +83,7 @@ public class TestCollections extends AbstractArchetypesTest {
 
         // THEN
         then();
-        display("Active users collection view", collectionViewActiveUsers);
+        displayDumpable("Active users collection view", collectionViewActiveUsers);
         assertSuccess(result);
         assertNotNull("Null view", collectionActiveUsers);
 

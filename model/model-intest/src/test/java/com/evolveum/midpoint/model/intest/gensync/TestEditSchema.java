@@ -6,23 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.init.ConfigurablePrismContextFactory;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -31,19 +19,15 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,22 +36,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Validator;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
- *
  */
 @SuppressWarnings({ "SimplifiedTestNGAssertion", "SameParameterValue" })
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestEditSchema extends AbstractGenericSyncTest {
 
@@ -153,10 +131,10 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
-                new String[]{"en_PR", "en", "English (pirate)"},
-                new String[]{"sk_SK", "sk", "Slovak"},
-                new String[]{"tr_TR", "tr", "Turkish"});
+        checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" },
+                new String[] { "en_PR", "en", "English (pirate)" },
+                new String[] { "sk_SK", "sk", "Slovak" },
+                new String[] { "tr_TR", "tr", "Turkish" });
     }
 
     @Test
@@ -172,8 +150,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .item(LookupTableRowType.F_KEY)
-                    .eq("sk_SK")
+                .item(LookupTableRowType.F_KEY)
+                .eq("sk_SK")
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -197,8 +175,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .item(LookupTableRowType.F_KEY)
-                    .startsWith("e")
+                .item(LookupTableRowType.F_KEY)
+                .startsWith("e")
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -206,8 +184,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
-                new String[]{"en_PR", "en", "English (pirate)"});
+        checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" },
+                new String[] { "en_PR", "en", "English (pirate)" });
     }
 
     @Test
@@ -223,8 +201,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .item(LookupTableRowType.F_KEY)
-                    .contains("r")
+                .item(LookupTableRowType.F_KEY)
+                .contains("r")
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -232,7 +210,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        checkLookupResult(lookup, new String[]{"tr_TR", "tr", "Turkish"});
+        checkLookupResult(lookup, new String[] { "tr_TR", "tr", "Turkish" });
     }
 
     @Test
@@ -248,11 +226,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                        .item(LookupTableRowType.F_KEY)
-                        .contains("_")
-                        .offset(2)
-                        .maxSize(1)
-                        .asc(LookupTableRowType.F_KEY)
+                .item(LookupTableRowType.F_KEY)
+                .contains("_")
+                .offset(2)
+                .maxSize(1)
+                .asc(LookupTableRowType.F_KEY)
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -276,8 +254,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .item(LookupTableRowType.F_KEY)
-                    .contains("xyz")
+                .item(LookupTableRowType.F_KEY)
+                .contains("xyz")
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -308,8 +286,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .item(LookupTableRowType.F_VALUE)
-                    .eq("sk")
+                .item(LookupTableRowType.F_VALUE)
+                .eq("sk")
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -322,7 +300,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     /**
      * Disabled because it's not clear how to treat polystrings in searches.
-     *
      */
     @Test
     public void test131LookupLanguagesGetByLabelStartingWith() throws Exception {
@@ -338,8 +315,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .item(LookupTableRowType.F_LABEL)
-                    .startsWith(fragment)
+                .item(LookupTableRowType.F_LABEL)
+                .startsWith(fragment)
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -347,8 +324,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
-                new String[]{"en_PR", "en", "English (pirate)"});
+        checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" },
+                new String[] { "en_PR", "en", "English (pirate)" });
     }
 
     @Test
@@ -364,11 +341,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .item(LookupTableRowType.F_VALUE)
-                    .contains("n")
-                    .offset(0)
-                    .maxSize(1)
-                    .desc(LookupTableRowType.F_LABEL)        // using sorting key other than the one used in search
+                .item(LookupTableRowType.F_VALUE)
+                .contains("n")
+                .offset(0)
+                .maxSize(1)
+                .desc(LookupTableRowType.F_LABEL)        // using sorting key other than the one used in search
                 .end();
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, optionsBuilder.build(), task, result);
 
@@ -404,7 +381,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" });
     }
 
-
     private void checkLookupResult(PrismObject<LookupTableType> lookup, String[]... tuples) {
         IntegrationTestTools.display("Languages", lookup);
 
@@ -419,7 +395,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         }
         assertSteadyResources();
     }
-
 
     @Test
     public void test150LookupLanguagesAddRowFull() throws Exception {
@@ -906,30 +881,29 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertEquals("Wrong lang lookup name", "Languages", lookup.asObjectable().getName().getOrig());
 
-        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
-                new String[]{"en_PR", "en", "English (pirate)"},
-                new String[]{"sk_SK", "sk", "Slovak"},
-                new String[]{"tr_TR", "tr", "Turkish"});
+        checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" },
+                new String[] { "en_PR", "en", "English (pirate)" },
+                new String[] { "sk_SK", "sk", "Slovak" },
+                new String[] { "tr_TR", "tr", "Turkish" });
 
         assertSteadyResources();
     }
 
-
     private void assertLookupRow(PrismContainer<LookupTableRowType> tableContainer, String key, String value,
             String label) {
-        for (PrismContainerValue<LookupTableRowType> row: tableContainer.getValues()) {
+        for (PrismContainerValue<LookupTableRowType> row : tableContainer.getValues()) {
             LookupTableRowType rowType = row.asContainerable();
             if (key.equals(rowType.getKey())) {
-                assertEquals("Wrong value for key "+key, value, rowType.getValue());
+                assertEquals("Wrong value for key " + key, value, rowType.getValue());
                 if (label == null) {
-                    assertNull("Unexpected label for key "+key+": "+rowType.getLabel(), rowType.getLabel());
+                    assertNull("Unexpected label for key " + key + ": " + rowType.getLabel(), rowType.getLabel());
                 } else {
-                    assertEquals("Wrong label for key "+key, PrismTestUtil.createPolyStringType(label), rowType.getLabel());
+                    assertEquals("Wrong label for key " + key, PrismTestUtil.createPolyStringType(label), rowType.getLabel());
                 }
                 return;
             }
         }
-        AssertJUnit.fail("Row with key '"+key+"' was not found in lookup table");
+        AssertJUnit.fail("Row with key '" + key + "' was not found in lookup table");
     }
 
     private PrismObject<LookupTableType> getLookupTableAll(String oid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -952,7 +926,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // THEN
         then();
 
-
         PrismAsserts.assertEmphasized(editDef, UserType.F_NAME, true);
         PrismAsserts.assertEmphasized(editDef, UserType.F_GIVEN_NAME, false);
         PrismAsserts.assertEmphasized(editDef, UserType.F_FAMILY_NAME, true);
@@ -968,7 +941,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         PrismPropertyDefinition<String> costCenterDef = editDef.findPropertyDefinition(UserType.F_COST_CENTER);
         assertNotNull("No definition for costCenter in user", costCenterDef);
-        assertEquals("Wrong costCenter displayOrder", (Integer)123, costCenterDef.getDisplayOrder());
+        assertEquals("Wrong costCenter displayOrder", (Integer) 123, costCenterDef.getDisplayOrder());
         assertTrue("costCenter not readable", costCenterDef.canRead());
         PrismAsserts.assertEmphasized(costCenterDef, true);
         FormItemValidationType validationAnnotation = costCenterDef.getAnnotation(ItemRefinedDefinitionType.F_VALIDATION);
@@ -1005,7 +978,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         ItemPath passwordValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
         PrismPropertyDefinition<ProtectedStringType> passwordValDef = editDef.findPropertyDefinition(passwordValPath);
-        assertNotNull("No definition for "+passwordValPath+" in user", passwordValDef);
+        assertNotNull("No definition for " + passwordValPath + " in user", passwordValDef);
         assertTrue("Password not readable", passwordValDef.canRead());
 
         assertSteadyResources();
@@ -1033,10 +1006,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
             assertTrue("additionalName not readable", propDef.canRead());
         }, PrismTestUtil.createPolyString("Jackie"));
 
-
         assertPropertyValues(user, UserType.F_COST_CENTER, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
             assertNotNull("No definition for costCenter in user", propDef);
-            assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
+            assertEquals("Wrong costCenter displayOrder", (Integer) 123, propDef.getDisplayOrder());
             assertTrue("costCenter not readable", propDef.canRead());
         });
 
@@ -1051,12 +1023,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 });
 
         assertContainer(user, UserType.F_CREDENTIALS, (credentialsDef, name) -> {
-                assertNotNull("No definition for credentials in user", credentialsDef);
-                assertTrue("Credentials not readable", credentialsDef.canRead());
-            }, true);
+            assertNotNull("No definition for credentials in user", credentialsDef);
+            assertTrue("Credentials not readable", credentialsDef.canRead());
+        }, true);
 
         assertProperty(user, ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-            (propDef, name) -> assertTrue("Password not readable", propDef.canRead()));
+                (propDef, name) -> assertTrue("Password not readable", propDef.canRead()));
 
         assertSteadyResources();
     }
@@ -1099,9 +1071,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertPropertyValues(user, UserType.F_COST_CENTER, (propDef, name) -> {
             assertNotNull("No definition for costCenter in user", propDef);
-            assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
+            assertEquals("Wrong costCenter displayOrder", (Integer) 123, propDef.getDisplayOrder());
             assertTrue("costCenter not readable", propDef.canRead());
-        },"G001"); // This is set by user template
+        }, "G001"); // This is set by user template
 
         assertPropertyValues(user, UserType.F_PREFERRED_LANGUAGE, (propDef, name) -> {
             assertNotNull("No definition for preferredLanguage in user", propDef);
@@ -1111,7 +1083,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
             assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
             assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
         }, "en_PR");
-
 
         assertContainer(user, UserType.F_CREDENTIALS, (Validator<PrismContainerDefinition<CredentialsType>>) (credentialsDef, name) -> {
             assertNotNull("No definition for credentials in user", credentialsDef);
@@ -1132,7 +1103,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         PrismObject<TaskType> task = taskDef.instantiate();
         task.asObjectable()
                 .beginAssignment()
-                    .targetRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE);
+                .targetRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE);
 
         display("Task before", task);
 
@@ -1144,7 +1115,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         then();
 
         assertObjectDefinition(editDef)
-            .container(ObjectType.F_EXTENSION)
+                .container(ObjectType.F_EXTENSION)
                 .assertSize(7)
                 .assertProperty(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS)
                 .assertProperty(SchemaConstants.MODEL_EXTENSION_KIND)
@@ -1215,7 +1186,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 + "; ";
         assertClassType(message, identifiersDef, ResourceAttributeContainerDefinition.class);
 
-
         assertSteadyResources();
     }
 
@@ -1227,7 +1197,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, dummyResourceCtl.getAccountObjectClassQName());
-        PrismTestUtil.display("Discr", discr);
+        displayDumpable("Discr", discr);
 
         // WHEN
         when();
@@ -1258,7 +1228,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(null, null);
-        PrismTestUtil.display("Discr", discr);
+        displayDumpable("Discr", discr);
 
         // WHEN
         when();
@@ -1316,8 +1286,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions();
 
         // THEN
-         then();
-         display("Relations", relations);
+        then();
+        display("Relations", relations);
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "Master");
         assertRelationDef(relations, RELATION_PIRACY_CAPTAIN, "Captain");
@@ -1340,7 +1310,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         when();
         PrismObjectDefinition<UserType> editDef = getEditObjectDefinition(user);
-        display("Otis edit schema", editDef);
+        displayDumpable("Otis edit schema", editDef);
 
         // THEN
         then();
@@ -1361,7 +1331,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         PrismPropertyDefinition<String> costCenterDef = editDef.findPropertyDefinition(UserType.F_COST_CENTER);
         assertNotNull("No definition for costCenter in user", costCenterDef);
-        assertEquals("Wrong costCenter displayOrder", (Integer)123, costCenterDef.getDisplayOrder());
+        assertEquals("Wrong costCenter displayOrder", (Integer) 123, costCenterDef.getDisplayOrder());
         assertTrue("costCenter is readable", !costCenterDef.canRead());
         assertTrue("costCenter is creatable", !costCenterDef.canAdd());
         assertTrue("costCenter is modifiable", !costCenterDef.canModify());
@@ -1384,7 +1354,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         ItemPath passwordValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
         PrismPropertyDefinition<ProtectedStringType> passwordValDef = editDef.findPropertyDefinition(passwordValPath);
-        assertNotNull("No definition for "+passwordValPath+" in user", passwordValDef);
+        assertNotNull("No definition for " + passwordValPath + " in user", passwordValDef);
         assertTrue("Password is readable", !passwordValDef.canRead());
         assertTrue("Password is creatable", !passwordValDef.canAdd());
         assertTrue("Password is modifiable", !passwordValDef.canModify());
@@ -1414,33 +1384,33 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertPropertyValues(user, UserType.F_NAME, (propDef, name) -> {
             assertNotNull("No definition for name in user", propDef);
             assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
-            assertTrue(name+" not readable", propDef.canRead());
-            assertTrue(name+" is creatable", !propDef.canAdd());
-            assertTrue(name+" is modifiable", !propDef.canModify());
+            assertTrue(name + " not readable", propDef.canRead());
+            assertTrue(name + " is creatable", !propDef.canAdd());
+            assertTrue(name + " is modifiable", !propDef.canModify());
         }, PrismTestUtil.createPolyString("jack"));
 
         assertPropertyValues(user, UserType.F_DESCRIPTION, (propDef, name) -> {
             assertNotNull("No definition for description in user", propDef);
             assertEquals("Wrong description displayName", "Comment", propDef.getDisplayName());
-            assertTrue(name+" not readable", propDef.canRead());
-            assertTrue(name+" is creatable", !propDef.canAdd());
-            assertTrue(name+" not modifiable", propDef.canModify());
+            assertTrue(name + " not readable", propDef.canRead());
+            assertTrue(name + " is creatable", !propDef.canAdd());
+            assertTrue(name + " not modifiable", propDef.canModify());
         }, "Where's the rum?");
 
         assertPropertyValues(user, UserType.F_ADDITIONAL_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
             assertNotNull("No definition for additionalName in user", propDef);
             assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
-            assertTrue(name+" is readable", !propDef.canRead());
-            assertTrue(name+" is creatable", !propDef.canAdd());
-            assertTrue(name+" not modifiable", propDef.canModify());
+            assertTrue(name + " is readable", !propDef.canRead());
+            assertTrue(name + " is creatable", !propDef.canAdd());
+            assertTrue(name + " not modifiable", propDef.canModify());
         });
 
         assertPropertyValues(user, UserType.F_COST_CENTER, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
             assertNotNull("No definition for costCenter in user", propDef);
-            assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
-            assertTrue(name+" is readable", !propDef.canRead());
-            assertTrue(name+" is creatable", !propDef.canAdd());
-            assertTrue(name+" is modifiable", !propDef.canModify());
+            assertEquals("Wrong costCenter displayOrder", (Integer) 123, propDef.getDisplayOrder());
+            assertTrue(name + " is readable", !propDef.canRead());
+            assertTrue(name + " is creatable", !propDef.canAdd());
+            assertTrue(name + " is modifiable", !propDef.canModify());
         });
 
         assertPropertyValues(user, UserType.F_PREFERRED_LANGUAGE, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
@@ -1449,9 +1419,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
             PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
             assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
             assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
-            assertTrue(name+" is readable", !propDef.canRead());
-            assertTrue(name+" is creatable", !propDef.canAdd());
-            assertTrue(name+" is modifiable", !propDef.canModify());
+            assertTrue(name + " is readable", !propDef.canRead());
+            assertTrue(name + " is creatable", !propDef.canAdd());
+            assertTrue(name + " is modifiable", !propDef.canModify());
         });
 
         PrismAsserts.assertNoItem(user, UserType.F_CREDENTIALS);
@@ -1480,27 +1450,27 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertEquals("Unexpected number of users found", 7, users.size());
 
-        for (final PrismObject<UserType> user: users) {
+        for (final PrismObject<UserType> user : users) {
             assertProperty(user, UserType.F_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
                 assertNotNull("No definition for name in user", propDef);
                 assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
-                assertTrue(name+" of "+user+" not readable", propDef.canRead());
-                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
+                assertTrue(name + " of " + user + " not readable", propDef.canRead());
+                assertTrue(name + " of " + user + " is creatable", !propDef.canAdd());
+                assertTrue(name + " of " + user + " is modifiable", !propDef.canModify());
             });
             assertProperty(user, UserType.F_ADDITIONAL_NAME, (Validator<PrismPropertyDefinition<PolyString>>) (propDef, name) -> {
                 assertNotNull("No definition for additionalName in user", propDef);
                 assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
-                assertTrue(name+" of "+user+" is readable", !propDef.canRead());
-                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                assertTrue(name+" of "+user+" not modifiable", propDef.canModify());
+                assertTrue(name + " of " + user + " is readable", !propDef.canRead());
+                assertTrue(name + " of " + user + " is creatable", !propDef.canAdd());
+                assertTrue(name + " of " + user + " not modifiable", propDef.canModify());
             });
             assertProperty(user, UserType.F_COST_CENTER, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
                 assertNotNull("No definition for costCenter in user", propDef);
-                assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
-                assertTrue(name+" of "+user+" is readable", !propDef.canRead());
-                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
+                assertEquals("Wrong costCenter displayOrder", (Integer) 123, propDef.getDisplayOrder());
+                assertTrue(name + " of " + user + " is readable", !propDef.canRead());
+                assertTrue(name + " of " + user + " is creatable", !propDef.canAdd());
+                assertTrue(name + " of " + user + " is modifiable", !propDef.canModify());
             });
 
             assertProperty(user, UserType.F_PREFERRED_LANGUAGE, (Validator<PrismPropertyDefinition<String>>) (propDef, name) -> {
@@ -1509,9 +1479,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
                 assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
                 assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
-                assertTrue(name+" of "+user+" is readable", !propDef.canRead());
-                assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
-                assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
+                assertTrue(name + " of " + user + " is readable", !propDef.canRead());
+                assertTrue(name + " of " + user + " is creatable", !propDef.canAdd());
+                assertTrue(name + " of " + user + " is modifiable", !propDef.canModify());
             });
 
             PrismAsserts.assertNoItem(user, UserType.F_CREDENTIALS);
@@ -1538,7 +1508,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
                 .name("Reconciliation")
                 .archetypeRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE)
                 .beginAssignment()
-                    .targetRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE)
+                .targetRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE)
                 .<TaskType>end()
                 .executionStatus(TaskExecutionStatusType.SUSPENDED)
                 .recurrence(TaskRecurrenceType.SINGLE)
@@ -1562,7 +1532,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
     private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, ItemPath path,
             Validator<PrismPropertyDefinition<T>> validator) throws Exception {
-        assertPropertyValues(object, path, validator, (T[])null);
+        assertPropertyValues(object, path, validator, (T[]) null);
     }
 
     @SuppressWarnings("unchecked")
@@ -1572,35 +1542,35 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         if (expectedValues == null) {
             if (prop != null) {
                 PrismPropertyDefinition<T> propDef = prop.getDefinition();
-                assertNotNull("No definition in property "+path, propDef);
+                assertNotNull("No definition in property " + path, propDef);
                 try {
-                    validator.validate(propDef, path.toString()+" (propDef) ");
+                    validator.validate(propDef, path.toString() + " (propDef) ");
                 } catch (Exception | Error e) {
-                    PrismTestUtil.display("Wrong definition", propDef);
+                    displayDumpable("Wrong definition", propDef);
                     throw e;
                 }
             }
         } else if (expectedValues.length == 0) {
-            assertNull("Unexpected property "+path+" in "+object+": "+prop, prop);
+            assertNull("Unexpected property " + path + " in " + object + ": " + prop, prop);
         } else {
-            assertNotNull("No property "+path+" in "+object, prop);
+            assertNotNull("No property " + path + " in " + object, prop);
             PrismAsserts.assertPropertyValue(prop, expectedValues);
             PrismPropertyDefinition<T> propDef = prop.getDefinition();
-            assertNotNull("No definition in property "+path, propDef);
+            assertNotNull("No definition in property " + path, propDef);
             try {
-                validator.validate(propDef, path.toString()+" (propDef) ");
+                validator.validate(propDef, path.toString() + " (propDef) ");
             } catch (Exception | Error e) {
-                PrismTestUtil.display("Wrong definition", propDef);
+                displayDumpable("Wrong definition", propDef);
                 throw e;
             }
         }
 
         PrismPropertyDefinition<T> objPropDef = object.getDefinition().findPropertyDefinition(path);
-        assertNotNull("No definition of property "+path+" in object "+object, objPropDef);
+        assertNotNull("No definition of property " + path + " in object " + object, objPropDef);
         try {
-            validator.validate(objPropDef, path.toString()+" (objectDef) ");
+            validator.validate(objPropDef, path.toString() + " (objectDef) ");
         } catch (Exception | Error e) {
-            PrismTestUtil.display("Wrong definition", objPropDef);
+            displayDumpable("Wrong definition", objPropDef);
             throw e;
         }
 
@@ -1610,23 +1580,22 @@ public class TestEditSchema extends AbstractGenericSyncTest {
             Validator<PrismContainerDefinition<C>> validator, boolean valueExpected) throws Exception {
         PrismContainer<C> container = object.findContainer(contName);
         if (valueExpected) {
-            assertNotNull("No container "+contName+" in "+object, container);
+            assertNotNull("No container " + contName + " in " + object, container);
             PrismContainerDefinition<C> contDef = container.getDefinition();
-            assertNotNull("No definition in container "+contName, contDef);
+            assertNotNull("No definition in container " + contName, contDef);
             validator.validate(contDef, contName.toString());
         } else {
-            assertNull("Unexpected container "+contName+" in "+object+": "+container, container);
+            assertNull("Unexpected container " + contName + " in " + object + ": " + container, container);
         }
 
         PrismContainerDefinition<C> objContDef = object.getDefinition().findContainerDefinition(contName);
-        assertNotNull("No definition of container "+contName+" in object "+object, objContDef);
+        assertNotNull("No definition of container " + contName + " in object " + object, objContDef);
         validator.validate(objContDef, contName.toString());
     }
 
     private void assertUntouchedUserDefinition() {
         // WHEN
         PrismObjectDefinition<UserType> userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-
 
         // THEN
 
@@ -1646,7 +1615,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         PrismPropertyDefinition<String> costCenterDef = userDefinition.findPropertyDefinition(UserType.F_COST_CENTER);
         assertNotNull("No definition for costCenter in user", costCenterDef);
-        assertEquals("Wrong costCenter displayOrder", (Integer)420, costCenterDef.getDisplayOrder());
+        assertEquals("Wrong costCenter displayOrder", (Integer) 420, costCenterDef.getDisplayOrder());
         assertTrue("costCenter not readable", costCenterDef.canRead());
         assertTrue("costCenter not creatable", costCenterDef.canAdd());
         assertTrue("costCenter not modifiable", costCenterDef.canModify());
@@ -1672,7 +1641,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         ItemPath passwordValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
         PrismPropertyDefinition<ProtectedStringType> passwordValDef = userDefinition.findPropertyDefinition(passwordValPath);
-        assertNotNull("No definition for "+passwordValPath+" in user", passwordValDef);
+        assertNotNull("No definition for " + passwordValPath + " in user", passwordValDef);
         assertTrue("Password not readable", passwordValDef.canRead());
         assertTrue("Password not creatable", passwordValDef.canAdd());
         assertTrue("Password not modifiable", passwordValDef.canModify());

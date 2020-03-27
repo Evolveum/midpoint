@@ -120,7 +120,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  */
 @Listeners({ CurrentTestResultHolder.class })
 public abstract class AbstractIntegrationTest extends AbstractSpringTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
@@ -300,7 +300,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             if (result != null) {
                 result.computeStatusIfUnknown();
                 if (result.isTraced()) {
-                    System.out.println("Storing the trace.");
+                    display("Storing the trace.");
                     tracer.storeTrace(task, result, null);
                 }
                 task.getResult().computeStatusIfUnknown();
@@ -1155,7 +1155,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertCounterIncrement(InternalCounters counter, int expectedIncrement) {
         long currentCount = InternalMonitor.getCount(counter);
         long actualIncrement = currentCount - getLastCount(counter);
-        assertEquals("Unexpected increment in " + counter.getLabel(), (long) expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in " + counter.getLabel(), expectedIncrement, actualIncrement);
         lastCountMap.put(counter, currentCount);
     }
 
@@ -1182,13 +1182,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
         long actualIncrement = currentStats.getHits() - lastStats.getHits();
-        assertEquals("Unexpected increment in " + desc + " hit count", (long) expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in " + desc + " hit count", expectedIncrement, actualIncrement);
         lastStats.setHits(currentStats.getHits());
     }
 
     protected void assertCacheMisses(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
         long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
-        assertEquals("Unexpected increment in " + desc + " miss count", (long) expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in " + desc + " miss count", expectedIncrement, actualIncrement);
         lastStats.setMisses(currentStats.getMisses());
     }
 
@@ -1221,7 +1221,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertDummyResourceGroupMembersReadCountIncrement(String instanceName, int expectedIncrement) {
         long currentDummyResourceGroupMembersReadCount = DummyResource.getInstance(instanceName).getGroupMembersReadCount();
         long actualIncrement = currentDummyResourceGroupMembersReadCount - lastDummyResourceGroupMembersReadCount;
-        assertEquals("Unexpected increment in group members read count in dummy resource '" + instanceName + "'", (long) expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in group members read count in dummy resource '" + instanceName + "'", expectedIncrement, actualIncrement);
         lastDummyResourceGroupMembersReadCount = currentDummyResourceGroupMembersReadCount;
     }
 
@@ -1232,7 +1232,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertDummyResourceWriteOperationCountIncrement(String instanceName, int expectedIncrement) {
         long currentCount = DummyResource.getInstance(instanceName).getWriteOperationCount();
         long actualIncrement = currentCount - lastDummyResourceWriteOperationCount;
-        assertEquals("Unexpected increment in write operation count in dummy resource '" + instanceName + "'", (long) expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in write operation count in dummy resource '" + instanceName + "'", expectedIncrement, actualIncrement);
         lastDummyResourceWriteOperationCount = currentCount;
     }
 
@@ -1273,7 +1273,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadow;
     }
 
-    protected PrismObject<ShadowType> findAccountShadowByUsername(String username, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    protected PrismObject<ShadowType> findAccountShadowByUsername(
+            String username, PrismObject<ResourceType> resource, OperationResult result)
+            throws SchemaException {
         ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(username, resource);
         List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (accounts.isEmpty()) {
@@ -1283,7 +1285,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return accounts.iterator().next();
     }
 
-    protected PrismObject<ShadowType> findShadowByName(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    protected PrismObject<ShadowType> findShadowByName(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException {
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind, intent);
         ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
@@ -1295,7 +1297,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadows.iterator().next();
     }
 
-    protected PrismObject<ShadowType> findShadowByName(QName objectClass, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    protected PrismObject<ShadowType> findShadowByName(QName objectClass, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException {
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(objectClass);
         ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
@@ -1327,7 +1329,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return createShadowQuerySecondaryIdentifier(rAccount, identifier, resource);
     }
 
-    protected ObjectQuery createShadowQuerySecondaryIdentifier(ObjectClassComplexTypeDefinition rAccount, String identifier, PrismObject<ResourceType> resource) throws SchemaException {
+    protected ObjectQuery createShadowQuerySecondaryIdentifier(ObjectClassComplexTypeDefinition rAccount, String identifier, PrismObject<ResourceType> resource) {
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
@@ -1345,7 +1347,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return createShadowQueryByAttribute(rAccount, attributeName, attributeValue, resource);
     }
 
-    protected ObjectQuery createShadowQueryByAttribute(ObjectClassComplexTypeDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
+    protected ObjectQuery createShadowQueryByAttribute(ObjectClassComplexTypeDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) {
         ResourceAttributeDefinition<Object> attrDef = rAccount.findAttributeDefinition(attributeName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
@@ -1354,7 +1356,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .build();
     }
 
-    protected ObjectQuery createOrgSubtreeQuery(String orgOid) throws SchemaException {
+    protected ObjectQuery createOrgSubtreeQuery(String orgOid) {
         return queryFor(ObjectType.class)
                 .isChildOf(orgOid)
                 .build();
@@ -1378,9 +1380,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     // objectClassName may be null
     protected RefinedAttributeDefinition getAttributeDefinition(ResourceType resourceType,
-            ShadowKindType kind,
-            QName objectClassName,
-            String attributeLocalName) throws SchemaException {
+            ShadowKindType kind, QName objectClassName, String attributeLocalName)
+            throws SchemaException {
         RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition refinedObjectClassDefinition =
                 refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
@@ -1885,10 +1886,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     public static void display(String title, List<Element> elements) {
         IntegrationTestTools.display(title, elements);
-    }
-
-    public void display(String title, DebugDumpable dumpable) {
-        PrismTestUtil.display(title, dumpable);
     }
 
     public void displayValue(String title, Object value) {
@@ -2398,10 +2395,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     if (!expectedOid.equals(hasRef.getOid())) {
                         return false;
                     }
-                    if (!prismContext.relationMatches(relation, hasRef.getRelation())) {
-                        return false;
-                    }
-                    return true;
+                    return prismContext.relationMatches(relation, hasRef.getRelation());
                 })) {
             AssertJUnit.fail("Wrong values in roleMembershipRef in " + focus
                     + ", expected relation " + relation + ", OIDs " + Arrays.toString(roleOids)

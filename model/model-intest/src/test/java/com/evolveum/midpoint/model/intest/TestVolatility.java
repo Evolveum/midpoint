@@ -340,7 +340,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME,
                 DummyAccount.ATTR_INTERESTS_NAME, "foo", "bar", DummyResource.VALUE_COOKIE);
     }
@@ -372,7 +372,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME,
                 DummyAccount.ATTR_INTERESTS_NAME,
                 "foo", "bar", DummyResource.VALUE_COOKIE, DummyResource.VALUE_MONSTER);

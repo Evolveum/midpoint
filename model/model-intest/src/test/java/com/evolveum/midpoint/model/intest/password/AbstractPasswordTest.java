@@ -127,7 +127,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     protected String accountJackMaverickOid;
     protected XMLGregorianCalendar lastPasswordChangeStart;
     protected XMLGregorianCalendar lastPasswordChangeEnd;
-    private String ministrySecurityPolicyOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -827,7 +826,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // Check account in dummy resource (yellow)
         DummyAccount dummyAccountYellow = assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        display("Yellow dummy account", dummyAccountYellow);
+        displayDumpable("Yellow dummy account", dummyAccountYellow);
         assertDummyPasswordConditionalGenerated(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 
         // Other resources should have unchanged passwords
@@ -4043,7 +4042,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 .beginPassword()
                 .valuePolicyRef(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE)
                 .historyLength(ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH);
-        ministrySecurityPolicyOid = addObject(securityPolicy, task, result);
+        String ministrySecurityPolicyOid = addObject(securityPolicy, task, result);
 
         PrismReferenceValue securityPolicyRef = itemFactory().createReferenceValue();
         securityPolicyRef.setOid(ministrySecurityPolicyOid);

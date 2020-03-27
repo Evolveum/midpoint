@@ -143,7 +143,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertPercentCompleteAll(campaign, 0, 0, 0);
 
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -282,7 +282,7 @@ public class TestEscalation extends AbstractCertificationTest {
         display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action (P3D)
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
         List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
         assertEquals("Wrong # of dummy notifications", 3, messages.size());            // original + new approver + deputy of administrator
     }
@@ -349,7 +349,7 @@ public class TestEscalation extends AbstractCertificationTest {
         display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size());           // completion
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
         List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
         assertEquals("Wrong # of dummy notifications", 1, messages.size());            // new approver
     }
@@ -463,7 +463,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertPercentCompleteAll(campaign, 14, 14, 14);
 
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -587,7 +587,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertPercentCompleteAll(campaign, 14, 14, 14);
 
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test

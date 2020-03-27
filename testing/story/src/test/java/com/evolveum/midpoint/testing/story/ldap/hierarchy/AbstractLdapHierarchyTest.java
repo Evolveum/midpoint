@@ -412,7 +412,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         // WHEN
         when();
 
-        display("Modifying " + orgBefore + "with delta", delta);
+        displayDumpable("Modifying " + orgBefore + "with delta", delta);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN

@@ -971,7 +971,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void assertPrincipalJack(MidPointPrincipal principal) {
-        display("principal", principal);
+        displayDumpable("principal", principal);
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getName().getOrig());
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getUsername());
         FocusType user = principal.getFocus();

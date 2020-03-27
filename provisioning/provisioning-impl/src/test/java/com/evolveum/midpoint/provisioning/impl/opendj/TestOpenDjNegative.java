@@ -313,7 +313,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         try {
 
@@ -591,7 +591,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         // WHEN
         provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),

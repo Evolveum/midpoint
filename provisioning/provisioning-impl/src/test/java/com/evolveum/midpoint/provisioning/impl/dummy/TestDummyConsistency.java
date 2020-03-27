@@ -603,7 +603,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_HM);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         // WHEN
         when();
@@ -768,7 +768,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_CHM);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         // WHEN
         when();
@@ -944,7 +944,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_HM);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         // WHEN
         when();
@@ -1107,7 +1107,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_HM);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         // WHEN
         when();

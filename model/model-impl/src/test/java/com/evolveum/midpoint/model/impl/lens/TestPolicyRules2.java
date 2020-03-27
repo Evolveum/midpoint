@@ -136,7 +136,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, roleStudentOid);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -176,7 +176,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         fillContextWithUser(context, userJoeOid, result);
         addModificationToContextAssignRole(context, userJoeOid, roleStudentOid);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -223,7 +223,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .item(UserType.F_ASSIGNMENT).add(assignment)
                 .item(UserType.F_COST_CENTER).replace("1900")
                 .asObjectDelta(USER_JACK_OID));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -272,7 +272,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .item(UserType.F_ASSIGNMENT).add(assignment)
                 .item(UserType.F_COST_CENTER).replace("1900")
                 .asObjectDelta(USER_JACK_OID));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -300,14 +300,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
-
-//        assertAssignmentPolicySituation(context, roleStudentOid,
-//                SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED,
-//                SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE);
-//        assertFocusPolicySituation(context,
-//                SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE,
-//                SchemaConstants.MODEL_POLICY_SITUATION_HAS_ASSIGNMENT,
-//                SchemaConstants.MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT);
     }
 
     @Test
@@ -323,7 +315,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
         context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).replace()
                 .asObjectDelta(USER_JACK_OID));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -362,7 +354,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -418,7 +410,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -463,7 +455,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                                 .administrativeStatus(ActivationStatusType.DISABLED)
                                 .<AssignmentType>end())
                 .asObjectDelta(userFrankOid));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -501,7 +493,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithAddUserDelta(context, prismContext.parseObject(USER_PETER_FILE));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -538,7 +530,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithAddUserDelta(context, prismContext.parseObject(USER_PETER_FILE));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -569,13 +561,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION,
                 "cc-from-1900-false-true", "has-student-assignment-false-true",
                 "has-student-assignment-false-any");
-
-//        assertAssignmentPolicySituation(context, roleStudentOid,
-//                SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE);
-//        assertFocusPolicySituation(context,
-//                SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE,
-//                SchemaConstants.MODEL_POLICY_SITUATION_HAS_ASSIGNMENT,
-//                SchemaConstants.MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT);
     }
 
     /**
@@ -589,7 +574,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
         fillContextWithFocus(context, RoleType.class, roleStudentOid, result);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -622,7 +607,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
         fillContextWithAddDelta(context, prismContext.parseObject(ROLE_UNRESOLVABLE_REFERENCES_FILE));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -648,7 +633,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
         fillContextWithAddDelta(context, prismContext.parseObject(ROLE_CYCLIC_REFERENCES_FILE));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -675,7 +660,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
         fillContextWithAddDelta(context, prismContext.parseObject(ROLE_CHAINED_REFERENCES_FILE));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -684,11 +669,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
         clockwork.run(context, task, result);
 
         then();
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
         Map<String, EvaluatedPolicyRule> rules = new HashMap<>();
         forEvaluatedFocusPolicyRule(context, (r) -> {
-            display("rule", r);
+            displayDumpable("rule", r);
             rules.put(r.getName(), r);
         });
 
@@ -732,7 +717,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
         LensContext<RoleType> context = createLensContext(RoleType.class);
         fillContextWithAddDelta(context, prismContext.parseObject(ROLE_AMBIGUOUS_REFERENCE_FILE));
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -763,7 +748,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .asObjectDeltaCast(roleImmutableInducementsOid);
         LensContext<RoleType> context = createLensContext(RoleType.class);
         context.createFocusContext().setPrimaryDelta(delta);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -794,7 +779,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .asObjectDeltaCast(roleNoInducementsAddDeleteOid);
         LensContext<RoleType> context = createLensContext(RoleType.class);
         context.createFocusContext().setPrimaryDelta(delta);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -818,7 +803,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .asObjectDeltaCast(roleNoInducementsAddDeleteViaExpressionOid);
         LensContext<RoleType> context = createLensContext(RoleType.class);
         context.createFocusContext().setPrimaryDelta(delta);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -842,7 +827,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .asObjectDeltaCast(roleNoInducementsAddDeleteOid);
         LensContext<RoleType> context = createLensContext(RoleType.class);
         context.createFocusContext().setPrimaryDelta(delta);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -873,7 +858,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 .asObjectDeltaCast(roleNoInducementsAddDeleteViaExpressionOid);
         LensContext<RoleType> context = createLensContext(RoleType.class);
         context.createFocusContext().setPrimaryDelta(delta);
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 

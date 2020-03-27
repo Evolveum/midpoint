@@ -200,7 +200,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     }
 
     protected void dumpGlobalCachePerformanceData() {
-        display("Cache performance data for " + getTestNameShort()
+        displayDumpable("Cache performance data for " + getTestNameShort()
                 + " (got from cache performance collector)", CachePerformanceCollector.INSTANCE);
     }
 

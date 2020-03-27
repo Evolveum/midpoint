@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.tools.testng;
 
+import java.time.LocalTime;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,18 +23,19 @@ public interface MidpointTestMixin {
 
     String TEST_LOG_PREFIX = "=====[ ";
     String TEST_LOG_SUFFIX = " ]======================================";
-    String TEST_OUT_PREFIX = "\n=====[ ";
-    String TEST_OUT_SUFFIX = " ]======================================\n";
+    String TEST_OUT_PREFIX = "=====[ ";
+    String TEST_OUT_SUFFIX = " ]======================================";
     String TEST_OUT_FOOTER_PREFIX = "====== ";
     String TEST_OUT_FOOTER_SUFFIX = "\n";
 
-    String TEST_OUT_SECTION_PREFIX = "\n----- ";
-    String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
+    String TEST_OUT_SECTION_PREFIX = "----- ";
+    String TEST_OUT_SECTION_SUFFIX = " --------------------------------------";
     String TEST_LOG_SECTION_PREFIX = "----- ";
     String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
 
-    String DISPLAY_OUT_PREFIX = "\n*** ";
-    String DISPLAY_LOG_FORMAT1 = "*** {}:";
+    String DISPLAY_OUT_PREFIX = "*** ";
+    String DISPLAY_LOG_FORMAT1 = "*** {}";
+    String DISPLAY_LOG_FORMAT1_COLON = "*** {}:";
     String DISPLAY_LOG_FORMAT2 = "*** {}:\n{}";
 
     /**
@@ -116,11 +118,22 @@ public interface MidpointTestMixin {
     }
 
     /**
+     * Common print to stdout to add common stuff to text, e.g. time and thread header.
+     */
+    // TODO switch to private after ditching JDK 8, DON'T USE/DON'T OVERRIDE!
+    /*private*/
+    default void println(String string) {
+        System.out.println("\n>>> " + LocalTime.now().toString()
+                + " thread=[" + Thread.currentThread().getName() + "]");
+        System.out.println(string);
+    }
+
+    /**
      * Displays test header with provided title text.
      * Not intended for test method body, used by lifecycle methods in our test superclasses.
      */
     default void displayTestTitle(String testTitle) {
-        System.out.println(TEST_OUT_PREFIX + testTitle + TEST_OUT_SUFFIX);
+        println(TEST_OUT_PREFIX + testTitle + TEST_OUT_SUFFIX);
         logger().info(TEST_LOG_PREFIX + testTitle + TEST_LOG_SUFFIX);
     }
 
@@ -146,21 +159,20 @@ public interface MidpointTestMixin {
      * Not intended for test method body, used by lifecycle methods in our test superclasses.
      */
     default void displayTestFooter(String footerText) {
-        System.out.println(TEST_OUT_FOOTER_PREFIX + footerText + TEST_OUT_FOOTER_SUFFIX);
+        println(TEST_OUT_FOOTER_PREFIX + footerText + TEST_OUT_FOOTER_SUFFIX);
         logger().info(TEST_LOG_PREFIX + footerText + TEST_LOG_SUFFIX);
     }
 
     default void display(String text) {
-        System.out.println("\n*** " + text);
-        logger().info("*** {}", text);
+        println(DISPLAY_OUT_PREFIX + text);
+        logger().info(DISPLAY_LOG_FORMAT1, text);
     }
-
 
     /**
      * Displays value prefixed with provided title.
      */
     default void displayValue(String title, Object value) {
-        System.out.println(DISPLAY_OUT_PREFIX + title + "\n" + value);
+        println(DISPLAY_OUT_PREFIX + title + "\n" + value);
         logger().info(DISPLAY_LOG_FORMAT2, title, value);
     }
 
@@ -169,9 +181,9 @@ public interface MidpointTestMixin {
      * Use for "bad" exceptions, for expected exceptions use {@link #displayExpectedException}.
      */
     default void displayException(String title, Throwable e) {
-        System.out.println(DISPLAY_OUT_PREFIX + title + ":");
+        println(DISPLAY_OUT_PREFIX + title + ":");
         e.printStackTrace(System.out);
-        logger().warn(DISPLAY_LOG_FORMAT1, title, e);
+        logger().warn(DISPLAY_LOG_FORMAT1_COLON, title, e);
     }
 
     /**
@@ -179,7 +191,7 @@ public interface MidpointTestMixin {
      */
     default void displayExpectedException(Throwable e) {
         String expectedExceptionWithClass = "Expected exception " + e.getClass();
-        System.out.println(DISPLAY_OUT_PREFIX + expectedExceptionWithClass + ":\n" + e.getMessage());
+        println(DISPLAY_OUT_PREFIX + expectedExceptionWithClass + ":\n" + e.getMessage());
         logger().info(DISPLAY_LOG_FORMAT2, expectedExceptionWithClass, e.getMessage());
     }
 
@@ -199,7 +211,7 @@ public interface MidpointTestMixin {
         if (description == null) {
             description = "";
         }
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": GIVEN " + description + TEST_OUT_SECTION_SUFFIX);
+        println(TEST_OUT_SECTION_PREFIX + testName + ": GIVEN " + description + TEST_OUT_SECTION_SUFFIX);
         logger().info(TEST_LOG_SECTION_PREFIX + testName + ": GIVEN " + description + TEST_LOG_SECTION_SUFFIX);
     }
 
@@ -219,7 +231,7 @@ public interface MidpointTestMixin {
         if (description == null) {
             description = "";
         }
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": WHEN " + description + TEST_OUT_SECTION_SUFFIX);
+        println(TEST_OUT_SECTION_PREFIX + testName + ": WHEN " + description + TEST_OUT_SECTION_SUFFIX);
         logger().info(TEST_LOG_SECTION_PREFIX + testName + ": WHEN " + description + TEST_LOG_SECTION_SUFFIX);
     }
 
@@ -239,7 +251,7 @@ public interface MidpointTestMixin {
         if (description == null) {
             description = "";
         }
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": THEN " + description + TEST_OUT_SECTION_SUFFIX);
+        println(TEST_OUT_SECTION_PREFIX + testName + ": THEN " + description + TEST_OUT_SECTION_SUFFIX);
         logger().info(TEST_LOG_SECTION_PREFIX + testName + ": THEN " + description + TEST_LOG_SECTION_SUFFIX);
     }
 
@@ -261,7 +273,7 @@ public interface MidpointTestMixin {
         if (description == null) {
             description = "";
         }
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_OUT_SECTION_SUFFIX);
+        println(TEST_OUT_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_OUT_SECTION_SUFFIX);
         logger().info(TEST_LOG_SECTION_PREFIX + testName + ": EXPECT " + description + TEST_LOG_SECTION_SUFFIX);
     }
 

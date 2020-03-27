@@ -334,7 +334,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test006Schema() throws Exception {
         // WHEN
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
-        display("Resource schema", resourceSchema);
+        displayDumpable("Resource schema", resourceSchema);
 
         ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
@@ -482,13 +482,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
         ObjectClassComplexTypeDefinition normalDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "normalTestingObjectClass"));
-        display("normalTestingObjectClass object class def", normalDef);
+        displayDumpable("normalTestingObjectClass object class def", normalDef);
         assertNotNull("No definition for normalTestingObjectClass", normalDef);
         assertNotNull("The cn attribute missing in normalTestingObjectClass",
                 normalDef.findAttributeDefinition(new QName(normalDef.getTypeName().getNamespaceURI(), "cn")));
 
         ObjectClassComplexTypeDefinition hybridDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "hybridTestingObjectClass"));
-        display("Hybrid object class def", hybridDef);
+        displayDumpable("Hybrid object class def", hybridDef);
         assertNotNull("No definition for hybridTestingObjectClass", hybridDef);
         assertNotNull("The cn attribute missing in hybridTestingObjectClass",
                 hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "cn")));
@@ -496,7 +496,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
 
         ObjectClassComplexTypeDefinition uuidDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "uuidIdentifiedObjectClass"));
-        display("uuidIdentifiedObjectClass object class def", uuidDef);
+        displayDumpable("uuidIdentifiedObjectClass object class def", uuidDef);
         assertNotNull("No definition for uuidIdentifiedObjectClass", uuidDef);
         assertNotNull("The uuidIdentifiedAttribute attribute missing in uuidIdentifiedObjectClass",
                 uuidDef.findAttributeDefinition(new QName(uuidDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
@@ -518,7 +518,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         // WHEN
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext);
-        display("Refined schema", refinedSchema);
+        displayDumpable("Refined schema", refinedSchema);
 
         // Check whether it is reusing the existing schema and not parsing it
         // all over again
@@ -924,7 +924,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 .createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
         ((Collection) delta.getModifications()).add(renameDelta);
 
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         // WHEN
         when();
@@ -1099,7 +1099,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "account-change-password.xml"), ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, accountType.asPrismObject().getDefinition());
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         // WHEN
         when();
@@ -1348,7 +1348,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
                 REQUEST_DISABLE_ACCOUNT_SIMULATED_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         // WHEN
         when();
@@ -2104,7 +2104,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_POSIX_MCMUTTON_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, getShadowDefinition());
 
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         // WHEN
         when();
@@ -2485,7 +2485,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_MORGAN_OID,
                 ASSOCIATION_GROUP_NAME, GROUP_CORSAIRS_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2573,7 +2573,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
                 RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -2597,7 +2597,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
                 ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -2621,7 +2621,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
                 ShadowKindType.ENTITLEMENT, "specialGroup", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -2686,7 +2686,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
                 ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -2710,7 +2710,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
                 ShadowKindType.ENTITLEMENT, "specialGroup", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -2742,7 +2742,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
                 ShadowKindType.GENERIC, "ou-people", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         // WHEN
         when();
@@ -2795,7 +2795,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<PolyString> descAttr = attributesContainer.findProperty(ATTRIBUTE_DESCRIPTION_QNAME);
         PolyString descriptionPolyStringAfter = descAttr.getValues().get(0).getValue();
-        display("description after (shadow)", descriptionPolyStringAfter);
+        displayDumpable("description after (shadow)", descriptionPolyStringAfter);
 
         assertEquals("Wrong orig in description polystring (shadow)", ACCOUNT_POLY_DESCRIPTION_ORIG, descriptionPolyStringAfter.getOrig());
 

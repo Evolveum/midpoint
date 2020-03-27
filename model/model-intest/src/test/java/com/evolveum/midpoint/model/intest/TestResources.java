@@ -711,7 +711,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     private void assertDummyConfigurationContainerDefinition(
             PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition,
             String desc) {
-        display("Dummy configuration container definition "+desc, configurationContainerDefinition);
+        displayDumpable("Dummy configuration container definition "+desc, configurationContainerDefinition);
         PrismContainerDefinition<Containerable> configurationPropertiesContainerDefinition = configurationContainerDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
         assertNotNull("No container definition for "+SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+" "+desc, configurationPropertiesContainerDefinition);
 
@@ -746,12 +746,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
     private void assertResource(PrismObject<ResourceType> resource, boolean expectSchema) {
         display("Resource", resource);
-        display("Resource def", resource.getDefinition());
+        displayDumpable("Resource def", resource.getDefinition());
         PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No Resource connector configuration def", configurationContainer);
         PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
-        display("Resource connector configuration def", configurationContainerDefinition);
-        display("Resource connector configuration def complex type def", configurationContainerDefinition.getComplexTypeDefinition());
+        displayDumpable("Resource connector configuration def", configurationContainerDefinition);
+        displayDumpable("Resource connector configuration def complex type def", configurationContainerDefinition.getComplexTypeDefinition());
         assertNotNull("Empty Resource connector configuration def", configurationContainer.isEmpty());
         assertEquals("Wrong compile-time class in Resource connector configuration in "+resource, ConnectorConfigurationType.class,
                 configurationContainer.getCompileTimeClass());
@@ -1009,7 +1009,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertNotNull(serializedModifiedResource);
 
         ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
-        display("Diff delta", diffDelta);
+        displayDumpable("Diff delta", diffDelta);
 
         // WHEN
         when();
@@ -1049,7 +1049,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         PropertyDelta<String> propDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(propPath, propDef, newValue);
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
                 .createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class);
-        display("Resource delta", resourceDelta);
+        displayDumpable("Resource delta", resourceDelta);
         return resourceDelta;
     }
 

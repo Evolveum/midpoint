@@ -198,7 +198,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         titleDelta.setRealValuesToReplace("Pirate Master");
         objectDelta.addModification(titleDelta);
 
-        display("ObjectDelta", objectDelta);
+        displayDumpable("ObjectDelta", objectDelta);
         objectDelta.checkConsistence();
 
         // WHEN
@@ -306,7 +306,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         drinkDelta.addRealValuesToAdd("orange juice");
         objectDelta.addModification(drinkDelta);
 
-        display("ObjectDelta", objectDelta);
+        displayDumpable("ObjectDelta", objectDelta);
         objectDelta.checkConsistence();
 
         // WHEN

@@ -211,7 +211,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         // Also test if the utility method returns the same thing
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeSchemaless, prismContext);
 
-        display("Parsed resource schema", returnedSchema);
+        displayDumpable("Parsed resource schema", returnedSchema);
 
         assertNull("Unexpected schema after parsing", returnedSchema);
     }
@@ -388,7 +388,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         resourceStaticSchema.asObjectable().setFetchResult(null);
         resourceAgain.asObjectable().setFetchResult(null);
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(resourceStaticSchema, resourceAgain);
-        display("Dummy resource diff", dummyResourceDiff);
+        displayDumpable("Dummy resource diff", dummyResourceDiff);
         assertTrue("The resource read again is not the same as the original. diff:" + dummyResourceDiff, dummyResourceDiff.isEmpty());
 
         // Now we stick our nose deep inside the provisioning impl. But we need
@@ -518,7 +518,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         // Also test if the utility method returns the same thing
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceStaticSchema.asObjectable(), prismContext);
 
-        display("Parsed resource schema", returnedSchema);
+        displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("Null resource schema", returnedSchema);
 
         assertStaticSchemaSanity(returnedSchema);
@@ -537,7 +537,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 
-        display("Parsed resource schema", returnedSchema);
+        displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("Null resource schema", returnedSchema);
 
         assertStaticSchemaSanity(returnedSchema);

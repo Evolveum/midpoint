@@ -71,7 +71,7 @@ public class TestUnixTolerantAux extends TestUnix {
 
     @Override
     protected void assertTest132Audit() {
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertExecutionDeltas(2);
@@ -81,7 +81,7 @@ public class TestUnixTolerantAux extends TestUnix {
 
     @Override
     protected void assertTest135Audit() {
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertExecutionDeltas(2);

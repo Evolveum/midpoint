@@ -197,7 +197,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource.asObjectable(), prismContext);
 
-        display("Parsed resource schema", resourceSchema);
+        displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
@@ -231,7 +231,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -261,7 +261,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -299,7 +299,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -337,7 +337,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -375,7 +375,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -413,7 +413,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -445,7 +445,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -472,7 +472,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);

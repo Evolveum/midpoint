@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.testng.AssertJUnit.*;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -14,14 +18,8 @@ import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author semancik
- */
-public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
+@SuppressWarnings("UnusedReturnValue")
+public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
 
     public ShadowAsserter(PrismObject<ShadowType> shadow) {
         super(shadow);
@@ -80,62 +78,64 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
     }
 
     public ShadowAsserter<RA> assertObjectClass() {
-        assertNotNull("No objectClass in "+desc(), getObject().asObjectable().getObjectClass());
+        assertNotNull("No objectClass in " + desc(), getObject().asObjectable().getObjectClass());
         return this;
     }
 
     public ShadowAsserter<RA> assertObjectClass(QName expected) {
-        PrismAsserts.assertMatchesQName("Wrong objectClass in "+desc(), expected, getObject().asObjectable().getObjectClass());
+        PrismAsserts.assertMatchesQName("Wrong objectClass in " + desc(), expected, getObject().asObjectable().getObjectClass());
         return this;
     }
 
     public ShadowAsserter<RA> assertKind() {
-        assertNotNull("No kind in "+desc(), getObject().asObjectable().getKind());
+        assertNotNull("No kind in " + desc(), getObject().asObjectable().getKind());
         return this;
     }
 
     public ShadowAsserter<RA> assertKind(ShadowKindType expected) {
-        assertEquals("Wrong kind in "+desc(), expected, getObject().asObjectable().getKind());
+        assertEquals("Wrong kind in " + desc(), expected, getObject().asObjectable().getKind());
         return this;
     }
 
     public ShadowAsserter<RA> assertIntent(String expected) {
-        assertEquals("Wrong intent in "+desc(), expected, getObject().asObjectable().getIntent());
+        assertEquals("Wrong intent in " + desc(), expected, getObject().asObjectable().getIntent());
         return this;
     }
 
     public ShadowAsserter<RA> assertTag(String expected) {
-        assertEquals("Wrong tag in "+desc(), expected, getObject().asObjectable().getTag());
+        assertEquals("Wrong tag in " + desc(), expected, getObject().asObjectable().getTag());
         return this;
     }
 
     public ShadowAsserter<RA> assertTagIsOid() {
-        assertEquals("Wrong tag in "+desc(), getObject().getOid(), getObject().asObjectable().getTag());
+        assertEquals("Wrong tag in " + desc(), getObject().getOid(), getObject().asObjectable().getTag());
         return this;
     }
 
     public ShadowAsserter<RA> assertPrimaryIdentifierValue(String expected) {
-        assertEquals("Wrong primaryIdentifierValue in "+desc(), expected, getObject().asObjectable().getPrimaryIdentifierValue());
+        assertEquals("Wrong primaryIdentifierValue in " + desc(), expected, getObject().asObjectable().getPrimaryIdentifierValue());
         return this;
     }
 
     public ShadowAsserter<RA> assertNoPrimaryIdentifierValue() {
-        assertNull("Unexpected primaryIdentifierValue in "+desc(), getObject().asObjectable().getPrimaryIdentifierValue());
+        assertNull("Unexpected primaryIdentifierValue in " + desc(), getObject().asObjectable().getPrimaryIdentifierValue());
         return this;
     }
 
     public ShadowAsserter<RA> assertIteration(Integer expected) {
-        assertEquals("Wrong iteration in "+desc(), expected, getObject().asObjectable().getIteration());
+        assertEquals("Wrong iteration in " + desc(), expected, getObject().asObjectable().getIteration());
         return this;
     }
 
     public ShadowAsserter<RA> assertIterationToken(String expected) {
-        assertEquals("Wrong iteration token in "+desc(), expected, getObject().asObjectable().getIterationToken());
+        assertEquals("Wrong iteration token in " + desc(),
+                expected, getObject().asObjectable().getIterationToken());
         return this;
     }
 
     public ShadowAsserter<RA> assertSynchronizationSituation(SynchronizationSituationType expected) {
-        assertEquals("Wrong synchronization situation in "+desc(), expected, getObject().asObjectable().getSynchronizationSituation());
+        assertEquals("Wrong synchronization situation in " + desc(),
+                expected, getObject().asObjectable().getSynchronizationSituation());
         return this;
     }
 
@@ -145,19 +145,20 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
             if (expected == null) {
                 return this;
             } else {
-                fail("No activation in "+desc());
+                fail("No activation in " + desc());
             }
         }
-        assertEquals("Wrong activation administrativeStatus in "+desc(), expected, activation.getAdministrativeStatus());
+        assertEquals("Wrong activation administrativeStatus in " + desc(),
+                expected, activation.getAdministrativeStatus());
         return this;
     }
 
     public ShadowAsserter<RA> assertResource(String expectedResourceOid) {
         ObjectReferenceType resourceRef = getObject().asObjectable().getResourceRef();
         if (resourceRef == null) {
-            fail("No resourceRef in "+desc());
+            fail("No resourceRef in " + desc());
         }
-        assertEquals("Wrong resourceRef OID in "+desc(), expectedResourceOid, resourceRef.getOid());
+        assertEquals("Wrong resourceRef OID in " + desc(), expectedResourceOid, resourceRef.getOid());
         return this;
     }
 
@@ -181,13 +182,13 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
     public ShadowAsserter<RA> assertNotDead() {
         Boolean isDead = getObject().asObjectable().isDead();
         if (isDead != null && isDead) {
-            fail("Wrong isDead in "+desc()+", expected null or false, but was true");
+            fail("Wrong isDead in " + desc() + ", expected null or false, but was true");
         }
         return this;
     }
 
     public ShadowAsserter<RA> assertIsDead(Boolean expected) {
-        assertEquals("Wrong isDead in "+desc(), expected, getObject().asObjectable().isDead());
+        assertEquals("Wrong isDead in " + desc(), expected, getObject().asObjectable().isDead());
         assertNoPrimaryIdentifierValue();
         return this;
     }
@@ -195,7 +196,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
     public ShadowAsserter<RA> assertIsExists() {
         Boolean isExists = getObject().asObjectable().isExists();
         if (isExists != null && !isExists) {
-            fail("Wrong isExists in "+desc()+", expected null or true, but was false");
+            fail("Wrong isExists in " + desc() + ", expected null or true, but was false");
         }
         return this;
     }
@@ -206,7 +207,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
     }
 
     public ShadowAsserter<RA> assertIsExists(Boolean expected) {
-        assertEquals("Wrong isExists in "+desc(), expected, getObject().asObjectable().isExists());
+        assertEquals("Wrong isExists in " + desc(), expected, getObject().asObjectable().isExists());
         return this;
     }
 
@@ -250,7 +251,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 
     public ShadowAsserter<RA> hasUnfinishedPendingOperations() {
         pendingOperations()
-            .assertUnfinishedOperation();
+                .assertUnfinishedOperation();
         return this;
     }
 
@@ -261,7 +262,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
     }
 
     public ShadowAsserter<RA> assertNoAttributes() {
-        assertNull("Unexpected attributes in "+desc(), getObject().findContainer(ShadowType.F_ATTRIBUTES));
+        assertNull("Unexpected attributes in " + desc(), getObject().findContainer(ShadowType.F_ATTRIBUTES));
         return this;
     }
 
@@ -272,7 +273,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
     }
 
     public ShadowAsserter<RA> assertNoAssociations() {
-        assertNull("Unexpected associations in "+desc(), getObject().findContainer(ShadowType.F_ASSOCIATION));
+        assertNull("Unexpected associations in " + desc(), getObject().findContainer(ShadowType.F_ASSOCIATION));
         return this;
     }
 
@@ -298,7 +299,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 
     public ShadowAsserter<RA> assertNoPassword() {
         PrismProperty<PolyStringType> passValProp = getPasswordValueProperty();
-        assertNull("Unexpected password value property in "+desc()+": "+passValProp, passValProp);
+        assertNull("Unexpected password value property in " + desc() + ": " + passValProp, passValProp);
         return this;
     }
 

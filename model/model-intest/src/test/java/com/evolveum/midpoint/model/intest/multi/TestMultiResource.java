@@ -485,7 +485,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("dummy resource before", getDummyResource());
+        displayDumpable("dummy resource before", getDummyResource());
 
         // WHEN
         when();
@@ -498,7 +498,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertUserAfter(USER_JACK_OID)
             .assertLinks(2);
 
-        display("dummy resource after", getDummyResource());
+        displayDumpable("dummy resource after", getDummyResource());
 
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -521,7 +521,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        displayDumpable("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         // WHEN
         when();
@@ -554,7 +554,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end();
 
-        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        displayDumpable("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
@@ -633,10 +633,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertLinks(2);
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("dummy resource before", getDummyResource());
+        displayDumpable("dummy resource before", getDummyResource());
 
         getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        displayDumpable("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         // WHEN
         when();
@@ -674,8 +674,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                 .find()
                     .end();
 
-        display("dummy resource after", getDummyResource());
-        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        displayDumpable("dummy resource after", getDummyResource());
+        displayDumpable("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
@@ -737,8 +737,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                 .find()
                     .end();
 
-        display("dummy resource after", getDummyResource());
-        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        displayDumpable("dummy resource after", getDummyResource());
+        displayDumpable("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
             // Full name is NOT modified here because of (simulated) schema exception.
@@ -801,8 +801,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                 .find()
                     .end();
 
-        display("dummy resource after", getDummyResource());
-        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        displayDumpable("dummy resource after", getDummyResource());
+        displayDumpable("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
             .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
@@ -1188,7 +1188,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
                 .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(userDelta);
         modelService.executeChanges(deltas, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -1728,7 +1728,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "stone", USER_WORLD_NAME, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1746,7 +1746,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
-        display("Last execution delta", executionDelta);
+        displayDumpable("Last execution delta", executionDelta);
         PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
     }
 
@@ -1808,7 +1808,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1826,7 +1826,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
-        display("Last execution delta", executionDelta);
+        displayDumpable("Last execution delta", executionDelta);
         PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
     }
 
@@ -1853,7 +1853,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, false, false, false);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);            // last one is duplicate
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1888,7 +1888,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);                        // last one is duplicate
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1925,7 +1925,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, false, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1961,7 +1961,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, false, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
     }
 
@@ -1989,7 +1989,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2021,7 +2021,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_FIELD_NAME, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2039,7 +2039,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
-        display("Last execution delta", executionDelta);
+        displayDumpable("Last execution delta", executionDelta);
         PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
     }
 
@@ -2071,7 +2071,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2141,7 +2141,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2200,7 +2200,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
     }
@@ -2254,7 +2254,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
     }
 
@@ -2285,7 +2285,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "rock", USER_FIELD_NAME, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
     }
@@ -2323,7 +2323,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2421,7 +2421,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2484,7 +2484,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDavidGoliath(userBefore.getOid(), "stone", USER_WORLD_NAME, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     @Test
