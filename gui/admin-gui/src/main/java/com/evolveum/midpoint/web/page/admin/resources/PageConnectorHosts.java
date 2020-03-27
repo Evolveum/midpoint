@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
@@ -258,7 +259,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
                 if (selectable != null) {
                     ObjectDelta<ConnectorHostType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(ConnectorHostType.class,
                             selectable.getOid());
-                    getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
+                    getModelService().executeChanges(MiscUtil.createCollection(delta), null, task,
                             result);
                 }
             } catch (Exception ex) {

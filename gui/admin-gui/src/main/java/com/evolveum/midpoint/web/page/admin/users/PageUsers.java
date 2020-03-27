@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.Url;
@@ -402,7 +403,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions();
                 LOGGER.debug("Using options {}.", new Object[] { executeOptions });
-                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task,
+                getModelService().executeChanges(MiscUtil.createCollection(delta), options, task,
                         subResult);
                 subResult.computeStatus();
             } catch (Exception ex) {
@@ -462,8 +463,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                         UserType.class, user.getOid(), ItemPath.create(UserType.F_ACTIVATION,
                                 ActivationType.F_LOCKOUT_STATUS),
                         LockoutStatusType.NORMAL);
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
-                        .createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 getModelService().executeChanges(deltas, null, task, opResult);
                 opResult.computeStatusIfUnknown();
             } catch (Exception ex) {
@@ -494,8 +494,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                 Task task = createSimpleTask(OPERATION_RECONCILE_USER + user);
                 ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getOid()
                 );
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
-                        .createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task,
                         opResult);
                 opResult.computeStatusIfUnknown();
@@ -560,7 +559,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions();
                 LOGGER.debug("Using options {}.", new Object[] { executeOptions });
-                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(objectDelta), options,
+                getModelService().executeChanges(MiscUtil.createCollection(objectDelta), options,
                         task, subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {

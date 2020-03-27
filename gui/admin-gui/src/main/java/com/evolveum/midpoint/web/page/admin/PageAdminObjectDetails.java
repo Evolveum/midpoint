@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -477,7 +478,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             ObjectDelta<O> archetypeDelta = getObjectWrapper().getObjectDelta();
                             if (!archetypeDelta.isEmpty()) {
                                 archetypeDelta.revive(getPrismContext());
-                                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(archetypeDelta), null, task, result);
+                                getModelService().executeChanges(MiscUtil.createCollection(archetypeDelta), null, task, result);
                                 result.computeStatus();
                             }
                         } catch (Exception e) {
@@ -816,7 +817,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     if (!delta.isEmpty()) {
                         delta.revive(getPrismContext());
 
-                        final Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                        final Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                         final Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd, deltas);
                         if (checkValidationErrors(target, validationErrors)) {
                             return;

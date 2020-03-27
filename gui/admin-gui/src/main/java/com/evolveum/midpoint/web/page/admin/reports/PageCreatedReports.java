@@ -26,6 +26,9 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
+import com.evolveum.midpoint.web.page.admin.configuration.PageEvaluateMapping;
+import com.evolveum.midpoint.web.page.admin.configuration.PageTraceView;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -355,6 +358,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
             }
         });
 
+        boolean canViewTraces;
         boolean canReadTraces;
         try {
             canReadTraces = isAuthorized(ModelAuthorizationAction.READ_TRACE.getUrl());
@@ -362,6 +366,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't authorize reading traces", t);
             canReadTraces = false;
         }
+
+        canViewTraces = canReadTraces && WebModelServiceUtils.isEnableExperimentalFeature(this);
 
         ButtonInlineMenuItem item = new ButtonInlineMenuItem(createStringResource("DownloadButtonPanel.download")) {
             private static final long serialVersionUID = 1L;
@@ -378,7 +384,6 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
                         downloadPerformed(target, rowDto.getValue(), ajaxDownloadBehavior);
                     }
                 };
-
             }
 
             @Override
@@ -396,6 +401,37 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
         }
         menuItems.add(item);
 
+        ButtonInlineMenuItem viewTraceItem = new ButtonInlineMenuItem(createStringResource("DownloadButtonPanel.viewTrace")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<ReportOutputType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBeanImpl<ReportOutputType> rowDto = getRowModel().getObject();
+                        currentReport = rowDto.getValue();
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(PageTraceView.PARAM_OBJECT_ID, currentReport.getOid());
+                        navigateToNext(PageTraceView.class, parameters);
+                    }
+                };
+            }
+
+            @Override
+            public String getButtonIconCssClass() {
+                return "fa fa-eye";
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+        };
+        menuItems.add(viewTraceItem);
+        viewTraceItem.setVisibilityChecker((rowModel, isHeader) -> canViewTraces && isTrace(rowModel));
         return menuItems;
     }
 

@@ -170,9 +170,9 @@ public class ColumnUtils {
         } else if (RoleType.class.equals(type)) {
             return WebComponentUtil.createRoleIcon(object.asPrismContainer());
         } else if (OrgType.class.equals(type)) {
-            return WebComponentUtil.createOrgIcon(object.asPrismContainer());
+            return WebComponentUtil.createOrgIcon();
         } else if (ServiceType.class.equals(type)) {
-            return WebComponentUtil.createServiceIcon(object.asPrismContainer());
+            return WebComponentUtil.createServiceIcon();
         } else if (ShadowType.class.equals(type)) {
             if (object == null) {
                 return WebComponentUtil.createErrorIcon(result);
@@ -180,7 +180,7 @@ public class ColumnUtils {
                 return WebComponentUtil.createShadowIcon(object.asPrismContainer());
             }
         } else if (type.equals(TaskType.class)) {
-            return WebComponentUtil.createTaskIcon(object.asPrismContainer());
+            return WebComponentUtil.createTaskIcon();
         } else if (type.equals(ResourceType.class)) {
             return WebComponentUtil.createResourceIcon(object.asPrismContainer());
         } else if (type.equals(AccessCertificationDefinitionType.class)) {

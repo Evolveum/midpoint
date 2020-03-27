@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import org.apache.commons.collections.CollectionUtils;
@@ -549,7 +550,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             getPageBase().getPrismContext().adopt(moveOrgDelta);
             getPageBase().getModelService()
-                    .executeChanges(WebComponentUtil.createDeltaCollection(moveOrgDelta), null, task, result);
+                    .executeChanges(MiscUtil.createCollection(moveOrgDelta), null, task, result);
             result.computeStatus();
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -591,7 +592,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             getPageBase().getPrismContext().adopt(moveOrgDelta);
             getPageBase().getModelService()
-                    .executeChanges(WebComponentUtil.createDeltaCollection(moveOrgDelta), null, task, result);
+                    .executeChanges(MiscUtil.createCollection(moveOrgDelta), null, task, result);
             result.computeStatus();
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -626,7 +627,7 @@ public class TreeTablePanel extends BasePanel<String> {
                     orgToRecompute.getValue().getOid());
             ModelExecuteOptions options = new ModelExecuteOptions();
             options.setReconcile(true);
-            getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(emptyDelta),
+            getPageBase().getModelService().executeChanges(MiscUtil.createCollection(emptyDelta),
                     options, task, result);
 
             result.recordSuccess();
