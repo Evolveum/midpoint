@@ -716,6 +716,7 @@ public class TestStrings extends AbstractStoryTest {
         assertNull("process messages", processMessages);
         assertEquals("Wrong # of work items allocation messages", 4, allocationMessages.size());
         ArrayListValuedHashMap<String, Message> sorted = sortByRecipients(allocationMessages);
+        // FIXME The following assertions fail when daylight saving switch is approaching. We should fix it somehow, some day ...
         assertMessage(sorted.get("guybrush@evolveum.com").get(0), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
                 "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
@@ -862,6 +863,7 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong # of work items allocation messages", 2, allocationMessages.size());
         Map<String, Message> sorted = sortByRecipientsSingle(allocationMessages);
 
+        // FIXME The following assertions fail when daylight saving switch is approaching. We should fix it somehow, some day ...
         assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com",
                 "Work item will be automatically completed in 2 days",
                 "Security (2/3)", "Allocated to: Elaine Marley (elaine)", "(in 7 days)");
