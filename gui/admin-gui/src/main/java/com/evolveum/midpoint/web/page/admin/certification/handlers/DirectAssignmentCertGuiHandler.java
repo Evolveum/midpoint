@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,6 +37,8 @@ import java.util.List;
  * @author mederly
  */
 public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
+    private static final Trace LOGGER = TraceManager.getTrace(DirectAssignmentCertGuiHandler.class);
+
     @Override
     public String getCaseInfoButtonTitle(IModel<? extends CertCaseOrWorkItemDto> rowModel, PageBase page) {
 
@@ -73,6 +77,7 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
                 }
             } catch (Exception e) {
                 //probably autz exception, mute it and return object name
+                LOGGER.debug("Error retrieving full object in getCaseInfoButtonTitle: {}", e.getMessage());
             }
         }
 
