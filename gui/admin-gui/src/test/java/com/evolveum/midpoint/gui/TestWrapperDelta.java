@@ -154,6 +154,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         assertModification(delta, UserType.F_ASSIGNMENT, ModificationTypeType.ADD, newAssignmentClone.asContainerable());
 
         executeChanges(delta, null, task, result);
+        display(result);
         assertSuccess(result);
 
         PrismObject<UserType> userElaineAfter = getUser(USER_ELAINE_OID);
@@ -221,6 +222,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         assertModification(delta, resourceAttrDefValueWrapper.getPath(), ModificationTypeType.ADD, expectedvalue);
 
         executeChanges(delta, ModelExecuteOptions.createRaw(), task, result);
+        display(result);
         assertSuccess(result);
 
         PrismObject<UserType> userElaineAfter = getUser(USER_ELAINE_OID);
