@@ -236,7 +236,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         resourceDelta.addModification(connectorRefDeltaAdd);
         // Purge the schema. New connector schema is not compatible.
         resourceDelta.addModificationReplaceContainer(ResourceType.F_SCHEMA);
-        display("Delta", resourceDelta);
+        displayDumpable("Delta", resourceDelta);
 
         // WHEN
         executeChanges(resourceDelta, null, task, result);
@@ -466,7 +466,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         dummyResourceModelBefore.asObjectable().setFetchResult(null);
         dummyResourceModelAfter.asObjectable().setFetchResult(null);
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(dummyResourceModelBefore, dummyResourceModelAfter);
-        display("Dummy resource diff", dummyResourceDiff);
+        displayDumpable("Dummy resource diff", dummyResourceDiff);
         assertTrue("Ha! Someone touched the other resource! Off with his head! diff:" + dummyResourceDiff, dummyResourceDiff.isEmpty());
 
         testResources(3, 3);
@@ -496,7 +496,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         dummyResourceModelBefore.asObjectable().setFetchResult(null);
         dummyResourceModelAfter.asObjectable().setFetchResult(null);
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(dummyResourceModelBefore, dummyResourceModelAfter);
-        display("Dummy resource diff", dummyResourceDiff);
+        displayDumpable("Dummy resource diff", dummyResourceDiff);
         assertTrue("Ha! Someone touched the other resource! Off with his head! diff:" + dummyResourceDiff, dummyResourceDiff.isEmpty());
 
         testResources(3, 1);

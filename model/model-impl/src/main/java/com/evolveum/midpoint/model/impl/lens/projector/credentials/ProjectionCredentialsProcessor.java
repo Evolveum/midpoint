@@ -181,7 +181,9 @@ public class ProjectionCredentialsProcessor {
 
         MappingInitializer<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> initializer =
             (builder) -> {
-                builder.mappingKind(MappingKindType.OUTBOUND);
+                builder.mappingKind(MappingKindType.OUTBOUND)
+                        .implicitSourcePath(SchemaConstants.PATH_PASSWORD_VALUE)
+                        .implicitTargetPath(SchemaConstants.PATH_PASSWORD_VALUE);
                 builder.defaultTargetDefinition(projPasswordPropertyDefinition);
                 builder.defaultSource(new Source<>(focusPasswordIdi, ExpressionConstants.VAR_INPUT_QNAME));
                 builder.valuePolicyResolver(stringPolicyResolver);

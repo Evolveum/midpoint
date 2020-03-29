@@ -373,7 +373,7 @@ public final class WebComponentUtil {
         }
         List<ObjectReferenceType> usersReferenceList = new ArrayList<>();
         usersOidsList.forEach(userOid -> {
-            usersReferenceList.add(WebComponentUtil.createObjectRef(userOid, null, UserType.COMPLEX_TYPE));
+            usersReferenceList.add(ObjectTypeUtil.createObjectRef(userOid, ObjectTypes.USER));
         });
         return WebComponentUtil.loadReferencedObjectList(usersReferenceList, operation, pageBase);
 
@@ -747,116 +747,6 @@ public final class WebComponentUtil {
         pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
-    public static Task createMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
-            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
-
-        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-        operationalTask.setOwner(owner.getFocus().asPrismObject());
-
-        operationalTask.setBinding(TaskBinding.LOOSE);
-        operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
-        operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
-        ScheduleType schedule = new ScheduleType();
-        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        operationalTask.makeSingle(schedule);
-        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
-
-        PrismPropertyDefinition propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismProperty<QueryType> queryProperty = propertyDefQuery.instantiate();
-        QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
-        queryProperty.setRealValue(queryType);
-        operationalTask.addExtensionProperty(queryProperty);
-
-        PrismPropertyDefinition propertyDefType = pageBase.getPrismContext().getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-        PrismProperty<QName> typeProperty = propertyDefType.instantiate();
-        typeProperty.setRealValue(type);
-        operationalTask.addExtensionProperty(typeProperty);
-
-        if (option != null) {
-            PrismPropertyDefinition propertyDefOption = pageBase.getPrismContext().getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
-            PrismProperty<SelectorQualifiedGetOptionsType> optionProperty = propertyDefOption.instantiate();
-            optionProperty.setRealValue(MiscSchemaUtil.optionsToOptionsType(option));
-            operationalTask.addExtensionProperty(optionProperty);
-        }
-
-        try {
-            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
-                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
-            operationalTask.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, script);
-            operationalTask.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
-            return operationalTask;
-        } catch (ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | SecurityViolationException e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
-        }
-        return null;
-    }
-
-    public static Task createRecomputeMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
-            Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
-
-        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-        operationalTask.setOwner(owner.getFocus().asPrismObject());
-
-        operationalTask.setBinding(TaskBinding.LOOSE);
-        operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
-        operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
-        ScheduleType schedule = new ScheduleType();
-        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        operationalTask.makeSingle(schedule);
-        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
-
-        PrismPropertyDefinition propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismProperty<QueryType> queryProperty = propertyDefQuery.instantiate();
-        QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
-        queryProperty.setRealValue(queryType);
-        operationalTask.addExtensionProperty(queryProperty);
-
-        PrismPropertyDefinition propertyDefType = pageBase.getPrismContext().getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-        PrismProperty<QName> typeProperty = propertyDefType.instantiate();
-        typeProperty.setRealValue(type);
-        operationalTask.addExtensionProperty(typeProperty);
-
-        if (option != null) {
-            PrismPropertyDefinition propertyDefOption = pageBase.getPrismContext().getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
-            PrismProperty<SelectorQualifiedGetOptionsType> optionProperty = propertyDefOption.instantiate();
-            optionProperty.setRealValue(MiscSchemaUtil.optionsToOptionsType(option));
-            operationalTask.addExtensionProperty(optionProperty);
-        }
-
-        try {
-            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.RECOMPUTE.getUrl(),
-                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
-            operationalTask.setHandlerUri(ModelPublicConstants.RECOMPUTE_HANDLER_URI);
-            return operationalTask;
-        } catch (ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | SecurityViolationException e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
-        }
-        return null;
-    }
-
-
-    public static void executeMemberOperation(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
-
-        OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
-        pageBase.getTaskManager().switchToBackground(operationalTask, result);
-        result.computeStatus();
-        parentResult.recordInProgress();
-        parentResult.setBackgroundTaskOid(operationalTask.getOid());
-        pageBase.showResult(parentResult);
-    }
-
     public static boolean isAuthorized(String... action) {
         if (action == null || action.length == 0) {
             return true;
@@ -1073,48 +963,10 @@ public final class WebComponentUtil {
                         .collect(Collectors.toList()));
     }
 
-    public static List<String> createTaskCategoryList() {
-        List<String> categories = new ArrayList<>();
-
-        // todo change to something better and add i18n
-        // TaskManager manager = getTaskManager();
-        // List<String> list = manager.getAllTaskCategories();
-        // if (list != null) {
-        // Collections.sort(list);
-        // for (String item : list) {
-        // if (item != TaskCategory.IMPORT_FROM_FILE && item !=
-        // TaskCategory.WORKFLOW) {
-        // categories.add(item);
-        // }
-        // }
-        // }
-        categories.add(TaskCategory.LIVE_SYNCHRONIZATION);
-        categories.add(TaskCategory.RECONCILIATION);
-        categories.add(TaskCategory.IMPORTING_ACCOUNTS);
-        categories.add(TaskCategory.RECOMPUTATION);
-        categories.add(TaskCategory.DEMO);
-        // TODO: what about other categories?
-        // categories.add(TaskCategory.ACCESS_CERTIFICATION);
-        // categories.add(TaskCategory.BULK_ACTIONS);
-        // categories.add(TaskCategory.CUSTOM);
-        // categories.add(TaskCategory.EXECUTE_CHANGES);
-        // categories.add(TaskCategory.IMPORT_FROM_FILE);
-        // categories.add(TaskCategory.IMPORT_FROM_FILE);
-        return categories;
-    }
-
     public static IModel<String> createCategoryNameModel(final Component component,
             final IModel<String> categorySymbolModel) {
         return (IModel<String>) () -> createStringResourceStatic(component,
                 "pageTasks.category." + categorySymbolModel.getObject()).getString();
-    }
-
-    public static ObjectReferenceType createObjectRef(String oid, String name, QName type) {
-        ObjectReferenceType ort = new ObjectReferenceType();
-        ort.setOid(oid);
-        ort.setTargetName(createPolyFromOrigString(name));
-        ort.setType(type);
-        return ort;
     }
 
     public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
@@ -1130,10 +982,10 @@ public final class WebComponentUtil {
 
     public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
             IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
-        return createEnumPanel(clazz, id, choicesList, model, component, allowNull, null);
+        return createEnumPanel(id, choicesList, model, component, allowNull, null);
     }
 
-    public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
+    public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(String id,
             IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull, String nullValidDisplayValue) {
         return new DropDownChoicePanel<E>(id, model, choicesList, getEnumChoiceRenderer(component)
             , allowNull){
@@ -1533,15 +1385,6 @@ public final class WebComponentUtil {
         return getDisplayNameOrName(ref, true);
     }
 
-    private static String getDisplayNameAndName(ObjectReferenceType ref, boolean translate) {
-        if (ref == null) {
-            return null;
-        }
-        String displayName = getDisplayName(ref, translate);
-        String name = getName(ref, translate);
-        return displayName != null ? displayName + " (" + name + ")" : name;
-    }
-
     public static String getDisplayName(ObjectReferenceType ref) {
         return getDisplayName(ref, true);
     }
@@ -1761,16 +1604,6 @@ public final class WebComponentUtil {
         }
     }
 
-    public static Collection<ObjectDelta<? extends ObjectType>> createDeltaCollection(
-            ObjectDelta<? extends ObjectType>... deltas) {
-        Collection<ObjectDelta<? extends ObjectType>> collection = new ArrayList<>();
-        for (ObjectDelta delta : deltas) {
-            collection.add(delta);
-        }
-
-        return collection;
-    }
-
     public static boolean showResultInPage(OperationResult result) {
         if (result == null) {
             return false;
@@ -1873,26 +1706,20 @@ public final class WebComponentUtil {
         }
     }
 
-    public static boolean isActivationEnabled(PrismObject object) {
+    public static boolean isActivationEnabled(PrismObject object, ItemPath propertyName) {
         Validate.notNull(object);
 
-        PrismContainer activation = object.findContainer(UserType.F_ACTIVATION); // this
-                                                                                    // is
-                                                                                    // equal
-                                                                                    // to
-                                                                                    // account
-                                                                                    // activation...
+        PrismContainer<ActivationType> activation = object.findContainer(UserType.F_ACTIVATION); // this is equal to account activation...
         if (activation == null) {
             return false;
         }
 
-        ActivationStatusType status = (ActivationStatusType) activation
-                .getPropertyRealValue(ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.class);
+        ActivationStatusType status = activation
+                .getPropertyRealValue(propertyName, ActivationStatusType.class);
         if (status == null) {
             return false;
         }
 
-        // todo imrove with activation dates...
         return ActivationStatusType.ENABLED.equals(status);
     }
 
@@ -1926,11 +1753,11 @@ public final class WebComponentUtil {
         } else if (RoleType.class.equals(type)) {
             return createRoleIcon((PrismObject<RoleType>) object);
         } else if (OrgType.class.equals(type)) {
-            return createOrgIcon((PrismObject<OrgType>) object);
+            return createOrgIcon();
         } else if (ServiceType.class.equals(type)) {
-            return createServiceIcon((PrismObject<ServiceType>) object);
+            return createServiceIcon();
         } else if (type.equals(TaskType.class)) {
-            return createTaskIcon((PrismObject<TaskType>) object);
+            return createTaskIcon();
         } else if (type.equals(ResourceType.class)) {
             return createResourceIcon((PrismObject<ResourceType>) object);
         } else if (type == ShadowType.class) {
@@ -2146,7 +1973,7 @@ public final class WebComponentUtil {
             }
         }
 
-        String additionalStyle = "";
+        String additionalStyle;
 //                getIconEnabledDisabled(object);
 //        if (additionalStyle == null) {
             // Set manager and end-user icon only as a last resort. All other
@@ -2173,26 +2000,16 @@ public final class WebComponentUtil {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
     }
 
-    public static String createOrgIcon(PrismObject<OrgType> object) {
+    public static String createOrgIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
     }
 
-    public static String createServiceIcon(PrismObject<ServiceType> object) {
+    public static String createServiceIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
     }
 
-    private static <AHT extends AssignmentHolderType> String getObjectNormalIconStyle(String baseIcon){
+    private static String getObjectNormalIconStyle(String baseIcon){
         return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
-    }
-
-    private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object,
-            String baseIcon) {
-        String additionalStyle = getIconEnabledDisabled(object);
-        if (additionalStyle == null) {
-            return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
-        } else {
-            return baseIcon + " " + additionalStyle;
-        }
     }
 
     public static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object) {
@@ -2229,12 +2046,8 @@ public final class WebComponentUtil {
         return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }
 
-    public static String createTaskIcon(PrismObject<TaskType> object) {
+    public static String createTaskIcon() {
         return GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
-    }
-
-    public static String createShadowIcon(PrismContainerValue<ShadowType> prismContainerValue) {
-        return createShadowIcon(((ShadowType)prismContainerValue.getRealValue()).asPrismContainer());
     }
 
     public static String createShadowIcon(PrismObject<ShadowType> object) {
@@ -2425,18 +2238,6 @@ public final class WebComponentUtil {
         return ItemPath.create(newPath);
     }
 
-    public static <T extends ObjectType> T getObjectFromReference(ObjectReferenceType ref, Class<T> type) {
-        if (ref == null || ref.asReferenceValue().getObject() == null) {
-            return null;
-        }
-        Objectable object = ref.asReferenceValue().getObject().asObjectable();
-        if (!type.isAssignableFrom(object.getClass())) {
-            throw new IllegalStateException("Got " + object.getClass() + " when expected " + type + ": "
-                    + ObjectTypeUtil.toShortString(ref, true));
-        }
-        return (T) object;
-    }
-
     public static void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, Component component, boolean failIfUnsupported) {
         if (objectRef == null) {
             return; // should not occur
@@ -2504,17 +2305,6 @@ public final class WebComponentUtil {
 
     public static boolean hasDetailsPage(Class<?> clazz) {
         return objectDetailsPageMap.containsKey(clazz);
-    }
-
-    public static boolean hasDetailsPage(ObjectReferenceType ref) {
-        if (ref == null) {
-            return false;
-        }
-        ObjectTypes t = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
-        if (t == null) {
-            return false;
-        }
-        return hasDetailsPage(t.getClassDefinition());
     }
 
     public static String getStorageKeyForTableId(TableId tableId) {
@@ -3157,21 +2947,6 @@ public final class WebComponentUtil {
 
             return list;
         };
-    }
-
-    private static LookupTableType createAppenderChoices(List<AppenderConfigurationType> appenders) {
-        LookupTableType lookupTable = new LookupTableType();
-        List<LookupTableRowType> list = lookupTable.createRowList();
-
-        for (AppenderConfigurationType appender : appenders) {
-                LookupTableRowType row = new LookupTableRowType();
-                String name = appender.getName();
-                row.setKey(name);
-                row.setValue(name);
-                row.setLabel(new PolyStringType(name));
-                list.add(row);
-        }
-        return lookupTable;
     }
 
     public static Class<?> getPreviousPageClass(PageBase parentPage){
@@ -4079,7 +3854,7 @@ public final class WebComponentUtil {
         }
 
         try {
-            pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+            pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
         } catch (Exception e){
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
             result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntSaveTask").getString(), e);

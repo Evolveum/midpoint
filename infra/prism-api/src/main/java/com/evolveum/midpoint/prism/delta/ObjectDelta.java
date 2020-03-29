@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -298,6 +299,12 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
     ObjectDelta<O> subtract(@NotNull Collection<ItemPath> paths);
 
     boolean isRedundant(PrismObject<O> object, boolean assumeMissingItems) throws SchemaException;
+
+    @Experimental
+    void removeOperationalItems();
+
+    @Experimental
+    void removeEstimatedOldValues();
 
     class FactorOutResultMulti<T extends Objectable> {
         public final ObjectDelta<T> remainder;

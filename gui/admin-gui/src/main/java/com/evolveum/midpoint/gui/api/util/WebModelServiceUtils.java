@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -187,7 +188,7 @@ public class WebModelServiceUtils {
         try {
             ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
             pageBase.getPrismContext().adopt(delta);
-            pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+            pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
                     operationalTask, parentResult);
             parentResult.recordInProgress();
             parentResult.setBackgroundTaskOid(delta.getOid());
@@ -490,7 +491,7 @@ public class WebModelServiceUtils {
             ObjectDelta delta = page.getPrismContext().deltaFactory().object().create(type, ChangeType.DELETE);
             delta.setOid(oid);
 
-            page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
+            page.getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntDeleteObject").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
@@ -520,7 +521,7 @@ public class WebModelServiceUtils {
     }
 
     public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
-        save(WebComponentUtil.createDeltaCollection(delta), options, result, task, page);
+        save(MiscUtil.createCollection(delta), options, result, task, page);
     }
 
 

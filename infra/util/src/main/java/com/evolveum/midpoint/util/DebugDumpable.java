@@ -35,7 +35,7 @@ public interface DebugDumpable {
         return DebugUtil.debugDumpLazily(this);
     }
 
-    default Object debugDumpLazily(int index) {
-        return DebugUtil.debugDumpLazily(this, index);
+    default Object debugDumpLazily(int indent) {
+        return DebugUtil.debugDumpLazily(this, indent);
     }
 }

@@ -2,12 +2,14 @@ package com.evolveum.midpoint.test.util;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
- * Mixin interface adding methods for {@link OperationResult} creation with context in its name.
+ * Mixin interface adding capabilities from infra test-utils like {@link OperationResult} creation
+ * (with context in its name), display method for dumpable, etc.
  * It is based on {@link MidpointTestMixin} and provides all its operations too.
  */
-public interface OperationResultTestMixin extends MidpointTestMixin {
+public interface InfraTestMixin extends MidpointTestMixin {
 
     /**
      * Creates new {@link OperationResult} with name equal to {@link #contextName()}.
@@ -22,4 +24,14 @@ public interface OperationResultTestMixin extends MidpointTestMixin {
     default OperationResult createOperationResult(String nameSuffix) {
         return new OperationResult(contextName() + "." + nameSuffix);
     }
+
+    /**
+     * Displays {@link DebugDumpable} value prefixed with provided title.
+     */
+    // TODO: after cleanup rename to displayValue or displayDumpable
+    default void displayDumpable(String title, DebugDumpable dumpable) {
+        displayValue(title, dumpable == null ? "null" : dumpable.debugDump(1));
+    }
+
+    // TODO add displayValue(title, Object) based on PrettyPrinter, finish PrettyPrinter ideas
 }

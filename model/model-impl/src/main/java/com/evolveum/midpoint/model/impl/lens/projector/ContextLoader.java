@@ -20,7 +20,10 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -377,6 +380,7 @@ public class ContextLoader {
             if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
                 object = provisioningService.getObject(focusContext.getObjectTypeClass(), focusOid,
                         SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+                setLoadedFocusInTrace(object, trace);
                 result.addReturnComment("Loaded via provisioning");
             } else {
 
@@ -386,6 +390,7 @@ public class ContextLoader {
                 Collection<SelectorOptions<GetOperationOptions>> options =
                         SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, options, result);
+                setLoadedFocusInTrace(object, trace);
                 result.addReturnComment("Loaded from repository");
             }
 
@@ -403,6 +408,12 @@ public class ContextLoader {
                 trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
             }
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private <O extends ObjectType> void setLoadedFocusInTrace(PrismObject<O> object, FocusLoadedTraceType trace) {
+        if (trace != null) {
+            trace.setFocusLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(object, prismContext));
         }
     }
 
@@ -1408,6 +1419,9 @@ public class ContextLoader {
             trace = new FullShadowLoadedTraceType(prismContext);
             if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
+                ResourceType resource = projCtx.getResource();
+                PolyStringType name = resource != null ? resource.getName() : null;
+                trace.setResourceName(name != null ? name : PolyStringType.fromOrig(projCtx.getResourceOid()));
             }
             trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
             result.addTrace(trace);
@@ -1445,6 +1459,9 @@ public class ContextLoader {
                 PrismObject<ShadowType> objectCurrent = provisioningService
                         .getObject(ShadowType.class, projCtx.getOid(), options, task, result);
                 Validate.notNull(objectCurrent.getOid());
+                if (trace != null) {
+                    trace.setShadowLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent, prismContext));
+                }
                 // TODO: use setLoadedObject() instead?
                 projCtx.setObjectCurrent(objectCurrent);
                 projCtx.determineFullShadowFlag(objectCurrent);

@@ -22,8 +22,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -460,11 +462,11 @@ public class ProgressPanel extends BasePanel {
 
             PrismObject<TaskType> taskType = task.getUpdatedTaskObject();
             AssignmentType archetypeAssignment = new AssignmentType();
-            archetypeAssignment.setTargetRef(WebComponentUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
-                    null, ArchetypeType.COMPLEX_TYPE));
+            archetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                    ObjectTypes.ARCHETYPE));
             taskType.asObjectable().getAssignment().add(archetypeAssignment);
-            taskType.asObjectable().getArchetypeRef().add(WebComponentUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
-                    null, ArchetypeType.COMPLEX_TYPE));
+            taskType.asObjectable().getArchetypeRef().add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                    ObjectTypes.ARCHETYPE));
 
             taskManager.switchToBackground(task, result);
             result.setBackgroundTaskOid(task.getOid());

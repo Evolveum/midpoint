@@ -176,19 +176,17 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             itemExisting = null;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta:\n{}\n  Existing item:\n{}\n  Parameters:\n"
-                            + "   - addUnchangedValues: {}\n"
-                            + "   - filterExistingValues: {}\n"
-                            + "   - isExclusiveStrong: {}\n"
-                            + "   - strengthSelector: {}\n"
-                            + "   - valueMatcher: {}\n"
-                            + "   - comparator: {}",
-                    itemPath, ivwoTriple.debugDump(1),
-                    DebugUtil.debugDump(aprioriItemDelta, 2),
-                    DebugUtil.debugDump(itemExisting, 2),
-                    addUnchangedValues, filterExistingValues, isExclusiveStrong, strengthSelector, valueMatcher, comparator);
-        }
+        LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta:\n{}\n  Existing item:\n{}\n  Parameters:\n"
+                        + "   - addUnchangedValues: {}\n"
+                        + "   - filterExistingValues: {}\n"
+                        + "   - isExclusiveStrong: {}\n"
+                        + "   - strengthSelector: {}\n"
+                        + "   - valueMatcher: {}\n"
+                        + "   - comparator: {}",
+                itemPath, ivwoTriple.debugDumpLazily(1),
+                DebugUtil.debugDumpLazily(aprioriItemDelta, 2),
+                DebugUtil.debugDumpLazily(itemExisting, 2),
+                addUnchangedValues, filterExistingValues, isExclusiveStrong, strengthSelector, valueMatcher, comparator);
 
         Collection<V> allValues = collectAllValues();
 
@@ -242,6 +240,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             PrismValueDeltaSetTripleProducer<V, D> exclusiveMapping = null;
             Collection<ItemValueWithOrigin<V,D>> pvwosToAdd;
             if (addUnchangedValues) {
+                //noinspection unchecked
                 pvwosToAdd = MiscUtil.union(zeroIvwos, plusIvwos);
             } else {
                 pvwosToAdd = plusIvwos;
@@ -349,6 +348,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 }
                 LOGGER.trace("Value {} added to delta as DELETE for item {} in {}",
                         value, itemPath, contextDescription);
+                //noinspection unchecked
                 itemDelta.addValueToDelete((V)value.clone());
             }
 
@@ -369,6 +369,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                         LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set",
                                 value, itemPath, contextDescription);
                         itemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, zeroIvwos));
+                        //noinspection UnnecessaryContinue
                         continue;
                     }
                 }
@@ -427,8 +428,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 }
             } else {
                 boolean found = false;
-                for (V valueFromAllvalues: allValues) {
-                    if (valueMatcher.match(((PrismPropertyValue<T>)valueFromAllvalues).getValue(),
+                for (V valueFromAllValues: allValues) {
+                    //noinspection unchecked
+                    if (valueMatcher.match(((PrismPropertyValue<T>)valueFromAllValues).getValue(),
                             ((PrismPropertyValue<T>)pval).getValue())) {
                         found = true;
                         break;
@@ -456,6 +458,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 }
                 // valid -> invalid change. E.g. disabled assignment. We need to process that
             }
+            //noinspection unchecked
             if (setIvwo.equalsRealValue(pvalue, valueMatcher)) {
                 ivwos.add(setIvwo);
             }

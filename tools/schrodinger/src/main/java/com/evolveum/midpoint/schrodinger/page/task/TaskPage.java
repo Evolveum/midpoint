@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schrodinger.component.task.TaskBasicTab;
 
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 
+import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
+
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -39,6 +41,11 @@ public class TaskPage extends AssignmentHolderDetailsPage {
         SelenideElement summaryBox = $(By.cssSelector("div.info-box-content"));
 
         return new SummaryPanel(this, summaryBox);
+    }
+
+    public ProgressPage clickSaveAndRun() {
+        $(Schrodinger.byDataId("saveAndRun")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return new ProgressPage();
     }
 
     public TaskPage clickResume() {

@@ -287,6 +287,10 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 
     @Override
     public String toHumanReadableDescription() {
+        return toHumanReadableDescription(true);
+    }
+
+    public String toHumanReadableDescription(boolean writeOid) {
         StringBuilder sb = new StringBuilder("RSD(");
         sb.append(kind==null?"null":kind.value());
         sb.append(" (").append(intent);
@@ -297,8 +301,10 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         if (objectClass != null) {
             sb.append(": ").append(PrettyPrinter.prettyPrint(objectClass));
         }
-        sb.append(" @");
-        sb.append(resourceOid);
+        if (writeOid) {
+            sb.append(" @");
+            sb.append(resourceOid);
+        }
         if (order != 0) {
             sb.append(" order=");
             sb.append(order);

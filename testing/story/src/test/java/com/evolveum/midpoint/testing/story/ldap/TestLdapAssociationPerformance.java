@@ -284,7 +284,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     private void dumpRepoSnapshot(
             PerformanceInformation performanceInformation, String unit, int unitCount) {
         String label = "SQL operations for " + getTestNameShort();
-        display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES
+        displayDumpable(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES
                 + " roles) (got from global monitor)", performanceInformation);
 
         // per unit:

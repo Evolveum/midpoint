@@ -276,7 +276,7 @@ public class TestDummyCaching extends TestDummy {
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
-        display("All shadows query", query);
+        displayDumpable("All shadows query", query);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 

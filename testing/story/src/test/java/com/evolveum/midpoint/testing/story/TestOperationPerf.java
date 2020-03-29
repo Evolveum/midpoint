@@ -134,8 +134,8 @@ public class TestOperationPerf extends AbstractStoryTest {
 
         display("Added user in "+(endMillis - startMillis)+" ms");
 
-        display("Model diagnostics", profilingModelInspectorManager);
-        display("Internal inspector", internalInspector);
+        displayDumpable("Model diagnostics", profilingModelInspectorManager);
+        displayDumpable("Internal inspector", internalInspector);
         displayValue("Internal counters", InternalMonitor.debugDumpStatic(1));
 
         PrismObject<UserType> userAfter = getUser(userOid);

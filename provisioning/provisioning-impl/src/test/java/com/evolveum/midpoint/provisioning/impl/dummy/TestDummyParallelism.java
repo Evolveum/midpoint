@@ -129,7 +129,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -314,7 +314,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
 
                     ObjectDelta<ShadowType> delta = deltaProducer.run();
-                    display("ObjectDelta", delta);
+                    displayDumpable("ObjectDelta", delta);
 
                     provisioningService.modifyObject(ShadowType.class, accountMorganOid, delta.getModifications(), null, null, localTask, localResult);
 
@@ -515,7 +515,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
 
                     ObjectDelta<ShadowType> delta = deltaProducer.run();
-                    display("ObjectDelta", delta);
+                    displayDumpable("ObjectDelta", delta);
 
                     provisioningService.modifyObject(ShadowType.class, accountElizabethOid,
                             delta.getModifications(), null, null, localTask, localResult);

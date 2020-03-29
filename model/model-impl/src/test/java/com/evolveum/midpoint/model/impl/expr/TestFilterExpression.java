@@ -21,23 +21,17 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.UndefinedFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -45,14 +39,8 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -64,9 +52,6 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     @Autowired
     private ExpressionFactory expressionFactory;
-
-    @Autowired
-    private TaskManager taskManager;
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -120,10 +105,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
             AssertJUnit.fail("Unexpected success");
         } catch (ExpressionEvaluationException e) {
             // this is expected
-            assertTrue("Unexpected exception message: "+e.getMessage(), e.getMessage().contains("evaluated to no value"));
+            assertTrue("Unexpected exception message: " + e.getMessage(), e.getMessage().contains("evaluated to no value"));
         }
     }
-
 
     @Test
     public void test140EvaluateExpressionEmployeeTypeEmptyFilter() throws Exception {
@@ -169,7 +153,6 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
         executeFilter(filter, 1, task, result);
     }
-
 
     @Test
     public void test200EvaluateExpressionLinkRefDefaultsNull() throws Exception {
@@ -231,7 +214,6 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         executeFilter(filter, 1, task, result);
     }
 
-
     private ObjectFilter evaluateExpressionAssertFilter(String filename,
             String input, Class<? extends ObjectFilter> expectedType,
             Task task, OperationResult result) throws SchemaException, IOException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -255,8 +237,8 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
                 "evaluating filter with null value not allowed", task, result);
 
         // THEN
-        display("Evaluated filter", evaluatedFilter);
-        AssertJUnit.assertTrue("Expression should be evaluated to "+expectedType+", but was "+evaluatedFilter, expectedType.isAssignableFrom(evaluatedFilter.getClass()));
+        displayDumpable("Evaluated filter", evaluatedFilter);
+        AssertJUnit.assertTrue("Expression should be evaluated to " + expectedType + ", but was " + evaluatedFilter, expectedType.isAssignableFrom(evaluatedFilter.getClass()));
 
         return evaluatedFilter;
     }
@@ -265,7 +247,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectQuery query = prismContext.queryFactory().createQuery(filter);
         SearchResultList<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);
         display("Found objects", objects);
-        assertEquals("Wrong number of results (found: "+objects+")", expectedNumberOfResults, objects.size());
+        assertEquals("Wrong number of results (found: " + objects + ")", expectedNumberOfResults, objects.size());
     }
 
 }

@@ -717,7 +717,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         assertEquals("Produced 1 event(s)\n", output.getConsoleOutput());
 
-        display("Dummy transport", dummyTransport);
+        displayDumpable("Dummy transport", dummyTransport);
         checkDummyTransportMessages("Custom", 1);
         Message m = dummyTransport.getMessages("dummy:Custom").get(0);
         assertEquals("Wrong message body", "jack/" + USER_JACK_OID, m.getBody());
@@ -742,7 +742,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         assertEquals("Produced 1 event(s)\n", output.getConsoleOutput());
 
-        display("Dummy transport", dummyTransport);
+        displayDumpable("Dummy transport", dummyTransport);
         checkDummyTransportMessages("Custom", 1);
         Message m = dummyTransport.getMessages("dummy:Custom").get(0);
         assertEquals("Wrong message body", "1", m.getBody());
@@ -819,7 +819,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         display("admin after operation", admin);
         assertEquals("Wrong description", "admin description", admin.asObjectable().getDescription());
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
         notificationManager.setDisabled(notificationsDisabled);
 
         assertEquals("Wrong # of messages in dummy transport", 1,
@@ -855,7 +855,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         display("admin after operation", admin);
         assertAssignedRole(admin, ROLE_EMPTY_OID);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
         notificationManager.setDisabled(notificationsDisabled);
 
         assertEquals("Wrong # of messages in dummy transport", 1,
@@ -1159,8 +1159,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         displayValue("task", xml);
         assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
 
-        display("Dummy transport", dummyTransport);
-        display("Audit", dummyAuditService);
+        displayDumpable("Dummy transport", dummyTransport);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     // MID-5359
@@ -1195,8 +1195,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         displayValue("task", xml);
         assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
 
-        display("Dummy transport", dummyTransport);
-        display("Audit", dummyAuditService);
+        displayDumpable("Dummy transport", dummyTransport);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     // not using scripting as such, but related... MID-5359
@@ -1236,8 +1236,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         displayValue("task", xml);
         assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
 
-        display("Dummy transport", dummyTransport);
-        display("Audit", dummyAuditService);
+        displayDumpable("Dummy transport", dummyTransport);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     private void assertNoOutputData(ExecutionContext output) {
@@ -1275,7 +1275,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     }
 
     private void dumpOutput(ExecutionContext output, OperationResult result) throws JAXBException, SchemaException {
-        display("output", output.getFinalOutput());
+        displayDumpable("output", output.getFinalOutput());
         displayValue("stdout", output.getConsoleOutput());
         display(result);
         if (output.getFinalOutput() != null) {

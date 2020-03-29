@@ -345,20 +345,20 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             // Set lsof baseline only after the first connection.
             // We will have more reasonable number here.
             lsof.rememberBaseline();
-            display("lsof baseline", lsof);
+            displayDumpable("lsof baseline", lsof);
         }
     }
 
     @Test
     public void test020Schema() throws Exception {
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        display("Resource schema", resourceSchema);
+        displayDumpable("Resource schema", resourceSchema);
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        display("Refined schema", refinedSchema);
+        displayDumpable("Refined schema", refinedSchema);
         accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
         assertNotNull("No definition for object class " + getAccountObjectClass(), accountObjectClassDefinition);
-        display("Account object class def", accountObjectClassDefinition);
+        displayDumpable("Account object class def", accountObjectClassDefinition);
 
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, 1);
@@ -470,7 +470,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
         // WHEN
         when();
-        display("Searching shadows, options=" + options + ", query", query);
+        displayDumpable("Searching shadows, options=" + options + ", query", query);
         SearchResultMetadata searchResultMetadata = modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
 
         // THEN

@@ -117,7 +117,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -152,7 +152,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -192,7 +192,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -227,7 +227,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN

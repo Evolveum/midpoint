@@ -851,7 +851,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                         USER_BARBOSSA_OID, UserType.F_ASSIGNMENT, judgeAssignmentLight);
         objectDelta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, sailorAssignmentLight);
 
-        display("Unassign delta", objectDelta);
+        displayDumpable("Unassign delta", objectDelta);
 
         // WHEN
         when();
@@ -1267,7 +1267,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                         USER_BARBOSSA_OID, UserType.F_ASSIGNMENT, judgeAssignmentLight);
         objectDelta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, sailorAssignmentLight);
 
-        display("Unassign delta", objectDelta);
+        displayDumpable("Unassign delta", objectDelta);
 
         // WHEN
         when();

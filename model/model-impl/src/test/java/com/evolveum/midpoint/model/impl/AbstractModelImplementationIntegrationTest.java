@@ -317,7 +317,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         addFocusDeltaToContext(context, createAssignmentFocusDelta(focusClass, focusOid, targetOid, targetType, relation,
                 modificationBlock, true));
         context.recompute();
-        display("Input context", context);
+        displayDumpable("Input context", context);
         assertFocusModificationSanity(context);
         return context;
     }

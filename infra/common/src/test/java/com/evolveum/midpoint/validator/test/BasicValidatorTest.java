@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  */
 public class BasicValidatorTest extends AbstractUnitTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     public static final String BASE_PATH = "src/test/resources/validator/";
     private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
@@ -72,8 +72,7 @@ public class BasicValidatorTest extends AbstractUnitTest
             @Override
             public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
                     OperationResult objectResult) {
-                System.out.println("Validating resorce:");
-                System.out.println(object.debugDump());
+                displayDumpable("Validating resource:", object);
                 object.checkConsistence();
 
                 PrismContainer<?> extensionContainer = object.getExtension();
@@ -114,23 +113,21 @@ public class BasicValidatorTest extends AbstractUnitTest
 
             @Override
             public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
-                System.out.println("Handler processing " + object + ", result:");
-                System.out.println(objectResult.debugDump());
+                displayDumpable("Handler processing " + object + ", result:", objectResult);
                 postMarshallHandledOids.add(object.getOid());
                 return EventResult.cont();
             }
 
             @Override
             public void handleGlobalError(OperationResult currentResult) {
-                System.out.println("Handler got global error:");
-                System.out.println(currentResult.debugDump());
+                displayDumpable("Handler got global error:", currentResult);
             }
 
         };
 
         validateFile("three-objects.xml", handler, result);
 
-        System.out.println(result.debugDump());
+        displayDumpable("Result:", result);
         AssertJUnit.assertTrue("Result is not success", result.isSuccess());
         AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
         AssertJUnit.assertTrue(preMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
@@ -233,7 +230,7 @@ public class BasicValidatorTest extends AbstractUnitTest
     private void validateFile(String filename, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
         String filepath = BASE_PATH + filename;
 
-        System.out.println("Validating " + filename);
+        display("Validating " + filename);
 
         File file = new File(filepath);
         FileInputStream fis = new FileInputStream(file);
@@ -241,11 +238,9 @@ public class BasicValidatorTest extends AbstractUnitTest
         validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
 
         if (!result.isSuccess()) {
-            System.out.println("Errors:");
-            System.out.println(result.debugDump());
+            displayDumpable("Errors:", result);
         } else {
-            System.out.println("No errors");
-            System.out.println(result.debugDump());
+            displayDumpable("No errors:", result);
         }
     }
 }

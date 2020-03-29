@@ -239,7 +239,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         ProtectedStringType ps = new ProtectedStringType();
         ps.setClearValue(USER_WILL_PASSWORD_NEW);
         delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, ps);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 

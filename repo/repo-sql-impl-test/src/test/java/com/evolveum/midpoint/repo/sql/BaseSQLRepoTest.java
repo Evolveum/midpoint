@@ -58,7 +58,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -69,7 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class BaseSQLRepoTest extends AbstractSpringTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     static final File FOLDER_BASE = new File("./src/test/resources");
 
@@ -302,7 +302,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     protected void displayValue(String title, DebugDumpable value) {
-        PrismTestUtil.display(title, value);
+        displayDumpable(title, value);
     }
 
     public void displayValue(String title, Object value) {

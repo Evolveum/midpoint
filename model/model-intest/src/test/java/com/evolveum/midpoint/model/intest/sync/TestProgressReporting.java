@@ -108,7 +108,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         TaskProgressExtract progress1 = TaskProgressExtract.fromTask(rootAfterSuspension1.asObjectable());
-        display("Progress after suspension", progress1);
+        displayDumpable("Progress after suspension", progress1);
 
         System.out.println("Resuming task tree.");
         taskManager.resumeTaskTree(reconciliationTask.oid, result);
@@ -125,7 +125,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         TaskProgressExtract progress2 = TaskProgressExtract.fromTask(rootAfterSuspension2.asObjectable());
-        display("Progress after second suspension", progress2);
+        displayDumpable("Progress after second suspension", progress2);
 
         // THEN
 
@@ -195,7 +195,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         TaskProgressExtract progress1 = TaskProgressExtract.fromTask(rootAfterSuspension1.asObjectable());
-        display("Progress after suspension", progress1);
+        displayDumpable("Progress after suspension", progress1);
 
         System.out.println("Resuming task tree.");
         taskManager.resumeTaskTree(recomputationTask.oid, result);
@@ -212,7 +212,7 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         TaskProgressExtract progress2 = TaskProgressExtract.fromTask(rootAfterSuspension2.asObjectable());
-        display("Progress after second suspension", progress2);
+        displayDumpable("Progress after second suspension", progress2);
 
         // THEN
 

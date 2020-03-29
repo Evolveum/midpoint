@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
@@ -952,7 +953,7 @@ public abstract class ResourceContentPanel extends Panel {
                 ObjectDelta<ShadowType> deleteDelta = getPageBase().getPrismContext().deltaFactory().object().createDeleteDelta(ShadowType.class,
                         shadow.getOid());
                 getPageBase().getModelService().executeChanges(
-                        WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
+                        MiscUtil.createCollection(deleteDelta), opts, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
                     | PolicyViolationException | SecurityViolationException e) {
@@ -1016,7 +1017,7 @@ public abstract class ResourceContentPanel extends Panel {
                         SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                         status);
                 getPageBase().getModelService().executeChanges(
-                        WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
+                        MiscUtil.createCollection(deleteDelta), opts, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
                     | PolicyViolationException | SecurityViolationException e) {

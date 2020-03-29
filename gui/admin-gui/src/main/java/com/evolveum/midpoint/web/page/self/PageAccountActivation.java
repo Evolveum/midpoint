@@ -275,7 +275,7 @@ public class PageAccountActivation extends PageBase {
             ObjectDelta<ShadowType> shadowDelta = getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE,
                             passwordValue);
-            shadowDelta.addModificationDeleteProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
+            shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
             passwordDeltas.add(shadowDelta);
         }
 

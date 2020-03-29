@@ -231,7 +231,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -309,7 +309,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, "jack1", "Jack Sparrow", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -361,7 +361,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -426,7 +426,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_DEWATT_NAME + "1", "Augustus DeWatt", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -569,7 +569,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         // USER Largo MODIFY(add-assignment):   request + execution (focus(assignment) + account/failed) + execution (focus(linkRef) / account/OK)
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -634,7 +634,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, null, true);
 
         // TODO Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     // remove the assignment, shadow and account to prepare for following tests
@@ -672,7 +672,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected account for jupiter", getDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME));
 
         // TODO Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     /**
@@ -720,7 +720,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, null, true);
 
         // TODO Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     // remove the assignment, shadow and account to prepare for following tests
@@ -795,7 +795,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_FUCHSIA_NAME, "Jupiter Jones", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "jupiter0");
 
         // TODO Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     private void assertUserJupiter(PrismObject<UserType> user) {
@@ -1037,7 +1037,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, "jack.1", "Jack Sparrow", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1091,7 +1091,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, "guybrush.3", "Guybrush Threepwood", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1148,7 +1148,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, "herman.1", "Herman Toothrot", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1242,7 +1242,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 PrismTestUtil.createPolyString(DESCRIPTION_RUM));
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1319,7 +1319,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Francis Drake"));
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1380,7 +1380,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Francis Drake"));
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1443,7 +1443,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1509,7 +1509,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 PrismTestUtil.createPolyString(DESCRIPTION_RUM + " -- Guybrush Threepwood"));
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1568,7 +1568,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 PrismTestUtil.createPolyString(DESCRIPTION_RUM));
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();

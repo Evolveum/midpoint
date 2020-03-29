@@ -99,7 +99,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         Breadcrumb bc = getLastBreadcrumb();
         bc.setIcon(new Model<>("fa fa-shield"));
     }
-    
+
     private MyPasswordsDto loadPageModel() {
         LOGGER.debug("Loading user and accounts.");
         MyPasswordsDto dto = new MyPasswordsDto();
@@ -240,7 +240,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAbstractSelfCredentials.this, "midpoint.default.system.name");
         return new PasswordAccountDto(focus.getOid(), focus.getName().getOrig(),
                 getString("PageSelfCredentials.resourceMidpoint", customSystemName),
-                WebComponentUtil.isActivationEnabled(focus), true);
+                WebComponentUtil.isActivationEnabled(focus, ActivationType.F_EFFECTIVE_STATUS), true);
     }
 
     private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -253,7 +253,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         }
 
         PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account.getOid(), WebComponentUtil.getName(account),
-                resourceName, WebComponentUtil.isActivationEnabled(account));
+                resourceName, WebComponentUtil.isActivationEnabled(account, ActivationType.F_ADMINISTRATIVE_STATUS));
 
         passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account, task, result));
         passwordAccountDto.setPasswordCapabilityEnabled(hasPasswordCapability(account));

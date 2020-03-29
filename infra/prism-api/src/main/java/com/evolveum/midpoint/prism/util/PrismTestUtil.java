@@ -213,7 +213,6 @@ public class PrismTestUtil {
         return ((LogicalFilter) filter).getConditions().get(index);
     }
 
-    // TODO versions with external logger?
     public static void display(String title, DebugDumpable dumpable) {
         System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
         System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));

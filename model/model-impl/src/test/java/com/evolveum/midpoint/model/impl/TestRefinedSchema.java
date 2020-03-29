@@ -63,7 +63,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         // WHEN
         refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), prismContext);
 
-        display("Dummy refined schema", refinedSchema);
+        displayDumpable("Dummy refined schema", refinedSchema);
 
         // THEN
         getDummyResourceController().assertRefinedSchemaSanity(refinedSchema);
@@ -74,7 +74,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         // WHEN
         refinedSchemaModel = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), LayerType.MODEL, prismContext);
 
-        display("Dummy refined schema (MODEL)", refinedSchemaModel);
+        displayDumpable("Dummy refined schema (MODEL)", refinedSchemaModel);
 
         // THEN
         getDummyResourceController().assertRefinedSchemaSanity(refinedSchemaModel);
@@ -126,7 +126,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchema, task);
 
         // THEN
-        display("Object class", objectClass);
+        displayDumpable("Object class", objectClass);
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_OBJECTCLASS_OID);
 
@@ -146,7 +146,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchema, task);
 
         // THEN
-        display("Object class", objectClass);
+        displayDumpable("Object class", objectClass);
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OID);
 
@@ -166,7 +166,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchema, task);
 
         // THEN
-        display("Object class", objectClass);
+        displayDumpable("Object class", objectClass);
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID);
 
@@ -186,7 +186,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchemaModel, task);
 
         // THEN
-        display("Object class", objectClass);
+        displayDumpable("Object class", objectClass);
         displayValue("Object class (toString)", objectClass.toString());
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_OBJECTCLASS_OID);
@@ -207,7 +207,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchemaModel, task);
 
         // THEN
-        display("Object class", objectClass);
+        displayDumpable("Object class", objectClass);
         displayValue("Object class (toString)", objectClass.toString());
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OID);
@@ -229,7 +229,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchemaModel, task);
 
         // THEN
-        display("Object class", objectClass);
+        displayDumpable("Object class", objectClass);
         displayValue("Object class (toString)", objectClass.toString());
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID);

@@ -46,7 +46,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta
 @Component
 public class MappingSetEvaluator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingSetEvaluator.class);
 
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private MappingFactory mappingFactory;
@@ -220,6 +220,7 @@ public class MappingSetEvaluator {
         consolidator.setStrengthSelector(StrengthSelector.ALL);
 
         ItemDelta itemDelta = consolidator.consolidateToDelta();
+        itemDelta.simplify();
 
         LOGGER.trace("Updating focus ODO with delta:\n{}", itemDelta.debugDumpLazily());
         focusOdoCloned.update(itemDelta);

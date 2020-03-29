@@ -140,7 +140,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
                 .assertFullName(ACCOUNT_HERMAN_FIST_NAME + " " + ACCOUNT_HERMAN_LAST_NAME)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Mr. " + ACCOUNT_HERMAN_LAST_NAME + " " + ACCOUNT_HERMAN_FIST_NAME);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     @Test
@@ -176,7 +176,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
                 .assertFullName(ACCOUNT_HT_FIST_NAME + " " + ACCOUNT_HT_LAST_NAME)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Mr. " + ACCOUNT_HT_LAST_NAME + " " + ACCOUNT_HT_FIST_NAME);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     /**
@@ -214,7 +214,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
                 .assertFullName(ACCOUNT_HT_FIST_NAME + " " + ACCOUNT_HT_LAST_NAME)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Mr. " + ACCOUNT_HT_LAST_NAME + " " + ACCOUNT_HT_FIST_NAME);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
     }
 }

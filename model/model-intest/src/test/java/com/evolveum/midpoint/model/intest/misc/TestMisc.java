@@ -133,7 +133,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         for (PrismObject<UserType> user : users) {
             display("Exporting user", user);
             assertNotNull("Null definition in " + user, user.getDefinition());
-            display("Definition", user.getDefinition());
+            displayDumpable("Definition", user.getDefinition());
             String xmlString = prismContext.serializerFor(PrismContext.LANG_XML).serialize(user);
             displayValue("Exported user", xmlString);
 

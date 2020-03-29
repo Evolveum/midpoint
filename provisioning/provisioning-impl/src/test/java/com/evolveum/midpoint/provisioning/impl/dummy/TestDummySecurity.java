@@ -118,7 +118,7 @@ public class TestDummySecurity extends AbstractDummyTest {
                 ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME),
                 "RUM");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -148,7 +148,7 @@ public class TestDummySecurity extends AbstractDummyTest {
                 ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
                 "pirate");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -178,7 +178,7 @@ public class TestDummySecurity extends AbstractDummyTest {
                 ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
                 "eh?");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         try {
@@ -220,7 +220,7 @@ public class TestDummySecurity extends AbstractDummyTest {
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
-        display("All shadows query", query);
+        displayDumpable("All shadows query", query);
 
         // WHEN
         List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,

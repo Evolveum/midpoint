@@ -82,9 +82,9 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                                         .addAttributeValue("interval", "5")
                                         .and()
                             .and()
-                                .clickSave()
+                                .clickSaveAndRun()
                                     .feedback()
-                                    .isSuccess();
+                                    .isInfo();
     }
 
 

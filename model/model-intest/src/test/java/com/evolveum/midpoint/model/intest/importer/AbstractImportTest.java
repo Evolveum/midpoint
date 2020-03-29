@@ -177,7 +177,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertMetadata(connector, startTime, endTime);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -238,11 +238,11 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         PrismAsserts.assertEqualsPolyString("wrong fullName", "Guybrush Threepwood", guybrush.getFullName());
         assertMetadata(guybrush, startTime, endTime);
 
-        assertUsers(4);
+        assertUsers(6);
 
         // Check audit
-        display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(6);
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(10);
     }
 
     // Import the same thing again. Watch how it burns :-)
@@ -270,11 +270,11 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
             assertFalse("Unexpected success in subresult", subresult.isSuccess());
         }
 
-        assertUsers(4);
+        assertUsers(6);
 
         // Check audit
-        display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(6);        // 3 requests + 3 failed executions
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(10);        // 5 requests + 5 failed executions
     }
 
     // Import the same thing again, this time with overwrite option. This should go well.
@@ -300,7 +300,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // list all users
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createQuery(), null, task, result);
         // Three old users, one new
-        assertEquals(5, users.size());
+        assertEquals(7, users.size());
 
         for (PrismObject<UserType> user : users) {
             UserType userType = user.asObjectable();
@@ -332,11 +332,11 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
             }
         }
 
-        assertUsers(5);
+        assertUsers(7);
 
         // Check audit
-        display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(8);        // 1 failed, 7 succeeded
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(14);        // 7 request, 2 failed, 5 succeeded
     }
 
     // Import the same thing again, with overwrite and also while keeping OIDs
@@ -363,7 +363,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // list all users
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createQuery(), null, task, result);
         // Three old users, one new
-        assertEquals(5, users.size());
+        assertEquals(7, users.size());
 
         for (PrismObject<UserType> user : users) {
             UserType userType = user.asObjectable();
@@ -393,11 +393,11 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
             }
         }
 
-        assertUsers(5);
+        assertUsers(7);
 
         // Check audit
-        display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(6);
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(10);  // 5 request, 5 succeeded
     }
 
     @Test
@@ -434,7 +434,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -483,7 +483,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertDummyResource(importedRepoResource, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -536,7 +536,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertNull("Synchronization not gone", resourceType.getSynchronization());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -585,7 +585,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
                 CONNECOTR_DBTABLE_OID);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -666,10 +666,10 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertEquals("Er? Pirate sectrets still hidden?", "m0nk3y", protectedString.getClearValue());
         assertNull("Er? Encrypted data together with clear value?", protectedString.getEncryptedDataType());
 
-        assertUsers(6);
+        assertUsers(8);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -705,10 +705,10 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Herman", userHerman);
         assertUser(userHerman, USER_HERMAN_OID, USER_HERMAN_USERNAME, "Herman Toothrot", "Herman", "Toothrot");
 
-        assertUsers(6);
+        assertUsers(8);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -744,10 +744,10 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
             assertFalse("Unexpected success in subresult", subresult.isSuccess());
         }
 
-        assertUsers(6);     // none should be added
+        assertUsers(8);     // none should be added
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -777,10 +777,10 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after import", result);
         TestUtil.assertSuccess("Import has failed (result)", result);
 
-        assertUsers(7);     // one should be added
+        assertUsers(9);     // one should be added
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     @Test
@@ -836,7 +836,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
             AssertJUnit.fail("Jack was not imported");
         }
 
-        assertUsers(8);
+        assertUsers(10);
     }
 
     /**
@@ -859,7 +859,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
         assertNoObject(RoleType.class, ROLE_ONE_LEGACY_OID);
 
-        assertUsers(8);
+        assertUsers(10);
     }
 
     /**
@@ -884,7 +884,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
         assertRoleAfter(ROLE_ONE_LEGACY_OID);
 
-        assertUsers(8);
+        assertUsers(10);
     }
 
     private void assertDummyResource(PrismObject<ResourceType> resource, boolean fromRepo) {
