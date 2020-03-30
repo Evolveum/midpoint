@@ -160,16 +160,14 @@ public class ScriptExpressionEvaluationContext {
         this.result = result;
     }
 
-    public static ThreadLocal<ScriptExpressionEvaluationContext> getThreadlocalcontext() {
-        return THREAD_LOCAL_CONTEXT;
-    }
-
-    public void setupThreadLocal() {
+    ScriptExpressionEvaluationContext setupThreadLocal() {
+        ScriptExpressionEvaluationContext oldContext = THREAD_LOCAL_CONTEXT.get();
         THREAD_LOCAL_CONTEXT.set(this);
+        return oldContext;
     }
 
-    public void cleanupThreadLocal() {
-        THREAD_LOCAL_CONTEXT.set(null);
+    void cleanupThreadLocal(ScriptExpressionEvaluationContext oldContext) {
+        THREAD_LOCAL_CONTEXT.set(oldContext);
     }
 
     public static ScriptExpressionEvaluationContext getThreadLocal() {

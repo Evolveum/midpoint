@@ -53,25 +53,12 @@ public class CustomFunctions {
     private FunctionLibraryType library;
     private ExpressionProfile expressionProfile;
     private PrismContext prismContext;
-    /**
-     * Operation result existing at the initialization time. It is used only if we cannot obtain current operation
-     * result in any other way.
-      */
-    private OperationResult initializationTimeResult;
-    /**
-     * Operation result existing at the initialization time. It is used only if we cannot obtain current operation
-     * result in any other way.
-     */
-    private Task initializationTimeTask;
 
-    public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile,
-            OperationResult result, Task task) {
+    public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile) {
         this.library = library;
         this.expressionFactory = expressionFactory;
         this.expressionProfile = expressionProfile;
         this.prismContext = expressionFactory.getPrismContext();
-        this.initializationTimeResult = result;
-        this.initializationTimeTask = task;
     }
 
     /**
@@ -88,22 +75,20 @@ public class CustomFunctions {
             if (ctx.getTask() != null) {
                 task = ctx.getTask();
             } else {
-                LOGGER.warn("No task in ScriptExpressionEvaluationContext for the current thread found. Using "
-                        + "initialization-time task: {}", initializationTimeTask);
-                task = initializationTimeTask;
+                // We shouldn't use task of unknown provenience.
+                throw new IllegalStateException("No task in ScriptExpressionEvaluationContext for the current thread found");
             }
             if (ctx.getResult() != null) {
                 result = ctx.getResult();
             } else {
-                LOGGER.warn("No operation result in ScriptExpressionEvaluationContext for the current thread found. Using "
-                        + "initialization-time op. result");
-                result = initializationTimeResult;
+                // Better throwing an exception than introducing memory leak if initialization-time result is used.
+                // This situation should never occur anyway.
+                throw new IllegalStateException("No operation result in ScriptExpressionEvaluationContext for the current thread found");
             }
         } else {
-            LOGGER.warn("No ScriptExpressionEvaluationContext for current thread found. Using initialization-time task "
-                    + "and operation result: {}", initializationTimeTask);
-            task = initializationTimeTask;
-            result = initializationTimeResult;
+            // Better throwing an exception than introducing memory leak if initialization-time result is used.
+            // This situation should never occur anyway.
+            throw new IllegalStateException("No ScriptExpressionEvaluationContext for current thread found");
         }
 
         List<ExpressionType> functions = library.getFunction().stream().filter(expression -> functionName.equals(expression.getName())).collect(Collectors.toList());
