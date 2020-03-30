@@ -589,7 +589,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
             StringBuilder sb = new StringBuilder();
             sb.append("orig=" + ps.getOrig());
             if (ps.getTranslation() != null) {
-                sb.append(", translation="+ps.getTranslation().getKey());
+                sb.append(", translation.key=" + ps.getTranslation().getKey());
             }
             if (ps.getLang() != null) {
                 sb.append("; lang:");

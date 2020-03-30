@@ -337,7 +337,16 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
     @Override
     public void shortDump(StringBuilder sb) {
-        sb.append(orig);
+        sb.append("orig=" + orig);
+        if (getTranslation() != null) {
+            sb.append("; translation.key=" + getTranslation().getKey());
+        }
+        if (getLang() != null) {
+            sb.append("; lang:");
+            getLang().keySet().forEach(langKey -> {
+                sb.append(" " + langKey + "=" + getLang().get(langKey) + ",");
+            });
+        }
     }
 
     public static String getOrig(PolyString s) {
