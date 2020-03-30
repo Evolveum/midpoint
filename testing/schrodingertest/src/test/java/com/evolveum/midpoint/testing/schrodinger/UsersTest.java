@@ -48,7 +48,7 @@ public class UsersTest extends AbstractSchrodingerTest {
     }
 
     @Test
-    public void testUserTablePaging() {
+    public void test001UserTablePaging() {
         ListUsersPage users = basicPage.listUsers();
 
         screenshot("listUsers");
@@ -78,7 +78,7 @@ public class UsersTest extends AbstractSchrodingerTest {
     }
 
     @Test
-    public void testSearchWithLookupTable() {
+    public void test002SearchWithLookupTable() {
 
         UserPage user = basicPage.newUser();
         user.selectTabBasic()
