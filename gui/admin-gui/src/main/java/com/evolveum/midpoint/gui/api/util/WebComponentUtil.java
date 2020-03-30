@@ -1116,7 +1116,11 @@ public final class WebComponentUtil {
         if (localizationService == null){
             localizationService = MidPointApplication.get().getLocalizationService();
         }
-        return localizationService.translate(value, getCurrentLocale(), true);
+        String translatedValue = localizationService.translate(value, getCurrentLocale(), true);
+        if (StringUtils.isNotEmpty(translatedValue)){
+            return translatedValue;
+        }
+        return value.getOrig();
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {
