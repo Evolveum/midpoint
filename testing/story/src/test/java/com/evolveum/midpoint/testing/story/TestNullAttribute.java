@@ -113,7 +113,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 
         PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
         PrismContainerDefinition<?> userExtensionDef = userDefinition.getExtensionDefinition();
-        display("User extension definition", userExtensionDef);
+        displayDumpable("User extension definition", userExtensionDef);
         PrismAsserts.assertPropertyDefinition(userExtensionDef,
                 new QName(NS_PIRACY, "ship"), DOMUtil.XSD_STRING, 0, 1);
 
@@ -230,7 +230,7 @@ public class TestNullAttribute extends AbstractStoryTest {
         ext.setPropertyRealValue(PIRACY_SHIP_QNAME, null);
 
         ObjectDelta<UserType> delta = userBefore.diff(userNewPrism);
-        display("Modifying user with delta", delta);
+        displayDumpable("Modifying user with delta", delta);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 

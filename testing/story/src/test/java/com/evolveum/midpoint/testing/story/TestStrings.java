@@ -251,7 +251,7 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
                 "Process instance name: Assigning role \"a-test-1\" to user \"bob\"");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -338,7 +338,7 @@ public class TestStrings extends AbstractStoryTest {
         List<CaseEventType> events = assertEvents(aCase, 2);
         assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -417,7 +417,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -474,7 +474,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -532,7 +532,7 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
                 "Process instance name: Assigning role \"a-test-1\" to user \"bob\"", "Result: APPROVED");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
 
         // TODO after audit is OK
 //        List<AuditEventRecord> workItemEvents = filter(getParamAuditRecords(
@@ -596,7 +596,7 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
                 "Process instance name: Assigning role \"a-test-1\" to user \"carla\"");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -623,7 +623,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Stage: Line managers (1/3)", "Allocated to (before escalation): Guybrush Threepwood (guybrush)");
         assertNull("process messages", processMessages);
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     // escalation should occur here
@@ -690,7 +690,7 @@ public class TestStrings extends AbstractStoryTest {
                 "|Allocated to (after escalation): Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to (after escalation): Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -738,7 +738,7 @@ public class TestStrings extends AbstractStoryTest {
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -829,7 +829,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     // notification should be send
@@ -871,7 +871,7 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item will be automatically completed in 2 days",
                 "Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -903,7 +903,7 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
                 "Process instance name: Assigning role \"a-test-1\" to user \"carla\"", "Result: REJECTED");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     private void checkTwoCompleted(List<Message> lifecycleMessages) {
@@ -965,7 +965,7 @@ public class TestStrings extends AbstractStoryTest {
         display("work items allocation notifications", allocationMessages);
         display("processes notifications", processMessages);
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
@@ -1008,7 +1008,7 @@ public class TestStrings extends AbstractStoryTest {
         display("processes notifications", processMessages);
         dummyTransport.clearMessages();
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
 
@@ -1059,7 +1059,7 @@ public class TestStrings extends AbstractStoryTest {
         display("processes notifications", processMessages);
 
         // audit
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
         List<AuditEventRecord> records = dummyAuditService.getRecords();
         assertEquals("Wrong # of audit records", 4, records.size());
         AuditEventRecord record = records.get(0);
@@ -1114,7 +1114,7 @@ public class TestStrings extends AbstractStoryTest {
         display("work items allocation notifications", allocationMessages);
         display("processes notifications", processMessages);
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
 

@@ -160,7 +160,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         resourceTypeNative = resourceNative.asObjectable();
 
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeNative, prismContext);
-        display("Parsed resource schema", returnedSchema);
+        displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("No parsed schema", returnedSchema);
 
         assertObjectClass(returnedSchema, OBJECTCLASS_NATIVE_ACCOUNT);
@@ -237,7 +237,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         resourceTypeLegacy = resourceLegacy.asObjectable();
 
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeLegacy, prismContext);
-        display("Parsed resource schema", returnedSchema);
+        displayDumpable("Parsed resource schema", returnedSchema);
         assertNotNull("No parsed schema", returnedSchema);
 
         assertObjectClass(returnedSchema, OBJECTCLASS_LEGACY_ACCOUNT);

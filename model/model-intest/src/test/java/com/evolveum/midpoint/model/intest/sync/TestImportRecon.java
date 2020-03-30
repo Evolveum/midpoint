@@ -266,12 +266,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test001SanityAzure() throws Exception {
-        display("Dummy resource azure", dummyResourceAzure);
+        displayDumpable("Dummy resource azure", dummyResourceAzure);
 
         // WHEN
         ResourceSchema resourceSchemaAzure = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyAzureType, prismContext);
 
-        display("Dummy azure resource schema", resourceSchemaAzure);
+        displayDumpable("Dummy azure resource schema", resourceSchemaAzure);
 
         // THEN
         dummyResourceCtlAzure.assertDummyResourceSchemaSanityExtended(resourceSchemaAzure);
@@ -285,7 +285,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyAzureType, prismContext);
 
-        display("Dummy azure refined schema", refinedSchemaAzure);
+        displayDumpable("Dummy azure refined schema", refinedSchemaAzure);
 
         // THEN
         dummyResourceCtlAzure.assertRefinedSchemaSanity(refinedSchemaAzure);
@@ -515,7 +515,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        display("Rapp lime account before", dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp lime account before", dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME));
 
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
@@ -576,7 +576,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
 
-        display("Rapp lime account after", dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp lime account after", dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME));
 
         assertUsers(getNumberOfUsers() + 4);
 
@@ -597,7 +597,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         DummyAccount accountRappLimeBefore = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
         accountRappLimeBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
                 ORG_SCUMM_BAR_NAME);
-        display("Rapp lime account before", accountRappLimeBefore);
+        displayDumpable("Rapp lime account before", accountRappLimeBefore);
 
         // Preconditions
 
@@ -657,7 +657,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
 
         DummyAccount accountRappLimeAfter = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
-        display("Rapp lime account after", accountRappLimeAfter);
+        displayDumpable("Rapp lime account after", accountRappLimeAfter);
         assertAssignedOrg(userRappAfter, ORG_SCUMM_BAR_OID);
         assertAssignments(userRappAfter, 1);
 
@@ -679,7 +679,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount accountRappLimeBefore = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
         accountRappLimeBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME /* no value */);
-        display("Rapp lime account before", accountRappLimeBefore);
+        displayDumpable("Rapp lime account before", accountRappLimeBefore);
 
         // Preconditions
 
@@ -741,7 +741,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
 
         DummyAccount accountRappLimeAfter = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
-        display("Rapp lime account after", accountRappLimeAfter);
+        displayDumpable("Rapp lime account after", accountRappLimeAfter);
         assertNoAssignments(userRappAfter);
 
         assertUsers(getNumberOfUsers() + 4);
@@ -941,7 +941,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertFailure(reconTaskResult);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
 
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
@@ -1109,7 +1109,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTrue("Errors not mentioned in the task message", reconTaskResult.getMessage().contains("got 1 error"));
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
     }
 
@@ -1349,7 +1349,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // Create some illegal account
         dummyResourceCtlAzure.addAccount(ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME);
-        display("Otis account before", dummyResourceAzure.getAccountByUsername(ACCOUNT_OTIS_NAME));
+        displayDumpable("Otis account before", dummyResourceAzure.getAccountByUsername(ACCOUNT_OTIS_NAME));
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
@@ -1382,7 +1382,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // Otis
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
-        display("Otis account after", dummyResourceAzure.getAccountByUsername(ACCOUNT_OTIS_NAME));
+        displayDumpable("Otis account after", dummyResourceAzure.getAccountByUsername(ACCOUNT_OTIS_NAME));
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
 
         // These are protected accounts, they should not be imported
@@ -1548,7 +1548,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
 
         dummyResourceCtlAzure.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
-        display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
 
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
@@ -1584,7 +1584,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
 
         // Rapp
-        display("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID, RESOURCE_DUMMY_AZURE_OID);
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME,
@@ -1643,7 +1643,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
 
-        display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
         assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Elaine");
 
@@ -1691,7 +1691,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
 
         // Rapp
-        display("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID, RESOURCE_DUMMY_AZURE_OID);
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME,
@@ -1726,7 +1726,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
 
-        display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
         assertNoDummyGroupMember(RESOURCE_DUMMY_AZURE_NAME, GROUP_CORPSES_NAME, USER_RAPP_USERNAME);
 
         ObjectDelta<UserType> userRappDelta = createAssignmentUserDelta(USER_RAPP_OID, ROLE_CORPSE.oid,
@@ -1765,7 +1765,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
 
         // Rapp
-        display("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        displayDumpable("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID, RESOURCE_DUMMY_AZURE_OID);
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyGroupMember(RESOURCE_DUMMY_AZURE_NAME, GROUP_CORPSES_NAME, USER_RAPP_USERNAME);
@@ -1943,7 +1943,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1988,7 +1988,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "grog");
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2034,7 +2034,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertNoItem(userAfter, UserType.F_COST_CENTER);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2077,7 +2077,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "rum");
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2122,7 +2122,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2164,7 +2164,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2206,7 +2206,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertPassword(userAfter, "d0d3c4h3dr0n");
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2693,7 +2693,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     }
 
     private void assertImportAuditModifications(int expectedModifications) {
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 
@@ -2731,7 +2731,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private void assertReconAuditModifications(int expectedModifications, String taskOid) {
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 

@@ -2779,7 +2779,7 @@ public class TestRbac extends AbstractRbacTest {
         then();
         assertSuccess(result);
 
-        display("Preview context", context);
+        displayDumpable("Preview context", context);
         assertNotNull("Null focus context", context.getFocusContext());
         assertEquals("Wrong number of projection contexts", 1, context.getProjectionContexts().size());
         DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
@@ -2790,7 +2790,7 @@ public class TestRbac extends AbstractRbacTest {
         assertNotNull("null zero set in evaluatedAssignmentTriple", assignmentZeroSet);
         assertEquals("Wrong size of zero set in evaluatedAssignmentTriple", 1, assignmentZeroSet.size());
         EvaluatedAssignment<?> evaluatedAssignment = assignmentZeroSet.iterator().next();
-        display("Evaluated weak assignment", evaluatedAssignment);
+        displayDumpable("Evaluated weak assignment", evaluatedAssignment);
 
         DeltaSetTriple<EvaluatedConstruction> evaluatedConstructions = evaluatedAssignment.getEvaluatedConstructions(task, result);
         assertTrue("Unexpected plus set in evaluatedConstructions", evaluatedConstructions.getPlusSet().isEmpty());
@@ -2798,7 +2798,7 @@ public class TestRbac extends AbstractRbacTest {
         Collection<EvaluatedConstruction> constructionsZeroSet = evaluatedConstructions.getZeroSet();
         assertEquals("Wrong size of zero set in evaluatedConstructions", 1, constructionsZeroSet.size());
         EvaluatedConstruction evaluatedConstruction = constructionsZeroSet.iterator().next();
-        display("Evaluated weak evaluatedConstruction", evaluatedConstruction);
+        displayDumpable("Evaluated weak evaluatedConstruction", evaluatedConstruction);
         assertTrue("Construction not weak", evaluatedConstruction.isWeak());
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -4245,7 +4245,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Fool", "Simpleton");
 
-        display("Simpleton groups", getDummyResource().getGroupByName(GROUP_SIMPLETONS_NAME));
+        displayDumpable("Simpleton groups", getDummyResource().getGroupByName(GROUP_SIMPLETONS_NAME));
 
         assertDummyGroupMember(null, GROUP_FOOLS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDummyGroupMember(null, GROUP_SIMPLETONS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -4310,7 +4310,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Fool", "Simpleton");
 
-        display("Simpleton groups", getDummyResource().getGroupByName(GROUP_SIMPLETONS_NAME));
+        displayDumpable("Simpleton groups", getDummyResource().getGroupByName(GROUP_SIMPLETONS_NAME));
 
         assertDummyGroupMember(null, GROUP_FOOLS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         // Group association is non-tolerant. It should be removed.
@@ -4340,7 +4340,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("user after", userJackAfter);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
         List<Message> messages = dummyTransport.getMessages("dummy:policyRuleNotifier");
         assertNotNull("No notification messages", messages);
         assertEquals("Wrong # of notification messages", 1, messages.size());

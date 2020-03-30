@@ -84,7 +84,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         // WHEN
         PrismObject<ResourceType> resourceWhite = getObject(ResourceType.class, RESOURCE_DUMMY_WHITE_OID);
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceWhite, prismContext);
-        display("Refined schema", refinedSchema);
+        displayDumpable("Refined schema", refinedSchema);
 
         RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
@@ -161,7 +161,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         TestUtil.assertPartialError(result);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -205,7 +205,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertUser(userAfter, userOid, "charles", "Charles L. Charles", null, null, null);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -244,7 +244,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertInProgress(result);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -325,7 +325,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertFailure(result);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();

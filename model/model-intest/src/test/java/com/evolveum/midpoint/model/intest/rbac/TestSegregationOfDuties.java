@@ -1510,7 +1510,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         then();
         assertSuccess(result);
 
-        display("Preview context", modelContext);
+        displayDumpable("Preview context", modelContext);
 
         DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
 
@@ -1533,10 +1533,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertEquals("Wrong number of evaluated policy rules", 2, allTargetsPolicyRules.size());
         EvaluatedPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
         EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
-        display("Own trigger", sodTrigger);
+        displayDumpable("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
         EvaluatedPolicyRuleTrigger situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
-        display("Situation trigger", situationTrigger);
+        displayDumpable("Situation trigger", situationTrigger);
         PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
         display("Actions", sodActions);
         assertPolicyActionApproval(evaluatedSodPolicyRule);

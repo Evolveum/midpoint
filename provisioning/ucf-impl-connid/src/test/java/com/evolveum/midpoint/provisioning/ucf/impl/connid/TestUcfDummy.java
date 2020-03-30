@@ -71,7 +71,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
     @Test
     public void test001ResourceSanity() {
-        displayValue("Resource", resource);
+        displayDumpable("Resource", resource);
 
         assertEquals("Wrong oid", "ef2bc95b-76e0-59e2-86d6-9999dddddddd", resource.getOid());
 //        assertEquals("Wrong version", "42", resource.getVersion());
@@ -152,7 +152,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
-        displayValue("Configuration container", configContainer);
+        displayDumpable("Configuration container", configContainer);
 
         // WHEN
         cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
@@ -168,7 +168,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
 
         // THEN
-        displayValue("Connector operational status", operationalStatus);
+        displayDumpable("Connector operational status", operationalStatus);
         assertNotNull("null operational status", operationalStatus);
 
         assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
@@ -193,7 +193,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
-        displayValue("Configuration container", configContainer);
+        displayDumpable("Configuration container", configContainer);
         //ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
         cc.configure(configContainer, null, result);
 
@@ -201,7 +201,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         resourceSchema = cc.fetchResourceSchema(result);
 
         // THEN
-        displayValue("Generated resource schema", resourceSchema);
+        displayDumpable("Generated resource schema", resourceSchema);
         assertEquals("Unexpected number of definitions", 4, resourceSchema.getDefinitions().size());
 
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
@@ -213,7 +213,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         // Try to re-parse
         ResourceSchema reparsedResourceSchema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
                 "serialized schema", PrismTestUtil.getPrismContext());
-        displayValue("Re-parsed resource schema", reparsedResourceSchema);
+        displayDumpable("Re-parsed resource schema", reparsedResourceSchema);
         assertEquals("Unexpected number of definitions in re-parsed schema", 4, reparsedResourceSchema.getDefinitions().size());
 
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType, true);
@@ -230,7 +230,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
-        displayValue("Configuration container", configContainer);
+        displayDumpable("Configuration container", configContainer);
         List<QName> objectClassesToGenerate = new ArrayList<>();
         QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
         objectClassesToGenerate.add(accountObjectClass);
@@ -241,7 +241,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         resourceSchema = cc.fetchResourceSchema(result);
 
         // THEN
-        displayValue("Generated resource schema", resourceSchema);
+        displayDumpable("Generated resource schema", resourceSchema);
         assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
 
         assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
@@ -255,7 +255,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
 
         // THEN
-        displayValue("Connector operational status", operationalStatus);
+        displayDumpable("Connector operational status", operationalStatus);
         assertNotNull("null operational status", operationalStatus);
 
         assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
@@ -309,7 +309,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
             @Override
             public boolean handle(PrismObject<ShadowType> shadow) {
-                displayValue("Search: found", shadow);
+                displayDumpable("Search: found", shadow);
                 checkUcfShadow(shadow, accountDefinition);
                 searchResults.add(shadow);
                 return true;

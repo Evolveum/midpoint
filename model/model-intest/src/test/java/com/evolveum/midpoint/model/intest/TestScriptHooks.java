@@ -120,7 +120,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         StaticHookRecorder.assertInvocationCount("bar-user", 1);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();

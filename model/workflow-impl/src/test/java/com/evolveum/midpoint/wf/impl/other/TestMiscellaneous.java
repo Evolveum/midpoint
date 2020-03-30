@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.wf.impl.other;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -21,22 +33,11 @@ import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestMiscellaneous extends AbstractWfTestPolicy {
 
@@ -143,7 +144,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
         assertEquals("Wrong original assignee OID", USER_SCOTT_OID, event2.getOriginalAssigneeRef().getOid());
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
         List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
         assertEquals("Wrong # of process instance audit records", 2, records.size());
         for (int i = 0; i < records.size(); i++) {
@@ -210,7 +211,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
         assertEquals("Wrong original assignee OID", USER_SCOTT_OID, event2.getOriginalAssigneeRef().getOid());
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
         List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
         assertEquals("Wrong # of process instance audit records", 2, records.size());
         for (int i = 0; i < records.size(); i++) {
@@ -352,9 +353,9 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         // WHEN
         ObjectDelta<? extends ObjectType> delta =
                 prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT)
+                        .item(UserType.F_ASSIGNMENT)
                         .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN_OID, ObjectTypes.ROLE, prismContext))
-                .asObjectDelta(userJackOid);
+                        .asObjectDelta(userJackOid);
         ModelExecuteOptions options = ModelExecuteOptions.createPartialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         modelService.executeChanges(Collections.singletonList(delta), options, task, result);

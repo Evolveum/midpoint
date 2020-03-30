@@ -105,7 +105,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertSchemaMetadataUnchanged(resourceRepoAfter);
 
-        display("Resource cache", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(0);
         assertResourceCacheMissesIncrement(1);
 
@@ -143,7 +143,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (1)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
@@ -171,7 +171,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (1)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
@@ -195,7 +195,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         addAccount(ACCOUNT_WILL_FILE);
 
         // THEN
-        display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (1)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
@@ -217,7 +217,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache (2)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (2)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
@@ -253,7 +253,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (1)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
@@ -281,7 +281,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (1)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
@@ -339,7 +339,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(0);
         assertResourceCacheMissesIncrement(1);
 
@@ -364,7 +364,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         getAccount(ACCOUNT_WILL_OID);
 
         // THEN
-        display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (1)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(2);            // one hit is "regular", the other one when availability state update is considered
         assertResourceCacheMissesIncrement(0);
 
@@ -387,7 +387,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache (2)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (2)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
@@ -446,7 +446,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(0);
         assertResourceCacheMissesIncrement(1);
 
@@ -579,7 +579,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         assertResourceVersionIncrement(resourceProvisioning, 0);
 
-        display("Resource cache", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(0);
         assertResourceCacheMissesIncrement(1);
 
@@ -592,7 +592,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         getAccount(ACCOUNT_WILL_OID);
 
         // THEN
-        display("Resource cache (2)", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache (2)", InternalMonitor.getResourceCacheStats());
         assertResourceCacheHitsIncrement(2);  // one hit is "regular", the other one when availability state update is considered
         assertResourceCacheMissesIncrement(0);
 

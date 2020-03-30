@@ -936,7 +936,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -990,7 +990,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();

@@ -170,7 +170,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         // Check if the account was created in the dummy resource
         DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_MORGAN_NAME), getIcfUid(provisioningAccountType));
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertNotNull("No dummy account", dummyAccount);
         assertEquals("Fullname is wrong", "Captain Morgan", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -572,7 +572,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_DUMMY_OID,
                 ShadowKindType.ACCOUNT, "default", prismContext);
-        display("query", query);
+        displayDumpable("query", query);
 
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
 
@@ -622,7 +622,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + ".test113SearchAllShadowsInRepository");
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType, prismContext);
-        display("All shadows query", query);
+        displayDumpable("All shadows query", query);
 
         // WHEN
         List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class,
@@ -646,7 +646,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
-        display("All shadows query", query);
+        displayDumpable("All shadows query", query);
 
         // WHEN
         List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
@@ -674,7 +674,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
-        display("All shadows query", query);
+        displayDumpable("All shadows query", query);
 
         // WHEN
         when();
@@ -750,7 +750,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
-        display("All shadows query", query);
+        displayDumpable("All shadows query", query);
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -795,7 +795,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
-        display("All shadows query", query);
+        displayDumpable("All shadows query", query);
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -838,7 +838,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -869,7 +869,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
                 "Pirate");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -901,7 +901,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
                 "Captain");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -932,7 +932,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
                 "Pirate");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -967,7 +967,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
                 "Captain");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -1010,7 +1010,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createAccountPaswordDelta(ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD_123, null);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         // WHEN
         when();
@@ -1167,7 +1167,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), "Will Turner");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -1211,7 +1211,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_NEW_SCRIPT_OID, ShadowType.F_DESCRIPTION, "Blah blah");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -1319,7 +1319,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -1390,7 +1390,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -1434,7 +1434,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.ENABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -1712,7 +1712,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
                 LockoutStatusType.NORMAL);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2048,7 +2048,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .and().itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq("Sea Monkey")
                 .and().item(ShadowType.F_DEAD).eq(true)
                 .build();
-        display("Query", query);
+        displayDumpable("Query", query);
         return query;
     }
 
@@ -2104,7 +2104,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             }
         }
 
-        display("Query", query);
+        displayDumpable("Query", query);
 
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -2181,7 +2181,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         }
         query.setPaging(paging);
 
-        display("Query", query);
+        displayDumpable("Query", query);
 
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -2375,7 +2375,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 GROUP_PIRATES_OID,
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
                 "Bloodthirsty pirates");
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2567,7 +2567,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2638,7 +2638,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2690,7 +2690,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2913,7 +2913,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2943,7 +2943,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -2973,7 +2973,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -3003,7 +3003,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -3033,7 +3033,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -3134,7 +3134,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -3179,7 +3179,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -3430,7 +3430,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH_PARTS, ACCOUNT_CPTMORGAN_NAME);
         provisioningService.applyDefinition(delta, task, result);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -3481,7 +3481,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ACCOUNT_MORGAN_OID,
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
                 XmlTypeConverter.createXMLGregorianCalendarFromIso8601(ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED));
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -3496,7 +3496,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
         // check if attribute was changed
         DummyAccount dummyAccount = getDummyAccount(transformNameFromResource(ACCOUNT_CPTMORGAN_NAME), morganIcfUid);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         ZonedDateTime enlistTimestamp = dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME, ZonedDateTime.class);
         assertEqualTime("wrong dummy enlist timestamp", ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED, enlistTimestamp);
 
@@ -3516,7 +3516,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createAccountPaswordDelta(ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD_321, ACCOUNT_WILL_PASSWORD_123);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createRunAsAccountOid(ACCOUNT_WILL_OID);
 
@@ -3653,7 +3653,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     protected void assertAccountWillGossip(String... values) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        display("Account will", getDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid));
+        displayDumpable("Account will", getDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid));
         assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, values);
     }
@@ -4034,7 +4034,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertNotifyChange();
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -4094,7 +4094,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertNotifyChange();
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertSyncOldShadow(oldShadow, getBlackbeardRepoIcfName());
@@ -4257,7 +4257,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertNotifyChange();
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -4327,7 +4327,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertNotifyChange();
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertSyncOldShadow(oldShadow, getDrakeRepoIcfName());
@@ -4389,7 +4389,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             syncServiceMock.assertNotifyChange();
 
             ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-            display("The change", lastChange);
+            displayDumpable("The change", lastChange);
 
             PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
             assertNotNull("Old shadow missing", oldShadow);
@@ -4529,7 +4529,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertNotifyChange();
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertSyncOldShadow(oldShadow, getDrakeRepoIcfName());
@@ -4580,7 +4580,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         syncServiceMock.assertNoNotifyChange();
 

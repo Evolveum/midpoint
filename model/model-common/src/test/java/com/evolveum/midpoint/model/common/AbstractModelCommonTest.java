@@ -11,7 +11,7 @@ import java.io.File;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * @author semancik
  */
 public class AbstractModelCommonTest extends AbstractUnitTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     protected static final File COMMON_DIR = new File("src/test/resources/common");
 
@@ -31,7 +31,7 @@ public class AbstractModelCommonTest extends AbstractUnitTest
     }
 
     public void displayValue(String title, DebugDumpable value) {
-        PrismTestUtil.display(title, value);
+        displayDumpable(title, value);
     }
 
     public void displayValue(String title, Object value) {

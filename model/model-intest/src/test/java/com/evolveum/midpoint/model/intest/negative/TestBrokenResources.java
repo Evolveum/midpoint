@@ -799,7 +799,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     private ObjectDelta<UserType> createAssignTwoResourcesDelta(String badResourceOid) throws SchemaException {
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, badResourceOid, null, true);
         userDelta.addModification(createAccountAssignmentModification(RESOURCE_DUMMY_OID, null, true));
-        display("input delta", userDelta);
+        displayDumpable("input delta", userDelta);
         return userDelta;
     }
 

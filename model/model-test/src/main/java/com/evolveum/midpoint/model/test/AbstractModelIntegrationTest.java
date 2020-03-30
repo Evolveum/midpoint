@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -1575,7 +1576,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
-        display("Executing delta", objectDelta);
+        displayDumpable("Executing delta", objectDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         return modelService.executeChanges(deltas, options, task, result);
     }
@@ -1601,7 +1602,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> ModelContext<O> previewChanges(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        display("Preview changes for delta", objectDelta);
+        displayDumpable("Preview changes for delta", objectDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         return modelInteractionService.previewChanges(deltas, options, task, result);
     }
@@ -3377,13 +3378,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Long origLastRunStartTimestamp = origRootTask.getLastRunStartTimestamp();
         Long origLastRunFinishTimestamp = origRootTask.getLastRunFinishTimestamp();
         long start = System.currentTimeMillis();
-        Holder<Boolean> triggered = new Holder<>(false);    // to avoid repeated checking for start-finish timestamps
+        AtomicBoolean triggered = new AtomicBoolean(false);
         OperationResult aggregateResult = new OperationResult("aggregate");
         Checker checker = () -> {
             Task freshRootTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
 
-            String s = TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult);
-            displayValue("task tree", s);
+            displayValue("task tree", TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult));
+            displayValue("task-tree-alt", TaskDebugUtil.dumpTaskTree(freshRootTask, freshRootTask.getResult()));
 
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
@@ -3391,15 +3392,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                             freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
                             freshRootTask.getNode() + "] (waiting for: " + waiting + ")";
             // was the whole task tree refreshed at least once after we were called?
-            if (!triggered.getValue() && (freshRootTask.getLastRunStartTimestamp() == null
-                    || freshRootTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
-                    || freshRootTask.getLastRunFinishTimestamp() == null
-                    || freshRootTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
-                    || freshRootTask.getLastRunStartTimestamp() >= freshRootTask.getLastRunFinishTimestamp())) {
-                display("Root (triggering) task next run has not been completed yet: " + description);
+            Long lastRunStartTimestamp = freshRootTask.getLastRunStartTimestamp();
+            Long lastRunFinishTimestamp = freshRootTask.getLastRunFinishTimestamp();
+            if (!triggered.get() &&
+                    (lastRunStartTimestamp == null
+                            || lastRunStartTimestamp.equals(origLastRunStartTimestamp)
+                            || lastRunFinishTimestamp == null
+                            || lastRunFinishTimestamp.equals(origLastRunFinishTimestamp)
+                            || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
+                display("Root (triggering) task next run has not been completed yet: " + description
+                        + "\n  lastRunStartTimestamp=" + lastRunStartTimestamp
+                        + ", origLastRunStartTimestamp=" + origLastRunStartTimestamp
+                        + ", lastRunFinishTimestamp=" + lastRunFinishTimestamp
+                        + ", origLastRunFinishTimestamp=" + origLastRunFinishTimestamp);
                 return false;
             }
-            triggered.setValue(true);
+            triggered.set(true);
 
             aggregateResult.getSubresults().clear();
             List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
@@ -5170,7 +5178,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         PrismObject<RoleType> target = getRole(targetRoleOid);
 
         ItemSecurityConstraints constraints = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
-        display("Request decisions for " + target, constraints);
+        displayDumpable("Request decisions for " + target, constraints);
 
         for (ItemPath expectedAllowedItemPath : expectedAllowedItemPaths) {
             AuthorizationDecisionType decision = constraints.findItemDecision(expectedAllowedItemPath);

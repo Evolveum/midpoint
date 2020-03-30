@@ -212,7 +212,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(0, stat.getMarkedAsAccept());
         assertEquals(0, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());

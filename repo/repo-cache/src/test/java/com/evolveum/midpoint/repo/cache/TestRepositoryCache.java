@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -47,7 +48,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @SuppressWarnings("SameParameterValue")
 @ContextConfiguration(locations = { "classpath:ctx-repo-cache-test.xml" })
-public class TestRepositoryCache extends AbstractSpringTest {
+public class TestRepositoryCache extends AbstractSpringTest implements InfraTestMixin {
 
     private static final String CLASS_DOT = TestRepositoryCache.class.getName() + ".";
 
@@ -105,18 +106,18 @@ public class TestRepositoryCache extends AbstractSpringTest {
         String oid = repositoryCache.addObject(object, null, result);
 
         PrismObject<T> object1 = repositoryCache.getObject(objectClass, oid, null, result);
-        PrismTestUtil.display("1st object retrieved", object1);
+        displayDumpable("1st object retrieved", object1);
         assertEquals("Wrong object1", object, object1);
         object1.asObjectable().setDescription("garbage");
 
         PrismObject<T> object2 = repositoryCache.getObject(objectClass, oid, null, result);
-        PrismTestUtil.display("2nd object retrieved", object2);
+        displayDumpable("2nd object retrieved", object2);
         assertEquals("Wrong object2", object, object2);
         object2.asObjectable().setDescription("total garbage");
 
         PrismObject<T> object3 = repositoryCache.getObject(objectClass, oid, null, result);
         assertEquals("Wrong object3", object, object3);
-        PrismTestUtil.display("3rd object retrieved", object3);
+        displayDumpable("3rd object retrieved", object3);
 
         dumpStatistics();
         assertAddOperations(1);
@@ -212,7 +213,7 @@ public class TestRepositoryCache extends AbstractSpringTest {
             ObjectNotFoundException {
         SearchResultList<PrismObject<T>> existingObjects = repositoryCache.searchObjects(objectClass, null, null, result);
         for (PrismObject<T> existingObject : existingObjects) {
-            System.out.println("Deleting " + existingObject);
+            display("Deleting " + existingObject);
             repositoryCache.deleteObject(objectClass, existingObject.getOid(), result);
         }
     }

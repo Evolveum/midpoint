@@ -355,7 +355,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertEquals("OID of user wally have changed", userWallyOid, userWally.getOid());
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(userWally.getOid(), getDummyResourceObject());
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(userDelta);
 
         /// WHEN
         when();
@@ -953,7 +953,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         }
 
         DummyAccount dummyAccount = dummy.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-        display("Account wally (" + resourceDesc + ")", dummyAccount);
+        displayDumpable("Account wally (" + resourceDesc + ")", dummyAccount);
         assertNotNull("No dummy account (" + resourceDesc + ")", dummyAccount);
         if (expectedFullName != null) {
             assertEquals("Wrong dummy account fullname (" + resourceDesc + ")", expectedFullName,

@@ -92,7 +92,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         // notifications
         notificationManager.setDisabled(true);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);            // reconciliation request + execution
     }
 

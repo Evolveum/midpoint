@@ -60,7 +60,7 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
             display("Checked "+object+": no warnings");
             return;
         }
-        display("Validation warnings for "+object, validationResult);
+        displayDumpable("Validation warnings for "+object, validationResult);
         for (ValidationItem valItem : validationResult.getItems()) {
             errorsSb.append(file.getName());
             errorsSb.append(" ");

@@ -159,7 +159,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
-        display("Query", query);
+        displayDumpable("Query", query);
 
         // WHEN
         when();

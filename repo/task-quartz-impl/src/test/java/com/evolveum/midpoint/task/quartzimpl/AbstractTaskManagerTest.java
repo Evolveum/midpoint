@@ -37,7 +37,7 @@ import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class AbstractTaskManagerTest extends AbstractSpringTest implements OperationResultTestMixin {
+public class AbstractTaskManagerTest extends AbstractSpringTest implements InfraTestMixin {
 
     private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
     private static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
@@ -338,8 +338,9 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Opera
         return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
     }
 
+    @Deprecated // inline
     protected void displayValue(String title, DebugDumpable value) {
-        PrismTestUtil.display(title, value);
+        displayDumpable(title, value);
     }
 
     public void displayValue(String title, Object value) {

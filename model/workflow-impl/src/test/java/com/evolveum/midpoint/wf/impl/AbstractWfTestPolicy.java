@@ -145,7 +145,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         OperationResult result = opTask.getResult();
 
         LensContext<F> modelContext = testDetails.createModelContext(result);
-        display("Model context at test start", modelContext);
+        displayDumpable("Model context at test start", modelContext);
 
         // this has problems with deleting assignments by ID
         //assertFocusModificationSanity(modelContext);
@@ -162,7 +162,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
         // THEN
 
-        display("Model context after first clockwork.run", modelContext);
+        displayDumpable("Model context after first clockwork.run", modelContext);
         assertEquals("Unexpected state of the context", ModelState.PRIMARY, modelContext.getState());
         assertEquals("Wrong mode after clockwork.run in " + modelContext.getState(), HookOperationMode.BACKGROUND, mode);
         opTask.refresh(result);
@@ -184,7 +184,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
         List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
 
-        display("changes by state after first clockwork run", workflowManager
+        displayDumpable("changes by state after first clockwork run", workflowManager
                 .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
 
         testDetails.afterFirstClockworkRun(rootCase, case0, subcases, workItems, opTask, result);
@@ -193,7 +193,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
             if (case0 != null) {
                 testHelper.waitForCaseClose(case0, 20000);
             }
-            display("changes by state after case0 finishes", workflowManager
+            displayDumpable("changes by state after case0 finishes", workflowManager
                     .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
             testDetails.afterCase0Finishes(rootCase, opTask, result);
         }
@@ -272,7 +272,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         subcases = miscHelper.getSubcases(rootCaseAfter, result);
         WfTestHelper.findAndRemoveCase0(subcases);
 
-        display("changes by state after root case finishes", workflowManager
+        displayDumpable("changes by state after root case finishes", workflowManager
                 .getChangesByState(rootCaseAfter, modelInteractionService, prismContext, opTask, result));
 
         testDetails.afterRootCaseFinishes(rootCaseAfter, subcases, opTask, result);
@@ -280,8 +280,8 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         notificationManager.setDisabled(true);
 
         // Check audit
-        display("Audit", dummyAuditService);
-        display("Output context", modelContext);
+        displayDumpable("Audit", dummyAuditService);
+        displayDumpable("Output context", modelContext);
         return result;
     }
 

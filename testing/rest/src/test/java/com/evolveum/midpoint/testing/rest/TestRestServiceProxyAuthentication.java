@@ -18,7 +18,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -79,7 +78,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         AssertJUnit.assertNotNull("Returned entity in body must not be null.", userType);
         logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        PrismTestUtil.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -100,7 +99,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         assertNotNull("Returned entity in body must not be null.", userType);
         logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        PrismTestUtil.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -122,7 +121,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         then();
         assertStatus(response, 403);
 
-        PrismTestUtil.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -146,7 +145,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         assertNotNull("Returned entity in body must not be null.", userType);
         logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        PrismTestUtil.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -168,7 +167,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
         then();
         assertStatus(response, 403);
 
-        PrismTestUtil.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertFailedProxyLogin(SchemaConstants.CHANNEL_REST_URI);
     }

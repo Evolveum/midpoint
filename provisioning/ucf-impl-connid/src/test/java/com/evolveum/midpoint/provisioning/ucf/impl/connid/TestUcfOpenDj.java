@@ -137,7 +137,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         connectorSchema = factory.generateConnectorConfigurationSchema(connectorType);
         AssertJUnit.assertNotNull("Cannot generate connector schema", connectorSchema);
-        displayValue("Connector schema", connectorSchema);
+        displayDumpable("Connector schema", connectorSchema);
 
         cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
                 "OpenDJ resource",
@@ -149,7 +149,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // TODO: assert something
 
         resourceSchema = cc.fetchResourceSchema(result);
-        displayValue("Resource schema", resourceSchema);
+        displayDumpable("Resource schema", resourceSchema);
 
         AssertJUnit.assertNotNull(resourceSchema);
 
@@ -433,7 +433,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         // THEN
         result.computeStatus("test failed");
-        displayValue("Test result (FAILURE EXPECTED)", result);
+        displayDumpable("Test result (FAILURE EXPECTED)", result);
         AssertJUnit.assertNotNull(result);
         OperationResult connectorConnectionResult = result.getSubresults().get(1);
         AssertJUnit.assertNotNull(connectorConnectionResult);

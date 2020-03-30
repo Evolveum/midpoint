@@ -1147,7 +1147,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
                 InternalCounters.ROLE_EVALUATION_COUNT,
                 InternalCounters.ROLE_EVALUATION_SKIP_COUNT,
                 InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
     }
 
 

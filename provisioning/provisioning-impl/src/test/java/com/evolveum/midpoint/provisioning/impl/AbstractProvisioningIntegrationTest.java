@@ -189,7 +189,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
             assertConnectorInstanceUnchanged(resource);
         }
 
-        display("Resource cache", InternalMonitor.getResourceCacheStats());
+        displayDumpable("Resource cache", InternalMonitor.getResourceCacheStats());
         // We do not assert hits, there may be a lot of them
         assertResourceCacheMissesIncrement(0);
     }

@@ -59,7 +59,7 @@ public class TestPolicyRules extends AbstractLensTest {
         repoAddObjectFromFile(USER_DRAKE_FILE, initResult);
 
         addObject(ROLE_PIRATE_FILE);
-        addObject(ROLE_MUTINIER_FILE);
+        addObject(ROLE_MUTINEER_FILE);
         addObject(ROLE_JUDGE_FILE);
         addObject(ROLE_CONSTABLE_FILE);
         addObject(ROLE_THIEF_FILE);
@@ -85,7 +85,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -120,7 +120,7 @@ public class TestPolicyRules extends AbstractLensTest {
                 assignment -> assignment.getTargetRef().setRelation(SchemaConstants.ORG_OWNER)
         );
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -179,7 +179,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextUnassignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -206,7 +206,7 @@ public class TestPolicyRules extends AbstractLensTest {
      * No exclusion here. The assignment should go smoothly.
      */
     @Test
-    public void test100AssignRoleMutinierToJack() throws Exception {
+    public void test100AssignRoleMutineerToJack() throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
@@ -214,9 +214,9 @@ public class TestPolicyRules extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_MUTINIER_OID);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_MUTINEER_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -249,7 +249,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -292,7 +292,7 @@ public class TestPolicyRules extends AbstractLensTest {
                     assignment.getPolicyException().add(policyException);
                 });
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -331,7 +331,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CONSTABLE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -345,7 +345,7 @@ public class TestPolicyRules extends AbstractLensTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
@@ -382,7 +382,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_THIEF_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -397,7 +397,7 @@ public class TestPolicyRules extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        displayDumpable("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
@@ -456,7 +456,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_EMPLOYEE_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -497,7 +497,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_ENGINEER_OID);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -525,19 +525,19 @@ public class TestPolicyRules extends AbstractLensTest {
         assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.SITUATION, 1, false);
 
         EvaluatedPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
-        display("exclusion rule for Engineer", engineerRule);
-        display("exclusion trigger for Engineer", engineerTrigger);
-        display("Engineer: assignmentPath", engineerRule.getAssignmentPath());
-        display("Engineer: conflictingPath", engineerTrigger.getConflictingPath());
+        displayDumpable("exclusion rule for Engineer", engineerRule);
+        displayDumpable("exclusion trigger for Engineer", engineerTrigger);
+        displayDumpable("Engineer: assignmentPath", engineerRule.getAssignmentPath());
+        displayDumpable("Engineer: conflictingPath", engineerTrigger.getConflictingPath());
         assertAssignmentPath(engineerRule.getAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
         assertAssignmentPath(engineerTrigger.getConflictingPath(), ROLE_CORP_CONTRACTOR_OID);
 
         EvaluatedPolicyRule contractorRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
         EvaluatedExclusionTrigger contractorTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
-        display("exclusion rule for Contractor", contractorRule);
-        display("exclusion trigger for Contractor", contractorTrigger);
-        display("Contractor: assignmentPath", contractorRule.getAssignmentPath());
-        display("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
+        displayDumpable("exclusion rule for Contractor", contractorRule);
+        displayDumpable("exclusion trigger for Contractor", contractorTrigger);
+        displayDumpable("Contractor: assignmentPath", contractorRule.getAssignmentPath());
+        displayDumpable("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
         assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
         assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
     }
@@ -580,7 +580,7 @@ public class TestPolicyRules extends AbstractLensTest {
         assertAssignedRole(userAfter, ROLE_JUDGE_OID);
 
         LensFocusContext<?> focusContext = ((LensContext<?>) recordingListener.getModelContext()).getFocusContext();
-        display("focusContext", focusContext);
+        displayDumpable("focusContext", focusContext);
         assertEquals("Wrong # of focus policy rules", 0, focusContext.getPolicyRules().size());
     }
 
@@ -599,7 +599,7 @@ public class TestPolicyRules extends AbstractLensTest {
         fillContextWithUser(context, USER_LOCALIZED.oid, result);
         addModificationToContextAssignRole(context, USER_LOCALIZED.oid, ROLE_LOCALIZED.oid);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -643,7 +643,7 @@ public class TestPolicyRules extends AbstractLensTest {
     }
 
     private ObjectDelta<ShadowType> assertAssignAccountToJack(LensContext<UserType> context) {
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
         assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());

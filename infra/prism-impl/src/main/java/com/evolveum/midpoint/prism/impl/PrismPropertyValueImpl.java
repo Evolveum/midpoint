@@ -587,12 +587,15 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
             // (displaying the aux information in user-visible context). But for e.g. deltas we need this information.
             PolyString ps = (PolyString) this.value;
             StringBuilder sb = new StringBuilder();
-            sb.append(ps.getOrig());
+            sb.append("orig=" + ps.getOrig());
             if (ps.getTranslation() != null) {
-                sb.append(" (has translation key)");
+                sb.append(", translation.key=" + ps.getTranslation().getKey());
             }
             if (ps.getLang() != null) {
-                sb.append(" (").append(ps.getLang().size()).append(" lang map entry/entries)");
+                sb.append("; lang:");
+                ps.getLang().keySet().forEach(langKey -> {
+                    sb.append(" " + langKey + "=" + ps.getLang().get(langKey) + ",");
+                });
             }
             return sb.toString();
         } else {

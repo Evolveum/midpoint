@@ -260,7 +260,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 
-        display("Parsed resource schema", resourceSchema);
+        displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
@@ -820,7 +820,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME),
                 ACCOUNT_WILL_FULLNAME_PIRATE);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
@@ -1202,7 +1202,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
@@ -1287,7 +1287,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         ProtectedStringType ps = new ProtectedStringType();
         ps.setClearValue(ACCOUNT_WILL_PASSWORD_NEW);
         delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, ps);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 

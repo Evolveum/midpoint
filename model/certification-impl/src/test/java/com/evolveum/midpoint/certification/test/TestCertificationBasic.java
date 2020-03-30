@@ -666,7 +666,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         checkAllCasesSanity(caseList);
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
-        display("CEO case", ceoCase.asPrismContainerValue());
+        displayDumpable("CEO case", ceoCase.asPrismContainerValue());
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
         assertSingleDecision(ceoCase, REVOKE, "no way", 1, 1, USER_ADMINISTRATOR_OID, REVOKE, false);
 

@@ -43,7 +43,7 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
@@ -53,11 +53,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Radovan Semancik
- */
 public abstract class AbstractScriptTest extends AbstractUnitTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
     protected static final File BASE_TEST_DIR = new File("src/test/resources/expression");
@@ -94,7 +91,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         localizationService = LocalizationTestUtil.getLocalizationService();
         evaluator = createEvaluator(prismContext, protector);
         String languageUrl = evaluator.getLanguageUrl();
-        System.out.println("Expression test for " + evaluator.getLanguageName() + ": registering " + evaluator + " with URL " + languageUrl);
+        display("Expression test for " + evaluator.getLanguageName() + ": registering " + evaluator + " with URL " + languageUrl);
         scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
     }
 

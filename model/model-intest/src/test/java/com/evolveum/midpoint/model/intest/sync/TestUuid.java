@@ -216,7 +216,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         DummyAccount oldAccount = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
-        display("Deleting account", oldAccount);
+        displayDumpable("Deleting account", oldAccount);
         dummyResourceUuid.deleteAccountByName(ACCOUNT_AUGUSTUS_NAME);
         assertNoDummyAccount(ACCOUNT_AUGUSTUS_NAME, ACCOUNT_AUGUSTUS_NAME);
 
@@ -226,7 +226,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, USER_AUGUSTUS_NAME);
         dummyResourceUuid.addAccount(newAccount);
         newAccount = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
-        display("Created account", newAccount);
+        displayDumpable("Created account", newAccount);
 
         assertFalse("Account IDs not changed", oldAccount.getId().equals(newAccount.getId()));
 
@@ -376,7 +376,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
     private void assertReconAuditModifications(int expectedModifications, String taskOid) {
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 

@@ -43,7 +43,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_ADMINISTRATOR_USERNAME, UserType.class);
 
         // THEN
-        display("Administrator principal", principal);
+        displayDumpable("Administrator principal", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
         assertHasAuthorizationAllow(principal.getAuthorities().iterator().next(), AuthorizationConstants.AUTZ_ALL_URL);
 
@@ -77,7 +77,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_BARBOSSA_USERNAME, UserType.class);
 
         // THEN
-        display("Principal barbossa", principal);
+        displayDumpable("Principal barbossa", principal);
         assertNotNull("No principal for username "+USER_BARBOSSA_USERNAME, principal);
         assertEquals("wrong username", USER_BARBOSSA_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_BARBOSSA_OID, principal.getOid());
@@ -98,7 +98,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
@@ -122,7 +122,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
@@ -152,7 +152,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // THEN
         then();
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         display("User in principal guybrush", principal.getFocus().asPrismObject());
@@ -178,7 +178,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
@@ -267,7 +267,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // THEN
         then();
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 2, principal.getAuthorities().size());
 
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
@@ -290,7 +290,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // THEN
         then();
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 3, principal.getAuthorities().size());
 
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
@@ -342,7 +342,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // THEN
         then();
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
 
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
@@ -373,7 +373,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // THEN
         then();
-        display("Principal guybrush", principal);
+        displayDumpable("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
 
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);

@@ -46,7 +46,7 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true", "webdriverLocation=234234234" })
+@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })//, "webdriverLocation=234234234" })
 @Listeners({ BrowserPerClass.class })
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 

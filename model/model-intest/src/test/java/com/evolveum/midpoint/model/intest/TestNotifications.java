@@ -177,7 +177,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Dummy transport messages", dummyTransport);
+        displayDumpable("Dummy transport messages", dummyTransport);
 
         checkDummyTransportMessages("accountPasswordNotifier", 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
@@ -263,7 +263,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("jack");
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -331,7 +331,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 1);
@@ -383,7 +383,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 2);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -438,7 +438,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertUserJack(jackAfter);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -497,7 +497,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertUserJack(jackAfter);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -673,7 +673,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("string-attachment", 1);
@@ -707,7 +707,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("byte-attachment", 1);
@@ -755,7 +755,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("attachment-from-file", 1);
@@ -788,7 +788,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("expression-attachment", 1);
@@ -822,7 +822,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("executeChanges result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("simpleRoleNotifier", 0); // MID-5350 (other asserts are just for sure)

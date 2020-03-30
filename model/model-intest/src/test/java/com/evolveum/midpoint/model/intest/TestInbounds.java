@@ -210,7 +210,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -252,7 +252,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -291,7 +291,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -334,7 +334,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -382,7 +382,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "Look behind you, a Three-Headed Monkey!");
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -430,7 +430,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "I wanna be a pirrrrrrate!");
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -475,7 +475,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -517,7 +517,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -542,7 +542,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
                 ROLE_THIEF_OID);
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -561,7 +561,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -584,7 +584,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME /* no value */);
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -605,7 +605,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -630,7 +630,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
                 "Look behind you, a Three-Headed Monkey!");
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -657,7 +657,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -681,7 +681,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
                 "I wanna be a pirrrrrrate!");
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -703,8 +703,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Account orange after", dummyAccount);
-        display("Orange account", dummyAccount);
+        displayDumpable("Account orange after", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -728,7 +728,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
                 "How much wood could a woodchuck chuck if a woodchuck could chuck wood?");
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -751,7 +751,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -772,7 +772,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME /* no value */);
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -793,7 +793,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);

@@ -177,7 +177,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertMetadata(connector, startTime, endTime);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -241,7 +241,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(6);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(10);
     }
 
@@ -273,7 +273,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(6);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(10);        // 5 requests + 5 failed executions
     }
 
@@ -335,7 +335,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(7);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(14);        // 7 request, 2 failed, 5 succeeded
     }
 
@@ -396,7 +396,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(7);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(10);  // 5 request, 5 succeeded
     }
 
@@ -434,7 +434,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -483,7 +483,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertDummyResource(importedRepoResource, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -536,7 +536,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertNull("Synchronization not gone", resourceType.getSynchronization());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -585,7 +585,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
                 CONNECOTR_DBTABLE_OID);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -669,7 +669,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(8);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -708,7 +708,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(8);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -747,7 +747,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(8);     // none should be added
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -780,7 +780,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertUsers(9);     // one should be added
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
     }
 
     @Test

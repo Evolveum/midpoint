@@ -10,33 +10,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -49,20 +39,11 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Live class that contains "construction" - a definition how to construct a
@@ -71,12 +52,12 @@ import org.jetbrains.annotations.Nullable;
  * contains intermediary and side results of the evaluation.
  *
  * @author Radovan Semancik
- *
- *         This class is Serializable but it is not in fact serializable. It
- *         implements Serializable interface only to be storable in the
- *         PrismPropertyValue.
+ * <p>
+ * This class is Serializable but it is not in fact serializable. It
+ * implements Serializable interface only to be storable in the
+ * PrismPropertyValue.
  */
-public class Construction<AH extends AssignmentHolderType> extends AbstractConstruction<AH,ConstructionType> {
+public class Construction<AH extends AssignmentHolderType> extends AbstractConstruction<AH, ConstructionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 
@@ -438,7 +419,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     private <T> MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
             ResourceAttributeDefinitionType attributeDefinition, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attributeDefinition.getRef());
         if (attrName == null) {
             throw new SchemaException("Missing 'ref' in attribute construction in account construction in "
@@ -492,12 +473,12 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     }
 
     private String getAttributeEvaluationErrorMessage(QName attrName, Exception e) {
-        return "Error evaluating mapping for attribute "+PrettyPrinter.prettyPrint(attrName)+" in "+getHumanReadableConstructionDescription()+": "+e.getMessage();
+        return "Error evaluating mapping for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + getHumanReadableConstructionDescription() + ": " + e.getMessage();
     }
 
     private String getHumanReadableConstructionDescription() {
-        return "construction for ("+ (resolvedResource!=null?resolvedResource.resource:null)
-                +"/"+getKind()+"/"+getIntent()+") in "+getSource();
+        return "construction for (" + (resolvedResource != null ? resolvedResource.resource : null)
+                + "/" + getKind() + "/" + getIntent() + ") in " + getSource();
     }
 
     public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
@@ -556,7 +537,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     private MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
             ResourceObjectAssociationType associationDefinitionType, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         QName assocName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(associationDefinitionType.getRef());
         if (assocName == null) {
             throw new SchemaException("Missing 'ref' in association in construction in " + getSource());
@@ -596,7 +577,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
             MappingImpl.Builder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
         if (!builder.isApplicableToChannel(getChannel())) {
             return null;
@@ -755,10 +736,10 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (refinedObjectClassDefinition == null) {
             sb.append(" (no object class definition)");
             if (getConstructionType() != null && getConstructionType().getResourceRef() != null) { // should
-                                                                                            // be
-                                                                                            // always
-                                                                                            // the
-                                                                                            // case
+                // be
+                // always
+                // the
+                // case
                 sb.append("\n");
                 DebugUtil.debugDumpLabel(sb, "resourceRef / kind / intent", indent + 1);
                 sb.append(" ");
@@ -798,7 +779,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (attributeMappings != null && !attributeMappings.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "attribute mappings", indent + 1);
-            for (MappingImpl<?,?> mapping : attributeMappings) {
+            for (MappingImpl<?, ?> mapping : attributeMappings) {
                 sb.append("\n");
                 sb.append(mapping.debugDump(indent + 2));
             }
@@ -806,7 +787,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (associationMappings != null && !associationMappings.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "association mappings", indent + 1);
-            for (MappingImpl<?,?> mapping : associationMappings) {
+            for (MappingImpl<?, ?> mapping : associationMappings) {
                 sb.append("\n");
                 sb.append(mapping.debugDump(indent + 2));
             }
@@ -844,7 +825,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     /**
      * Should this construction be ignored e.g. because the resource couldn't be resolved?
-     * @pre The construction was already evaluated.
+     * The construction was already evaluated.
      */
     public boolean isIgnored() {
         return getResource() == null;
@@ -866,10 +847,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (!(o instanceof ResolvedResource))
-                return false;
+            if (this == o) { return true; }
+            if (!(o instanceof ResolvedResource)) { return false; }
             ResolvedResource that = (ResolvedResource) o;
             return warning == that.warning &&
                     Objects.equals(resource, that.resource);

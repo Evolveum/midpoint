@@ -107,7 +107,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(0, stat.getMarkedAsAccept());
         assertEquals(0, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -179,7 +179,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         // all cases are marked as ACCEPT, because the outcome strategy is acceptedIfNotDenied, with a default of Accept
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(5, stat.getMarkedAsAccept());
         assertEquals(0, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -374,7 +374,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(3, stat.getMarkedAsAccept());
         assertEquals(2, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -446,7 +446,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(3, stat.getMarkedAsAccept());
         assertEquals(2, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -529,7 +529,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(0, stat.getMarkedAsAccept());
         assertEquals(0, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -555,7 +555,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(0, stat.getMarkedAsAccept());
         assertEquals(2, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -665,7 +665,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -820,7 +820,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(3, stat.getMarkedAsRevoke());
         assertEquals(3, stat.getMarkedAsRevokeAndRemedied());

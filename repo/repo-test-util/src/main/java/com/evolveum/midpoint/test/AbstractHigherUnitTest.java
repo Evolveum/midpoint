@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
@@ -70,7 +71,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractHigherUnitTest extends AbstractUnitTest {
+public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements InfraTestMixin {
 
     public static final String COMMON_DIR_NAME = "common";
     public static final File COMMON_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, COMMON_DIR_NAME);
@@ -515,10 +516,6 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest {
 
     public static void display(String title, List<Element> elements) {
         IntegrationTestTools.display(title, elements);
-    }
-
-    public static void display(String title, DebugDumpable dumpable) {
-        PrismTestUtil.display(title, dumpable);
     }
 
     public static void display(String title, Object value) {

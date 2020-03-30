@@ -113,7 +113,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 Collections.emptyList(),
                 jack.getAssignment().get(0).getPolicySituation());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);
     }
 
@@ -135,7 +135,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
             assertExclusionViolationState(assignment);
         }
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs
     }
 
@@ -163,7 +163,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                     assignment.getPolicySituation());
         }
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);
         dummyAuditService.assertExecutionDeltas(0);
     }
@@ -194,7 +194,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 Collections.emptyList(),
                 jack.getAssignment().get(0).getPolicySituation());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);            // executed in one shot
     }
 
@@ -227,7 +227,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 Collections.emptyList(),
                 bob.getAssignment().get(1).getPolicySituation());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);            // no policy state update
     }
 
@@ -256,7 +256,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertAssignedRole(bob.asPrismObject(), roleATest3bOid);
         assertEquals("Wrong # of assignments", 4, bob.getAssignment().size());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs
 
         for (AssignmentType assignment : bob.getAssignment()) {
@@ -297,7 +297,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertAssignedRole(alice.asPrismObject(), roleATest2bOid);
         assertEquals("Wrong # of assignments", 2, alice.getAssignment().size());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs ?
 
         for (AssignmentType assignment : alice.getAssignment()) {
@@ -332,7 +332,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertAssignedRole(chuck.asPrismObject(), roleATest2bOid);
         assertEquals("Wrong # of assignments", 2, chuck.getAssignment().size());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(2);            // sourceRef.oid is null on the first iteration (object OID is unknown before actual creation in repo)
 
         for (AssignmentType assignment : chuck.getAssignment()) {
@@ -368,7 +368,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertAssignedRole(dan.asPrismObject(), roleATest2bOid);
         assertEquals("Wrong # of assignments", 2, dan.getAssignment().size());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);
 
         for (AssignmentType assignment : dan.getAssignment()) {
@@ -399,7 +399,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertAssignedRole(eve.asPrismObject(), roleATest2bOid);
         assertEquals("Wrong # of assignments", 2, eve.getAssignment().size());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);
 
         for (AssignmentType assignment : eve.getAssignment()) {
@@ -426,7 +426,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong.getPolicySituation());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);            // no extra policy state update
     }
 
@@ -450,7 +450,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong2.getPolicySituation());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(2);            // extra policy state update because of OID
     }
 
@@ -477,7 +477,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong3.getPolicySituation());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertExecutionRecords(1);            // no extra policy state update
     }
 
