@@ -224,9 +224,5 @@ public class RepositoryObjectDataProvider
             return type;
         }
     }
-
-    @Override
-    public boolean isUseCache() {
-        return false;
-    }
+    
 }
