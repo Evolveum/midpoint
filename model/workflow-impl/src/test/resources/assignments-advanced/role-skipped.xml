@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="66134203-f023-4986-bb5c-a350941909eb">
+    <name>skipped</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
+                            <automaticallyCompleted>
+                                <script>
+                                    <code>'skip'</code> <!-- MID-5895 -->
+                                </script>
+                            </automaticallyCompleted>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
