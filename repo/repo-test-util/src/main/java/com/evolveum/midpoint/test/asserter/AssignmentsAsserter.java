@@ -97,6 +97,13 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
             .find();
     }
 
+    public AssignmentAsserter<AssignmentsAsserter<F,FA,RA>> forArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
+        return by()
+            .targetOid(archetypeOid)
+            .targetType(ArchetypeType.COMPLEX_TYPE)
+            .find();
+    }
+
     public AssignmentsAsserter<F,FA,RA> assertRole(String roleOid) throws ObjectNotFoundException, SchemaException {
         by()
             .targetOid(roleOid)

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -25,6 +26,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.xml.namespace.QName;
 
@@ -196,15 +198,25 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
 
-        PrismObject<UserType> userHermanAfter = findUserByUsername(USER_HERMAN_USERNAME);
-        display("User after", userHermanAfter);
-        userHermanOid = userHermanAfter.getOid();
-        assertUser(userHermanAfter, userHermanAfter.getOid(), USER_HERMAN_USERNAME, USER_HERMAN_FULL_NAME, null, null);
-        assertAssignedRole(userHermanAfter, ROLE_AUTODIDACTIC_OID);
-        assertAssignedRole(userHermanAfter, ROLE_AUTOGRAPHIC_OID);
-        assertAssignedRole(userHermanAfter, ROLE_AUTOTESTERS_OID);
-        assertAssignedRole(userHermanAfter, ROLE_AUTOCRATIC_OID);
-        assertAssignments(userHermanAfter, 4);
+        UserAsserter<Void> userAsserter = assertUserAfterByUsername(USER_HERMAN_USERNAME);
+        userHermanOid = userAsserter.getOid();
+        PrismObject<UserType> userAfter = userAsserter.getObject();
+        assertUser(userAfter, userHermanOid, USER_HERMAN_USERNAME, USER_HERMAN_FULL_NAME, null, null);
+        userAsserter
+                .assignments()
+                    .forRole(ROLE_AUTODIDACTIC_OID)
+                        .assertOriginMappingName("Assignment from title") // MID-5846
+                        .end()
+                    .forRole(ROLE_AUTOGRAPHIC_OID)
+                        .assertOriginMappingName("Assignment from title") // MID-5846
+                        .end()
+                    .forRole(ROLE_AUTOTESTERS_OID)
+                        .assertOriginMappingName("Assignment from group") // MID-5846
+                        .end()
+                    .forRole(ROLE_AUTOCRATIC_OID)
+                        .assertOriginMappingName("Assignment from group") // MID-5846
+                        .end()
+                    .assertAssignments(4);
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 1, users.size());
     }
@@ -246,7 +258,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         craticGroup.removeMember(USER_HERMAN_USERNAME);
 
         DummyAccount hermanAccount = getDummyAccount(RESOURCE_DUMMY_AUTOGREEN_NAME, USER_HERMAN_USERNAME);
-        hermanAccount.removeAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, Arrays.asList("didactic"));
+        hermanAccount.removeAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, Collections.singletonList("didactic"));
 
         assertNoDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
 
