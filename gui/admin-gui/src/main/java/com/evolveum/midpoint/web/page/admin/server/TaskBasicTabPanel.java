@@ -92,15 +92,6 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     }
                 }
 
-                PrismObjectWrapperFactory<TaskType> wrapperFactory = TaskBasicTabPanel.this.getPageBase().findObjectWrapperFactory(getTask().asPrismObject().getDefinition());
-                Task task = getPageBase().createSimpleTask(OPERATION_UPDATE_WRAPPER);
-                OperationResult result = task.getResult();
-                WrapperContext ctx = new WrapperContext(task, result);
-                try {
-                    wrapperFactory.updateWrapper(TaskBasicTabPanel.this.getModelObject(), ctx);
-                } catch (SchemaException e) {
-                    LOGGER.error("Unexpected problem occurs during updating wrapper. Reason: {}", e.getMessage(), e);
-                }
                 updateHandlerPerformed(target);
 
             }
