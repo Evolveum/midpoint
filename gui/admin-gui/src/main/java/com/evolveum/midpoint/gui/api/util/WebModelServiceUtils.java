@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -184,15 +185,18 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+    public static <O extends ObjectType> String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
         try {
             ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
             pageBase.getPrismContext().adopt(delta);
-            pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
+            Collection<ObjectDeltaOperation<?>> deltaOperationRes = pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
                     operationalTask, parentResult);
+            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()){
+                ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
+                delta.setOid(deltaOperation.getObjectDelta().getOid());
+            }
             parentResult.recordInProgress();
             parentResult.setBackgroundTaskOid(delta.getOid());
-            pageBase.showResult(parentResult);
             return delta.getOid();
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
