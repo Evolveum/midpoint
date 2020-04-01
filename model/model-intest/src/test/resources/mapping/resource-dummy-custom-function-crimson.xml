@@ -62,6 +62,7 @@
                             <code>
                                 map = new HashMap();
                                 map.put("username", name);
+                                myLib.execute("getName", map) // dummy execution, to demonstrate MID-6145
                                 name = myLib.execute("getName", map);
                                 log.info("custom library name: " + name)
                                 return name;

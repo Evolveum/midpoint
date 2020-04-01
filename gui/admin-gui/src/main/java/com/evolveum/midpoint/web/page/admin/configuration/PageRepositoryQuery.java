@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -109,6 +110,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_DISTINCT = "distinct";
     private static final String ID_HIBERNATE_PARAMETERS_NOTE = "hibernateParametersNote";
     private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
+    private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
 
     private static final String SAMPLES_DIR = "query-samples";
     private static final List<String> SAMPLES = Arrays.asList(
@@ -138,7 +140,18 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private final NonEmptyModel<RepoQueryDto> model = new NonEmptyWrapperModel<>(new Model<>(new RepoQueryDto()));
     private final boolean isAdmin;
 
+    private String dataLanguage;
+
     enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, EXECUTE_HIBERNATE }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        if (dataLanguage == null) {
+            dataLanguage = determineDataLanguage();
+        }
+        initLayout();
+    }
 
     public PageRepositoryQuery() {
         this(null, null);
@@ -156,8 +169,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             admin = false;
         }
         isAdmin = admin;
-
-        initLayout();
     }
 
     private void initLayout() {
@@ -218,6 +229,25 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         WebMarkupContainer midPointQueryButtonBar = new WebMarkupContainer(ID_MIDPOINT_QUERY_BUTTON_BAR);
         midPointQueryButtonBar.setOutputMarkupId(true);
         mainForm.add(midPointQueryButtonBar);
+
+        DataLanguagePanel<QueryType> dataLanguagePanel =
+                new DataLanguagePanel<QueryType>(ID_VIEW_BUTTON_PANEL, dataLanguage, QueryType.class, PageRepositoryQuery.this) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onLanguageSwitched(AjaxRequestTarget target, int updatedIndex, String updatedLanguage,
+                            String objectString) {
+                        model.getObject().setMidPointQuery(objectString);
+                        dataLanguage = updatedLanguage;
+                        target.add(mainForm);
+                    }
+                    @Override
+                    protected String getObjectStringRepresentation() {
+                        return model.getObject().getMidPointQuery();
+                    }
+                };
+        dataLanguagePanel.setOutputMarkupId(true);
+        mainForm.add(dataLanguagePanel);
 
         AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
             @Override
@@ -280,7 +310,20 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                     try {
                         String localTypeName = StringUtils.substringBefore(sampleName, "_");
                         model.getObject().setObjectType(new QName(SchemaConstants.NS_C, localTypeName));
-                        model.getObject().setMidPointQuery(IOUtils.toString(is, StandardCharsets.UTF_8));
+                        String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
+                        String serialization;
+                        if (PrismContext.LANG_XML.equals(dataLanguage)) {
+                            serialization = xml;
+                        } else {
+                            PrismContext prismContext = getPrismContext();
+                            try {
+                                QueryType parsed = prismContext.parserFor(xml).xml().parseRealValue(QueryType.class);
+                                serialization = prismContext.serializerFor(dataLanguage).serializeRealValue(parsed);
+                            } catch (Throwable t) {
+                                serialization = "Couldn't serialize sample: " + t.getMessage();
+                            }
+                        }
+                        model.getObject().setMidPointQuery(serialization);
                         model.getObject().setHibernateQuery("");
                         model.getObject().setHibernateParameters("");
                         model.getObject().setQueryResultObject(null);
@@ -506,7 +549,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         if (clazz == null) {
             throw new SchemaException("Couldn't find compile-time class for object type of " + objectType);
         }
-        QueryType queryType = prismContext.parserFor(queryText).xml().parseRealValue(QueryType.class);
+        QueryType queryType = prismContext.parserFor(queryText).language(dataLanguage).parseRealValue(QueryType.class);
         request.setType(clazz);
         ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
         ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),

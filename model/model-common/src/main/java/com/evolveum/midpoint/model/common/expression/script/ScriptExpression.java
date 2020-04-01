@@ -181,8 +181,8 @@ public class ScriptExpression {
             context.setTrace(null);
         }
         context.setResult(result);      // a bit of hack: this is to provide some tracing of script evaluation
+        ScriptExpressionEvaluationContext oldContext = context.setupThreadLocal();
         try {
-            context.setupThreadLocal();
 
             List<V> expressionResult = evaluator.evaluate(context);
             if (context.getTrace() != null) {
@@ -197,7 +197,7 @@ public class ScriptExpression {
             result.recordFatalError(ex.getMessage(), ex);
             throw ex;
         } finally {
-            context.cleanupThreadLocal();
+            context.cleanupThreadLocal(oldContext);
             result.computeStatusIfUnknown();
             context.setResult(parentResult);        // a bit of hack
         }

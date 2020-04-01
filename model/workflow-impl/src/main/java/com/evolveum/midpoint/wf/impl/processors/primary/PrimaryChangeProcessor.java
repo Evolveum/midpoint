@@ -32,6 +32,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -204,8 +205,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
         // second pass: check the conditions
         for (ApprovalStageDefinitionType stage : stages) {
-            if (!SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP.equals(
-                    evaluateAutoCompleteExpression(instruction.getCase(), stage, instruction, stageComputeHelper, ctx, result))) {
+            String autoCompletionResult = evaluateAutoCompleteExpression(instruction.getCase(), stage, instruction,
+                    stageComputeHelper, ctx, result);
+            if (!QNameUtil.matchUri(SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP, autoCompletionResult)) {
                 return false;
             }
         }
