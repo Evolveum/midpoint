@@ -234,7 +234,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         System.out.println(userJack.debugDump());
 
         // WHEN
-        String elementJack = prismContext.serializeObjectToString(userJack, getOutputFormat());
+        String elementJack = prismContext.serializerFor(getOutputFormat()).serialize(userJack);
 
         // THEN
         System.out.println("Serialized user jack:");
@@ -340,7 +340,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         assertUserElisabeth(user);
 
         // WHEN
-        String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
+        String serialized = prismContext.serializerFor(getOutputFormat()).serialize(user);
 
         // THEN
         assertNotNull(serialized);

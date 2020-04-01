@@ -20,6 +20,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -326,7 +328,15 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         try {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 
-            return scriptExpression.evaluate(variables, null, useNew, contextDescription, task, result);
+            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+            context.setVariables(variables);
+            context.setEvaluateNew(useNew);
+            context.setScriptExpression(scriptExpression);
+            context.setContextDescription(contextDescription);
+            context.setTask(task);
+            context.setResult(result);
+
+            return scriptExpression.evaluate(context);
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }

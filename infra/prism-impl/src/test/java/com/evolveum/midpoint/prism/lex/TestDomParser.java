@@ -12,6 +12,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.ParserFileSource;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -52,7 +53,7 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
         DomLexicalProcessor parser = createParser();
 
         // WHEN
-        XNodeImpl xnode = parser.read(getFile(USER_JACK_FILE_BASENAME), createDefaultParsingContext());
+        XNodeImpl xnode = parser.read(new ParserFileSource(getFile(USER_JACK_FILE_BASENAME)), createDefaultParsingContext());
 
         // THEN
         System.out.println("Parsed XNode:");

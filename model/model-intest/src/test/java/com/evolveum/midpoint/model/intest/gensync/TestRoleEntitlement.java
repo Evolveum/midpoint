@@ -10,6 +10,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -75,7 +76,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     }
 
     protected void assertRolePirate(PrismObject<RoleType> role) {
-        assertObjectSanity(role);
+        new PrismObjectAsserter<>(role)
+                .assertSanity();
         assertEquals("Wrong " + role + " OID (prism)", ROLE_PIRATE_OID, role.getOid());
         RoleType roleType = role.asObjectable();
         assertEquals("Wrong " + role + " OID (jaxb)", ROLE_PIRATE_OID, roleType.getOid());

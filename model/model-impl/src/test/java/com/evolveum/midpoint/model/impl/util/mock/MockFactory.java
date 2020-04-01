@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.api.*;
@@ -101,11 +99,6 @@ public class MockFactory {
 
             @Override
             public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult) {
-                return null;
-            }
-
-            @Override
-            public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) {
                 return null;
             }
 
@@ -222,11 +215,6 @@ public class MockFactory {
 
             @Override
             public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-                return 0;
-            }
-
-            @Override
-            public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) {
                 return 0;
             }
 

@@ -39,6 +39,8 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
 
     javax.xml.validation.Schema getJavaxSchema();
 
+    javax.xml.validation.Validator getJavaxSchemaValidator();
+
     PrismSchema getPrismSchema(String namespace);
 
     Collection<PrismSchema> getSchemas();
@@ -117,13 +119,7 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
 
     boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName);
 
-    @Deprecated
-    ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) throws SchemaException;
-
     ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition);
-
-    @Deprecated // use methods from PrismContext
-    <T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException;
 
     // Takes XSD types into account as well
     <T> Class<T> determineClassForType(QName type);

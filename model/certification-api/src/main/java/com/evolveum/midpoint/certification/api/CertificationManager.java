@@ -100,32 +100,6 @@ public interface CertificationManager {
     void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
-     * Returns a set of certification decisions for currently logged-in user.
-     * Each decision is returned in context of its certification case. Case has to match a given query.
-     * So, in contrast to model.searchContainers(AccessCertificationCaseType...) method that returns specified cases
-     * with all their decisions, this one returns a list of cases where each case has at most one decision:
-     * the one that corresponds to specified reviewer and current certification stage. Zero decisions means that
-     * the reviewer has not provided any decision yet.
-     *
-     * Query argument for cases is the same as in the model.searchContainers(AccessCertificationCaseType...) call.
-     *
-     * @param caseQuery Specification of the cases to retrieve.
-     * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
-     *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
-     *                       the cleaner way is keep this knowledge inside certification module only.
-     * @param options Options to use (e.g. RESOLVE_NAMES).
-     * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations.
-     * @return A list of relevant certification cases.
-     *
-     */
-    @Deprecated
-    List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException;
-
-    /**
      * Returns a set of certification work items for currently logged-in user (or all users).
      * Query argument for cases is the same as in the model.searchContainers(AccessCertificationCaseType...) call.
      *

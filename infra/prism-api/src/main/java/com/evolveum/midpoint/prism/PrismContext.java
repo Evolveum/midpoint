@@ -208,9 +208,6 @@ public interface PrismContext extends ProtectorCreator {
     @NotNull
     PrismSerializer<RootXNode> xnodeSerializer();
 
-    @Deprecated // use serializerFor + serialize instead
-    <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException;
-
     /**
      * TODO
      * @param value
@@ -254,19 +251,6 @@ public interface PrismContext extends ProtectorCreator {
      */
     @NotNull
     <O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz);
-
-    /**
-     * Do not use.
-     */
-    @Deprecated
-    LSResourceResolver getEntityResolver();
-
-    /**
-     * TODO eliminate this method
-     */
-    @NotNull
-    @Deprecated
-    JaxbDomHack getJaxbDomHack();
 
     PrismMonitor getMonitor();
 

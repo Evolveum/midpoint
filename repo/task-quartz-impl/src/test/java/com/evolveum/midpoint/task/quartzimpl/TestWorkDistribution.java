@@ -124,8 +124,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             displayValue("allocated bucket", bucket);
             TaskQuartzImpl coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid(), result);
             TaskQuartzImpl workerAfter = taskManager.getTaskPlain(worker.getOid(), result);
-            displayValue("coordinator task after", coordinatorAfter);
-            displayValue("worker task after", workerAfter);
+            displayDumpable("coordinator task after", coordinatorAfter);
+            displayDumpable("worker task after", workerAfter);
 
             assertNumericBucket(bucket, null, 1, 0, 1000);
             List<WorkBucketType> wBuckets = workerAfter.getWorkState().getBucket();
@@ -154,7 +154,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             // THEN
             displayValue("allocated bucket", bucket);
             TaskQuartzImpl standaloneAfter = taskManager.getTaskPlain(standalone.getOid(), result);
-            displayValue("task after", standaloneAfter);
+            displayDumpable("task after", standaloneAfter);
 
             List<WorkBucketType> wBuckets = standaloneAfter.getWorkState().getBucket();
             assertEquals("Wrong # of buckets", 1, wBuckets.size());
@@ -180,7 +180,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             // THEN
             displayValue("allocated bucket", bucket);
             TaskQuartzImpl standaloneAfter = taskManager.getTaskPlain(standalone.getOid(), result);
-            displayValue("task after", standaloneAfter);
+            displayDumpable("task after", standaloneAfter);
 
             List<WorkBucketType> wBuckets = standaloneAfter.getWorkState().getBucket();
             assertEquals("Wrong # of buckets", 7, wBuckets.size());
@@ -207,7 +207,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             displayValue("1st obtained bucket", bucket1);
             displayValue("2nd obtained bucket", bucket2);
             standalone = taskManager.getTaskPlain(standalone.getOid(), result);
-            displayValue("task after 2xget", standalone);
+            displayDumpable("task after 2xget", standalone);
 
             assertNumericBucket(bucket1, WorkBucketStateType.READY, 1, 0, 100);
             assertNumericBucket(bucket2, WorkBucketStateType.READY, 1, 0, 100);     // should be the same
@@ -224,7 +224,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             // THEN
             displayValue("bucket obtained after complete", bucket3);
             standalone = taskManager.getTaskPlain(standalone.getOid(), result);
-            displayValue("task after complete+get", standalone);
+            displayDumpable("task after complete+get", standalone);
             assertOptimizedCompletedBuckets(standalone);
 
             assertNumericBucket(bucket3, WorkBucketStateType.READY, 2, 100, 200);
@@ -242,7 +242,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             // THEN
             displayValue("bucket obtained after 2nd complete", bucket4);
             standalone = taskManager.getTaskPlain(standalone.getOid(), result);
-            displayValue("task after complete+get+complete+get", standalone);
+            displayDumpable("task after complete+get+complete+get", standalone);
 
             assertNumericBucket(bucket4, WorkBucketStateType.READY, 3, 200, 300);
 
@@ -309,11 +309,11 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
             worker4 = taskManager.getTaskPlain(worker4.getOid(), result);
             Task coordinator = taskManager.getTaskPlain(coordinatorTaskOid(), result);
-            displayValue("coordinator task after 4+1x allocation", coordinator);
-            displayValue("worker1 task after 4+1x allocation", worker1);
-            displayValue("worker2 task after 4+1x allocation", worker2);
-            displayValue("worker3 task after 4+1x allocation", worker3);
-            displayValue("worker4 task after 4+1x allocation", worker4);
+            displayDumpable("coordinator task after 4+1x allocation", coordinator);
+            displayDumpable("worker1 task after 4+1x allocation", worker1);
+            displayDumpable("worker2 task after 4+1x allocation", worker2);
+            displayDumpable("worker3 task after 4+1x allocation", worker3);
+            displayDumpable("worker4 task after 4+1x allocation", worker4);
 
             assertNumericBucket(bucket1, null, 1, 0, 1);
             assertNumericBucket(bucket2, null, 2, 1, 2);
@@ -347,9 +347,9 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
-            displayValue("worker2 after completion of 2nd bucket", worker2);
+            displayDumpable("worker2 after completion of 2nd bucket", worker2);
             coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
-            displayValue("coordinator after completion of 2nd bucket", coordinator);
+            displayDumpable("coordinator after completion of 2nd bucket", coordinator);
 
             buckets = new ArrayList<>(coordinator.getWorkState().getBucket());
             sortBucketsBySequentialNumber(buckets);
@@ -369,9 +369,9 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-            displayValue("worker1 after completion of 1st bucket and fetching next one", worker1);
+            displayDumpable("worker1 after completion of 1st bucket and fetching next one", worker1);
             coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
-            displayValue("coordinator after completion of 1st bucket and fetching next one", coordinator);
+            displayDumpable("coordinator after completion of 1st bucket and fetching next one", coordinator);
 
             assertNumericBucket(bucket, null, 5, 4, 5);
 
@@ -400,9 +400,9 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             worker4 = taskManager.getTaskPlain(worker4.getOid(), result);
-            displayValue("worker4 after releasing of 4th bucket", worker4);
+            displayDumpable("worker4 after releasing of 4th bucket", worker4);
             coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
-            displayValue("coordinator after releasing of 4th bucket", coordinator);
+            displayDumpable("coordinator after releasing of 4th bucket", coordinator);
 
             buckets = new ArrayList<>(coordinator.getWorkState().getBucket());
             sortBucketsBySequentialNumber(buckets);
@@ -421,11 +421,11 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-            displayValue("worker3 after completion of 3rd bucket and getting next one", worker3);
+            displayDumpable("worker3 after completion of 3rd bucket and getting next one", worker3);
             worker5 = taskManager.getTaskPlain(worker5.getOid(), result);
-            displayValue("worker5 after completion of 3rd bucket and getting next one", worker5);
+            displayDumpable("worker5 after completion of 3rd bucket and getting next one", worker5);
             coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
-            displayValue("coordinator after completion of 3rd bucket and getting next one", coordinator);
+            displayDumpable("coordinator after completion of 3rd bucket and getting next one", coordinator);
 
             assertNumericBucket(bucket, null, 4, 3, 4);
 
@@ -448,11 +448,11 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-            displayValue("worker1 after completion of 5th bucket and closing worker5", worker1);
+            displayDumpable("worker1 after completion of 5th bucket and closing worker5", worker1);
             worker5 = taskManager.getTaskPlain(worker5.getOid(), result);
-            displayValue("worker5 after completion of 5th bucket and closing worker5", worker5);
+            displayDumpable("worker5 after completion of 5th bucket and closing worker5", worker5);
             coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
-            displayValue("coordinator after completion of 5th bucket and closing worker5", coordinator);
+            displayDumpable("coordinator after completion of 5th bucket and closing worker5", coordinator);
 
             buckets = new ArrayList<>(coordinator.getWorkState().getBucket());
             assertEquals(2, buckets.size());
@@ -466,9 +466,9 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-            displayValue("worker1 after reclaiming mis-allocated bucket", worker1);
+            displayDumpable("worker1 after reclaiming mis-allocated bucket", worker1);
             coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
-            displayValue("coordinator after reclaiming mis-allocated bucket", coordinator);
+            displayDumpable("coordinator after reclaiming mis-allocated bucket", coordinator);
 
             assertNumericBucket(bucket, null, 4, 3, 4);
 
@@ -486,9 +486,9 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             // THEN
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-            displayValue("worker1 after completion of 4th bucket", worker1);
+            displayDumpable("worker1 after completion of 4th bucket", worker1);
             coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
-            displayValue("coordinator after completion of 4th bucket", coordinator);
+            displayDumpable("coordinator after completion of 4th bucket", coordinator);
 
             buckets = new ArrayList<>(coordinator.getWorkState().getBucket());
             assertEquals(1, buckets.size());
@@ -518,8 +518,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             TaskQuartzImpl coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
             TaskQuartzImpl workerAfter = taskManager.getTaskPlain(worker.getOid(), result);
-            displayValue("coordinator task after", coordinatorAfter);
-            displayValue("worker task after", workerAfter);
+            displayDumpable("coordinator task after", coordinatorAfter);
+            displayDumpable("worker task after", workerAfter);
 
             assertTotalSuccessCount(30, singleton(workerAfter));
         } finally {
@@ -555,10 +555,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
             worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
             worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-            displayValue("coordinator task after", coordinatorAfter);
-            displayValue("worker1 task after", worker1);
-            displayValue("worker2 task after", worker2);
-            displayValue("worker3 task after", worker3);
+            displayDumpable("coordinator task after", coordinatorAfter);
+            displayDumpable("worker1 task after", worker1);
+            displayDumpable("worker2 task after", worker2);
+            displayDumpable("worker3 task after", worker3);
             displayValue("worker1 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker1.getStoredOperationStats()));
             displayValue("worker2 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker2.getStoredOperationStats()));
             displayValue("worker3 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker3.getStoredOperationStats()));
@@ -622,10 +622,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
             worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
             worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-            displayValue("coordinator task after unfinished run", coordinatorAfter);
-            displayValue("worker1 task after unfinished run", worker1);
-            displayValue("worker2 task after unfinished run", worker2);
-            displayValue("worker3 task after unfinished run", worker3);
+            displayDumpable("coordinator task after unfinished run", coordinatorAfter);
+            displayDumpable("worker1 task after unfinished run", worker1);
+            displayDumpable("worker2 task after unfinished run", worker2);
+            displayDumpable("worker3 task after unfinished run", worker3);
             displayValue("worker1 op stats task after unfinished run",
                     PrismTestUtil.serializeAnyDataWrapped(worker1.getStoredOperationStats()));
             displayValue("worker2 op stats task after unfinished run",
@@ -654,7 +654,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
 
             coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-            displayValue("coordinator task after finished run", coordinatorAfter);
+            displayDumpable("coordinator task after finished run", coordinatorAfter);
 
             assertOptimizedCompletedBuckets(coordinatorAfter);
 
@@ -706,10 +706,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
             worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
             worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-            displayValue("coordinator task after unfinished run", coordinatorAfter);
-            displayValue("worker1 task after unfinished run", worker1);
-            displayValue("worker2 task after unfinished run", worker2);
-            displayValue("worker3 task after unfinished run", worker3);
+            displayDumpable("coordinator task after unfinished run", coordinatorAfter);
+            displayDumpable("worker1 task after unfinished run", worker1);
+            displayDumpable("worker2 task after unfinished run", worker2);
+            displayDumpable("worker3 task after unfinished run", worker3);
             displayValue("worker1 op stats task after unfinished run",
                     PrismTestUtil.serializeAnyDataWrapped(worker1.getStoredOperationStats()));
             displayValue("worker2 op stats task after unfinished run",
@@ -741,10 +741,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
             worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
             worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-            displayValue("coordinator task after", coordinatorAfter);
-            displayValue("worker1 task after", worker1);
-            displayValue("worker2 task after", worker2);
-            displayValue("worker3 task after", worker3);
+            displayDumpable("coordinator task after", coordinatorAfter);
+            displayDumpable("worker1 task after", worker1);
+            displayDumpable("worker2 task after", worker2);
+            displayDumpable("worker3 task after", worker3);
             displayValue("worker1 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker1.getStoredOperationStats()));
             displayValue("worker2 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker2.getStoredOperationStats()));
             displayValue("worker3 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker3.getStoredOperationStats()));
@@ -780,8 +780,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
             TaskQuartzImpl coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
             TaskQuartzImpl workerAfter = taskManager.getTaskPlain(worker.getOid(), result);
-            displayValue("coordinator task after", coordinatorAfter);
-            displayValue("worker task after", workerAfter);
+            displayDumpable("coordinator task after", coordinatorAfter);
+            displayDumpable("worker task after", workerAfter);
 
             assertTotalSuccessCount(30, singleton(workerAfter));
 

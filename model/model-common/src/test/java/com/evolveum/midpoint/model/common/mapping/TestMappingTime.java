@@ -67,7 +67,7 @@ public class TestMappingTime extends AbstractUnitTest
         MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_FROM_TO_FILENAME, getTestNameShort(), "title", delta);
-        builder.setNow(TIME_PAST);
+        builder.now(TIME_PAST);
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
@@ -96,7 +96,7 @@ public class TestMappingTime extends AbstractUnitTest
         MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_FROM_TO_FILENAME, getTestNameShort(), "title", delta);
-        builder.setNow(TIME_BETWEEN);
+        builder.now(TIME_BETWEEN);
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
@@ -124,7 +124,7 @@ public class TestMappingTime extends AbstractUnitTest
         MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_FROM_TO_FILENAME, getTestNameShort(), "title", delta);
-        builder.setNow(TIME_FUTURE);
+        builder.now(TIME_FUTURE);
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
@@ -147,12 +147,12 @@ public class TestMappingTime extends AbstractUnitTest
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", null);
 
-        builder.setNow(TIME_PAST);
+        builder.now(TIME_PAST);
 
         PrismPropertyDefinition<Boolean> existenceDef =
                 evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-        builder.setDefaultTargetDefinition(existenceDef);
+        builder.defaultTargetDefinition(existenceDef);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
@@ -175,12 +175,12 @@ public class TestMappingTime extends AbstractUnitTest
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", null);
 
-        builder.setNow(TIME_FUTURE);
+        builder.now(TIME_FUTURE);
 
         PrismPropertyDefinition<Boolean> existenceDef =
                 evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-        builder.setDefaultTargetDefinition(existenceDef);
+        builder.defaultTargetDefinition(existenceDef);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
@@ -208,12 +208,12 @@ public class TestMappingTime extends AbstractUnitTest
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", null, userOld);
 
-        builder.setNow(TIME_PAST);
+        builder.now(TIME_PAST);
 
         PrismPropertyDefinition<Boolean> existenceDef =
                 evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-        builder.setDefaultTargetDefinition(existenceDef);
+        builder.defaultTargetDefinition(existenceDef);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
@@ -245,12 +245,12 @@ public class TestMappingTime extends AbstractUnitTest
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", delta, userOld);
 
-        builder.setNow(TIME_PAST);
+        builder.now(TIME_PAST);
 
         PrismPropertyDefinition<Boolean> existenceDef =
                 evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-        builder.setDefaultTargetDefinition(existenceDef);
+        builder.defaultTargetDefinition(existenceDef);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
@@ -282,12 +282,12 @@ public class TestMappingTime extends AbstractUnitTest
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", delta, userOld);
 
-        builder.setNow(TIME_FUTURE);
+        builder.now(TIME_FUTURE);
 
         PrismPropertyDefinition<Boolean> existenceDef =
                 evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-        builder.setDefaultTargetDefinition(existenceDef);
+        builder.defaultTargetDefinition(existenceDef);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 

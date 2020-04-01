@@ -118,30 +118,6 @@ public class ScriptExpression {
         this.prismContext = prismContext;
     }
 
-    @Deprecated
-    public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
-            boolean useNew, String contextDescription, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
-        context.setExpressionType(scriptType);
-        context.setVariables(variables);
-        context.setFunctions(functions);
-        context.setExpressionProfile(expressionProfile);
-        context.setScriptExpressionProfile(scriptExpressionProfile);
-        context.setOutputDefinition(outputDefinition);
-        context.setAdditionalConvertor(additionalConvertor);
-        context.setSuggestedReturnType(suggestedReturnType);
-        context.setObjectResolver(objectResolver);
-        context.setEvaluateNew(useNew);
-        context.setScriptExpression(this);
-        context.setContextDescription(contextDescription);
-        context.setTask(task);
-        context.setResult(result);
-
-        return evaluate(context);
-    }
-
     public <V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 

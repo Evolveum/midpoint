@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -1000,7 +1001,8 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObjectSanity(roleAfter);
+        new PrismObjectAsserter<>(roleAfter)
+                .assertSanity();
         roleMonkeyIslandOid = roleAfter.getOid();
         groupMonkeyIslandOid = getSingleLinkOid(roleAfter);
 
@@ -1054,7 +1056,8 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObjectSanity(roleAfter);
+        new PrismObjectAsserter<>(roleAfter)
+                .assertSanity();
         roleVillainsOid = roleAfter.getOid();
         String ldapGroupOid = getSingleLinkOid(roleAfter);
 
@@ -1190,7 +1193,8 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObjectSanity(roleAfter);
+        new PrismObjectAsserter<>(roleAfter)
+                .assertSanity();
         roleRangersOid = roleAfter.getOid();
         groupRangersOid = getSingleLinkOid(roleAfter);
 
@@ -1217,7 +1221,8 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObjectSanity(roleAfter);
+        new PrismObjectAsserter<>(roleAfter)
+                .assertSanity();
         roleSealsOid = roleAfter.getOid();
         groupSealsOid = getSingleLinkOid(roleAfter);
 
@@ -1417,7 +1422,8 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, roleSealsOid);
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObjectSanity(roleAfter);
+        new PrismObjectAsserter<>(roleAfter)
+                .assertSanity();
         assertEquals("link OID changed", groupSealsOid, getSingleLinkOid(roleAfter));
 
         PrismObject<ShadowType> shadow = getShadowModel(groupSealsOid);

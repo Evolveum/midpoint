@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -311,7 +312,8 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-        assertShadowSanity(shadowProvisioningFuture);
+        new PrismObjectAsserter<>(shadowProvisioningFuture)
+                .assertSanity();
 
         assertNull("Unexpected async reference in result", willSecondLastCaseOid);
     }
@@ -424,7 +426,8 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-        assertShadowSanity(shadowProvisioningFuture);
+        new PrismObjectAsserter<>(shadowProvisioningFuture)
+                .assertSanity();
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 

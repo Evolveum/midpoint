@@ -401,7 +401,7 @@ public class ResourceTypeUtil {
      * AddRemoveAttributeValuesCapabilityType capability is deprecated.
      *  Use addRemoveAttributeValues element of Update capability instead.
      */
-    @Deprecated
+    @Deprecated // TODO remove in 4.2
     public static boolean isAddRemoveAttributesValuesCapabilityEnabled(ResourceType resource){
         return getEffectiveCapability(resource, AddRemoveAttributeValuesCapabilityType.class) != null;
     }

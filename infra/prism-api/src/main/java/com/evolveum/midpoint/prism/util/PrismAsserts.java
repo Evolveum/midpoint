@@ -9,7 +9,6 @@ package com.evolveum.midpoint.prism.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -907,7 +906,7 @@ public class PrismAsserts {
     }
 
     private static <O extends Objectable> PrismObject<O> toPrism(Element domNode) throws SchemaException {
-        return PrismTestUtil.parseObject(domNode);
+        return PrismTestUtil.getPrismContext().parserFor(domNode).parse();
     }
 
     private static <O extends Objectable> PrismObject<O> elementToPrism(Object element) throws SchemaException {

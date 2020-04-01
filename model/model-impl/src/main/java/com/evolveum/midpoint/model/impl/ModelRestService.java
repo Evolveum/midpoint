@@ -637,8 +637,8 @@ public class ModelRestService {
 
         Response response;
         try {
-            PrismObject<UserType> user = modelService.findShadowOwner(shadowOid, task, parentResult);
-            response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult);
+            PrismObject<? extends FocusType> focus = modelService.searchShadowOwner(shadowOid, null, task, parentResult);
+            response = RestServiceUtil.createResponse(Response.Status.OK, focus, parentResult);
         } catch (Exception ex) {
             response = RestServiceUtil.handleException(parentResult, ex);
         }

@@ -73,7 +73,7 @@ public interface Definition extends PrismContextSensitive, Serializable, DebugDu
      *
      * Semantics of this flag for complex type definitions is to be defined yet.
      */
-    @Deprecated
+    @Deprecated // Remove in 4.2
     boolean isIgnored();
 
     ItemProcessing getProcessing();

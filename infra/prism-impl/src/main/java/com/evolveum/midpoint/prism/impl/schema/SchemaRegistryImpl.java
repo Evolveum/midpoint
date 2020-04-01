@@ -29,6 +29,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -539,7 +540,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         for (Entry<QName,ComplexTypeDefinition> entry: extensionSchemas.entrySet()) {
             QName typeQName = entry.getKey();
             ComplexTypeDefinition extensionCtd = entry.getValue();
-            ComplexTypeDefinition primaryCtd = findComplexTypeDefinition(typeQName);
+            ComplexTypeDefinition primaryCtd = findComplexTypeDefinitionByType(typeQName);
             PrismContainerDefinition extensionContainer = primaryCtd.findContainerDefinition(
                     new ItemName(primaryCtd.getTypeName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
             if (extensionContainer == null) {
@@ -584,6 +585,13 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     @Override
     public javax.xml.validation.Schema getJavaxSchema() {
         return javaxSchema;
+    }
+
+    @Override
+    public Validator getJavaxSchemaValidator() {
+        Validator validator = javaxSchema.newValidator();
+        validator.setResourceResolver(entityResolver);
+        return validator;
     }
 
     @Override
@@ -1047,15 +1055,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return rv;
     }
 
-    /**
-     * Looks for a top-level definition for the specified element name (in all schemas).
-     */
-    @Override
-    @Deprecated
-    public ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) {
-        return resolveGlobalItemDefinition(elementQName, containerDefinition != null ? containerDefinition.getComplexTypeDefinition() : null);
-    }
-
     @Override
     public ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) {
         if (QNameUtil.noNamespace(itemName)) {
@@ -1284,14 +1283,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         }
     }
 
-    //endregion
-
-    //region Deprecated misc things
-    @Override
-    @Deprecated
-    public <T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException {
-        return prismContext.createObject(compileTimeClass);
-    }
     //endregion
 
     //region TODO categorize

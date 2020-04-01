@@ -291,9 +291,15 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
-        @SuppressWarnings("deprecation")
-        List<PrismPropertyValue<T>> resultValues =
-                scriptExpression.evaluate(variables, null, false, shortDesc, null, result);
+
+        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+        context.setVariables(variables);
+        context.setEvaluateNew(false);
+        context.setScriptExpression(scriptExpression);
+        context.setContextDescription(shortDesc);
+        context.setResult(result);
+
+        List<PrismPropertyValue<T>> resultValues = scriptExpression.evaluate(context);
         if (resultValues != null) {
             for (PrismPropertyValue<T> resultVal : resultValues) {
                 if (resultVal.getParent() != null) {

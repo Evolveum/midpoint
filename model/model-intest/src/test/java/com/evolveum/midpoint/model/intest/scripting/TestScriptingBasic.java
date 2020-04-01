@@ -526,30 +526,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-555555556677");
     }
 
-    @Deprecated
-    @Test
-    public void test380DisableJackInBackgroundSimple() throws Exception {
-        // GIVEN
-        OperationResult result = getTestOperationResult();
-
-        // WHEN
-        Task task = taskManager.createTaskInstance();
-        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-        scriptingExpressionEvaluator.evaluateExpressionInBackground(UserType.COMPLEX_TYPE,
-                ObjectQueryUtil.createOrigNameQuery("jack", prismContext).getFilter(),
-                "disable", task, result);
-
-        waitForTaskFinish(task.getOid(), false);
-        task.refresh(result);
-
-        // THEN
-        display(task.getResult());
-        TestUtil.assertSuccess(task.getResult());
-        PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        display("jack after disable script", jack);
-        assertAdministrativeStatusDisabled(jack);
-    }
-
     @Test
     public void test390AssignToWill() throws Exception {
         // GIVEN

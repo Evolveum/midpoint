@@ -8,8 +8,9 @@
 package com.evolveum.midpoint.task.api;
 
 /**
- * @author mederly
+ * This concept was replaced by task archetypes in 4.1.
  */
+@Deprecated // Remove in 4.2
 public class TaskCategory {
 
     public static final String DEMO = "Demo";

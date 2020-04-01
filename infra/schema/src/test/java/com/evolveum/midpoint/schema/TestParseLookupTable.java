@@ -50,7 +50,7 @@ public class TestParseLookupTable extends AbstractSchemaTest {
         assertTable(table);
 
         // WHEN
-        String xml = prismContext.serializeObjectToString(table, PrismContext.LANG_XML);
+        String xml = prismContext.xmlSerializer().serialize(table);
 
         // THEN
         System.out.println("Serialized object:");

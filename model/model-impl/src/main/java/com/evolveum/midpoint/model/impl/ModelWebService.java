@@ -160,10 +160,12 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         auditLogin(task);
         OperationResult operationResult = task.getResult();
         try {
-            PrismObject<UserType> user = modelService.findShadowOwner(accountOid, task, operationResult);
+            PrismObject<? extends FocusType> user = modelService.searchShadowOwner(accountOid, null, task, operationResult);
             handleOperationResult(operationResult, result);
-            if (user != null) {
-                userHolder.value = user.asObjectable();
+            if (user != null && user.asObjectable() instanceof UserType) {
+                // The schema for findShadowOwner SOAP call requires the returned object is of UserType.
+                // SOAP interface will be removed anyway, so let's not try to resolve this more intelligently.
+                userHolder.value = (UserType) user.asObjectable();
             }
             return;
         } catch (Exception ex) {

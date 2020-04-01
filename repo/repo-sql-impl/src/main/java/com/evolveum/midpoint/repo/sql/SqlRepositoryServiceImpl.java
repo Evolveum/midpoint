@@ -457,11 +457,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    @Override
-    public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult result) {
-        return countObjects(type, query, null, result);
-    }
-
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");

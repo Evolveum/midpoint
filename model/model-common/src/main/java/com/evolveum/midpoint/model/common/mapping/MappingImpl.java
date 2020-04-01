@@ -1861,6 +1861,11 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             return this;
         }
 
+        public Builder<V, D> stringPolicyResolver(ValuePolicyResolver stringPolicyResolver) {
+            this.valuePolicyResolver = stringPolicyResolver;
+            return this;
+        }
+
         public boolean hasVariableDefinition(String varName) {
             return variables.containsKey(varName);
         }
@@ -1872,120 +1877,6 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         public Builder<V, D> addSource(Source<?, ?> source) {
             sources.add(source);
             return this;
-        }
-
-        // traditional setters are also here, to avoid massive changes to existing code
-
-        @Deprecated
-        public void setExpressionFactory(ExpressionFactory expressionFactory) {
-            this.expressionFactory = expressionFactory;
-        }
-
-        @Deprecated
-        public void setVariables(ExpressionVariables variables) {
-            this.variables = variables;
-        }
-
-        @Deprecated
-        public void setMappingType(MappingType mappingType) {
-            this.mappingType = mappingType;
-        }
-
-        @Deprecated
-        public void setObjectResolver(ObjectResolver objectResolver) {
-            this.objectResolver = objectResolver;
-        }
-
-        @Deprecated
-        public void setDefaultSource(Source<?, ?> defaultSource) {
-            this.defaultSource = defaultSource;
-        }
-
-        @Deprecated
-        public void setDefaultTargetDefinition(D defaultTargetDefinition) {
-            this.defaultTargetDefinition = defaultTargetDefinition;
-        }
-
-        @Deprecated
-        public void setDefaultTargetPath(ItemPath defaultTargetPath) {
-            this.defaultTargetPath = defaultTargetPath;
-        }
-
-        @Deprecated
-        public void setSourceContext(ObjectDeltaObject<?> sourceContext) {
-            this.sourceContext = sourceContext;
-        }
-
-        @Deprecated
-        public void setTargetContext(PrismObjectDefinition<?> targetContext) {
-            this.targetContext = targetContext;
-        }
-
-        @Deprecated
-        public void setSources(Collection<Source<?, ?>> sources) {
-            this.sources = sources;
-        }
-
-        @Deprecated
-        public void setOriginType(OriginType originType) {
-            this.originType = originType;
-        }
-
-        @Deprecated
-        public void setOriginObject(ObjectType originObject) {
-            this.originObject = originObject;
-        }
-
-        @Deprecated
-        public void setStringPolicyResolver(
-                ValuePolicyResolver stringPolicyResolver) {
-            this.valuePolicyResolver = stringPolicyResolver;
-        }
-
-        @Deprecated
-        public void setConditionMaskOld(boolean conditionMaskOld) {
-            this.conditionMaskOld = conditionMaskOld;
-        }
-
-        @Deprecated
-        public void setConditionMaskNew(boolean conditionMaskNew) {
-            this.conditionMaskNew = conditionMaskNew;
-        }
-
-        @Deprecated
-        public void setNow(XMLGregorianCalendar now) {
-            this.now = now;
-        }
-
-        @Deprecated
-        public void setDefaultReferenceTime(XMLGregorianCalendar defaultReferenceTime) {
-            this.defaultReferenceTime = defaultReferenceTime;
-        }
-
-        @Deprecated
-        public void setProfiling(boolean profiling) {
-            this.profiling = profiling;
-        }
-
-        @Deprecated
-        public void setContextDescription(String contextDescription) {
-            this.contextDescription = contextDescription;
-        }
-
-        @Deprecated
-        public void setMappingQName(QName mappingQName) {
-            this.mappingQName = mappingQName;
-        }
-
-        @Deprecated
-        public void setRefinedObjectClassDefinition(
-                RefinedObjectClassDefinition refinedObjectClassDefinition) {
-            this.refinedObjectClassDefinition = refinedObjectClassDefinition;
-        }
-
-        @Deprecated
-        public void setPrismContext(PrismContext prismContext) {
-            this.prismContext = prismContext;
         }
 
         public MappingStrengthType getStrength() {

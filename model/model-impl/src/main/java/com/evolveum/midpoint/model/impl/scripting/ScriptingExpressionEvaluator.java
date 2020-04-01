@@ -71,33 +71,6 @@ public class ScriptingExpressionEvaluator {
 
     private Map<String, ActionExecutor> actionExecutors = new HashMap<>();
 
-    /**
-     * Asynchronously executes simple scripting expressions, consisting of one search command and one action.
-     *
-     * @param objectType Object type to search (e.g. c:UserType)
-     * @param filter Filter to be applied (ObjectFilter)
-     * @param actionName Action to be executed on objects found (e.g. "disable", "delete", "recompute", etc).
-     * @param task Task in context of which the script should execute. The task should be "clean", i.e.
-     *             (1) transient, (2) without any handler. This method puts the task into background,
-     *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
-     */
-    @Deprecated
-    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException {
-        Validate.notNull(objectType);
-        Validate.notNull(actionName);
-        Validate.notNull(task);
-
-        SearchExpressionType search = new SearchExpressionType();
-        search.setType(objectType);
-        if (filter != null) {
-            search.setSearchFilter(prismContext.getQueryConverter().createSearchFilterType(filter));
-        }
-        ActionExpressionType action = new ActionExpressionType();
-        action.setType(actionName);
-        search.setScriptingExpression(objectFactory.createAction(action));
-        evaluateExpressionInBackground(search, task, parentResult);
-    }
-
     // TODO implement more nicely
     public static ExecuteScriptType createExecuteScriptCommand(ScriptingExpressionType expression) {
         ExecuteScriptType executeScriptCommand = new ExecuteScriptType();

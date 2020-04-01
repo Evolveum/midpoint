@@ -164,7 +164,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "LDAP connector", true);
 
         PrismContainerDefinition configurationDefinition =
-                connectorSchema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(), PrismContainerDefinition.class);
+                connectorSchema.findItemDefinitionByElementName(new QName(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart()),
+                        PrismContainerDefinition.class);
         PrismContainerDefinition configurationPropertiesDefinition =
                 configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 

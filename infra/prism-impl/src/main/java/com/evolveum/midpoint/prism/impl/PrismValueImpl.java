@@ -276,9 +276,8 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
         // parent is not considered at all. it is not relevant.
         // neither the immutable flag
-        // FIXME: metadata, isConsideringValueOrigin is always false, so we are never comparing origin.
-        return !strategy.isConsideringValueOrigin() ||
-                Objects.equals(originObject, other.getOriginObject()) && originType == other.getOriginType();
+        // neither the value origin
+        return true;
     }
 
     // original equals was "isLiteral = false"!

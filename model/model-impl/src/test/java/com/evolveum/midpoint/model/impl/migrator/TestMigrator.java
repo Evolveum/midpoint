@@ -88,12 +88,12 @@ public class TestMigrator extends AbstractSpringTest {
         assertNotNull("No migrated object "+fileOld.getName(), objectNew);
 
         IntegrationTestTools.display("Migrated object "+fileOld.getName(), objectNew);
-        String migratedXml = prismContext.serializeObjectToString(objectNew, PrismContext.LANG_XML);
+        String migratedXml = prismContext.xmlSerializer().serialize(objectNew);
         IntegrationTestTools.display("Migrated object XML "+fileOld.getName(), migratedXml);
 
         PrismObject<O> expectedObject = prismContext.parseObject(fileNew);
         IntegrationTestTools.display("Expected object "+fileOld.getName(), expectedObject);
-        String expectedXml = prismContext.serializeObjectToString(expectedObject, PrismContext.LANG_XML);
+        String expectedXml = prismContext.xmlSerializer().serialize(expectedObject);
         IntegrationTestTools.display("Expected object XML "+fileOld.getName(), expectedXml);
 
         List<String> expectedXmlLines = MiscUtil.splitLines(expectedXml);

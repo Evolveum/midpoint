@@ -93,7 +93,7 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 
     @Override
     public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
-        ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(qName);
+        ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinitionByType(qName);
         if (complexTypeDefinition == null) {
             return null;
         }

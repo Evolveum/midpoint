@@ -403,7 +403,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     private boolean detectLegacySchema(ResourceSchema resourceSchema) {
-        ComplexTypeDefinition accountObjectClass = resourceSchema.findComplexTypeDefinition(
+        ComplexTypeDefinition accountObjectClass = resourceSchema.findComplexTypeDefinitionByType(
                 new QName(resourceSchemaNamespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
         return accountObjectClass != null;
     }

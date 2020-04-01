@@ -252,14 +252,11 @@ public class TestPrismObjectConstruction extends AbstractPrismTest {
     }
 
     private void serializeAndValidate(PrismObject<UserType> user, PrismContext prismContext) throws SchemaException, SAXException, IOException {
-        String xmlString = prismContext.serializeObjectToString(user, PrismContext.LANG_XML);
+        String xmlString = prismContext.xmlSerializer().serialize(user);
         System.out.println("Serialized XML");
         System.out.println(xmlString);
         Document xmlDocument = DOMUtil.parseDocument(xmlString);
-        Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-        Validator validator = javaxSchema.newValidator();
-        validator.setResourceResolver(prismContext.getEntityResolver());
+        Validator validator = prismContext.getSchemaRegistry().getJavaxSchemaValidator();
         validator.validate(new DOMSource(xmlDocument));
     }
-
 }

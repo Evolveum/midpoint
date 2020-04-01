@@ -13,6 +13,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.ItemImpl;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.util.PrismList;
 import org.apache.commons.lang.Validate;
 
@@ -177,7 +178,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
             throw new IllegalStateException("prismContext is null in " + containerValue);
         }
         try {
-            return prismContext.getJaxbDomHack().toAny(itemValue);
+            return ((PrismContextImpl) prismContext).getJaxbDomHack().toAny(itemValue);
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
         }

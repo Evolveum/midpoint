@@ -62,7 +62,7 @@ public class TestParsePasswordPolicy extends AbstractSchemaTest {
 
         // SERIALIZE
 
-        String serializedPolicy = prismContext.serializeObjectToString(policy, PrismContext.LANG_XML);
+        String serializedPolicy = prismContext.xmlSerializer().serialize(policy);
 
         System.out.println("serialized policy:");
         System.out.println(serializedPolicy);

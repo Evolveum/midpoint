@@ -109,14 +109,8 @@ public interface RepositoryService {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
     String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-    @Deprecated
-    String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
-    @Deprecated
-    String CLAIM_TASK = CLASS_NAME_WITH_DOT + "claimTask";
-    @Deprecated
-    String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
     String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
     String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
@@ -332,11 +326,6 @@ public interface RepositoryService {
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) throws SchemaException;
-
-    @Deprecated
-        // use the version with options instead
-    <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
-            throws SchemaException;
 
     boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
 

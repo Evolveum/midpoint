@@ -664,12 +664,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public <F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
-        recompute(type, oid, options, task, parentResult);
-    }
-
-    @Override
     public <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
@@ -1238,24 +1232,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    @Deprecated
-    public PrismObject<UserType> findShadowOwner(
-            String accountOid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SecurityViolationException, SchemaException,
-            ConfigurationException, ExpressionEvaluationException, CommunicationException {
-        Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
-        Validate.notNull(parentResult, "Result type must not be null.");
-
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_LINK_REF)
-                .ref(accountOid)
-                .build();
-        SearchResultList<PrismObject<UserType>> prismObjects =
-                searchObjects(UserType.class, query, null, task, parentResult);
-        return MiscUtil.extractSingleton(prismObjects);
-    }
-
-    @Override
     public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
         Validate.notEmpty(shadowOid, "Account oid must not be null or empty.");
@@ -1265,7 +1241,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
         PrismObject<? extends FocusType> focus;
 
-        LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{shadowOid});
+        LOGGER.trace("Listing account shadow owner for account with oid {}.", shadowOid);
 
         OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
         result.addParam("shadowOid", shadowOid);
@@ -1303,51 +1279,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
 
         return focus;
-    }
-
-    @Deprecated
-    @Override
-    public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
-            QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-        Validate.notNull(objectClass, "Object type must not be null.");
-        Validate.notNull(paging, "Paging must not be null.");
-        Validate.notNull(parentResult, "Result type must not be null.");
-        ModelImplUtils.validatePaging(paging);
-
-        enterModelMethod();
-
-        List<PrismObject<? extends ShadowType>> list;
-
-        try {
-            LOGGER.trace(
-                    "Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
-                    objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
-                    paging.getOrderBy(), paging.getDirection());
-
-            OperationResult result = parentResult.createSubresult(LIST_RESOURCE_OBJECTS);
-            result.addParam("resourceOid", resourceOid);
-            result.addParam("objectType", objectClass);
-
-            try {
-
-                list = provisioning.listResourceObjects(resourceOid, objectClass, paging, task, result);
-
-            } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error ex) {
-                ModelImplUtils.recordFatalError(result, ex);
-                throw ex;
-            }
-            result.recordSuccess();
-            result.cleanupResult();
-
-            if (list == null) {
-                list = new ArrayList<>();
-            }
-        } finally {
-            exitModelMethod();
-        }
-        return list;
     }
 
     // This returns OperationResult instead of taking it as in/out argument.
@@ -1933,11 +1864,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         taskManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
     }
 
+    @Deprecated // Remove in 4.2
     @Override
     public List<String> getAllTaskCategories() {
         return taskManager.getAllTaskCategories();
     }
 
+    @Deprecated // Remove in 4.2
     @Override
     public String getHandlerUriForCategory(String category) {
         return taskManager.getHandlerUriForCategory(category);
@@ -2080,13 +2013,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     //endregion
 
     //region Scripting (bulk actions)
-    @Deprecated
-    @Override
-    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkScriptingAuthorization(task, parentResult);
-        scriptingExpressionEvaluator.evaluateExpressionInBackground(objectType, filter, actionName, task, parentResult);
-    }
-
     @Override
     public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, parentResult);
@@ -2145,7 +2071,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         getCertificationManagerChecked().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
     }
 
-    @Deprecated
     @Override
     public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
             boolean allItems, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
@@ -2155,7 +2080,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
     }
 
-    @Deprecated
     @Override
     public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {

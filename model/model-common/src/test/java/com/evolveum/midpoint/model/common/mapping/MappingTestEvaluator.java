@@ -200,14 +200,14 @@ public class MappingTestEvaluator {
             }
         };
 
-        mappingBuilder.setStringPolicyResolver(stringPolicyResolver);
+        mappingBuilder.stringPolicyResolver(stringPolicyResolver);
         // Default target
         if (defaultTargetPropertyPath != null) {
             PrismPropertyDefinition<T> targetDefDefinition = userDefinition.findItemDefinition(defaultTargetPropertyPath);
             if (targetDefDefinition == null) {
                 throw new IllegalArgumentException("The item path '" + defaultTargetPropertyPath + "' does not have a definition in " + userDefinition);
             }
-            mappingBuilder.setDefaultTargetDefinition(targetDefDefinition);
+            mappingBuilder.defaultTargetDefinition(targetDefDefinition);
         }
 
         return mappingBuilder;
@@ -225,8 +225,8 @@ public class MappingTestEvaluator {
 
         Source<PrismPropertyValue<T>, PrismPropertyDefinition<T>> defaultSource = new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT_QNAME, delta.getDefinition());
         defaultSource.recompute();
-        builder.setDefaultSource(defaultSource);
-        builder.setTargetContext(getUserDefinition());
+        builder.defaultSource(defaultSource);
+        builder.targetContext(getUserDefinition());
         builder.addVariableDefinition(ExpressionConstants.VAR_USER, user, UserType.class);
         builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user, UserType.class);
         builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject(), ShadowType.class);
@@ -253,10 +253,10 @@ public class MappingTestEvaluator {
             }
         };
 
-        builder.setStringPolicyResolver(stringPolicyResolver);
+        builder.stringPolicyResolver(stringPolicyResolver);
 
-        builder.setOriginType(OriginType.INBOUND);
-        builder.setOriginObject(resource);
+        builder.originType(OriginType.INBOUND);
+        builder.originObject(resource);
 
         return builder.build();
     }

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -288,7 +287,7 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .count();
         if (completed > OPTIMIZED_BUCKETS_THRESHOLD) {
-            displayValue("Task with more than one completed bucket", task);
+            displayDumpable("Task with more than one completed bucket", task);
             fail("More than one completed bucket found in task: " + completed + " in " + task);
         }
     }
@@ -336,11 +335,6 @@ public class AbstractTaskManagerTest extends AbstractSpringTest implements Infra
     private Set<String> getCachingProfiles(Task task) {
         TaskExecutionEnvironmentType env = task.getExecutionEnvironment();
         return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
-    }
-
-    @Deprecated // inline
-    protected void displayValue(String title, DebugDumpable value) {
-        displayDumpable(title, value);
     }
 
     public void displayValue(String title, Object value) {

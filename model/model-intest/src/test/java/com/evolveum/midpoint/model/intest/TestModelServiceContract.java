@@ -2787,7 +2787,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 
         assertEncryptedUserPassword(userBlackbeard, "QueenAnne");
-        assertPasswordMetadata(userBlackbeard, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
+        assertPasswordMetadata(userBlackbeard, CredentialsType.F_PASSWORD, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid,
@@ -3322,7 +3322,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     private void assertResultSerialization(OperationResult result) throws SchemaException {
         OperationResultType resultType = result.createOperationResultType();
-        String serialized = prismContext.serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
+        String serialized = prismContext.xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
         displayValue("OperationResultType serialized", serialized);
     }
 

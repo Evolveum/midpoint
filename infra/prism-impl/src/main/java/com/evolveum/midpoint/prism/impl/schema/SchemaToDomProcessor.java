@@ -170,7 +170,7 @@ public class SchemaToDomProcessor {
 
         if (complexTypeDefinition != null &&
                 // Check if the complex type is a top-level complex type. If it is then it was already processed and we can skip it
-                schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName()) == null &&
+                schema.findComplexTypeDefinitionByType(complexTypeDefinition.getTypeName()) == null &&
                 // If the definition is not in this schema namespace then skip it. It is only a "ref"
                 getNamespace().equals(complexTypeDefinition.getTypeName().getNamespaceURI())
                 ) {

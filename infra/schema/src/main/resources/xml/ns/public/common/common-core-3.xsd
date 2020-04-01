@@ -8455,6 +8455,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

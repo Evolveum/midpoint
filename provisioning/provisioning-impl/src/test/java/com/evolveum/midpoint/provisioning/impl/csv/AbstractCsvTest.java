@@ -155,7 +155,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
+        String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
         displayValue("Resource XML", resourceXml);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();

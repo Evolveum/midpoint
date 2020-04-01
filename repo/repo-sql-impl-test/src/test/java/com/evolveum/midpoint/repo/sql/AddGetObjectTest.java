@@ -188,7 +188,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     if (id.isReplace()) {
                         logger.debug("{}", id.getValuesToReplace().iterator().next());
                     }
-                    logger.error("{}", prismContext.serializerFor(PrismContext.LANG_XML).serialize(newObject));
+                    logger.error("{}", prismContext.xmlSerializer().serialize(newObject));
                 }
             } catch (Throwable ex) {
                 logger.error("Exception occurred for {}", object, ex);

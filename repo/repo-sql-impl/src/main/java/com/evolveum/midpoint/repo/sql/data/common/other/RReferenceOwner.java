@@ -30,9 +30,6 @@ public enum RReferenceOwner {
     @Deprecated // REMOVED from schema in 4.0
     ROLE_APPROVER(AbstractRoleType.class, null /* was: AbstractRoleType.F_APPROVER_REF */),              // 3
 
-    /**
-     * @deprecated
-     */
     @Deprecated
     SYSTEM_CONFIGURATION_ORG_ROOT(SystemConfigurationType.class, null),                 // 4
 

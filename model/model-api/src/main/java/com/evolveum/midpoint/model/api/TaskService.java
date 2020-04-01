@@ -168,19 +168,14 @@ public interface TaskService {
 
     /**
      * Gets a list of all task categories.
-     * TODO consider removing this method
-     *
-     * @return
      */
+    @Deprecated // Remove in 4.2
     List<String> getAllTaskCategories();
 
     /**
      * Returns a default handler URI for a given task category.
-     * TODO consider removing this method (currently used for task creation via GUI)
-     *
-     * @param category
-     * @return
      */
+    @Deprecated // Remove in 4.2
     String getHandlerUriForCategory(String category);
 
     void reconcileWorkers(String oid, Task opTask, OperationResult result)

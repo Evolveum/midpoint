@@ -79,26 +79,6 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         }
         return optionsCollection;
     }
-
-    // modifies existing options collection, or creates a new collection
-    // if options for given path exist, reuses them; or creates new ones instead
-    @Deprecated // use GetOperationOptionsBuilder
-    public static <T> Collection<SelectorOptions<T>> set(Collection<SelectorOptions<T>> options, UniformItemPath path,
-            Supplier<T> constructor, Consumer<T> setter) {
-        if (options == null) {
-            options = new ArrayList<>();
-        }
-        Collection<T> optionsForPath = findOptionsForPath(options, path);
-        T option;
-        if (optionsForPath.isEmpty()) {
-            option = constructor.get();
-            options.add(SelectorOptions.create(path, option));
-        } else {
-            option = optionsForPath.iterator().next();
-        }
-        setter.accept(option);
-        return options;
-    }
     //endregion
 
     //region Simple getters

@@ -516,7 +516,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     }
 
     @Override
-    @Deprecated
+    @Deprecated // Remove in 4.4
     public ObjectReferenceType getPasswordPolicy() {
         ResourcePasswordDefinitionType password = getPasswordDefinition();
         if (password == null || password.getPasswordPolicyRef() == null){

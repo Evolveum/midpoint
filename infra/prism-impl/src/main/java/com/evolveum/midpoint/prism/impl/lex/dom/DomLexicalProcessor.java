@@ -56,11 +56,6 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         this.schemaRegistry = schemaRegistry;
     }
 
-    @Deprecated
-    public XNodeImpl read(File file, ParsingContext parsingContext) throws SchemaException, IOException {
-        return read(new ParserFileSource(file), parsingContext);
-    }
-
     @NotNull
     @Override
     public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {

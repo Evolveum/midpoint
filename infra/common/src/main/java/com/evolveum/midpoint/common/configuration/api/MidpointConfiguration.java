@@ -28,7 +28,8 @@ public interface MidpointConfiguration {
     String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     String MIDPOINT_NODE_ID_EXPRESSION_PROPERTY = "midpoint.nodeIdExpression";
     String MIDPOINT_NODE_ID_SOURCE_PROPERTY = "midpoint.nodeIdSource";
-    @Deprecated String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
+    @Deprecated // Remove in 4.4
+    String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     String MIDPOINT_URL_PROPERTY = "midpoint.url";
     String MIDPOINT_HOST_NAME_PROPERTY = "midpoint.hostName";
     String MIDPOINT_HTTP_PORT_PROPERTY = "midpoint.httpPort";

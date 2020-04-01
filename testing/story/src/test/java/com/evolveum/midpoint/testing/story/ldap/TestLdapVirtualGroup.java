@@ -13,6 +13,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -192,7 +194,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         when();
         display("recompute role " + ROLE_IT_HR_NAME);
 
-        modelService.recompute(RoleType.class, ROLE_IT_HR_OID, task, result);
+        modelService.recompute(RoleType.class, ROLE_IT_HR_OID, ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
         then();

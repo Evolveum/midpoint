@@ -172,8 +172,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             PrismContainerDefinition configurationContainer = schema
                     .findContainerDefinitionByElementName(configurationElementQname);
             assertNotNull("No " + configurationElementQname + " element in schema of " + conn, configurationContainer);
-            PrismContainerDefinition definition = schema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
-                    PrismContainerDefinition.class);
+            PrismContainerDefinition definition = schema
+                    .findItemDefinitionByElementName(new QName(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart()),
+                            PrismContainerDefinition.class);
             assertNotNull("Definition of <configuration> property container not found", definition);
             assertFalse("Empty definition", definition.isEmpty());
         }

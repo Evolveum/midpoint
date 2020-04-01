@@ -51,27 +51,6 @@ public class TestMiscUtil extends AbstractUnitTest {
     }
 
     @Test
-    public void testUglyXsiHack1() {
-        String in = "<?xml>  <!-- sjsdj --> <foobar></foobar>";
-        String out = UglyHacks.forceXsiNsDeclaration(in);
-        assertEquals("<?xml>  <!-- sjsdj --> <foobar xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'></foobar>", out);
-    }
-
-    @Test
-    public void testUglyXsiHack2() {
-        String in = "<foo:bar xmlns:foo='http://foo.com/'></foo:bar>";
-        String out = UglyHacks.forceXsiNsDeclaration(in);
-        assertEquals("<foo:bar xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:foo='http://foo.com/'></foo:bar>", out);
-    }
-
-    @Test
-    public void testUglyXsiHack3() {
-        String in = "<foo:bar xmlns:foo='http://foo.com/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'></foo:bar>";
-        String out = UglyHacks.forceXsiNsDeclaration(in);
-        assertEquals(in, out);
-    }
-
-    @Test
     public void testCarthesian() {
         // GIVEN
         Collection<Collection<String>> dimensions = new ArrayList<>();

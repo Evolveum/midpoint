@@ -13,8 +13,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.commons.lang.Validate;
-
 /**
  *
  */
@@ -55,12 +53,6 @@ public abstract class BaseProtector implements Protector {
         protectedString.setClearValue(text);
         encrypt(protectedString);
         return protectedString;
-    }
-
-    @Override
-    public boolean isEncrypted(ProtectedStringType ps) {
-        Validate.notNull(ps, "Protected string must not be null.");
-        return ps.isEncrypted();
     }
 
 }

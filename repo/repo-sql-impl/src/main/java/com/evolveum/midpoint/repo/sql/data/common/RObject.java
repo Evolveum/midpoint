@@ -650,28 +650,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return result;
     }
 
-    @Deprecated
-    protected static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
-                                                            Collection<SelectorOptions<GetOperationOptions>> options) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName(), prismContext));
-        jaxb.setOid(repo.getOid());
-        jaxb.setVersion(Integer.toString(repo.getVersion()));
-        jaxb.setLifecycleState(repo.getLifecycleState());
-        if (repo.getSubtype() != null) {
-            jaxb.getSubtype().addAll(repo.getSubtype());
-        }
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
-            List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
-            if (!orgRefs.isEmpty()) {
-                jaxb.getParentOrgRef().addAll(orgRefs);
-            }
-        }
-    }
-
     static <T extends ObjectType> void copyAssignmentHolderInformationFromJAXB(AssignmentHolderType jaxb, RObject<T> repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
 
