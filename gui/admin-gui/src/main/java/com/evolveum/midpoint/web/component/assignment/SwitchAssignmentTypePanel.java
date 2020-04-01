@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeAssignmentsTabPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -445,32 +446,39 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         buttonsContainer.add(focusMappingAssignmentsButton);
 
         //GDPR feature.. temporary disabled MID-4281
-//        AjaxButton consentsButton = new AjaxButton(ID_CONSENT_ASSIGNMENTS, createStringResource("FocusType.consents")) {
-//                            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                GdprAssignmentPanel gdprAssignmentPanel =
-//                        new GdprAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()){
-// private static final long serialVersionUID = 1L;
-//
-//        @Override
-//        protected void assignmentDetailsPerformed(AjaxRequestTarget target) {
-//            target.add(SwitchAssignmentTypePanel.this);
-//        }
-//
-//        @Override
-//        protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
-//            target.add(SwitchAssignmentTypePanel.this);
-//        }
-// };
-//                gdprAssignmentPanel.setOutputMarkupId(true);
-//                SwitchAssignmentTypePanel.this.addOrReplace(gdprAssignmentPanel);
-//                target.add(SwitchAssignmentTypePanel.this);
-//            }
-//        };
-//        consentsButton.setOutputMarkupId(true);
-//        buttonsContainer.add(consentsButton);
+        AjaxIconButton consentsButton = new AjaxIconButton(ID_CONSENT_ASSIGNMENTS, createStringResource("fa fa-legal"), createStringResource("FocusType.consents")) {
+                            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                GdprAssignmentPanel gdprAssignmentPanel =
+                        new GdprAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void assignmentDetailsPerformed(AjaxRequestTarget target) {
+                        target.add(SwitchAssignmentTypePanel.this);
+                    }
+
+                    @Override
+                    protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
+                        target.add(SwitchAssignmentTypePanel.this);
+                    }
+             };
+                gdprAssignmentPanel.setOutputMarkupId(true);
+                SwitchAssignmentTypePanel.this.addOrReplace(gdprAssignmentPanel);
+                target.add(SwitchAssignmentTypePanel.this);
+            }
+        };
+        consentsButton.setOutputMarkupId(true);
+        consentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_SHOW_INDIRECT_ASSIGNMENTS)));
+        consentsButton.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
+            }
+        });
+        buttonsContainer.add(consentsButton);
 
         AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_INDIRECT_ASSIGNMENTS, new Model<>("fa fa-address-card"),
                 createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {

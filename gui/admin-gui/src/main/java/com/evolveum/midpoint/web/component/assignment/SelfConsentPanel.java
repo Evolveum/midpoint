@@ -6,6 +6,15 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,6 +43,8 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
 
     private static final long serialVersionUID = 1L;
 
+    private static final transient Trace LOGGER = TraceManager.getTrace(SelfConsentPanel.class);
+
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_CONSENT_ICON = "consentIcon";
@@ -45,6 +56,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
 
     private static final String DOT_CLASS = SelfConsentPanel.class.getSimpleName() + ".";
     private static final String OPERATION_LOAD_TARGET = DOT_CLASS + "loadTargetRef";
+    private static final String OPERATION_SAVE_CONSENT_DECISION = DOT_CLASS + "saveCOnsentDecision";
 //    private PageBase parentPage;
 
     public SelfConsentPanel(String id, IModel<AssignmentType> model, PageBase parentPage) {
@@ -92,6 +104,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 SelfConsentPanel.this.getModelObject().setLifecycleState(SchemaConstants.LIFECYCLE_FAILED);
+                saveConsentDecision(target, SchemaConstants.LIFECYCLE_FAILED);
                 target.add(SelfConsentPanel.this);
             }
         };
@@ -105,6 +118,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 SelfConsentPanel.this.getModelObject().setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+                saveConsentDecision(target, SchemaConstants.LIFECYCLE_ACTIVE);
                 target.add(SelfConsentPanel.this);
             }
         };
@@ -118,12 +132,30 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 SelfConsentPanel.this.getModelObject().setLifecycleState(SchemaConstants.LIFECYCLE_FAILED);
+                saveConsentDecision(target, SchemaConstants.LIFECYCLE_FAILED);
                 target.add(SelfConsentPanel.this);
             }
         };
         add(buttonRefuse);
         buttonRefuse.add(createProposedConsentBehaviour());
 
+    }
+
+    protected void saveConsentDecision(AjaxRequestTarget target, String newLifecycleState) {
+        OperationResult result = new OperationResult(OPERATION_SAVE_CONSENT_DECISION);
+        try {
+            ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFor(UserType.class)
+                    .property(ItemPath.create(getModelObject().asPrismContainerValue().getPath(), AssignmentType.F_LIFECYCLE_STATE))
+                    .replace(newLifecycleState).asObjectDelta(SecurityUtils.getPrincipalUser().getOid());
+            WebModelServiceUtils.save(delta, result, getPageBase());
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot save consent decision {}, reason: {}", newLifecycleState, e.getMessage(), e);
+            result.recordFatalError("Failed to save consent decision, " + e.getMessage());
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result, false);
+        target.add(getPageBase().getFeedbackPanel());
     }
 
     private VisibleEnableBehaviour createActiveConsentBehaviour() {
