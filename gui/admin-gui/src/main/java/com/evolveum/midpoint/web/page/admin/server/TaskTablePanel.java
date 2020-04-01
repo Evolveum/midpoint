@@ -325,7 +325,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return getPlainTaskProgressDescription(task.getValue());
         }
     }
-    
+
     private String getBucketedTaskProgressDescription(TaskType taskType) {
         int completeBuckets = getCompleteBuckets(taskType);
         Integer expectedBuckets = getExpectedBuckets(taskType);
@@ -506,10 +506,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
         });
 
         InlineMenuItem reconcileWorkers = new InlineMenuItem(createStringResource("pageTasks.button.reconcileWorkers")) {
@@ -949,7 +945,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction action, String actionName) {
         if (action.getRowModel() == null) {
-            return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, 1);
+            return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedObjects().size());
 //                    WebComponentUtil.getSelectedData(()).size());
         } else {
             String objectName = ((SelectableBean<TaskType>) (action.getRowModel().getObject())).getValue().getName().getOrig();
