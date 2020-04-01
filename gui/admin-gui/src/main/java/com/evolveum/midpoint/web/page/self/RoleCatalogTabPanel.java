@@ -42,7 +42,9 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 
     @Override
     protected void initLeftSidePanel(){
-        getRoleCatalogStorage().setSelectedOid(roleCatalogOid);
+        if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid())) {
+            getRoleCatalogStorage().setSelectedOid(roleCatalogOid);
+        }
 
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);
