@@ -335,14 +335,6 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    @Deprecated
-    @Override
-    public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not available any more");
-    }
-
     @Override
     public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
             boolean allItems, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)

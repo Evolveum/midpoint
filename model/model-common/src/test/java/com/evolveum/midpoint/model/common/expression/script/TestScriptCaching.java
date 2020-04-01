@@ -144,8 +144,15 @@ public class TestScriptCaching extends AbstractUnitTest
 
         // WHEN
         long startTime = System.currentTimeMillis();
-        List<PrismPropertyValue<String>> scripResults =
-                scriptExpression.evaluate(variables, null, false, desc, null, result);
+
+        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+        context.setVariables(variables);
+        context.setEvaluateNew(false);
+        context.setScriptExpression(scriptExpression);
+        context.setContextDescription(desc);
+        context.setResult(result);
+
+        List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(context);
         long endTime = System.currentTimeMillis();
 
         // THEN

@@ -267,31 +267,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     boolean equivalent(PrismContainerValue<?> other);
 
-    // copies the definition from original to aClone (created outside of this method)
-    // it has to (artifically) create a parent PrismContainer to hold the definition
-    //
-    // without having a definition, such containers cannot be serialized using
-    // PrismJaxbProcessor.marshalContainerableToString (without definition, there is
-    // no information on corresponding element name)
-    //
-    // todo review usefulness and appropriateness of this method and its placement
-    @Deprecated
-    static void copyDefinition(Containerable aClone, Containerable original, PrismContext prismContext) {
-        try {
-            Validate.notNull(original.asPrismContainerValue().getParent(), "original PrismContainerValue has no parent");
-
-            ComplexTypeDefinition definition = original.asPrismContainerValue().getComplexTypeDefinition();
-            Validate.notNull(definition, "original PrismContainer definition is null");
-
-            PrismContainer<?> aCloneParent = prismContext.getSchemaRegistry()
-                    .findContainerDefinitionByCompileTimeClass((Class<? extends Containerable>) definition.getCompileTimeClass())
-                    .instantiate();
-            aCloneParent.add(aClone.asPrismContainerValue());
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected SchemaException when copying definition from original object to its clone", e);
-        }
-    }
-
     @Nullable
     ComplexTypeDefinition getComplexTypeDefinition();
 

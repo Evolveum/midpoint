@@ -172,7 +172,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         // WHEN
 
-        String marshalledResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
+        String marshalledResource = prismContext.xmlSerializer().serialize(resource);
 
         System.out.println("Marshalled resource");
         System.out.println(marshalledResource);
@@ -237,7 +237,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
         Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
 
         PrismObject<ResourceType> resource = wrapInResource(xsdElement);
-        String resourceXmlString = PrismTestUtil.getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
+        String resourceXmlString = PrismTestUtil.getPrismContext().xmlSerializer().serialize(resource);
 
         System.out.println("Serialized resource");
         System.out.println(resourceXmlString);

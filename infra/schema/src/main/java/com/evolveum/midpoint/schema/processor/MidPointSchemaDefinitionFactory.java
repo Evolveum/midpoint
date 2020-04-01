@@ -82,42 +82,15 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
             ocDef.setAuxiliary(auxiliary);
         }
 
-        String intent = null;
         Element intentElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_INTENT);
         if (intentElement != null) {
-            intent = intentElement.getTextContent();
+            String intent = intentElement.getTextContent();
             if (StringUtils.isEmpty(intent)) {
                 throw new SchemaException("The definition of intent is empty in the annotation of object class "+typeName);
             }
             ocDef.setIntent(intent);
         }
-
-        // accountType: DEPRECATED
-        if (isAccountObject(annotation)) {
-            if (kind != null && kind != ShadowKindType.ACCOUNT) {
-                throw new SchemaException("Conflicting definition of kind and legacy account annotation in the annotation of object class "+typeName);
-            }
-            ocDef.setKind(ShadowKindType.ACCOUNT);
-            Element account = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT);
-            if (account != null && !defaultInAKind) {
-                String defaultValue = account.getAttribute("default");
-                // Compatibility (DEPRECATED)
-                if (defaultValue != null) {
-                    ocDef.setDefaultInAKind(Boolean.parseBoolean(defaultValue));
-                }
-            }
-            Element accountTypeElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT_TYPE);
-            if (accountTypeElement != null) {
-                String accountType = accountTypeElement.getTextContent();
-                if (intent != null && !intent.equals(accountType)) {
-                    throw new SchemaException("Conflicting definition of intent and legacy accountType annotation in the annotation of object class "+typeName);
-                }
-                ocDef.setIntent(accountType);
-            }
-        }
-
         return ocDef;
-
     }
 
     @Override
@@ -295,27 +268,10 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
     private boolean isResourceObject(XSAnnotation annotation) {
         // annotation: resourceObject
-        if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_RESOURCE_OBJECT) != null) {
-            return true;
-        }
-        // annotation: accountType DEPRECATED
-        if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT) != null) {
-            // <accountType> implies <resourceObject> ... at least for now (compatibility)
-            return true;
-        }
-        return false;
+        return SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_RESOURCE_OBJECT) != null;
     }
 
     private boolean isAccountObject(XSAnnotation annotation) {
-        if (annotation == null || annotation.getAnnotation() == null) {
-            return false;
-        }
-
-        Element accountType = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT);
-        if (accountType != null) {
-            return true;
-        }
-
         return false;
     }
 

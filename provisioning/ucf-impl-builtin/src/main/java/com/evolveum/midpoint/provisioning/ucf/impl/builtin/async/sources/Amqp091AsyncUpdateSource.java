@@ -82,20 +82,6 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
         private final AtomicInteger messagesBeingProcessed = new AtomicInteger(0);
 
         @Override
-        public AsyncUpdateListeningActivityInformationType getInformation() {
-            AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
-            rv.setName(sourceConfiguration.getName());
-            if (activeConnection == null) {
-                rv.setStatus(AsyncUpdateListeningActivityStatusType.DOWN);
-            } else if (activeConnection.isOpen()) {
-                rv.setStatus(AsyncUpdateListeningActivityStatusType.ALIVE);
-            } else {
-                rv.setStatus(AsyncUpdateListeningActivityStatusType.RECONNECTING);
-            }
-            return rv;
-        }
-
-        @Override
         public boolean isAlive() {
             return state != State.CLOSED;
         }

@@ -160,7 +160,7 @@ public class TestParseObjectTemplate extends AbstractSchemaTest {
         // that will parse the raw values and it may change the clean state
 
         // WHEN
-        String xml = prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
+        String xml = prismContext.xmlSerializer().serialize(object);
 
         // THEN
         System.out.println("Serialized object:");

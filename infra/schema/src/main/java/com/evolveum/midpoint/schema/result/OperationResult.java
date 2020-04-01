@@ -2109,16 +2109,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         setAsynchronousOperationReference(CASE_OID_PREFIX + oid);
     }
 
-    @Deprecated // use asynchronous operation reference
+    // use asynchronous operation reference
+    @Deprecated // TODO remove in 4.2
     public String getBackgroundTaskOid() {
         return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
-    }
-
-    @Deprecated
-    @Override
-    public OperationResult setMinor(boolean value) {
-        this.importance = value ? MINOR : NORMAL;
-        return this;
     }
 
     @Override

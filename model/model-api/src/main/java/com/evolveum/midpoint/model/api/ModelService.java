@@ -230,29 +230,6 @@ public interface ModelService {
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 
     /**
-     * <p>
-     * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
-     * mapping and tries to re-apply them as necessary.
-     * </p>
-     * <p>
-     * This method is DEPRECATED. It is provided for compatibility only. Please use the version with options
-     * instead of this one. This method will assume the reconcile option to keep compatible behavior with
-     * previous versions.
-     * </p>
-     *
-     * @param type type (class) of an object to recompute
-     * @param oid OID of the object to recompute
-     * @param parentResult
-     *            parent OperationResult (in/out)
-     * @param task
-     *               Task instance. It gives context to the execution (e.g. security context)
-     * @param parentResult parent OperationResult (in/out)
-     */
-    @Deprecated
-    <F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
-             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
-
-    /**
      * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
      * mapping and tries to re-apply them as necessary.
      *
@@ -269,41 +246,6 @@ public interface ModelService {
      */
     <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
              throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
-
-    /**
-     * <p>
-     * Returns the User object representing owner of specified account (account
-     * shadow).
-     * </p>
-     * <p>
-     * May return null if there is no owner specified for the account.
-     * </p>
-     * <p>
-     * Implements the backward "owns" association between account shadow and
-     * user. Forward association is implemented by property "account" of user
-     * object.
-     * </p>
-     *
-     * @param shadowOid
-     *            OID of the account to look for an owner
-     * @param task
-     *               Task instance. It gives context to the execution (e.g. security context)
-     * @param parentResult
-     *            parent OperationResult (in/out)
-     * @return owner of the account or null
-     * @throws ObjectNotFoundException
-     *             specified account was not found
-     * @throws ExpressionEvaluationException
-     * @throws IllegalArgumentException
-     *             wrong OID format, described change is not applicable
-     * @throws SystemException
-     *             unknown error from underlying layers or other unexpected
-     *             state
-     * @deprecated
-     */
-    PrismObject<UserType> findShadowOwner(String shadowOid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
-
 
     /**
      * <p>
@@ -337,61 +279,6 @@ public interface ModelService {
      */
     PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
-
-    /**
-     * <p>
-     * Returns all resource objects of specified type that are currently
-     * available to the system.
-     * </p>
-     * <p>
-     * Returns empty list if object type is correct but there are no objects of
-     * that type. The operation should fail if object type is wrong (e.g.
-     * specified type is not part of resource schema).
-     * </p>
-     * <p>
-     * This method does NOT use any repository shadow objects for reference or
-     * any other business objects in the local repository. It goes directly to
-     * the resource. The returned objects (indirectly) comply with the resource
-     * schema, but it is returned re-formated in a form of detached shadow
-     * object. Although the form is the same as shadow object, this is NOT
-     * really a shadow object because it is not stored in the repository (it is
-     * detached). It does NOT have OID.
-     * </p>
-     * <p>
-     * The objects are identified by whatever identification
-     * properties/attributes are defined by the resource schema.
-     * </p>
-     * <p>
-     * The purpose of this operation is diagnostics. It works directly with the
-     * resource without the potential problems of underlying implementation.
-     * E.g. it may be used to test resource connectivity or correctness of
-     * resource setup. It may also be used to reach object types that are not
-     * directly supported as "shadows" by the implementation. Therefore this
-     * method is not required to implement any form of caching, queuing,
-     * reference resolution or any other "smart" algorithm.
-     * </p>
-     * <p>
-     *
-     * @param resourceOid
-     *            OID of the resource to fetch objects from
-     * @param objectClass
-     *            Object class of the objects to fetch
-     * @param paging
-     *            paging specification to limit operation result (optional)
-     * @param result
-     *            parent OperationResult (in/out)
-     * @return resource objects in a form of "detached shadows"
-     * @throws ObjectNotFoundException
-     *             specified resource object does not exist
-     * @throws SchemaException
-     *             error handling resource schema
-     * @throws CommunicationException
-     *             error communicating with the resource
-     */
-    @Deprecated
-    List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * <p>

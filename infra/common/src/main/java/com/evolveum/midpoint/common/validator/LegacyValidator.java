@@ -95,10 +95,7 @@ public class LegacyValidator {
         if (prismContext == null) {
             throw new IllegalStateException("No prism context set during validator initialization");
         }
-        SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-        Schema midPointJavaxSchema = schemaRegistry.getJavaxSchema();
-        xsdValidator = midPointJavaxSchema.newValidator();
-        xsdValidator.setResourceResolver(prismContext.getEntityResolver());
+        xsdValidator = prismContext.getSchemaRegistry().getJavaxSchemaValidator();
     }
 
     public EventHandler getHandler() {

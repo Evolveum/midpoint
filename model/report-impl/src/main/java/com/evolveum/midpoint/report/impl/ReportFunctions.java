@@ -258,10 +258,10 @@ public class ReportFunctions {
                 .collect(Collectors.toList());
     }
 
-    public UserType getShadowOwner(String shadowOid) {
+    public FocusType getShadowOwner(String shadowOid) {
         Task task = taskManager.createTaskInstance();
         try {
-            PrismObject<UserType> owner = model.findShadowOwner(shadowOid, task, task.getResult());
+            PrismObject<? extends FocusType> owner = model.searchShadowOwner(shadowOid, null, task, task.getResult());
             return owner.asObjectable();
         } catch (ObjectNotFoundException | SecurityViolationException | SchemaException | ConfigurationException | ExpressionEvaluationException | CommunicationException e) {
             // TODO Auto-generated catch block

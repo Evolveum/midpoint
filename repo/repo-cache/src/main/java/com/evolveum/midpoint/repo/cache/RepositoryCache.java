@@ -999,29 +999,6 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
     }
 
-    @Deprecated
-    @Override
-    public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
-            throws SchemaException {
-        // TODO use cached query result if applicable
-        OperationResult result = parentResult.subresult(COUNT_OBJECTS)
-                .addQualifier(type.getSimpleName())
-                .addParam("type", type)
-                .addParam("query", query)
-                .build();
-        log("Cache: PASS countObjects ({})", false, type.getSimpleName());
-        Long startTime = repoOpStart();
-        try {
-            return repositoryService.countObjects(type, query, null, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            repoOpEnd(startTime);
-            result.computeStatusIfUnknown();
-        }
-    }
-
     @Override
     public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {

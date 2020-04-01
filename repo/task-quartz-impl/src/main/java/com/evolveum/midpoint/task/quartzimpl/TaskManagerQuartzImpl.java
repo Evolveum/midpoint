@@ -1737,6 +1737,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             return null;
     }
 
+    @Deprecated // Remove in 4.2
     @Override
     public List<String> getAllTaskCategories() {
         Set<String> categories = new HashSet<>();
@@ -1754,6 +1755,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         return new ArrayList<>(categories);
     }
 
+    @Deprecated // Remove in 4.2
     @Override
     public String getHandlerUriForCategory(String category) {
         Set<String> found = new HashSet<>();

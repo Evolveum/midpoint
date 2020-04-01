@@ -302,7 +302,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
+        String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
         displayValue("Resource XML after test connection", resourceXml);
 
         CachingMetadataType schemaCachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -564,7 +564,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
+        String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
         displayValue("Resource XML after test connection", resourceXml);
 
         CachingMetadataType schemaCachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();

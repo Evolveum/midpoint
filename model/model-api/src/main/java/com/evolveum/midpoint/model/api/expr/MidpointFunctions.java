@@ -479,42 +479,6 @@ public interface MidpointFunctions {
     <F extends FocusType> void recompute(Class<F> type, String oid)
              throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-    /**
-     * <p>
-     * Returns the User object representing owner of specified account (account
-     * shadow).
-     * </p>
-     * <p>
-     * May return null if there is no owner specified for the account.
-     * </p>
-     * <p>
-     * Implements the backward "owns" association between account shadow and
-     * user. Forward association is implemented by property "account" of user
-     * object.
-     * </p>
-     *
-     * @deprecated use searchShadowOwner instead
-     *
-     * @param accountOid
-     *            OID of the account to look for an owner
-     * @return owner of the account or null
-     * @throws ObjectNotFoundException
-     *             specified account was not found
-     * @throws SchemaException
-     *              todo
-     * @throws SecurityViolationException
-     *              todo
-     * @throws CommunicationException
-     *              todo
-     * @throws IllegalArgumentException
-     *             wrong OID format, described change is not applicable
-     * @throws SystemException
-     *             unknown error from underlying layers or other unexpected
-     *             state
-     */
-    @Deprecated
-    PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
-
     <F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
             ExpressionEvaluationException, CommunicationException;

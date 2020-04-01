@@ -3481,7 +3481,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         for (ObjectType object : objectListHolder.value.getObject()) {
             // Marshalling may fail even though the Java object is OK so test for it
-            String xml = prismContext.serializeObjectToString(object.asPrismObject(), PrismContext.LANG_XML);
+            String xml = prismContext.xmlSerializer().serialize(object.asPrismObject());
         }
 
     }

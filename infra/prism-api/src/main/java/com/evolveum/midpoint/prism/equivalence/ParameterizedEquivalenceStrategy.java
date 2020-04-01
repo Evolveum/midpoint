@@ -106,7 +106,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         LITERAL.consideringOperationalData = true;
         LITERAL.consideringContainerIds = true;
         LITERAL.consideringDifferentContainerIds = true;
-        LITERAL.consideringValueOrigin = false;
         LITERAL.consideringReferenceFilters = true;
         LITERAL.consideringReferenceOptions = true;
         LITERAL.compareElementNames = true;
@@ -117,7 +116,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         NOT_LITERAL.consideringOperationalData = true;
         NOT_LITERAL.consideringContainerIds = true;
         NOT_LITERAL.consideringDifferentContainerIds = true;
-        NOT_LITERAL.consideringValueOrigin = false;
         NOT_LITERAL.consideringReferenceFilters = true;
         NOT_LITERAL.consideringReferenceOptions = true;         // ok?
         NOT_LITERAL.compareElementNames = true;
@@ -128,7 +126,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         IGNORE_METADATA.consideringOperationalData = false;
         IGNORE_METADATA.consideringContainerIds = false;
         IGNORE_METADATA.consideringDifferentContainerIds = false;
-        IGNORE_METADATA.consideringValueOrigin = false;
         IGNORE_METADATA.consideringReferenceFilters = true;
         IGNORE_METADATA.consideringReferenceOptions = true;         // ok?
         IGNORE_METADATA.compareElementNames = true; //???
@@ -139,7 +136,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringOperationalData = false;
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringContainerIds = false;
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringDifferentContainerIds = true;
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringValueOrigin = false;
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = true;
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = true;         // ok?
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.compareElementNames = true; //???
@@ -150,7 +146,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         LITERAL_IGNORE_METADATA.consideringOperationalData = false;
         LITERAL_IGNORE_METADATA.consideringContainerIds = false;
         LITERAL_IGNORE_METADATA.consideringDifferentContainerIds = false;
-        LITERAL_IGNORE_METADATA.consideringValueOrigin = false;
         LITERAL_IGNORE_METADATA.consideringReferenceFilters = true;
         LITERAL_IGNORE_METADATA.consideringReferenceOptions = true;
         LITERAL_IGNORE_METADATA.compareElementNames = true;
@@ -161,7 +156,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         REAL_VALUE.consideringOperationalData = false;
         REAL_VALUE.consideringContainerIds = false;
         REAL_VALUE.consideringDifferentContainerIds = false;
-        REAL_VALUE.consideringValueOrigin = false;
         REAL_VALUE.consideringReferenceFilters = false;
         REAL_VALUE.consideringReferenceOptions = false;
         REAL_VALUE.compareElementNames = false;
@@ -172,7 +166,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringOperationalData = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringContainerIds = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringDifferentContainerIds = true;
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringValueOrigin = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.compareElementNames = false;
@@ -191,9 +184,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
     private boolean consideringOperationalData;             // O
     private boolean consideringContainerIds;                // I
     private boolean consideringDifferentContainerIds;       // i
-    // FIXME: Metadata, Unused (never set to true)
-    @Deprecated
-    private boolean consideringValueOrigin;                 // o
     private boolean consideringReferenceFilters;            // F
     /**
      * Whether we consider resolutionTime and referentialIntegrity.
@@ -218,7 +208,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
                 (consideringOperationalData ? "O" : "-") +
                 (consideringContainerIds ? "I" : "-") +
                 (consideringDifferentContainerIds ? "i" : "-") +
-                (consideringValueOrigin ? "o" : "-") +
                 (consideringReferenceFilters ? "F" : "-") +
                 (consideringReferenceOptions ? "r" : "-") +
                 (compareElementNames ? "E" : "-") +
@@ -255,16 +244,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 
     public void setCompareElementNames(boolean compareElementNames) {
         this.compareElementNames = compareElementNames;
-    }
-
-    @Deprecated
-    public boolean isConsideringValueOrigin() {
-        return consideringValueOrigin;
-    }
-
-    @Deprecated
-    public void setConsideringValueOrigin(boolean consideringValueOrigin) {
-        this.consideringValueOrigin = consideringValueOrigin;
     }
 
     public boolean isLiteralDomComparison() {

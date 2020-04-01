@@ -145,16 +145,6 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
         return findItemDefinitionByElementName(elementName, ItemDefinition.class);
     }
 
-    @Deprecated
-    default <ID extends ItemDefinition> ID findItemDefinition(@NotNull String localElementName, @NotNull Class<ID> definitionClass) {
-        return findItemDefinitionByElementName(new QName(localElementName), definitionClass);
-    }
-
-    @Deprecated
-    default <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName elementName, @NotNull Class<ID> definitionClass) {
-        return findItemDefinitionByElementName(elementName, definitionClass);
-    }
-
     // TypeDefinition-related
 
     default ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
@@ -167,9 +157,5 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
     default TypeDefinition findTypeDefinitionByType(@NotNull QName typeName) {
         return findTypeDefinitionByType(typeName, TypeDefinition.class);
-    }
-
-    @Deprecated default ComplexTypeDefinition findComplexTypeDefinition(@NotNull QName typeName) {
-        return findComplexTypeDefinitionByType(typeName);
     }
 }

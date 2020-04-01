@@ -879,22 +879,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertEquals("Wrong validityStatus in activation in " + focus, expected, activationType.getValidityStatus());
     }
 
-    /**
-     * Deprecated: use ShadowAsserter instead.
-     */
-    @Deprecated
-    protected void assertShadowSanity(PrismObject<? extends ShadowType> shadow) {
-        assertObjectSanity(shadow);
-    }
-
-    /**
-     * Deprecated: use ObjectAsserter instead.
-     */
-    @Deprecated
-    protected void assertObjectSanity(PrismObject<? extends ObjectType> object) {
-        new PrismObjectAsserter<>(object).assertSanity();
-    }
-
     protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
         ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
         initializeAsserter(asserter);
@@ -907,7 +891,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
-        assertObjectSanity(user);
+        new PrismObjectAsserter<>((PrismObject<? extends ObjectType>) user)
+                .assertSanity();
         UserType userType = user.asObjectable();
         if (oid != null) {
             assertEquals("Wrong " + user + " OID (prism)", oid, user.getOid());
@@ -956,7 +941,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
             QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
-        assertShadowSanity(shadow);
+        new PrismObjectAsserter<>((PrismObject<? extends ObjectType>) shadow)
+                .assertSanity();
         if (oid != null) {
             assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
         }

@@ -109,7 +109,7 @@ public interface Event extends DebugDumpable, ShortDumpable, Serializable {
      */
     boolean isUserRelated();
 
-    @Deprecated
+    @Deprecated // Remove in 4.2
     default boolean isAccountRelated() {
         return isCategoryType(EventCategoryType.RESOURCE_OBJECT_EVENT);
     }
@@ -118,12 +118,12 @@ public interface Event extends DebugDumpable, ShortDumpable, Serializable {
         return isCategoryType(EventCategoryType.WORK_ITEM_EVENT);
     }
 
-    @Deprecated // We no longer talk about workflow processes. There are approval cases instead.
+    @Deprecated // We no longer talk about workflow processes. There are approval cases instead. Remove in 4.2.
     default boolean isWorkflowProcessRelated() {
         return isCategoryType(EventCategoryType.WORKFLOW_PROCESS_EVENT);
     }
 
-    @Deprecated // We no longer talk about workflows. There are approvals instead.
+    @Deprecated // We no longer talk about workflows. There are approvals instead. Remove in 4.2.
     default boolean isWorkflowRelated() {
         return isCategoryType(EventCategoryType.WORKFLOW_EVENT);
     }

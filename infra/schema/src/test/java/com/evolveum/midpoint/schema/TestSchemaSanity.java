@@ -209,7 +209,7 @@ public class TestSchemaSanity extends AbstractSchemaTest {
         SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
 
         // WHEN
-        ComplexTypeDefinition focusDefinition = schemaRegistry.findComplexTypeDefinition(FocusType.COMPLEX_TYPE);
+        ComplexTypeDefinition focusDefinition = schemaRegistry.findComplexTypeDefinitionByType(FocusType.COMPLEX_TYPE);
 
         // THEN
         assertNotNull("No focus definition", focusDefinition);

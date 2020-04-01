@@ -120,18 +120,6 @@ public class ShadowCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
-    /**
-     * Get the value of repositoryService.
-     *
-     * DO NOT USE. Only ShadowManager should access repository
-     *
-     * @return the value of repositoryService
-     */
-    @Deprecated
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
-
     public PrismContext getPrismContext() {
         return prismContext;
     }

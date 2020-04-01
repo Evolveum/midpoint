@@ -113,7 +113,7 @@ public class ContainerDeltaFactoryImpl implements DeltaFactory.Container {
     }
 
     // cValues should be parent-less
-    @Deprecated
+    @Deprecated // Remove in 4.2
     @Override
     public Collection<? extends ItemDelta> createModificationReplaceContainerCollection(ItemName containerName,
             PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
@@ -121,7 +121,7 @@ public class ContainerDeltaFactoryImpl implements DeltaFactory.Container {
     }
 
     // cValues should be parent-less
-    @Deprecated
+    @Deprecated // Remove in 4.2
     @Override
     public <T extends Containerable> ContainerDeltaImpl<T> createModificationReplace(ItemName containerName,
             PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {

@@ -764,12 +764,6 @@ public class ObjectTypeUtil {
                         .build();
     }
 
-    @NotNull
-    @Deprecated
-    public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
-        return FocusTypeUtil.determineSubTypes(object);
-    }
-
     public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
         if (object == null) {
             return null;

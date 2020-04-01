@@ -20,7 +20,8 @@ import java.util.Collection;
  */
 public interface DeltaFactory {
 
-    @Deprecated // please use DeltaBuilder instead
+    // please use DeltaBuilder instead
+    @Deprecated // TODO decide on removal
     interface Property {
 
         @SuppressWarnings("unchecked")
@@ -90,7 +91,8 @@ public interface DeltaFactory {
                 PrismObjectDefinition<?> objectDefinition, java.lang.Object... propertyValues);
     }
 
-    @Deprecated // please use DeltaBuilder instead
+    // please use DeltaBuilder instead
+    @Deprecated // TODO decide on removal
     interface Reference {
 
         ReferenceDelta create(ItemPath path, PrismReferenceDefinition definition);
@@ -163,7 +165,8 @@ public interface DeltaFactory {
                 PrismObject<?> refTarget);
     }
 
-    @Deprecated // please use DeltaBuilder instead
+    // please use DeltaBuilder instead
+    @Deprecated // TODO decide on removal
     interface Container {
         <C extends Containerable> ContainerDelta<C> create(ItemPath path, PrismContainerDefinition<C> definition);
 
@@ -209,12 +212,12 @@ public interface DeltaFactory {
                 Class<O> type, PrismContainerValue<T> cValue) throws SchemaException;
 
         // cValues should be parent-less
-        @Deprecated
+        @Deprecated // TODO decide on removal
         Collection<? extends ItemDelta> createModificationReplaceContainerCollection(ItemName containerName,
                 PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues);
 
         // cValues should be parent-less
-        @Deprecated
+        @Deprecated // TODO decide on removal
         <T extends Containerable> ContainerDelta<T> createModificationReplace(ItemName containerName,
                 PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues);
     }

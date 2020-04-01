@@ -134,13 +134,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
             display("Exporting user", user);
             assertNotNull("Null definition in " + user, user.getDefinition());
             displayDumpable("Definition", user.getDefinition());
-            String xmlString = prismContext.serializerFor(PrismContext.LANG_XML).serialize(user);
+            String xmlString = prismContext.xmlSerializer().serialize(user);
             displayValue("Exported user", xmlString);
 
             Document xmlDocument = DOMUtil.parseDocument(xmlString);
-            Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-            Validator validator = javaxSchema.newValidator();
-            validator.setResourceResolver(prismContext.getEntityResolver());
+            Validator validator = prismContext.getSchemaRegistry().getJavaxSchemaValidator();
             validator.validate(new DOMSource(xmlDocument));
 
             PrismObject<Objectable> parsedUser = prismContext.parseObject(xmlString);

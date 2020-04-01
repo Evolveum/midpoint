@@ -23,7 +23,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -78,82 +77,6 @@ public class TestParseTask extends AbstractSchemaTest {
         System.out.println(task.debugDump());
 
         assertTask(task);
-    }
-
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxb() throws JAXBException, SchemaException, IOException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
-    }
-
-    /**
-     * The definition should be set properly even if the declared type is ObjectType. The Prism should determine
-     * the actual type.
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, IOException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
-    }
-
-    /**
-     * Parsing in form of JAXBELement
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbElement() throws JAXBException, SchemaException, IOException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
-        TaskType taskType = jaxbElement.getValue();
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
-    }
-
-    /**
-     * Parsing in form of JAXBELement, with declared ObjectType
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, IOException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
-        TaskType taskType = jaxbElement.getValue();
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
     }
 
     private void assertTask(PrismObject<TaskType> task) {

@@ -31,7 +31,7 @@ public class Generator {
             System.out.println("parsing file " + f.getName());
             PrismObject<?> o = prismContext.parseObject(f);
 
-            String s = prismContext.serializeObjectToString(o, PrismContext.LANG_YAML);
+            String s = prismContext.yamlSerializer().serialize(o);
             System.out.println("parsed: " + s);
             String fname = f.getName();
             fname = fname.replace(".xml", ".yaml");
@@ -43,7 +43,7 @@ public class Generator {
             writer.flush();
             writer.close();
 
-            s = prismContext.serializeObjectToString(o, PrismContext.LANG_JSON);
+            s = prismContext.jsonSerializer().serialize(o);
             System.out.println("parsed: " + s);
 
             fname = fname.replace(".yaml", ".json");

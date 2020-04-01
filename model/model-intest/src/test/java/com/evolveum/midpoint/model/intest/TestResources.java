@@ -996,7 +996,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         // just to improve readability
         resourceBefore.removeProperty(ObjectType.F_FETCH_RESULT);
-        String serializedResource = prismContext.serializerFor(PrismContext.LANG_XML).serialize(resourceBefore);
+        String serializedResource = prismContext.xmlSerializer().serialize(resourceBefore);
         String modifiedResourceXml = serializedResource.replace("whatever raw wherever",
                 "<expression><const xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"c:ConstExpressionEvaluatorType\">useless</const></expression>");
         displayValue("New resource XML", modifiedResourceXml);
@@ -1005,7 +1005,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         display("New resource", modifiedResource);
 
         // just for fun
-        String serializedModifiedResource = prismContext.serializerFor(PrismContext.LANG_XML).serialize(modifiedResource);
+        String serializedModifiedResource = prismContext.xmlSerializer().serialize(modifiedResource);
         assertNotNull(serializedModifiedResource);
 
         ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource, EquivalenceStrategy.LITERAL_IGNORE_METADATA);

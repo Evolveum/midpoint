@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -766,14 +767,17 @@ public class ModelImplUtils {
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 
         try {
-
-            return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
-
+            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+            context.setVariables(variables);
+            context.setSuggestedReturnType(ScriptExpressionReturnTypeType.SCALAR);
+            context.setEvaluateNew(useNew);
+            context.setScriptExpression(scriptExpression);
+            context.setContextDescription(shortDesc);
+            context.setTask(task);
+            context.setResult(parentResult);
+            return scriptExpression.evaluate(context);
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-//            if (lensContext.getDebugListener() != null) {
-//                lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
-//            }
         }
     }
 

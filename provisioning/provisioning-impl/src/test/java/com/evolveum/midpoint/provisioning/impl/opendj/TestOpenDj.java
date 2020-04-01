@@ -16,6 +16,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
@@ -623,24 +625,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
         assertShadows(1);
-    }
-
-    @Test
-    public void test020ListResourceObjects() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        // WHEN
-        List<PrismObject<? extends ShadowType>> objectList = provisioningService.listResourceObjects(
-                RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, task, result);
-
-        // THEN
-        assertNotNull(objectList);
-        assertFalse("Empty list returned", objectList.isEmpty());
-        display("Resource object list " + RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, objectList);
-
-        assertShadows(1 + getNumberOfBaseContextShadows());
     }
 
     @Test
@@ -1931,7 +1915,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Unexpected number of search results", expectedUids.length, searchResults.size());
         int i = 0;
         for (PrismObject<ShadowType> searchResult : searchResults) {
-            assertShadowSanity(searchResult);
+            new PrismObjectAsserter<>((PrismObject<? extends ObjectType>) searchResult)
+                    .assertSanity();
             ResourceAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(RESOURCE_NS, "uid"));
             String uid = uidAttr.getRealValues().iterator().next();
             displayValue("found uid", uid);
