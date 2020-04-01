@@ -198,7 +198,14 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS,
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
         } else if (taskHandler.endsWith("task/jdbc-ping/handler-3")) {
-            //TODO
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_TESTS_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_INTERVAL_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_URL_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME));
         } else if (taskHandler.endsWith("model/auditReindex/handler-3")) {
             //no extension attributes
         } else if (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
@@ -211,8 +218,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         } else if (taskHandler.endsWith("task/workers-restart/handler-3")) {
             //no attributes
         } else if (taskHandler.endsWith("model/synchronization/task/delete-not-updated-shadow/handler-3")) {
-            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
-                    //TODO notUpdatesShadowsDurtion
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
                     TaskType.F_OBJECT_REF);
         } else if (taskHandler.endsWith("model/shadowRefresh/handler-3")) {
@@ -238,10 +244,9 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         } else if (taskHandler.endsWith("model/trigger/scanner/handler-3")) {
             pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
-        } else if (taskHandler.endsWith("model/focus-validity-scanner/handler-3model/partitioned-focus-validity-scanner/handler-3#1")
+        } else if (taskHandler.endsWith("model/focus-validity-scanner/handler-3") || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#1")
                     || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#2")) {
             pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
-                    // TODO policyRule ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.PO),
                     SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE,
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
         }

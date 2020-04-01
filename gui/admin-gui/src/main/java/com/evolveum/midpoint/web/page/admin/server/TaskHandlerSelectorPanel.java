@@ -30,7 +30,7 @@ public class TaskHandlerSelectorPanel extends PrismPropertyPanel<String> {
     public TaskHandlerSelectorPanel(String id, IModel<PrismPropertyWrapper<String>> model, ItemPanelSettings settings) {
         super(id, model, settings);
 
-        Label label = new Label(ID_TASK_SPECIFICATION, createStringResource("TaskHandlerSelectorPanel.seletor.header"));
+        Label label = new Label(ID_TASK_SPECIFICATION, createStringResource("TaskHandlerSelectorPanel.selector.header"));
         add(label);
         label.setOutputMarkupId(true);
     }
