@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -78,6 +80,11 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final ItemName VALUE = new ItemName(NS_PIRACY, "value");
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME = "controllerName";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME = "roleName";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME = "archetypeName";
+
+    private static final TestResource ROLE_SIMPLE = new TestResource(TEST_DIR, "role-simple.xml", "dc2b28f4-3aab-4212-8ab7-c4f5fc0c511a");
+    private static final TestResource ARCHETYPE_PIRATE = new TestResource(TEST_DIR, "archetype-pirate.xml", "0bb1d8df-501d-4648-9d36-c8395df95183");
 
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
@@ -86,6 +93,9 @@ public class TestMappingInbound extends AbstractMappingTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        repoAdd(ROLE_SIMPLE, initResult);
+        repoAdd(ARCHETYPE_PIRATE, initResult);
 
         initDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME, RESOURCE_DUMMY_TEA_GREEN_FILE, RESOURCE_DUMMY_TEA_GREEN_OID,
                 controller -> {
@@ -99,6 +109,10 @@ public class TestMappingInbound extends AbstractMappingTest {
                             DUMMY_ACCOUNT_ATTRIBUTE_TREASON_RISK_NAME, Integer.class, false, false);
                     controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                             DUMMY_ACCOUNT_ATTRIBUTE_CONTROLLER_NAME, String.class, false, false);
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, String.class, false, true);
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, String.class, false, false);
                     controller.setSyncStyle(DummySyncStyle.SMART);
                 },
                 initTask, initResult);
@@ -122,7 +136,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayDumpable("Parsed resource schema (tea-green)", returnedSchema);
         ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
-                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 4); // MID-5197
+                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 6); // MID-5197
 
         ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
         assertNotNull("No locker attribute definition", lockerDef);
@@ -153,6 +167,8 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, LOCKER_BIG_SECRET); // MID-5197
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, "simple");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, "pirate");
 
         /// WHEN
         when();
@@ -172,20 +188,32 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
         UserAsserter<Void> mancombUserAsserter = assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        // @formatter:off
         mancombLocker = mancombUserAsserter
                 .links()
-                .single()
-                .assertOid(accountMancomb.getOid())
-                .end()
-                .end()
+                    .single()
+                        .assertOid(accountMancomb.getOid())
+                        .end()
+                    .end()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .assignments()
+                    .forRole(ROLE_SIMPLE.oid)
+                        .assertSubtype("auto-role")
+                        .assertOriginMappingName("Role by name") // MID-5846
+                    .end()
+                    .forArchetype(ARCHETYPE_PIRATE.oid)
+                        .assertSubtype("auto-archetype")
+                        .assertOriginMappingName("Archetype by name") // MID-5846
+                    .end()
+                .end()
                 .extension()
-                .property(PIRACY_LOCKER)
-                .singleValue()
-                .protectedString()
-                .assertIsEncrypted()
-                .assertCompareCleartext(LOCKER_BIG_SECRET)
-                .getProtectedString();
+                    .property(PIRACY_LOCKER)
+                        .singleValue()
+                        .protectedString()
+                        .assertIsEncrypted()
+                        .assertCompareCleartext(LOCKER_BIG_SECRET)
+                        .getProtectedString();
+        // @formatter:on
 
         assertJpegPhoto(UserType.class, mancombUserAsserter.getOid(), "water".getBytes(StandardCharsets.UTF_8), result);
 //        assertUsers(6);

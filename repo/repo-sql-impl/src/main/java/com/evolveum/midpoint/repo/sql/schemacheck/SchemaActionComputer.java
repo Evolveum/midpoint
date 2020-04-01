@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.repo.sql.schemacheck;
 
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.MissingSchemaAction;
@@ -17,16 +27,6 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Determines the action that should be done against the database (none, stop, warn, create, upgrade)
@@ -36,12 +36,8 @@ import java.util.regex.Pattern;
  * - repository configuration (namely actions for missing/upgradeable/incompatible schemas)
  *
  * TODOs (issues to consider)
- * 1) database schema version could differ from major midPoint version (e.g. 3.7.2 vs 3.7 - fortunately it's history)
- * 2) check if db variant is applicable (e.g. upgrading "plain" mysql using "utf8mb4" variant and vice versa)
- *
- * @author mederly
+ * - check if db variant is applicable (e.g. upgrading "plain" mysql using "utf8mb4" variant and vice versa)
  */
-
 @Component
 class SchemaActionComputer {
 
@@ -56,9 +52,28 @@ class SchemaActionComputer {
     @Autowired private BaseHelper baseHelper;
 
     private static final Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
-            Arrays.asList(new ImmutablePair<>("3.8", "3.9"),
+            Arrays.asList(
+                    new ImmutablePair<>("3.8", "3.9"),
                     new ImmutablePair<>("3.9", "4.0"))
     );
+
+    /**
+     * Exceptions from the general "db version = mP minor version" rule, based on full mP version.
+     */
+    private static final Map<String, String> DATABASE_VERSION_FROM_MIDPOINT_VERSION;
+    static {
+        DATABASE_VERSION_FROM_MIDPOINT_VERSION = new HashMap<>();
+        DATABASE_VERSION_FROM_MIDPOINT_VERSION.put("3.7.2", "3.7.2");
+    }
+
+    /**
+     * Exceptions from the general "db version = mP minor version" rule, based on mP minor version.
+     */
+    private static final Map<String, String> DATABASE_VERSION_FROM_MIDPOINT_MINOR_VERSION;
+    static {
+        DATABASE_VERSION_FROM_MIDPOINT_MINOR_VERSION = new HashMap<>();
+        DATABASE_VERSION_FROM_MIDPOINT_MINOR_VERSION.put("4.1", "4.0");
+    }
 
     enum State {
         COMPATIBLE, NO_TABLES, AUTOMATICALLY_UPGRADEABLE, MANUALLY_UPGRADEABLE, INCOMPATIBLE
@@ -191,7 +206,12 @@ class SchemaActionComputer {
     private State determineState(SchemaState schemaState) {
         @NotNull String requiredVersion = getRequiredDatabaseSchemaVersion();
         DataStructureCompliance.State dataComplianceState = schemaState.dataStructureCompliance.state;
-        DeclaredVersion.State versionState = schemaState.declaredVersion.state;
+        Exception dataComplianceException = schemaState.dataStructureCompliance.validationException;
+        DeclaredVersion.State declaredVersionState = schemaState.declaredVersion.state;
+        String declaredVersionNumber = schemaState.declaredVersion.version;
+        LOGGER.info("Required database schema version: {}, declared version: {} ({}), data structure compliance: {}{}",
+                requiredVersion, declaredVersionNumber, declaredVersionState, dataComplianceState,
+                dataComplianceException != null ? " (" + dataComplianceException.getMessage() + ")": "");
         if (requiredVersion.equals(schemaState.declaredVersion.version)) {
             switch (dataComplianceState) {
                 case COMPLIANT:
@@ -208,18 +228,18 @@ class SchemaActionComputer {
                 case NO_TABLES:
                     return State.NO_TABLES;
                 case COMPLIANT:
-                    if (versionState == DeclaredVersion.State.METADATA_TABLE_MISSING) {
+                    if (declaredVersionState == DeclaredVersion.State.METADATA_TABLE_MISSING) {
                         LOGGER.warn("Strange: Data structure is compliant but metadata table is missing or inaccessible. Please investigate this.");
                         return State.INCOMPATIBLE;
-                    } else if (versionState == DeclaredVersion.State.VERSION_VALUE_MISSING) {
+                    } else if (declaredVersionState == DeclaredVersion.State.VERSION_VALUE_MISSING) {
                         LOGGER.warn("Data structure is compliant but version information is missing from the global metadata table. Please investigate and fix this.");
                         return State.COMPATIBLE;    // let's continue
                     }
                     return determineUpgradeability(schemaState.declaredVersion, requiredVersion);
                 case NOT_COMPLIANT:
-                    if (versionState == DeclaredVersion.State.METADATA_TABLE_MISSING) {
+                    if (declaredVersionState == DeclaredVersion.State.METADATA_TABLE_MISSING) {
                         return State.MANUALLY_UPGRADEABLE;           // this is currently true (any version can be upgraded to 3.9)
-                    } else if (versionState == DeclaredVersion.State.VERSION_VALUE_MISSING) {
+                    } else if (declaredVersionState == DeclaredVersion.State.VERSION_VALUE_MISSING) {
                         return State.INCOMPATIBLE;              // something strange happened; this does not seem to be an upgrade situation
                     }
                     return determineUpgradeability(schemaState.declaredVersion, requiredVersion);
@@ -267,26 +287,35 @@ class SchemaActionComputer {
     }
 
     /**
-     * Currently this is equal to midPoint major version. But, in general, there might be differences, e.g.
-     * - no database change between major mP versions: e.g. if 5.7 would have the same db as 5.6, then req.schema version for 5.7 would be "5.6"
-     * - database change between minor versions: e.g. 3.7 and 3.7.1 have version of "3.7", but 3.7.2 has version of "3.7.2"
-     * (fortunately, at that time we didn't have repository versions!)
+     * For database schema versioning please see https://wiki.evolveum.com/display/midPoint/Database+schema+versioning.
+     *
+     * Normally, database schema version is the same as midPoint minor version (e.g. 3.9). Exceptions are stored in
+     * DATABASE_VERSION_FROM_MIDPOINT_VERSION and DATABASE_VERSION_FROM_MIDPOINT_MINOR_VERSION tables.
+     *
+     * TODO Think out how we will deal with snapshots. Now they are ignored, so e.g. 4.2-SNAPSHOT converted to 4.2.
      */
     @NotNull
     private String getRequiredDatabaseSchemaVersion() {
-        // TODO adapt if major mp version != database schema version
-        //return getMajorMidPointVersion();
-        return "4.0";           // Temporary measure, until better mechanism is devised (MID-5884)
+        String fullMidPointVersion = getMidPointVersion();
+        String exceptionFromFullVersion = DATABASE_VERSION_FROM_MIDPOINT_VERSION.get(fullMidPointVersion);
+        if (exceptionFromFullVersion != null) {
+            return exceptionFromFullVersion;
+        }
+        String minorMidPointVersion = getMinorMidPointVersion(fullMidPointVersion);
+        String exceptionFromMinorVersion = DATABASE_VERSION_FROM_MIDPOINT_MINOR_VERSION.get(minorMidPointVersion);
+        if (exceptionFromMinorVersion != null) {
+            return exceptionFromMinorVersion;
+        } else {
+            return minorMidPointVersion;
+        }
     }
 
     @NotNull
-    private String getMajorMidPointVersion() {
-        String version = localizationService
-                .translate(LocalizableMessageBuilder.buildKey("midPointVersion"), Locale.getDefault());
-        String noSnapshot = removeSuffix(version);
+    private String getMinorMidPointVersion(String fullMidPointVersion) {
+        String noSnapshot = removeSuffix(fullMidPointVersion);
         int firstDot = noSnapshot.indexOf('.');
         if (firstDot < 0) {
-            throw new SystemException("Couldn't determine midPoint version from '" + version + "'");
+            throw new SystemException("Couldn't determine midPoint version from '" + fullMidPointVersion + "'");
         }
         int secondDot = noSnapshot.indexOf('.', firstDot+1);
         if (secondDot < 0) {
@@ -294,6 +323,11 @@ class SchemaActionComputer {
         } else {
             return noSnapshot.substring(0, secondDot);
         }
+    }
+
+    private String getMidPointVersion() {
+        return localizationService
+                    .translate(LocalizableMessageBuilder.buildKey("midPointVersion"), Locale.getDefault());
     }
 
     private String removeSuffix(String version) {

@@ -621,7 +621,7 @@ public final class WebComponentUtil {
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
-        ownerRef.setType(owner.getFocus().COMPLEX_TYPE);
+        ownerRef.setType(UserType.COMPLEX_TYPE);
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
@@ -1116,7 +1116,11 @@ public final class WebComponentUtil {
         if (localizationService == null){
             localizationService = MidPointApplication.get().getLocalizationService();
         }
-        return localizationService.translate(value, getCurrentLocale(), true);
+        String translatedValue = localizationService.translate(value, getCurrentLocale(), true);
+        if (StringUtils.isNotEmpty(translatedValue)){
+            return translatedValue;
+        }
+        return value.getOrig();
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {

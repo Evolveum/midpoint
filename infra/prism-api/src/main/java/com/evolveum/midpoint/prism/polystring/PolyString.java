@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
@@ -337,7 +339,20 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
     @Override
     public void shortDump(StringBuilder sb) {
-        sb.append(orig);
+        if (MapUtils.isNotEmpty(getLang()) || getTranslation() != null && StringUtils.isNotEmpty(getTranslation().getKey())){
+            sb.append("orig=" + orig);
+        } else {
+            sb.append(orig);
+        }
+        if (getTranslation() != null) {
+            sb.append("; translation.key=" + getTranslation().getKey());
+        }
+        if (MapUtils.isNotEmpty(getLang())) {
+            sb.append("; lang:");
+            getLang().keySet().forEach(langKey -> {
+                sb.append(" " + langKey + "=" + getLang().get(langKey) + ",");
+            });
+        }
     }
 
     public static String getOrig(PolyString s) {

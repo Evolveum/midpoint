@@ -119,7 +119,7 @@ public class ScriptExpressionFactory implements Cacheable {
             String shortDesc, Task task, OperationResult result)
             throws ExpressionSyntaxException, SecurityViolationException {
 
-        initializeCustomFunctionsLibraryCache(expressionFactory, task, result);
+        initializeCustomFunctionsLibraryCache(expressionFactory, result);
         //cache cleanup method
 
         String language = getLanguage(expressionType);
@@ -168,7 +168,7 @@ public class ScriptExpressionFactory implements Cacheable {
     }
 
     // if performance becomes an issue, replace 'synchronized' with something more elaborate
-    private synchronized void initializeCustomFunctionsLibraryCache(ExpressionFactory expressionFactory, Task task,
+    private synchronized void initializeCustomFunctionsLibraryCache(ExpressionFactory expressionFactory,
             OperationResult result) throws ExpressionSyntaxException {
         if (customFunctionLibraryCache != null) {
             return;
@@ -187,7 +187,7 @@ public class ScriptExpressionFactory implements Cacheable {
             FunctionLibrary customLibrary = new FunctionLibrary();
             customLibrary.setVariableName(object.getName().getOrig());
             customLibrary.setGenericFunctions(
-                    new CustomFunctions(object.asObjectable(), expressionFactory, expressionProfile, result, task));
+                    new CustomFunctions(object.asObjectable(), expressionFactory, expressionProfile));
             customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
             customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
             return true;

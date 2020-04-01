@@ -73,6 +73,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final File ROLE_ROLE27_FILE = new File(TEST_RESOURCE_DIR, "role-role27-modifications-and.xml");
     private static final File ROLE_ROLE28_FILE = new File(TEST_RESOURCE_DIR, "role-role28-modifications-or.xml");
     private static final File ROLE_ROLE29_FILE = new File(TEST_RESOURCE_DIR, "role-role29-modifications-no-items.xml");
+
+    private static final TestResource ROLE_SKIPPED_FILE = new TestResource(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
+
     private static final TestResource ROLE_IDEMPOTENT = new TestResource(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
     private static final TestResource ROLE_WITH_IDEMPOTENT_METAROLE = new TestResource(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
 
@@ -127,6 +130,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         roleRole29Oid = repoAddObjectFromFile(ROLE_ROLE29_FILE, initResult).getOid();
         repoAdd(ROLE_IDEMPOTENT, initResult);
         repoAdd(ROLE_WITH_IDEMPOTENT_METAROLE, initResult);
+        repoAdd(ROLE_SKIPPED_FILE, initResult);
 
         orgLeads2122Oid = repoAddObjectFromFile(ORG_LEADS2122_FILE, initResult).getOid();
 
@@ -1069,6 +1073,34 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }
 
         deleteCaseTree(rootCaseOid, result);
+    }
+
+    /**
+     * MID-5895
+     */
+    @Test
+    public void test920AssignRoleWithComputedSkip() throws Exception {
+        given();
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        unassignAllRoles(userJackOid);
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext).targetRef(ROLE_SKIPPED_FILE.oid, RoleType.COMPLEX_TYPE))
+                .asObjectDeltaCast(userJackOid);
+
+        executeChanges(delta, null, task, result);
+
+        then();
+        String ref = result.findAsynchronousOperationReference();
+        assertNull("Present async operation reference", ref);
+
+        assertUser(userJackOid, "after")
+                .assertAssignments(1);
     }
 
     private void executeAssignRoles123ToJack(boolean immediate,
