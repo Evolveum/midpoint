@@ -305,6 +305,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                         OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             }
 
+            if (resultHandler.getExceptionEncountered() != null) {
+                return logErrorAndSetResult(runResult, resultHandler, resultHandler.getExceptionEncountered().getMessage(), resultHandler.getExceptionEncountered(),
+                        OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+            }
             // TODO: check last handler status
 
             handlers.remove(localCoordinatorTask.getOid());

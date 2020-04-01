@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
@@ -845,6 +846,16 @@ public class NullTaskImpl implements Task {
     @Override
     public Collection<? extends AssignmentType> getAssignments() {
         return null;
+    }
+
+    @Override
+    public Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getTaskTreeId(OperationResult result) throws SchemaException {
+        throw new UnsupportedOperationException();
     }
 
     @Override

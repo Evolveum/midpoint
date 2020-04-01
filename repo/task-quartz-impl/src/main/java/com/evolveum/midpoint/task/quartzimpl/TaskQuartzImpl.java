@@ -2591,6 +2591,56 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     @Override
+    public Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException {
+            List<Task> allTasksToRoot = new ArrayList<>();
+            allTasksToRoot.add(this);
+
+            if (getParent() == null) {
+                return allTasksToRoot;
+            }
+
+            Task parent = getParentTaskSafe(parentResult);
+            if (parent == null) {
+                return allTasksToRoot;
+            }
+
+            allTasksToRoot.addAll(parent.getPathToRootTask(parentResult));
+            return allTasksToRoot;
+    }
+
+    public String getTaskTreeId(OperationResult parentResult) throws SchemaException {
+        if (getParent() == null) {
+            return getOid();
+        }
+
+        Task parent = getParentTaskSafe(parentResult);
+        if (parent == null) {
+            return getOid();
+        }
+
+        return parent.getTaskTreeId(parentResult);
+    }
+
+    private Task getParentTaskSafe(OperationResult parentResult) throws SchemaException {
+        if (getParent() == null) {
+            return null;
+        }
+
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getPathToRootTask");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+        try {
+            Task parent = getParentTask(result);
+            result.recordSuccess();
+            return parent;
+        } catch (ObjectNotFoundException e) {
+            LOGGER.error("Cannot find parent identified by {}, {}", getParent(), e.getMessage(), e);
+            result.recordFatalError("Cannot find parent identified by " + getParent() + ". Reason: " + e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
     public ObjectReferenceType getOwnerRef() {
         synchronized (prismAccess) {
             return cloneIfRunning(taskPrism.asObjectable().getOwnerRef());

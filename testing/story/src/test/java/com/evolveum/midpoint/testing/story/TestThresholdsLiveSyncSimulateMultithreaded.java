@@ -6,17 +6,16 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
@@ -25,29 +24,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInfor
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsLiveSyncFull extends TestThresholds {
+public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds {
 
-    private static final File TASK_LIVESYNC_OPENDJ_FULL_FILE = new File(TEST_DIR, "task-opendj-livesync-full.xml");
-    private static final String TASK_LIVESYNC_OPENDJ_FULL_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
+    private static final File TASK_LIVESYNC_OPENDJ_SIMULATE_FILE = new File(TEST_DIR, "task-opendj-livesync-simulate-multithreaded.xml");
+    private static final String TASK_LIVESYNC_OPENDJ_SIMULATE_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
+    private static final int WORKER_THREADS = 2;
 
     @Override
     protected File getTaskFile() {
-        return TASK_LIVESYNC_OPENDJ_FULL_FILE;
+        return TASK_LIVESYNC_OPENDJ_SIMULATE_FILE;
     }
 
     @Override
     protected String getTaskOid() {
-        return TASK_LIVESYNC_OPENDJ_FULL_OID;
+        return TASK_LIVESYNC_OPENDJ_SIMULATE_OID;
     }
 
     @Override
     protected int getWorkerThreads() {
-        return 0;
+        return WORKER_THREADS;
     }
 
     @Override
     protected int getProcessedUsers() {
-        return 4;
+        return 0;
     }
 
     @Override
@@ -57,14 +57,10 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
         assertSyncToken(taskAfter, 4);
 
-        assertEquals(syncInfo.getCountUnmatched(), 5);
-        assertEquals(syncInfo.getCountDeleted(), 0);
-        assertEquals(syncInfo.getCountLinked(), 0);
-        assertEquals(syncInfo.getCountUnlinked(), 0);
-
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 1);     // this is the one that failed
+        // user5, user6, user7, user8, user9 (why not user4? -- because token is preset to 4)
+        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), getProcessedUsers());
+        assertEquals(syncInfo.getCountLinkedAfter(), 0);
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
 
     }
@@ -73,14 +69,17 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        // It's actually not much clear how these numbers are obtained. The task processes various (yet unprocessed) changes
-        // and stops after seeing third disabled account.
-        assertEquals(syncInfo.getCountUnmatched(), 3);
+        // new users: user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15 (11 users)
+        //assertEquals(syncInfo.getCountUnmatched(), 11); // do we really need to check this?
         assertEquals(syncInfo.getCountDeleted(), 0);
-        assertEquals(syncInfo.getCountLinked(), 9);
+        // existing users: user1, user2 (disabled - passed, watermark not reached), user3 (disabled - fails) -- these users were created during initial import
+        assertEquals(syncInfo.getCountLinked(), 3);             // 2 + 1
         assertEquals(syncInfo.getCountUnlinked(), 0);
     }
 
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
+     */
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
@@ -88,14 +87,10 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
         assertSyncToken(taskAfter, 4);
 
-        assertEquals(syncInfo.getCountUnmatched(), 5);
-        assertEquals(syncInfo.getCountDeleted(), 0);
-        assertEquals(syncInfo.getCountLinked(), 4);     // this is because LiveSync re-processes changes by default (FIXME)
-        assertEquals(syncInfo.getCountUnlinked(), 0);
-
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 1);     // this is the one that failed
+        // user5, user6, user7, user8, user9
+        assertEquals(syncInfo.getCountUnmatchedAfter(), RULE_CREATE_WATERMARk + WORKER_THREADS - 1);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), 8);    // this is because LiveSync re-processes changes by default (FIXME)
+        assertEquals(syncInfo.getCountLinkedAfter(), 0);
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
     }
 }

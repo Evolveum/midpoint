@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author katka
@@ -21,12 +20,12 @@ public class CounterSpecification implements DebugDumpable {
     private int count = 0;
     private long counterStart;
 
-    private TaskType task;
+    private String oid;
     private PolicyRuleType policyRule;
     private String policyRuleId;
 
-    public CounterSpecification(TaskType task, String policyRuleId, PolicyRuleType policyRule) {
-        this.task = task;
+    public CounterSpecification(String oid, String policyRuleId, PolicyRuleType policyRule) {
+        this.oid = oid;
         this.policyRuleId = policyRuleId;
         this.policyRule = policyRule;
     }
@@ -48,16 +47,12 @@ public class CounterSpecification implements DebugDumpable {
         return policyRule.getPolicyThreshold();
     }
 
-    public String getTaskName() {
-        return task.getName().getOrig();
-    }
-
     public String getPolicyRuleName() {
         return policyRule.getName();
     }
 
-    public String getTaskOid() {
-        return task.getOid();
+    public String getOid() {
+        return oid;
     }
 
     public String getPolicyRuleId() {
@@ -73,7 +68,7 @@ public class CounterSpecification implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Counter for: ").append(task).append(", policy rule: ").append(policyRule).append("\n");
+        sb.append("Counter for: ").append(oid).append(", policy rule: ").append(policyRule).append("\n");
         sb.append("Current count: ").append(count).append("\n");
         sb.append("Counter start: ").append(XmlTypeConverter.createXMLGregorianCalendar(counterStart)).append("\n");
 

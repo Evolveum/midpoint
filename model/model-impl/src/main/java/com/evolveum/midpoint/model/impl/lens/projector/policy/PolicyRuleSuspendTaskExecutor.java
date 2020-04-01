@@ -43,9 +43,10 @@ public class PolicyRuleSuspendTaskExecutor {
             return;
         }
 
-        TaskType taskType = task.getUpdatedOrClonedTaskObject().asObjectable();
+        String id = task.getTaskTreeId(result);
+
         for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
-            CounterSpecification counterSpec = counterManager.getCounterSpec(taskType, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
+            CounterSpecification counterSpec = counterManager.getCounterSpec(id, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
             LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
 
             int counter = 1;

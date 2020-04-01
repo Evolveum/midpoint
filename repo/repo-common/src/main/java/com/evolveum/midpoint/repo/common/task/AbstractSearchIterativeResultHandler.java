@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
 import com.evolveum.midpoint.util.logging.TracingAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -75,6 +74,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     private boolean enableActionsExecutedStatistics = false;        // whether we want to collect repo objects statistics
     private BlockingQueue<ProcessingRequest> requestQueue;
     private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
+    private volatile Throwable exceptionEncountered;
     private final long startTime;
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
@@ -276,7 +276,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
             workerTask.setName(workerTask.getName().getOrig() + " (" + Thread.currentThread().getName() + ")");
             workerSpecificResult.addArbitraryObjectAsContext("subtaskName", workerTask.getName());
 
-            while (workerTask.canRun()) {
+            while (workerTask.canRun() && !stopRequestedByAnyWorker.get()) {
                 workerTask.refreshLowLevelStatistics();
                 ProcessingRequest request;
                 try {
@@ -367,14 +367,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
                 workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
                         null /* TODO */, object.getOid(), startTime, e);
             }
-            try {
-                cont = processError(object, workerTask, e, result);
-            } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
-                    | SecurityViolationException | PolicyViolationException | ExpressionEvaluationException
-                    | ObjectAlreadyExistsException | PreconditionViolationException e1) {
-                // TODO Is this OK? We should not throw runtime exceptions from the handler. [pm]
-                throw new SystemException(e1);
-            }
+            cont = processError(object, workerTask, e, result);
+
         } finally {
             RepositoryCache.exit();
             workerTask.stopDynamicProfiling();
@@ -438,6 +432,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
                 !Boolean.TRUE.equals(coordinatorTask.getWorkManagement().isScavenger());
     }
 
+    public Throwable getExceptionEncountered() {
+        return exceptionEncountered;
+    }
+
     // may be overridden
     protected String getDisplayName(PrismObject<O> object) {
         return StatisticsUtil.getDisplayName(object);
@@ -446,7 +444,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     // TODO implement better
 
     // @pre: result is "error" or ex is not null
-    private boolean processError(PrismObject<O> object, Task task, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+    private boolean processError(PrismObject<O> object, Task task, Throwable ex, OperationResult result) {
         int errorsCount = errors.incrementAndGet();
         LOGGER.trace("Processing error, count: {}", errorsCount);
 
@@ -465,19 +463,24 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
             result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
         }
         result.summarize();
-        return !isStopOnError(task, ex, result);
+        return canContinue(task, ex, result);
 //        return !isStopOnError();
     }
 
-    private boolean isStopOnError(Task task, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+    private boolean canContinue(Task task, Throwable ex, OperationResult result) {
         if (stageType == null) {
-            return stopOnError;
+            return !stopOnError;
         }
 
         CriticalityType criticality = ExceptionUtil.getCriticality(stageType.getErrorCriticality(), ex, CriticalityType.PARTIAL);
-        RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
+        try {
+            RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
+        } catch (Throwable e) {
+            exceptionEncountered = e;
+            return false;
+        }
 
-        return stopOnError;
+        return !stopOnError;
     }
 
     /**
