@@ -1996,8 +1996,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         //GDPR feature.. temporary disabled MID-4281
-//        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
-//                PageSelfConsents.class);
+        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
+            addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
+                    PageSelfConsents.class);
+        }
     }
 
     private void createAdditionalMenu(SideBarMenuItem menu) {

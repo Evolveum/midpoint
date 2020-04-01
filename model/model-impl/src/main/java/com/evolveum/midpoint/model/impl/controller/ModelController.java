@@ -1941,12 +1941,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
         auditRecord.setRequestIdentifier(requestIdentifier);
         auditRecord.setTarget(taskRef);
-        ObjectDelta<TaskType> delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
+        ObjectDelta<TaskType> delta;
+        if (AuditEventType.DELETE_OBJECT == event) {
+             delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
+        } else {
+            //TODO should we somehow indicate deltas which are executed in taskManager?
+            delta = prismContext.deltaFactory().object().createEmptyModifyDelta(TaskType.class, taskRef.getOid());
+        }
         ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
         auditRecord.getDeltas().add(odo);
         if (AuditEventStage.EXECUTION == stage) {
             auditRecord.setOutcome(parentResult.getStatus());
-
         }
         auditHelper.audit(auditRecord, null, operationTask, parentResult);
     }

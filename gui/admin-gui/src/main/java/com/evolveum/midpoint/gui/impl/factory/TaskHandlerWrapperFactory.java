@@ -112,7 +112,7 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
 
     private String normalizeHandler(String handler) {
         handler = StringUtils.remove(handler, "-3");
-        handler = StringUtils.removeStart(handler, "http://").replace("-", "/").replace("#", "/");
+        handler = StringUtils.removeStart(handler, "http://midpoint.evolveum.com/xml/ns/public/").replace("-", "/").replace("#", "/");
         String[] split = handler.split("/");
         handler = "TaskHandlerSelector." + StringUtils.join(split, ".");
         return handler;

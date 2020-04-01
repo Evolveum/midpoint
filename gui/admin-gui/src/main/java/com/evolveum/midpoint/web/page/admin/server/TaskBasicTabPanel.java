@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -92,6 +96,30 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     }
                 }
 
+                PrismObjectWrapperFactory<TaskType> wrapperFactory = TaskBasicTabPanel.this.getPageBase().findObjectWrapperFactory(getTask().asPrismObject().getDefinition());
+                Task task = getPageBase().createSimpleTask(OPERATION_UPDATE_WRAPPER);
+                OperationResult result = task.getResult();
+                WrapperContext ctx = new WrapperContext(task, result);
+                try {
+                    wrapperFactory.updateWrapper(TaskBasicTabPanel.this.getModelObject(), ctx);
+
+                    //TODO ugly hack: after updateWrapper method is called, both previously set items (handlerUri and assignments)
+                    // are marked as NOT_CHANGED with the same value. We need to find a way how to force the ValueStatus
+                    // or change the mechanism for computing deltas. Probably only the first will work
+                    PrismPropertyWrapper<String> handlerWrapper = TaskBasicTabPanel.this.getModelObject().findProperty(ItemPath.create(TaskType.F_HANDLER_URI));
+                    handlerWrapper.getValue().setStatus(ValueStatus.ADDED);
+
+                    PrismContainerWrapper<AssignmentType> assignmentWrapper = TaskBasicTabPanel.this.getModelObject().findContainer(ItemPath.create(TaskType.F_ASSIGNMENT));
+                    for (PrismContainerValueWrapper<AssignmentType> assignmentWrapperValue : assignmentWrapper.getValues()) {
+                        if (WebComponentUtil.isArchetypeAssignment(assignmentWrapperValue.getRealValue())) {
+                            assignmentWrapperValue.setStatus(ValueStatus.ADDED);
+                        }
+                    }
+
+                } catch (SchemaException e) {
+                    LOGGER.error("Unexpected problem occurs during updating wrapper. Reason: {}", e.getMessage(), e);
+                }
+
                 updateHandlerPerformed(target);
 
             }
@@ -170,7 +198,14 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                     SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS,
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
         } else if (taskHandler.endsWith("task/jdbc-ping/handler-3")) {
-            //TODO
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_TESTS_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_INTERVAL_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_URL_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME),
+                    ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME));
         } else if (taskHandler.endsWith("model/auditReindex/handler-3")) {
             //no extension attributes
         } else if (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
@@ -183,8 +218,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         } else if (taskHandler.endsWith("task/workers-restart/handler-3")) {
             //no attributes
         } else if (taskHandler.endsWith("model/synchronization/task/delete-not-updated-shadow/handler-3")) {
-            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
-                    //TODO notUpdatesShadowsDurtion
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
                     TaskType.F_OBJECT_REF);
         } else if (taskHandler.endsWith("model/shadowRefresh/handler-3")) {
@@ -210,10 +244,9 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         } else if (taskHandler.endsWith("model/trigger/scanner/handler-3")) {
             pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
-        } else if (taskHandler.endsWith("model/focus-validity-scanner/handler-3model/partitioned-focus-validity-scanner/handler-3#1")
+        } else if (taskHandler.endsWith("model/focus-validity-scanner/handler-3") || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#1")
                     || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#2")) {
             pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
-                    // TODO policyRule ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.PO),
                     SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE,
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
         }
