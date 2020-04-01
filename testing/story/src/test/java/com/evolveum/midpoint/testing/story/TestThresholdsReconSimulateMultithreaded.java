@@ -7,11 +7,13 @@
 package com.evolveum.midpoint.testing.story;
 
 import static org.testng.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 
+
+import org.opends.server.tools.upgrade.UpgradeTask;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,10 +27,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInfor
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsReconSimulate extends TestThresholds {
+public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
 
-    private static final File TASK_RECONCILE_OPENDJ_SIMULATE_FILE = new File(TEST_DIR, "task-opendj-reconcile-simulate.xml");
+    private static final File TASK_RECONCILE_OPENDJ_SIMULATE_FILE = new File(TEST_DIR, "task-opendj-reconcile-simulate-multithreaded.xml");
     private static final String TASK_RECONCILE_OPENDJ_SIMULATE_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
+
+    private static final int WORKER_THREADS = 3;
 
     @Override
     protected File getTaskFile() {
@@ -41,32 +45,31 @@ public class TestThresholdsReconSimulate extends TestThresholds {
     }
 
     @Override
-    protected int getWorkerThreads() {
-        return 0;
-    }
-
-    @Override
     protected int getProcessedUsers() {
         return 0;
     }
 
+    @Override
+    protected int getWorkerThreads() {
+        return WORKER_THREADS;
+    }
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
-        assertEquals(infoType.getTotalFailureCount(), 1);
+        assertThat(infoType.getTotalFailureCount()).isBetween(1, WORKER_THREADS);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         // user4, user5, user6, user7, user8
-        assertEquals(syncInfo.getCountUnmatched(), 5);
+        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 5);
+        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers());
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
@@ -78,19 +81,19 @@ public class TestThresholdsReconSimulate extends TestThresholds {
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
-        assertEquals(infoType.getTotalFailureCount(), 1);
+        assertEquals(infoType.getTotalFailureCount(), WORKER_THREADS);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         // user4, user5, user6, user7, user8
-        assertEquals(syncInfo.getCountUnmatched(), 5);
+        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 5);
+        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
@@ -104,13 +107,12 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        assertEquals(syncInfo.getCountUnmatched(), 0);
+        //user4
         assertEquals(syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
         assertEquals(syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());

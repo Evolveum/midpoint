@@ -10,6 +10,8 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,6 +37,11 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
     @Override
     protected String getTaskOid() {
         return TASK_LIVESYNC_OPENDJ_SIMULATE_OID;
+    }
+
+    @Override
+    protected int getWorkerThreads() {
+        return 0;
     }
 
     @Override
@@ -73,7 +80,7 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
      * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
      */
     @Override
-    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
+    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 

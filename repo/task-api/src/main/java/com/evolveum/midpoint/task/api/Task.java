@@ -950,6 +950,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     Collection<? extends AssignmentType> getAssignments();
 
+    Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException;
+
+    String getTaskTreeId(OperationResult result) throws SchemaException;
+
     default boolean hasAssignments() {
         return !getAssignments().isEmpty();
     }

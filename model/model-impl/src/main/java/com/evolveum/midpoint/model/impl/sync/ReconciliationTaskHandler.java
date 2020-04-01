@@ -14,8 +14,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.BooleanUtils;
@@ -61,14 +64,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -334,6 +329,15 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         } catch (ExpressionEvaluationException ex) {
             processErrorFinal(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, localCoordinatorTask, opResult);
             return runResult;
+        } catch (ObjectAlreadyExistsException ex) {
+            processErrorFinal(runResult, "Object already existis error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, localCoordinatorTask, opResult);
+            return runResult;
+        } catch (PolicyViolationException ex) {
+            processErrorFinal(runResult, "Policy violation error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, localCoordinatorTask, opResult);
+            return runResult;
+        } catch (PreconditionViolationException ex) {
+            processErrorFinal(runResult, "Precondition violation error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, localCoordinatorTask, opResult);
+            return runResult;
         }
 
         AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
@@ -487,7 +491,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
             TaskPartitionDefinitionType partitionDefinition, WorkBucketType workBucket, OperationResult result, boolean intentIsNull)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException, ObjectAlreadyExistsException {
 
         boolean interrupted;
 
@@ -549,6 +553,11 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             opResult.recordFatalError(e);
             throw e;
         }
+
+        if (handler.getExceptionEncountered() != null) {
+            RepoCommonUtils.throwException(handler.getExceptionEncountered(), opResult);
+        }
+
         return !interrupted;
     }
 

@@ -51,6 +51,11 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     @Override
+    protected int getWorkerThreads() {
+        return 0;
+    }
+
+    @Override
     protected int getProcessedUsers() {
         return 4;
     }
