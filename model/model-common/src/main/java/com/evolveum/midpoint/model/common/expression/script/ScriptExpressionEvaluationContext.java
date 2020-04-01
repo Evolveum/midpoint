@@ -160,13 +160,15 @@ public class ScriptExpressionEvaluationContext {
         this.result = result;
     }
 
-    ScriptExpressionEvaluationContext setupThreadLocal() {
+    @SuppressWarnings("WeakerAccess") // Can be used e.g. from the overlay code
+    public ScriptExpressionEvaluationContext setupThreadLocal() {
         ScriptExpressionEvaluationContext oldContext = THREAD_LOCAL_CONTEXT.get();
         THREAD_LOCAL_CONTEXT.set(this);
         return oldContext;
     }
 
-    void cleanupThreadLocal(ScriptExpressionEvaluationContext oldContext) {
+    @SuppressWarnings("WeakerAccess") // Can be used e.g. from the overlay code
+    public void cleanupThreadLocal(ScriptExpressionEvaluationContext oldContext) {
         THREAD_LOCAL_CONTEXT.set(oldContext);
     }
 
