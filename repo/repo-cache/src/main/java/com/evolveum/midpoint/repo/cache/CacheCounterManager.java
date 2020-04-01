@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,84 +39,28 @@ public class CacheCounterManager implements CounterManager {
 
     private Map<CounterKey, CounterSpecification> countersMap = new ConcurrentHashMap<>();
 
-    public synchronized CounterSpecification registerCounter(String taskId, String policyRuleId, PolicyRuleType policyRule) {
-
-        if (taskId == null) {
-            LOGGER.trace("Not persistent task, skipping registering counter.");
-            return null;
-        }
-
-        CounterKey key = new CounterKey(taskId, policyRuleId);
-        CounterSpecification counterSpec = countersMap.get(key);
-        if (counterSpec == null) {
-            return initCleanCounter(key, taskId, policyRule);
-        }
-
-        if (isResetCounter(counterSpec, false)) {
-            return refreshCounter(key, counterSpec);
-        }
-
-        throw new IllegalStateException("Cannot register counter.");
-
-    }
-
-    private boolean isResetCounter(CounterSpecification counterSpec, boolean removeIfTimeIntervalNotSpecified) {
-
-        PolicyThresholdType threshold = counterSpec.getPolicyThreshold();
-        if (threshold == null) {
-            return true;
-        }
-
-        TimeIntervalType timeInterval = threshold.getTimeInterval();
-
-        if (timeInterval == null) {
-            return removeIfTimeIntervalNotSpecified;
-        }
-        if (timeInterval.getInterval() == null) {
-            return removeIfTimeIntervalNotSpecified;
-        }
-
-        Duration interval = timeInterval.getInterval();
-        return XmlTypeConverter.isAfterInterval(XmlTypeConverter.createXMLGregorianCalendar(counterSpec.getCounterStart()), interval, clock.currentTimeXMLGregorianCalendar());
-
-    }
-
     @Override
     public synchronized void cleanupCounters(String taskOid) {
-        Set<CounterKey> keys = countersMap.keySet();
-
-        Set<CounterKey> counersToRemove = new HashSet<>();
-        for (CounterKey key : keys) {
-            if (taskOid.equals(key.oid)) {
-                counersToRemove.add(key);
+        Set<CounterKey> countersToRemove = new HashSet<>();
+        for (Map.Entry<CounterKey, CounterSpecification> entry : countersMap.entrySet()) {
+            CounterKey key = entry.getKey();
+            if (taskOid.equals(key.oid) && shouldResetCounter(entry.getValue(), true)) {
+                countersToRemove.add(key);
             }
         }
-
-        for (CounterKey counterToRemove : counersToRemove) {
-            CounterSpecification spec = countersMap.get(counterToRemove);
-            if (isResetCounter(spec, true)) {
-                countersMap.remove(counterToRemove);
-            }
-        }
+        countersMap.keySet().removeAll(countersToRemove);
     }
 
     @Override
     public synchronized void resetCounters(String taskOid) {
-        Set<CounterKey> keys = countersMap.keySet();
-
-        Set<CounterKey> counersToReset = new HashSet<>();
-        for (CounterKey key : keys) {
-            if (taskOid.equals(key.oid)) {
-                counersToReset.add(key);
+        for (Map.Entry<CounterKey, CounterSpecification> entry : countersMap.entrySet()) {
+            if (taskOid.equals(entry.getKey().oid)) {
+                entry.getValue().resetCount();
             }
-        }
-
-        for (CounterKey counerToReset : counersToReset) {
-            CounterSpecification spec = countersMap.get(counerToReset);
-            spec.setCount(0);
         }
     }
 
+    @NotNull
     private CounterSpecification initCleanCounter(CounterKey key, String taskId, PolicyRuleType policyRule) {
         CounterSpecification counterSpec = new CounterSpecification(taskId, key.policyRuleId, policyRule);
         counterSpec.setCounterStart(clock.currentTimeMillis());
@@ -125,14 +68,12 @@ public class CacheCounterManager implements CounterManager {
         return counterSpec;
     }
 
-    private CounterSpecification refreshCounter(CounterKey key, CounterSpecification counterSpec) {
-        counterSpec.reset(clock.currentTimeMillis());
-        countersMap.replace(key, counterSpec);
-        return counterSpec;
-    }
-
+    /**
+     * This method must be synchronized because of a race condition between getting from
+     * countersMap and inserting entries to it.
+     */
     @Override
-    public CounterSpecification getCounterSpec(String taskId, String policyRuleId, PolicyRuleType policyRule) {
+    public synchronized CounterSpecification getCounterSpec(String taskId, String policyRuleId, PolicyRuleType policyRule) {
         if (taskId == null) {
             LOGGER.trace("Cannot get counter spec for task without identifier");
             return null;
@@ -140,60 +81,73 @@ public class CacheCounterManager implements CounterManager {
 
         LOGGER.trace("Getting counter spec for {} and {}", taskId, policyRule);
         CounterKey key = new CounterKey(taskId, policyRuleId);
+
         CounterSpecification counterSpec = countersMap.get(key);
-
         if (counterSpec == null) {
-            return registerCounter(taskId, policyRuleId, policyRule);
+            return initCleanCounter(key, taskId, policyRule);
+        } else {
+            if (shouldResetCounter(counterSpec, false)) {
+                counterSpec.reset(clock.currentTimeMillis());
+            }
+            return counterSpec;
         }
+    }
 
-        if (isResetCounter(counterSpec, false)) {
-            counterSpec = refreshCounter(key, counterSpec);
+    private boolean shouldResetCounter(CounterSpecification counterSpec, boolean resetIfNoTimeInterval) {
+        PolicyThresholdType threshold = counterSpec.getPolicyThreshold();
+        if (threshold == null) {
+            return true;
+        } else {
+            TimeIntervalType timeInterval = threshold.getTimeInterval();
+            if (timeInterval == null || timeInterval.getInterval() == null) {
+                return resetIfNoTimeInterval;
+            } else {
+                Duration interval = timeInterval.getInterval();
+                XMLGregorianCalendar counterStart = XmlTypeConverter.createXMLGregorianCalendar(counterSpec.getCounterStart());
+                return XmlTypeConverter.isAfterInterval(counterStart, interval, clock.currentTimeXMLGregorianCalendar());
+            }
         }
-
-
-        return counterSpec;
     }
 
     @Override
     public Collection<CounterSpecification> listCounters() {
-        return countersMap.values();
+        return Collections.unmodifiableCollection(countersMap.values());
     }
 
+    // Must be synchronized because of the other synchronized methods
     @Override
-    public void removeCounter(CounterSpecification counterSpecification) {
+    public synchronized void removeCounter(CounterSpecification counterSpecification) {
         CounterKey key = new CounterKey(counterSpecification.getOid(), counterSpecification.getPolicyRuleId());
         countersMap.remove(key);
     }
 
-    static class CounterKey {
+    private static class CounterKey {
 
-        private String oid;
-        private String policyRuleId;
+        private final String oid;
+        private final String policyRuleId;
 
-        CounterKey(String oid, String policyRuleId) {
+        private CounterKey(String oid, String policyRuleId) {
             this.oid = oid;
             this.policyRuleId = policyRuleId;
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (o == null || getClass() != o.getClass())
+            } else if (o == null || getClass() != o.getClass()) {
                 return false;
+            }
 
             CounterKey cacheKey = (CounterKey) o;
-
-            if (policyRuleId != null ? !policyRuleId.equals(cacheKey.policyRuleId) : cacheKey.policyRuleId != null)
-                return false;
-            return oid != null ? oid.equals(cacheKey.oid) : cacheKey.oid == null;
+            return Objects.equals(policyRuleId, cacheKey.policyRuleId)
+                    && Objects.equals(oid, cacheKey.oid);
         }
 
         @Override
         public int hashCode() {
             int result = policyRuleId != null ? policyRuleId.hashCode() : 0;
             result = 31 * result + (oid != null ? oid.hashCode() : 0);
-            LOGGER.trace("hashCode {} for {}{}", result, oid, policyRuleId);
             return result;
         }
     }

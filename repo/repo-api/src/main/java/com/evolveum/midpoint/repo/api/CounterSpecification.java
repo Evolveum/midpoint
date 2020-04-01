@@ -11,13 +11,15 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * @author katka
  *
  */
 public class CounterSpecification implements DebugDumpable {
 
-    private int count = 0;
+    private final AtomicInteger count = new AtomicInteger(0);
     private long counterStart;
 
     private String oid;
@@ -31,14 +33,17 @@ public class CounterSpecification implements DebugDumpable {
     }
 
     public int getCount() {
-        return count;
+        return count.intValue();
     }
+
     public long getCounterStart() {
         return counterStart;
     }
-    public void setCount(int count) {
-        this.count = count;
+
+    public int incrementAndGet() {
+        return count.incrementAndGet();
     }
+
     public void setCounterStart(long counterStart) {
         this.counterStart = counterStart;
     }
@@ -59,10 +64,13 @@ public class CounterSpecification implements DebugDumpable {
         return policyRuleId;
     }
 
-
     public void reset(long currentTimeMillis) {
-        count = 0;
+        resetCount();
         counterStart = currentTimeMillis;
+    }
+
+    public void resetCount() {
+        count.set(0);
     }
 
     @Override
@@ -76,4 +84,13 @@ public class CounterSpecification implements DebugDumpable {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return "CounterSpecification{" +
+                "oid='" + oid + '\'' +
+                ", policyRuleId='" + policyRuleId + '\'' +
+                ", count=" + count +
+                ", counterStart=" + counterStart +
+                '}';
+    }
 }

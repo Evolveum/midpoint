@@ -207,13 +207,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
-        if (taskAssignments.isEmpty()) {
-            assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, null);
-        }
-
-        for (AssignmentType taskAssignment : taskAssignments) {
-            assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignment);
-        }
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignments);
 
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 

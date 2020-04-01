@@ -63,8 +63,8 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     private static final int TASK_IMPORT_TIMEOUT = 60000;
 
-    public static final int RULE_CREATE_WATERMARk = 5;
-    public static final int RULE_ACTIVATION_WATERMARk = 3;
+    public static final int RULE_CREATE_WATERMARK = 5;
+    public static final int RULE_ACTIVATION_WATERMARK = 3;
 
 
     int getDefaultUsers() {

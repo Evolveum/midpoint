@@ -17,6 +17,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 /**
  *  Asserter that checks iterative task information.
  */
+@SuppressWarnings("WeakerAccess")
 public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
 
     private final IterativeTaskInformationType information;
@@ -27,9 +28,37 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public IterativeTaskInfoAsserter<RA> assertTotalCounts(int success, int failure) {
+        assertSuccessCount(success);
+        assertFailureCount(failure);
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertSuccessCount(int success) {
         assertEquals("Wrong value of total success counter", success, information.getTotalSuccessCount());
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertSuccessCount(int min, int max) {
+        assertBetween(information.getTotalSuccessCount(), min, max, "Total success counter");
+        return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertFailureCount(int failure) {
         assertEquals("Wrong value of total failure counter", failure, information.getTotalFailureCount());
         return this;
+    }
+
+    public IterativeTaskInfoAsserter<RA> assertFailureCount(int min, int max) {
+        assertBetween(information.getTotalFailureCount(), min, max, "Total failure counter");
+        return this;
+    }
+
+    private void assertBetween(int actual, int min, int max, String label) {
+        if (actual < min) {
+            fail(label + " (" + actual + ") is less than minimum expected (" + min + ")");
+        } else if (actual > max) {
+            fail(label + " (" + actual + ") is more than maximum expected (" + max + ")");
+        }
     }
 
     @Override

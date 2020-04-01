@@ -11,9 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 
-
-import org.opends.server.tools.upgrade.UpgradeTask;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -57,43 +56,42 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+        display(IterativeTaskInformation.format(infoType));
         assertThat(infoType.getTotalFailureCount()).isBetween(1, WORKER_THREADS);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         // user4, user5, user6, user7, user8
-        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
+        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
+        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers());
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
-        assertEquals(infoType.getTotalFailureCount(), WORKER_THREADS);
+        display(IterativeTaskInformation.format(infoType));
+        assertThat(infoType.getTotalFailureCount()).isBetween(1, WORKER_THREADS);
 
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
         // user4, user5, user6, user7, user8
-        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
+        assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
         assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinked(), 0);
 
-        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
+        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);

@@ -15,7 +15,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
@@ -58,7 +57,7 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
         assertSyncToken(taskAfter, 4);
 
         // user5, user6, user7, user8, user9 (why not user4? -- because token is preset to 4)
-        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARk, RULE_CREATE_WATERMARk + WORKER_THREADS);
+        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), 0);
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
@@ -77,9 +76,6 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
         assertEquals(syncInfo.getCountUnlinked(), 0);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
@@ -88,7 +84,7 @@ public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds 
         assertSyncToken(taskAfter, 4);
 
         // user5, user6, user7, user8, user9
-        assertEquals(syncInfo.getCountUnmatchedAfter(), RULE_CREATE_WATERMARk + WORKER_THREADS - 1);
+        assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
         assertEquals(syncInfo.getCountLinkedAfter(), 0);
         assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
