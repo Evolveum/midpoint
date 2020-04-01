@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -90,6 +94,30 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                         getSession().error("Cannot set seleted handler: " + e.getMessage());
                         return;
                     }
+                }
+
+                PrismObjectWrapperFactory<TaskType> wrapperFactory = TaskBasicTabPanel.this.getPageBase().findObjectWrapperFactory(getTask().asPrismObject().getDefinition());
+                Task task = getPageBase().createSimpleTask(OPERATION_UPDATE_WRAPPER);
+                OperationResult result = task.getResult();
+                WrapperContext ctx = new WrapperContext(task, result);
+                try {
+                    wrapperFactory.updateWrapper(TaskBasicTabPanel.this.getModelObject(), ctx);
+
+                    //TODO ugly hack: after updateWrapper method is called, both previously set items (handlerUri and assignments)
+                    // are marked as NOT_CHANGED with the same value. We need to find a way how to force the ValueStatus
+                    // or change the mechanism for computing deltas. Probably only the first will work
+                    PrismPropertyWrapper<String> handlerWrapper = TaskBasicTabPanel.this.getModelObject().findProperty(ItemPath.create(TaskType.F_HANDLER_URI));
+                    handlerWrapper.getValue().setStatus(ValueStatus.ADDED);
+
+                    PrismContainerWrapper<AssignmentType> assignmentWrapper = TaskBasicTabPanel.this.getModelObject().findContainer(ItemPath.create(TaskType.F_ASSIGNMENT));
+                    for (PrismContainerValueWrapper<AssignmentType> assignmentWrapperValue : assignmentWrapper.getValues()) {
+                        if (WebComponentUtil.isArchetypeAssignment(assignmentWrapperValue.getRealValue())) {
+                            assignmentWrapperValue.setStatus(ValueStatus.ADDED);
+                        }
+                    }
+
+                } catch (SchemaException e) {
+                    LOGGER.error("Unexpected problem occurs during updating wrapper. Reason: {}", e.getMessage(), e);
                 }
 
                 updateHandlerPerformed(target);
