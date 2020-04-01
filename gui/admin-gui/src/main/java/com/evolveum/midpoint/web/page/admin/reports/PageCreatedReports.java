@@ -20,7 +20,9 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -356,6 +358,14 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
             }
         });
 
+        boolean canReadTraces;
+        try {
+            canReadTraces = isAuthorized(ModelAuthorizationAction.READ_TRACE.getUrl());
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't authorize reading traces", t);
+            canReadTraces = false;
+        }
+
         ButtonInlineMenuItem item = new ButtonInlineMenuItem(createStringResource("DownloadButtonPanel.download")) {
             private static final long serialVersionUID = 1L;
 
@@ -384,9 +394,18 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
                 return false;
             }
         };
+        if (!canReadTraces) {
+            item.setVisibilityChecker((rowModel, isHeader) -> !isTrace(rowModel));
+        }
         menuItems.add(item);
 
         return menuItems;
+    }
+
+    private boolean isTrace(IModel<?> rowModel) {
+        //noinspection unchecked
+        SelectableBean<ReportOutputType> row = (SelectableBean<ReportOutputType>) rowModel.getObject();
+        return ObjectTypeUtil.hasArchetype(row.getValue(), SystemObjectsType.ARCHETYPE_TRACE.value());
     }
 
     private IModel<String> createDeleteConfirmString() {

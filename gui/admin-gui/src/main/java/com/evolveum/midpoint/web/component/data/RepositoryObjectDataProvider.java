@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -149,6 +150,9 @@ public class RepositoryObjectDataProvider
             }
 
             subResult.recordSuccess();
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Resource with oid {} not found", e, oid);
+            result.recordPartialError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.notFound", oid).getString());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource for account", ex);
             result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
@@ -220,4 +224,5 @@ public class RepositoryObjectDataProvider
             return type;
         }
     }
+    
 }

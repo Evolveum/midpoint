@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
@@ -83,7 +84,13 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     PARTIAL_EXECUTION("partialExecution", "Partial execution", "PARTIAL_EXECUTION_HELP"),
     GET_EXTENSION_SCHEMA("getExtensionSchema", "Get extension schema", "GET_EXTENSION_SCHEMA_HELP"),
 
-    RUN_REPORT("runReport", "Run report", "RUN_REPORT_HELP");
+    RUN_REPORT("runReport", "Run report", "RUN_REPORT_HELP"),
+
+    @Experimental
+    RECORD_TRACE("recordTrace", "Record trace", "RECORD_TRACE_HELP"),
+
+    @Experimental
+    READ_TRACE("readTrace", "Read trace", "READ_TRACE_HELP");
 
     public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(),  SEARCH.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_GET = new String[] { READ.getUrl(),  GET.getUrl() };

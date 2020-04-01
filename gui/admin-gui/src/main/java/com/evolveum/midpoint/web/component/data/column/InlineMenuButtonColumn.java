@@ -97,14 +97,17 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         List<ButtonInlineMenuItem> buttonMenuItems = new ArrayList<>();
         menuItems.forEach(menuItem -> {
             if (menuItem instanceof ButtonInlineMenuItem){
-                if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
+                if (isHeaderPanel && !menuItem.isHeaderMenuItem()) {
+                    return;
+                }
+                if (menuItem.getVisibilityChecker() != null && !menuItem.getVisibilityChecker().isVisible(rowModel, isHeaderPanel)) {
                     return;
                 }
                 buttonMenuItems.add((ButtonInlineMenuItem) menuItem);
             }
         });
 
-        return new MenuMultiButtonPanel<T>(componentId, rowModel, numberOfButtons, Model.ofList(filteredMenuItems)) {
+        return new MenuMultiButtonPanel<T>(componentId, rowModel, buttonMenuItems.size(), Model.ofList(filteredMenuItems)) {
 
             private static final long serialVersionUID = 1L;
 

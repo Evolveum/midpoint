@@ -131,6 +131,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
+    @Autowired private SchemaHelper schemaHelper;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -842,6 +843,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public <T extends ObjectType> T resolveReference(ObjectReferenceType reference)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return resolveReferenceInternal(reference, false);
+    }
+
+    private <T extends ObjectType> T resolveReferenceInternal(ObjectReferenceType reference, boolean allowNotFound)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -854,19 +861,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (objectDefinition == null) {
             throw new SchemaException("No definition for type " + type);
         }
-        return modelService.getObject(
-                objectDefinition.getCompileTimeClass(), reference.getOid(),
-                SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase()), getCurrentTask(), getCurrentResult())
-            .asObjectable();
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                .executionPhase()
+                .allowNotFound(allowNotFound)
+                .build();
+        return modelService.getObject(objectDefinition.getCompileTimeClass(), reference.getOid(), options,
+                getCurrentTask(), getCurrentResult())
+                .asObjectable();
     }
 
     @Override
     public <T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
-            throws SchemaException,
-            CommunicationException, ConfigurationException,
+            throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         try {
-            return resolveReference(reference);
+            return resolveReferenceInternal(reference, true);
         } catch (ObjectNotFoundException e) {
             return null;
         }

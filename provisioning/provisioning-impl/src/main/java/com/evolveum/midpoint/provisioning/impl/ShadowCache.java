@@ -170,14 +170,21 @@ public class ShadowCache {
 
         ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
         ctx.setGetOperationOptions(options);
+
         try {
             ctx.assertDefinition();
-            shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException
-                | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException e) {
+            if (GetOperationOptions.isRaw(rootOptions)) {
+                // when using raw (repository option), return the repo shadow as it is. it's better than nothing and in this case we don't even need resource
+                //TODO maybe change assertDefinition to consider rawOption?
+                parentResult.computeStatusIfUnknown();
+                parentResult.muteError();
+                return repositoryShadow;
+            }
             throw e;
         }
 
+        shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
         ResourceType resource = ctx.getResource();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
