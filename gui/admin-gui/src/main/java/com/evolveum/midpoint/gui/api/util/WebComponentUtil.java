@@ -619,7 +619,7 @@ public final class WebComponentUtil {
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
-        ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+        ownerRef.setType(UserType.COMPLEX_TYPE);
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);

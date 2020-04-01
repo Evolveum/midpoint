@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
@@ -42,10 +43,6 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -184,11 +181,14 @@ public class WebModelServiceUtils {
         try {
             ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
             pageBase.getPrismContext().adopt(delta);
-            pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+            Collection<ObjectDeltaOperation<?>> deltaOperationRes = pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
                     operationalTask, parentResult);
+            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()){
+                ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
+                delta.setOid(deltaOperation.getObjectDelta().getOid());
+            }
             parentResult.recordInProgress();
             parentResult.setBackgroundTaskOid(delta.getOid());
-            pageBase.showResult(parentResult);
             return delta.getOid();
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
