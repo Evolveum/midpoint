@@ -20,11 +20,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CounterSpecification implements DebugDumpable {
 
     private final AtomicInteger count = new AtomicInteger(0);
-    private long counterStart;
+    private volatile long counterStart;
 
-    private String oid;
-    private PolicyRuleType policyRule;
-    private String policyRuleId;
+    private final String oid;
+    private final PolicyRuleType policyRule;
+    private final String policyRuleId;
 
     public CounterSpecification(String oid, String policyRuleId, PolicyRuleType policyRule) {
         this.oid = oid;
