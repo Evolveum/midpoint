@@ -35,7 +35,7 @@ public class PageSelfCredentials extends PageAbstractSelfCredentials{
     @Override
     protected void finishChangePassword(OperationResult result, AjaxRequestTarget target) {
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            setEncryptedPasswordData(null);
+            setNullEncryptedPasswordData();
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
