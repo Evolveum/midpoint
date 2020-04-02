@@ -355,8 +355,14 @@ public class PageSelfRegistration extends PageAbstractFlow {
             LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
 
         } else {
+            String message;
+            if (result.getUserFriendlyMessage() != null) {
+                message = WebModelServiceUtils.translateMessage(result, this);
+            } else {
+                message = result.getMessage();
+            }
             getSession().error(
-                    createStringResource("PageSelfRegistration.registration.error", result.getMessage())
+                    createStringResource("PageSelfRegistration.registration.error", message)
                             .getString());
             // removePassword(target);
             updateCaptcha(target);
