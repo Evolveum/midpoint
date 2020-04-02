@@ -16,6 +16,11 @@ public class PageShowPassword extends PageBase {
     public final static String URL = "/resetpasswordsuccess";
 
     public PageShowPassword() {
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         add(new Label("pass", getSession().getAttribute("pwdReset")));
         getSession().removeAttribute("pwdReset");
 
