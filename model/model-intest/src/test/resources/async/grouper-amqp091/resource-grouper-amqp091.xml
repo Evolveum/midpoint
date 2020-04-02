@@ -163,7 +163,7 @@
                             <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
                             <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
                             <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:account/>
+                            <ra:kind>account</ra:kind>
                             <ra:default/>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -181,7 +181,6 @@
                             <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
                             <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
                             <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:account/>
                             <ra:default/>
                         </xsd:appinfo>
                     </xsd:annotation>

@@ -134,7 +134,8 @@
                                  <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
                                  <ra:namingAttribute>icfs:name</ra:namingAttribute>
                                  <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                                 <ra:account/>
+                                 <ra:resourceObject/>
+                                 <ra:kind>account</ra:kind>
                                  <ra:default/>
                             </xsd:appinfo>
                         </xsd:annotation>
