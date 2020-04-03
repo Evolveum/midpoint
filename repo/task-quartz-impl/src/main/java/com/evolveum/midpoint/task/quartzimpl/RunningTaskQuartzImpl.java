@@ -353,7 +353,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     @Override
     public boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot) {
-        ProcessTracingConfigurationType config = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING);
+        ProcessTracingConfigurationType config = coordinatorTask.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING);
         int interval;
         if (config != null) {
             interval = defaultIfNull(config.getInterval(), 1);
