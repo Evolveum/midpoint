@@ -201,7 +201,12 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new ChangePasswordPanel(panelId, isCheckOldPassword(), model, model.getObject());
+                return new ChangePasswordPanel(panelId, isCheckOldPassword(), model, model.getObject()) {
+                    @Override
+                    protected boolean shouldShowPasswordPropagation() {
+                        return shouldLoadAccounts(getModelObject());
+                    }
+                };
             }
         });
 
@@ -275,8 +280,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     }
 
     protected void onSavePerformed(AjaxRequestTarget target) {
-        List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
-
         ProtectedStringType oldPassword = null;
         if (isCheckOldPassword()) {
             LOGGER.debug("Check old password");
@@ -310,13 +313,16 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 }
             }
         }
-        if (selectedAccounts.isEmpty()) {
-            warn(getString("PageSelfCredentials.noAccountSelected"));
+
+        if (getModelObject().getPassword() == null ) {
+            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
             target.add(getFeedbackPanel());
             return;
         }
-        if (getModelObject().getPassword() == null ) {
-            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
+
+        List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
+        if (selectedAccounts.isEmpty()) {
+            warn(getString("PageSelfCredentials.noAccountSelected"));
             target.add(getFeedbackPanel());
             return;
         }
@@ -332,7 +338,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-
 
             for (PasswordAccountDto accDto : selectedAccounts) {
                     PrismObjectDefinition objDef = accDto.isMidpoint() ?
@@ -376,7 +381,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     protected abstract void finishChangePassword(OperationResult result, AjaxRequestTarget target);
 
-    private List<PasswordAccountDto> getSelectedAccountsList(){
+    protected List<PasswordAccountDto> getSelectedAccountsList(){
         List<PasswordAccountDto> passwordAccountDtos = model.getObject().getAccounts();
         List<PasswordAccountDto> selectedAccountList = new ArrayList<>();
         if (model.getObject().getPropagation() != null

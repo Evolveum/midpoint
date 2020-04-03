@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,6 +28,9 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.util.Collections;
+import java.util.List;
 
 @PageDescriptor(
         urls = {
@@ -107,5 +111,21 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     @Override
     protected boolean shouldLoadAccounts(MyPasswordsDto dto) {
         return false;
+    }
+
+    @Override
+    protected List<PasswordAccountDto> getSelectedAccountsList() {
+        List<PasswordAccountDto> accounts = getModelObject().getAccounts();
+        if (accounts.isEmpty()) {
+            return Collections.EMPTY_LIST;
+        }
+
+       for (PasswordAccountDto account : accounts) {
+           if (account.isMidpoint()) {
+               return Collections.singletonList(account);
+           }
+       }
+
+       return accounts;
     }
 }
