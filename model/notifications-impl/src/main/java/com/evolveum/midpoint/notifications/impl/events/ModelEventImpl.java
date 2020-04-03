@@ -236,7 +236,7 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
         ObjectDelta<? extends ObjectType> summarizedDelta;
         try {
             summarizedDelta = getSummarizedFocusDeltas();
-            if (!summarizedDelta.isModify()) {
+            if (!ObjectDelta.isModify(summarizedDelta)) {
                 return true;
             } else if (!getTextFormatter().containsVisibleModifiedItems(summarizedDelta.getModifications(),
                     false, watchAuxiliaryAttributes)) {
@@ -255,9 +255,9 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     public String getContentAsFormattedList(boolean showAuxiliaryAttributes) {
         try {
             ObjectDelta<? extends ObjectType> summarizedDelta = getSummarizedFocusDeltas();
-            if (summarizedDelta.isAdd()) {
+            if (ObjectDelta.isAdd(summarizedDelta)) {
                 return getTextFormatter().formatObject(summarizedDelta.getObjectToAdd(), false, showAuxiliaryAttributes);
-            } else if (summarizedDelta.isModify()) {
+            } else if (ObjectDelta.isModify(summarizedDelta)) {
                 ModelElementContext<?> focusContext = modelContext.getFocusContext();
                 return getTextFormatter().formatObjectModificationDelta(summarizedDelta, false, showAuxiliaryAttributes, focusContext.getObjectOld(),
                         focusContext.getObjectNew());
