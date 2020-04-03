@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,9 +24,7 @@ public abstract class JunctionCondition extends Condition {
 
     public JunctionCondition(RootHibernateQuery rootHibernateQuery, Condition... conditions) {
         super(rootHibernateQuery);
-        for (Condition condition : conditions) {
-            components.add(condition);
-        }
+        Collections.addAll(components, conditions);
     }
 
     public JunctionCondition(RootHibernateQuery rootHibernateQuery, Collection<Condition> conditions) {
@@ -69,7 +68,6 @@ public abstract class JunctionCondition extends Condition {
         JunctionCondition that = (JunctionCondition) o;
 
         return components.equals(that.components);
-
     }
 
     @Override

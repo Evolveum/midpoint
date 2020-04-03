@@ -9,9 +9,11 @@ package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+
 import org.apache.commons.lang.Validate;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author mederly
@@ -52,14 +54,14 @@ public class InCondition extends PropertyCondition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         InCondition that = (InCondition) o;
 
-        if (values != null ? !values.equals(that.values) : that.values != null) return false;
-        return !(innerQueryText != null ? !innerQueryText.equals(that.innerQueryText) : that.innerQueryText != null);
+        return Objects.equals(values, that.values)
+                && Objects.equals(innerQueryText, that.innerQueryText);
 
     }
 
