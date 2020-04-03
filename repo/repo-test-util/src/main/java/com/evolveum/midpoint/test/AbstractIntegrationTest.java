@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
@@ -1309,13 +1310,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .build();
     }
 
-    protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
+    protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(
+            String identifier, PrismObject<ResourceType> resource) throws SchemaException {
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        assertThat(rAccount)
+                .withFailMessage("No RefinedObjectClassDefinition for %s", rSchema)
+                .isNotNull();
         return createShadowQuerySecondaryIdentifier(rAccount, identifier, resource);
     }
 
-    protected ObjectQuery createShadowQuerySecondaryIdentifier(ObjectClassComplexTypeDefinition rAccount, String identifier, PrismObject<ResourceType> resource) {
+    protected ObjectQuery createShadowQuerySecondaryIdentifier(
+            ObjectClassComplexTypeDefinition rAccount, String identifier, PrismObject<ResourceType> resource) {
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
