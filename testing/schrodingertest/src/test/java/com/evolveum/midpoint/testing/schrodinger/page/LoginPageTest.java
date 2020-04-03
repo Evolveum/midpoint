@@ -16,10 +16,7 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
 import com.evolveum.midpoint.schrodinger.component.configuration.NotificationsTab;
 import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
-import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
-import com.evolveum.midpoint.schrodinger.page.login.MailNoncePage;
-import com.evolveum.midpoint.schrodinger.page.login.SamlSelectPage;
-import com.evolveum.midpoint.schrodinger.page.login.SecurityQuestionsPage;
+import com.evolveum.midpoint.schrodinger.page.login.*;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
@@ -42,10 +39,33 @@ public class LoginPageTest extends AbstractLoginPageTest {
     private static final File MAIL_NONCE_RESET_PASS_SECURITY_POLICY = new File("src/test/resources/configuration/objects/securitypolicies/policy-nonce-reset-pass.xml");
 
     @Test
+    public void test020selfRegistration() throws IOException, InterruptedException {
+        System.setProperty("midpoint.schrodinger","true");
+        basicPage.loggedUser().logoutIfUserIsLogin();
+        FormLoginPage login = midPoint.formLogin();
+        open("/login");
+        open("/");
+        TimeUnit.SECONDS.sleep(2);
+        SelfRegistrationPage registrationPage = login.register();
+        registrationPage.setGivenName("Test").setFamilyName("User").setEmail("test.user@evolveum.com").setPassword("5ecr3t").submit();
+        TimeUnit.SECONDS.sleep(6);
+        String notification = readLastNotification();
+        String linkTag = "link='";
+        String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
+        open(link);
+        $(Schrodinger.byDataId("successPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+        String actualUrl = basicPage.getCurrentUrl();
+        Assert.assertTrue(actualUrl.endsWith("/registration"));
+    }
+
+    @Test
     public void test030resetPassowordMailNonce() throws IOException, InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         FormLoginPage login = midPoint.formLogin();
+        open("/login");
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        open("/");
         login.forgotPassword();
         $(Schrodinger.byDataId("email")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(MAIL_OF_ENABLED_USER);
         $(Schrodinger.byDataId("submitButton")).click();
