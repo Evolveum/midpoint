@@ -1735,7 +1735,8 @@
                             <failOnWarning>true</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredUnusedDeclaredDependencies>
-                                <!-- We don't want anything here, ideally... -->
+                                <!-- We don't want anything here, except for test support... -->
+                                <ignoredUnusedDeclaredDependency>org.assertj:assertj-core</ignoredUnusedDeclaredDependency>
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
                                 <!--
@@ -1744,6 +1745,10 @@
                                 need to declare transitive dependencies (e.g. *-impl implying *-api, etc.).
                                 -->
                                 <ignoredUsedUndeclaredDependency>com.evolveum.midpoint.*:*</ignoredUsedUndeclaredDependency>
+
+                                <!-- Testing dependencies are not troubling us from. -->
+                                <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.assertj:assertj-core</ignoredUsedUndeclaredDependency>
 
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
