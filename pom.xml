@@ -893,7 +893,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>3.0-M4</version>
+                <version>3.0</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
