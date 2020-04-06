@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -353,12 +354,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             @Override
             public void onClick(AjaxRequestTarget target) {
                 try {
-                    getObjectWrapper().findProperty(ItemPath.create(TaskType.F_OPERATION_STATS,
-                            OperationStatsType.F_ENVIRONMENTAL_PERFORMANCE_INFORMATION)).getValue().setRealValue(null);
+                    getObjectWrapper().findContainer(TaskType.F_OPERATION_STATS).getValue().setStatus(ValueStatus.DELETED);
                 } catch (SchemaException e){
                     LOGGER.error("Cannot clear task results: {}", e.getMessage());
                 }
                 saveTaskChanges(target);
+                refresh(target);
             }
         };
         cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
