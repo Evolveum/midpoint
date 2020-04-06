@@ -3,10 +3,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,6 +14,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -25,15 +22,13 @@ import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -57,6 +52,7 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -354,12 +350,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             @Override
             public void onClick(AjaxRequestTarget target) {
                 try {
-                    getObjectWrapper().findContainer(TaskType.F_OPERATION_STATS).getValue().setStatus(ValueStatus.DELETED);
+                    deleteItem(TaskType.F_OPERATION_STATS);
                 } catch (SchemaException e){
                     LOGGER.error("Cannot clear task results: {}", e.getMessage());
                 }
                 saveTaskChanges(target);
-                refresh(target);
             }
         };
         cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
@@ -374,8 +369,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             @Override
             public void onClick(AjaxRequestTarget target) {
                 try {
-                    deleteProperty(TaskType.F_RESULT);
-                    deleteProperty(TaskType.F_RESULT_STATUS);
+                    deleteItem(TaskType.F_RESULT);
+                    deleteItem(TaskType.F_RESULT_STATUS);
                 } catch (SchemaException e){
                     LOGGER.error("Cannot clear task results: {}", e.getMessage());
                 }
@@ -387,18 +382,18 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         repeatingView.add(cleanupResults);
     }
 
-    private <T> void deleteProperty(ItemName propertyName) throws SchemaException {
-        PrismPropertyWrapper<T> property = getObjectWrapper().findProperty(propertyName);
-        if (property == null) {
+    private void deleteItem(ItemName itemName) throws SchemaException {
+        ItemWrapper<?, ?, ?, ?> item = getObjectWrapper().findItem(itemName, ItemWrapper.class);
+        if (item == null) {
             return;
         }
 
-        PrismPropertyValueWrapper<T> propertyValue = property.getValue();
-        if (propertyValue == null) {
+        PrismValueWrapper<?, ?> itemValue = item.getValue();
+        if (itemValue == null) {
             return;
         }
 
-        propertyValue.setStatus(ValueStatus.DELETED);
+        itemValue.setStatus(ValueStatus.DELETED);
 
     }
 
