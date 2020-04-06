@@ -36,7 +36,7 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
     }
 
     public ConfigureTaskConfirmationPanel(String id, IModel<String> message) {
-        super(id);
+        super(id, message);
     }
 
     @Override

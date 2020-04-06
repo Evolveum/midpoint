@@ -2297,10 +2297,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             PolyString polyString = pval.getValue();
             if (polyString.getOrig() == null) {
                 String orig = localizationService.translate(polyString);
-                LOGGER.info("PPPP1: Filling out orig value of polyString {}: {}", polyString, orig);
+                LOGGER.trace("PPPP1: Filling out orig value of polyString {}: {}", polyString, orig);
                 polyString.setComputedOrig(orig);
                 polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
-                LOGGER.info("PPPP2: Resulting polyString: {}", polyString);
+                LOGGER.trace("PPPP2: Resulting polyString: {}", polyString);
             }
         }
     }

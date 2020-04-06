@@ -73,7 +73,7 @@ public interface ObjectResolver {
 
     // EXPERIMENTAL (implemented only for ModelObjectResolver)
     // TODO clean up this mess
-    default void resolveAllReferences(Collection<PrismContainerValue> pcvs, Object taskObject, OperationResult result) {
+    default void resolveAllReferences(Collection<PrismContainerValue<?>> pcvs, Object taskObject, OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
