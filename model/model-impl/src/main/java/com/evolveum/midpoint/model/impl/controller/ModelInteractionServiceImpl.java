@@ -1790,7 +1790,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
         spec.setAssignmentObjectRelations(assignmentHolderRelations);
         spec.setSupportGenericAssignment(archetypePolicy == null
-                || AssignmentRelationApproachType.CLOSED != archetypePolicy.getAssignmentRelationApproach());
+                || AssignmentRelationApproachType.CLOSED != archetypePolicy.getAssignmentHolderRelationApproach());
         return spec;
     }
 

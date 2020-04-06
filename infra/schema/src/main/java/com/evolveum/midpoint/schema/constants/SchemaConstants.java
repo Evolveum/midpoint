@@ -357,6 +357,7 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_WORKER_THREADS = new ItemName(NS_MODEL_EXTENSION, "workerThreads");
     public static final ItemName MODEL_EXTENSION_OPTION_RAW = new ItemName(NS_MODEL_EXTENSION, "optionRaw");
     public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "executeOptions");
+    public static final ItemName MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "modelExecuteOptions");
 
     public static final ItemName MODEL_EXTENSION_DIAGNOSE = new ItemName(NS_MODEL_EXTENSION, "diagnose");
     public static final ItemName MODEL_EXTENSION_FIX = new ItemName(NS_MODEL_EXTENSION, "fix");

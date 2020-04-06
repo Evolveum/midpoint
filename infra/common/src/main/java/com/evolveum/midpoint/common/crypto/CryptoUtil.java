@@ -235,7 +235,7 @@ public class CryptoUtil {
         void apply(ProtectedStringType protectedString, String propertyName) throws EncryptionException;
     }
 
-    private static class CombinedVisitor implements Visitor, JaxbVisitor {
+    private static class CombinedVisitor implements ConfigurableVisitor, JaxbVisitor {
 
         private ProtectedStringProcessor processor;
         private String lastPropName = "?";
@@ -269,6 +269,11 @@ public class CryptoUtil {
                     lastPropName = oldLastPropName;
                 }
             }
+        }
+
+        @Override
+        public boolean shouldVisitEmbeddedObjects() {
+            return true; // Needed to encrypt secrets in embedded objects. See also 60328c40b2b99c6cf41ab6ce90145fae941d07bd.
         }
     }
 
