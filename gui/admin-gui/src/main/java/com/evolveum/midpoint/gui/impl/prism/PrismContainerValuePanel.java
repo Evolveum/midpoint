@@ -93,6 +93,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             return false;
         }
 
+        if (ValueStatus.DELETED == modelObject.getStatus()) {
+            return false;
+        }
+
         ItemWrapper parent = modelObject.getParent();
         if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
             return false;
@@ -103,10 +107,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         }
 
 
-        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
+        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded()) { // && parent.isMultiValue()) {
             return false;
         }
-        return true;
+        return ((PrismContainerWrapper) parent).isExpanded();
     }
 
     @Override

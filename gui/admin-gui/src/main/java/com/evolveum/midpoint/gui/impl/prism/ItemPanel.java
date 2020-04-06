@@ -108,6 +108,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
                 GuiComponentFactory componentFactory = getPageBase().getRegistry()
                         .findValuePanelFactory(ItemPanel.this.getModelObject());
 
+
                 Component panel = createValuePanel(item, componentFactory, getVisibilityHandler(), getEditabilityHandler());
 //                panel.add(getEnableBehaviourOfValuePanel(ItemPanel.this.getModelObject()));
                 createButtons(item);
@@ -230,8 +231,10 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
                     break;
                 case DELETED:
                     valueToRemove.setStatus(ValueStatus.NOT_CHANGED);
+                    getModelObject().getItem().add(valueToRemove.getNewValue());
                     break;
                 case NOT_CHANGED:
+                    getModelObject().getItem().remove(valueToRemove.getNewValue());
                     valueToRemove.setStatus(ValueStatus.DELETED);
                     break;
             }
@@ -248,9 +251,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         private int countUsableValues(List<VW> values) {
             int count = 0;
             for (VW value : values) {
-//                if (ValueStatus.DELETED.equals(value.getStatus())) {
-//                    continue;
-//                }
+                if (ValueStatus.DELETED.equals(value.getStatus())) {
+                    continue;
+                }
                 if (ValueStatus.ADDED.equals(value.getStatus())) {
                     continue;
                 }
