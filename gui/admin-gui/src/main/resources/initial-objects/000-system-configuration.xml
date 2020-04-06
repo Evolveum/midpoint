@@ -172,7 +172,7 @@
     </internals>
     <adminGuiConfiguration>
         <userDashboardLink>
-            <targetUrl>/self/profile/user</targetUrl>
+            <targetUrl>/self/profile</targetUrl>
             <label>Profile</label>
             <description>View/edit your profile</description>
             <icon>
