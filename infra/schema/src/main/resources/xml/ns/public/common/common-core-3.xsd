@@ -15025,7 +15025,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="assignmentRelationApproach" type="tns:AssignmentRelationApproachType" minOccurs="0">
+            <xsd:element name="assignmentHolderRelationApproach" type="tns:AssignmentRelationApproachType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
