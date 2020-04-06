@@ -1257,7 +1257,6 @@ public class PrismAsserts {
 
     public static void assertImmutable(Definition definition) {
         definition.accept(def -> {
-            System.out.println("Checking " + def);
             if (!def.isImmutable()) {
                 fail("Definition is not immutable: " + def);
             }
@@ -1266,7 +1265,6 @@ public class PrismAsserts {
 
     public static void assertMutable(Definition definition) {
         definition.accept(def -> {
-            System.out.println("Checking " + def);
             if (def.isImmutable()) {
                 fail("Definition is not mutable: " + def);
             }

@@ -390,7 +390,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         user.checkConsistence();
         assertUserJackContent(user, expectRawInConstructions, true, withIncomplete);
         assertUserExtensionAdhoc(user);
-        assertVisitor(user, 62);
+        assertVisitor(user, 58);
     }
 
     private void assertUserExtensionAdhoc(PrismObject<UserType> user) {
