@@ -17,10 +17,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -466,6 +463,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                         if (subcase.getApprovalContext() != null) {
                             OperationResult opResult = new OperationResult("dummy");
                             ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subcase.getOid(), opTask, opResult);
+                            modelObjectResolver.resolveAllReferences(Collections.singleton(info.asPrismContainerValue()), opTask, result); // MID-6171
                             display("Execution info for " + subcase, info);
                             opResult.computeStatus();
                             assertSuccess("Unexpected problem when looking at getApprovalSchemaExecutionInformation result", opResult);

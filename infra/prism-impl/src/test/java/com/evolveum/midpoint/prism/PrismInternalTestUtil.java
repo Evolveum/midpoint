@@ -296,7 +296,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         user.assertDefinitions("test");
         assertUserJackContent(user, expectRawInConstructions, expectFullPolyName, withIncomplete);
         assertUserJackExtension(user, withIncomplete);
-        assertVisitor(user, 75);
+        assertVisitor(user, 71);
 
         assertPathVisitor(user, UserType.F_ASSIGNMENT, true, 9);
         assertPathVisitor(user, ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID), true, 3);
