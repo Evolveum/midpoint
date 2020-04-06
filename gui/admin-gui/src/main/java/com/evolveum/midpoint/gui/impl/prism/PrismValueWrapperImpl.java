@@ -78,7 +78,9 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
                 }
                 break;
             case DELETED:
-                delta.addValueToDelete((V) oldValue.clone());
+                if (oldValue != null && !oldValue.isEmpty()) {
+                    delta.addValueToDelete((V) oldValue.clone());
+                }
                 break;
             default:
                 break;

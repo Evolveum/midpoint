@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -370,18 +373,32 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             @Override
             public void onClick(AjaxRequestTarget target) {
                 try {
-                    getObjectWrapper().findProperty(TaskType.F_RESULT).getValue().setRealValue(null);
-                    getObjectWrapper().findProperty(TaskType.F_RESULT_STATUS).getValue().setRealValue(null);
+                    deleteProperty(TaskType.F_RESULT);
+                    deleteProperty(TaskType.F_RESULT_STATUS);
                 } catch (SchemaException e){
                     LOGGER.error("Cannot clear task results: {}", e.getMessage());
                 }
                 saveTaskChanges(target);
-                refresh(target);
             }
         };
         cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
         cleanupResults.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
         repeatingView.add(cleanupResults);
+    }
+
+    private <T> void deleteProperty(ItemName propertyName) throws SchemaException {
+        PrismPropertyWrapper<T> property = getObjectWrapper().findProperty(propertyName);
+        if (property == null) {
+            return;
+        }
+
+        PrismPropertyValueWrapper<T> propertyValue = property.getValue();
+        if (propertyValue == null) {
+            return;
+        }
+
+        propertyValue.setStatus(ValueStatus.DELETED);
+
     }
 
     private void saveTaskChanges(AjaxRequestTarget target) {
@@ -398,6 +415,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta){
         if (taskDelta.isEmpty()) {
             getSession().warn("Nothing to save, no changes were made.");
+            target.add(getFeedbackPanel());
             return;
         }
 
@@ -408,7 +426,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             taskDelta.revive(getPrismContext()); //do we need revive here?
             getModelService().executeChanges(MiscUtil.createCollection(taskDelta), null, task, result);
             result.computeStatus();
-            getObjectModel().reset();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot save tasks changes", e);
             result.recordFatalError("Cannot save tasks changes, " + e.getMessage(), e);
@@ -425,6 +442,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void afterOperation(AjaxRequestTarget target, OperationResult result) {
+        taskTabsVisibility = new TaskTabsVisibility();
         showResult(result);
         getObjectModel().reset();
         refresh(target);
