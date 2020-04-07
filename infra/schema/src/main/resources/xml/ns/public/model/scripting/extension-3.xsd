@@ -27,6 +27,7 @@
                 Script to be executed.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>TaskExtension.executeScript</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>            <!-- TODO (maybe there could be more scripts) -->
             </xsd:appinfo>
         </xsd:annotation>
