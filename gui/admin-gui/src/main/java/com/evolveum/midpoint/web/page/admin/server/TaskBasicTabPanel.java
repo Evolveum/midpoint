@@ -173,6 +173,29 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             return ItemVisibility.HIDDEN;
         }
 
+        // region no panel for type
+        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS).equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS).equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS).equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (TaskType.F_RESULT.equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (TaskType.F_OTHER_HANDLERS_URI_STACK.equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        //end region unsupported panel for type
+
         String taskHandler = getTask().getHandlerUri();
 
         if (taskHandler == null) {

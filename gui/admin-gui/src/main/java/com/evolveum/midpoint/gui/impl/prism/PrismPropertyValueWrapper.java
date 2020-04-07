@@ -40,6 +40,11 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, Prism
         newRealValue = trimValueIfNeeded(newRealValue);
 
         if (newRealValue == null) {
+            if (getRealValue() == null) {
+                //nothing to do, value vas not changed
+                return;
+            }
+
             getNewValue().setValue(null);
             setStatus(ValueStatus.DELETED);
             return;

@@ -39,6 +39,6 @@ public class ExecuteScriptWrapperFactory extends AbstractGuiComponentFactory<Exe
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExecuteScriptType> panelCtx) {
-        return new TextAreaPanel<>(panelCtx.getComponentId(), new ExecuteScriptModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 100);
+        return new TextAreaPanel<>(panelCtx.getComponentId(), new ExecuteScriptModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 20);
     }
 }

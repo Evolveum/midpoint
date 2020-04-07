@@ -155,7 +155,7 @@ public class PolyStringEditorPanel extends InputPanel {
                 PolyString oldModelObject = getModelObject();
                 if (oldModelObject != null && (oldModelObject.getTranslation() != null || MapUtils.isNotEmpty(oldModelObject.getLang()))) {
                     getModel().setObject(new PolyString(object, oldModelObject.getNorm(), oldModelObject.getTranslation(), oldModelObject.getLang()));
-                } else if (StringUtils.isNotBlank(object)) {
+                } else if (StringUtils.isNotEmpty(object)) {
                     getModel().setObject(new PolyString(object));
                 } else {
                     getModel().setObject(null);

@@ -93,6 +93,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             return false;
         }
 
+        if (ValueStatus.DELETED == modelObject.getStatus()) {
+            return false;
+        }
+
         ItemWrapper parent = modelObject.getParent();
         if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
             return false;
@@ -103,10 +107,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         }
 
 
-        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
+        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded()) { // && parent.isMultiValue()) {
             return false;
         }
-        return true;
+        return ((PrismContainerWrapper) parent).isExpanded();
     }
 
     @Override
@@ -186,7 +190,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 populateNonContainer(item);
             }
         };
-        properties.setReuseItems(true);
         properties.setOutputMarkupId(true);
         add(propertiesLabel);
            propertiesLabel.add(properties);
@@ -355,13 +358,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
-//            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(getVisibilityHandler());
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
             panel.setOutputMarkupId(true);
-//            panel.add(new VisibleBehaviour(() -> {
-//                CVW parent = PrismContainerValuePanel.this.getModelObject();
-//                return container.getModelObject().isVisible(parent, visibilityHandler);
-//            }));
             container.add(panel);
         } catch (SchemaException e) {
             throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
