@@ -822,7 +822,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -871,7 +871,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -881,13 +881,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
                     } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
