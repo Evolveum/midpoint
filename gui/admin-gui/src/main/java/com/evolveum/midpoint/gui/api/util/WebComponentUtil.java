@@ -4047,6 +4047,7 @@ public final class WebComponentUtil {
             }
         }
         result.computeStatusIfUnknown();
+        pageBase.showResult(result);
     }
 
     public static List<ObjectOrdering> createMetadataOrdering(SortParam<String> sortParam, String metadataProperty, PrismContext prismContext){
