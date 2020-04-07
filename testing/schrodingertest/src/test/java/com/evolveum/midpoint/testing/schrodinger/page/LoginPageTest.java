@@ -45,10 +45,11 @@ public class LoginPageTest extends AbstractLoginPageTest {
         FormLoginPage login = midPoint.formLogin();
         open("/login");
         open("/");
-        TimeUnit.SECONDS.sleep(2);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelfRegistrationPage registrationPage = login.register();
         registrationPage.setGivenName("Test").setFamilyName("User").setEmail("test.user@evolveum.com").setPassword("5ecr3t").submit();
-        TimeUnit.SECONDS.sleep(6);
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+        basicPage.feedback().isSuccess();
         String notification = readLastNotification();
         String linkTag = "link='";
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));

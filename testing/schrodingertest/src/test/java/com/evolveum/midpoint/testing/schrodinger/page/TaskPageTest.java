@@ -34,7 +34,7 @@ public class TaskPageTest extends AbstractSchrodingerTest {
         String handler = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3";
         TaskPage task = basicPage.newTask();
         task.selectTabBasic().form().addAttributeValue("handlerUri", handler);
-        Selenide.sleep(2000);
+        Selenide.sleep(4000);
         task.selectTabBasic()
                 .form()
                     .addAttributeValue("name", name)
