@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,18 +58,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ResourceDetailsTabPanel extends Panel {
 
@@ -290,7 +280,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
         InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, parentPage.getString(messageKey));
 
-        ConnectorType connectorType = (ConnectorType) resource.getConnectorRef().asReferenceValue().getObject().asObjectable();
+        ConnectorType connectorType = getConnectorType(resource);
         if (connectorType == null) {
             // Connector not found. Probably bad connectorRef reference.
             infoBoxType.setNumber("--");
@@ -310,6 +300,24 @@ public class ResourceDetailsTabPanel extends Panel {
 
         return lastAvailabilityStatus;
 
+    }
+
+    private ConnectorType getConnectorType(ResourceType resource) {
+        if (resource == null) {
+            return null;
+        }
+
+        ObjectReferenceType connectorRef = resource.getConnectorRef();
+        if (connectorRef == null) {
+            return null;
+        }
+
+        PrismObject<ConnectorType> object = connectorRef.asReferenceValue().getObject();
+        if (object == null) {
+            return null;
+        }
+
+        return object.asObjectable();
     }
 
     private InfoBoxPanel createSchemaStatusInfo(ResourceType resource) {
