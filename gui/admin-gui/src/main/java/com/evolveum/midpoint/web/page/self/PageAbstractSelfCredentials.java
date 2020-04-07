@@ -404,11 +404,21 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
             //TODO cannot be null?
             PrismObject<ResourceType> resource = shadow.asObjectable().getResourceRef().asReferenceValue().getObject();
+            //what to return when we don't have resource?
+            if (resource == null) {
+                return false;
+            }
 
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
                     resource, AuthorizationPhaseType.REQUEST, task, result);
+            if (rOCDef == null){
+                return false;
+            }
 
             List<MappingType> passwordOutbound = rOCDef.getPasswordOutbound();
+            if (passwordOutbound == null) {
+                return false;
+            }
             for (MappingType mapping : passwordOutbound) {
                 if (MappingStrengthType.WEAK == mapping.getStrength()) {
                     CredentialsCapabilityType capability = ResourceTypeUtil.getEffectiveCapability(resource.asObjectable(), CredentialsCapabilityType.class);
