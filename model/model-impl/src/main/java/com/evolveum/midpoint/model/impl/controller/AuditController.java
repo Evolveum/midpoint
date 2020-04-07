@@ -109,7 +109,7 @@ public class AuditController implements ModelAuditService {
         List<AuditEventRecord> changeTrail = getChangeTrail(oid, eventIdentifier, result);
         LOGGER.trace("Found change trail for {} containing {} events", oid, changeTrail.size());
 
-        LOGGER.info("TRAIL:\n{}", DebugUtil.debugDump(changeTrail, 1));
+        LOGGER.debug("TRAIL:\n{}", DebugUtil.debugDumpLazily(changeTrail, 1));
 
         PrismObject<O> objectFromLastEvent = getObjectFromLastEvent(currentObject, changeTrail, eventIdentifier);
         if (objectFromLastEvent != null) {
