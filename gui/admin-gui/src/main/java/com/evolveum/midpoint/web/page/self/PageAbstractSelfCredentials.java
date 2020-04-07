@@ -102,7 +102,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private MyPasswordsDto loadPageModel() {
         LOGGER.debug("Loading user and accounts.");
 
-        MyPasswordsDto dto;
+        MyPasswordsDto dto = new MyPasswordsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);
         try {
             String focusOid = SecurityUtils.getPrincipalUser().getOid();
@@ -130,7 +130,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccounts.fatalError"), ex);
         } finally {
             result.recomputeStatus();
-            dto = new MyPasswordsDto();
         }
 
         Collections.sort(dto.getAccounts());
