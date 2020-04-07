@@ -14,6 +14,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ItemMandatoryHandler;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -168,13 +170,43 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
                         new ItemRealValueModel<ObjectPolicyConfigurationType>(item.getModel());
                 return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
             }
+
+            @Override
+            protected ItemMandatoryHandler getMandatoryHandler() {
+                return wrapper -> getMandatoryOverrideFor(wrapper);
+
+            }
         };
         return detailsPanel;
+    }
+
+    private boolean getMandatoryOverrideFor(ItemWrapper<?, ?, ?, ?> itemWrapper) {
+        ItemPath conflictResolutionPath = ItemPath.create(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
+                ObjectPolicyConfigurationType.F_CONFLICT_RESOLUTION, ConflictResolutionType.F_ACTION);
+        if (conflictResolutionPath.equivalent(itemWrapper.getPath().namedSegmentsOnly())) {
+            return false;
+        }
+
+        ItemPath adminGuiConfigDetails  = ItemPath.create(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
+                ObjectPolicyConfigurationType.F_ADMIN_GUI_CONFIGURATION, ArchetypeAdminGuiConfigurationType.F_OBJECT_DETAILS);
+
+        ItemPath detailsType = ItemPath.create(adminGuiConfigDetails, GuiObjectDetailsPageType.F_TYPE);
+        if (detailsType.equivalent(itemWrapper.getPath().namedSegmentsOnly())) {
+            return false;
+        }
+
+        ItemPath formType = ItemPath.create(adminGuiConfigDetails, GuiObjectDetailsPageType.F_FORMS, ObjectFormType.F_TYPE);
+        if (formType.equivalent(itemWrapper.getPath().namedSegmentsOnly())) {
+            return false;
+        }
+
+        return itemWrapper.isMandatory();
     }
 
     private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> getMultivalueContainerListPanel(){
         return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>)get(ID_OBJECTS_POLICY));
     }
+
 
     private ObjectQuery createQuery() {
         return getPageBase().getPrismContext().queryFor(ObjectPolicyConfigurationType.class)
