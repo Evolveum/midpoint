@@ -14046,6 +14046,9 @@
                         trigger. This is usually approver or owner.
                         If not specified then any relation is accepted.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.subjectRelation</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectRelation" minOccurs="0" maxOccurs="1" type="xsd:QName">
@@ -14055,6 +14058,9 @@
                         trigger. This is usually default relation (member).
                         If not specified then any relation is accepted.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.objectRelation</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="includeMembers" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
@@ -14065,6 +14071,9 @@
                         If set to false then the members of reference role is excluded from the scope
                         (objectRelation is not used in this case).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.includeMembers</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="includeReferenceRole" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
@@ -14074,6 +14083,9 @@
                         in the scope.
                         If set to false then the reference role is excluded from the scope.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.includeReferenceRole</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
