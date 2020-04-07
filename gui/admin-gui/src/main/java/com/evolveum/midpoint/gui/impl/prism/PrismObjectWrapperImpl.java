@@ -63,13 +63,6 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
                 objectDelta.setChangeType(ChangeType.DELETE);
                 break;
         }
-        // if (ItemStatus.ADDED == getStatus()) {
-        // objectDelta.setObjectToAdd(getObject());
-        // }
-
-//        if (objectDelta.isEmpty()) {
-//            return null;
-//        }
 
         return objectDelta;
     }

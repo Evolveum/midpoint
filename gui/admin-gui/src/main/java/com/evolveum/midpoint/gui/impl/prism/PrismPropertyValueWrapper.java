@@ -46,7 +46,7 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, Prism
             }
 
             getNewValue().setValue(null);
-            setStatus(ValueStatus.DELETED);
+//            setStatus(ValueStatus.DELETED);
             return;
         }
 

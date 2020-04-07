@@ -51,7 +51,6 @@ public class TextPanel<T> extends InputPanel {
 
 
         };
-        text.setConvertEmptyInputStringToNull(false);
         text.setType(clazz);
         add(text);
     }
