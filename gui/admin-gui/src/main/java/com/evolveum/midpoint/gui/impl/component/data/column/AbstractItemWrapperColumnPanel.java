@@ -68,6 +68,9 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
     }
 
     protected void populate(ListItem<VW> item) {
+        if (item.getModelObject() != null && item.getModelObject().getParent() != null) {
+            item.getModelObject().getParent().revive(getPageBase().getPrismContext());
+        }
         switch (columnType) {
             case STRING:
                 Label label = new Label(ID_VALUE, createLabel(item.getModelObject()));
