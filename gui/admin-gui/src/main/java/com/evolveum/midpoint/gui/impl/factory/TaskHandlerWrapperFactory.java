@@ -47,11 +47,16 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
     @Override
     protected PrismPropertyWrapper<String> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<String> item,
             ItemStatus status, WrapperContext ctx) {
+
+        PrismObject<?> prismObject = getParent(ctx);
+        if (prismObject == null || !TaskType.class.equals(prismObject.getCompileTimeClass())) {
+            return super.createWrapper(parent, item, status, ctx);
+        }
+
         getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
         PrismPropertyWrapper<String> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
         PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
         if (valueEnumerationRef != null) {
-            //TODO: task and result from context
             Task task = ctx.getTask();
             OperationResult result = ctx.getResult().createSubresult(OPERATION_DETERMINE_LOOKUP_TABLE);
             Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
@@ -70,8 +75,8 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
         }
 
         if (parent != null && parent.getParent() != null) {
-            PrismObject<TaskType> taskPrism = (PrismObject) ctx.getObject();
-            TaskType task = taskPrism.asObjectable();
+
+            TaskType task = (TaskType) prismObject.asObjectable();
 
             if (ItemStatus.ADDED == status) {
                 Collection<AssignmentType> assignmentTypes = task.getAssignment()
@@ -108,6 +113,10 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
             }
         }
         return propertyWrapper;
+    }
+
+    private PrismObject<?> getParent(WrapperContext ctx) {
+        return ctx.getObject();
     }
 
     private String normalizeHandler(String handler) {

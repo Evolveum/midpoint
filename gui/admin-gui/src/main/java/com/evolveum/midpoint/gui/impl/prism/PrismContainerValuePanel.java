@@ -577,6 +577,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
             @Override
             public boolean isVisible() {
+                if (getModelObject() instanceof PrismObjectValueWrapper) {
+                    return false;
+                }
                 return shouldBeButtonsShown();
             }
         });
