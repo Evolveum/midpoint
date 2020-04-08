@@ -466,12 +466,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                     }
              };
                 gdprAssignmentPanel.setOutputMarkupId(true);
-                SwitchAssignmentTypePanel.this.addOrReplace(gdprAssignmentPanel);
-                target.add(SwitchAssignmentTypePanel.this);
+                switchAssignmentTypePerformed(target, gdprAssignmentPanel, ID_CONSENT_ASSIGNMENTS);
             }
         };
         consentsButton.setOutputMarkupId(true);
-        consentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_SHOW_INDIRECT_ASSIGNMENTS)));
+        consentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_CONSENT_ASSIGNMENTS)));
         consentsButton.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {

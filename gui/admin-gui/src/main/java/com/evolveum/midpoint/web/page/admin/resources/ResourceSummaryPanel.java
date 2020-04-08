@@ -42,7 +42,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
                     setLabel(getString("ResourceSummaryPanel.UNKNOWN"));
                     return;
                 }
-                setLabel(getString(ResourceSummaryPanel.this.getString(availability)));
+                setLabel(ResourceSummaryPanel.this.getString(availability));
                 switch(availability) {
                     case UP:
                         setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
