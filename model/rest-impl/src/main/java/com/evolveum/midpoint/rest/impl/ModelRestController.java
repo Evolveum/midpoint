@@ -24,6 +24,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @RestController
@@ -44,7 +45,7 @@ public class ModelRestController {
                     RestServiceUtil.APPLICATION_YAML
             })
     public ResponseEntity<?> getSelf(HttpServletRequest request) {
-        //@Context MessageContext mc){ TODO: do we need it in init request in new erea?
+        //@Context MessageContext mc){ TODO: do we need it in init request in new era?
         LOGGER.debug("model rest service for get operation start");
         // uses experimental version, does not require CXF/JAX-RS
         Task task = RestServiceUtil.initRequest(taskManager);
@@ -52,7 +53,7 @@ public class ModelRestController {
         ResponseEntity<?> response;
 
         try {
-            UserType loggedInUser = SecurityUtil.getPrincipal().getUser();
+            FocusType loggedInUser = SecurityUtil.getPrincipal().getFocus();
             System.out.println("loggedInUser = " + loggedInUser);
             PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
             response = createResponse(HttpStatus.OK, user, parentResult, true);
@@ -67,7 +68,8 @@ public class ModelRestController {
         return response;
     }
 
-    public static <T> ResponseEntity<?> createResponse(HttpStatus statusCode, T body, OperationResult result, boolean sendOriginObjectIfNotSuccess) {
+    public static <T> ResponseEntity<?> createResponse(
+            HttpStatus statusCode, T body, OperationResult result, boolean sendOriginObjectIfNotSuccess) {
         result.computeStatusIfUnknown();
 
 //        if (result.isPartialError()) {
