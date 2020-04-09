@@ -12,7 +12,7 @@
     <parent>
         <artifactId>icf-connectors</artifactId>
         <groupId>com.evolveum.icf</groupId>
-        <version>4.1-SNAPSHOT</version>
+        <version>4.1</version>
     </parent>
 
     <artifactId>dummy-connector</artifactId>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.1</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
